@@ -1,7 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [1.0.0-draft.2] - 2026-02-18
+## [1.0.0-draft.4] - 2026-02-18
+### Added
+- OSIRIS-PRODUCER-SDK chapter 3 section (3.1-3.2)
+- Table of content
+
+
+## [1.0.0-draft.3] - 2026-02-18
 ### Added
 - OSIRIS-PRODUCER-SDK chapter 2 section (2.1-2.5)
 

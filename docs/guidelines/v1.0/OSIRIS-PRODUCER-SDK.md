@@ -16,7 +16,30 @@
 | Repository | [github.com/osirisjson/osiris-producers](https://github.com/osirisjson/osiris-producers) |
 
 # Table of Content
-<!-- work in progress -->
+- [Table of Content](#table-of-content)
+- [1 SDK composition](#1-sdk-composition)
+  - [1.1 Base contracts](#11-base-contracts)
+    - [1.1.1 The producer interface](#111-the-producer-interface)
+    - [1.1.2 The context struct](#112-the-context-struct)
+  - [1.2 Shared context (logging, environment, configuration)](#12-shared-context-logging-environment-configuration)
+  - [1.3 Relationship to @osirisjson/core (dev-dependency only constraint)](#13-relationship-to-osirisjsoncore-dev-dependency-only-constraint)
+- [2 Developer utilities](#2-developer-utilities)
+  - [2.1 Identity hashing and naming helpers](#21-identity-hashing-and-naming-helpers)
+    - [2.1.1 Collision handling](#211-collision-handling)
+    - [2.1.2 Connection ID helper](#212-connection-id-helper)
+    - [2.1.3 Group ID helper](#213-group-id-helper)
+    - [2.1.4 Hint derivation](#214-hint-derivation)
+  - [2.2 Resource factory patterns](#22-resource-factory-patterns)
+  - [2.3 Document builder (metadata + topology assembly)](#23-document-builder-metadata--topology-assembly)
+  - [2.4 Relationship builders (connections and groups)](#24-relationship-builders-connections-and-groups)
+  - [2.5 Normalization utilities](#25-normalization-utilities)
+    - [2.5.1 Timestamp normalization](#251-timestamp-normalization)
+    - [2.5.2 Token normalization](#252-token-normalization)
+    - [2.5.3 Common network normalizers](#253-common-network-normalizers)
+- [3 Test harness](#3-test-harness)
+  - [3.1 Mocking OSIRIS environments](#31-mocking-osiris-environments)
+  - [3.2 Snapshot testing utilities for producers](#32-snapshot-testing-utilities-for-producers)
+
 
 # 1 SDK composition
 The Go producer SDK (`pkg/sdk` within `osiris-producers`) provides foundational types, helpers and conventions that every first-party producer builds on Go structs to generate OSIRIS documents and a test harness.
@@ -348,3 +371,60 @@ func NormalizeIP(s string) string
 
 > [!NOTE]
 > These helpers normalize representation only. If a value is ambiguous or unavailable, producers **MUST** omit the optional field rather than guessing.
+
+---
+
+# 3 Test harness
+The SDK ships a test harness package (`pkg/testharness`) that standardizes how producers are tested. It implements the golden-file workflow defined in [OSIRIS-ADG-PR-1.0](https://github.com/osirisjson/osiris/tree/main/docs/guidelines/v1.0/OSIRIS-PRODUCER-GUIDELINES.md) chapter 4.
+
+---
+
+## 3.1 Mocking OSIRIS environments
+Producers query live vendor APIs at runtime, but tests must be deterministic and offline. The SDK provides utilities to construct a fully controlled `Context` for testing.
+
+```go
+func NewTestContext(t *testing.T, opts ...TestOption) *Context
+```
+
+`NewTestContext` returns a `Context` with:
+
+| Component | Test behavior |
+|---|---|
+| `Clock` | Fixed to `2026-01-15T10:00:00Z` (deterministic `metadata.timestamp`) |
+| `Logger` | Captures log entries for assertion; writes to `t.Log` for visibility |
+| `Config` | Minimal defaults; tests override via `WithConfig(cfg)` option |
+
+**Vendor API mocking guidance:**
+The SDK does **not** provide HTTP/SSH mock servers. Producers mock vendor responses at the transport boundary using standard Go patterns (`httptest.NewServer`, interface stubs, recorded fixtures). Test fixtures (mocked vendor API responses) live in the producer's `testdata/` directory alongside golden files; the SDK provides `LoadFixture(t, path)` to read them. Producers **SHOULD** record real vendor responses once (sanitized), commit them as fixtures and replay them in tests.
+
+---
+
+## 3.2 Snapshot testing utilities for producers
+Snapshot (golden-file) testing is the primary regression defense. The SDK provides helpers that implement the normative comparison strategy from [OSIRIS-ADG-PR-1.0](https://github.com/osirisjson/osiris/tree/main/docs/guidelines/v1.0/OSIRIS-PRODUCER-GUIDELINES.md) section 4.2.4.
+
+```go
+// AssertGolden compares the document against a golden file. On mismatch it fails the test with a unified diff.
+// When the OSIRIS_UPDATE_GOLDEN env var is set, it overwrites the golden file instead.
+func AssertGolden(t *testing.T, got *Document, goldenPath string)
+```
+
+**Normalization before comparison:** Arrays are sorted by `id`, JSON uses 2-space indentation with a trailing newline and floating-point values use consistent formatting to avoid platform-dependent precision drift.
+
+**Golden file update workflow:**
+Run tests normally to see diffs. If the diff is intentional, run `OSIRIS_UPDATE_GOLDEN=1 go test ./...` to overwrite golden files, then review and commit with a change reason.
+
+**CI canonical validation:**
+Golden files are validated in CI via `@osirisjson/cli` (which uses the canonical engine `@osirisjson/core`) as an external step. The SDK ships `scripts/validate-golden.sh` that invokes the canonical CLI:
+
+```bash
+npx @osirisjson/cli validate --profile strict testdata/**/golden.json
+```
+
+This ensures every golden file passes all three validation levels through the canonical engine without embedding `@osirisjson/core` as a Go dependency.
+
+**Determinism check:**
+The test harness provides `AssertDeterministic` which runs `Collect` twice with the same mocked input and asserts byte-identical JSON output. This catches non-deterministic ID generation, unstable map iteration, or inconsistent timestamp handling.
+
+```go
+// AssertDeterministic runs the producer twice and asserts identical output.
+func AssertDeterministic(t *testing.T, p Producer, ctx *Context)
