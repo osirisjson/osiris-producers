@@ -22,7 +22,7 @@ set -euo pipefail
 PROFILE="strict"
 PATTERN=""
 
-# Parse arguments.
+# Parse the arguments
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --profile)
@@ -40,13 +40,13 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Check for npx.
+# Check for npx
 if ! command -v npx &>/dev/null; then
   echo "error: npx not found. Install Node.js to use this script." >&2
   exit 2
 fi
 
-# Find golden files.
+# Find golden files
 SEARCH_DIR="${PATTERN:-.}"
 GOLDEN_FILES=$(find "$SEARCH_DIR" -name 'golden.json' -type f 2>/dev/null | sort)
 
