@@ -1,13 +1,13 @@
 # CODE_OF_CONDUCT.md
 
 ## Our commitment
-We are committed to building a community that is welcoming, inclusive and intentionally safe for everyone regardless of experience level, identity, background, or viewpoints. **We value collaboration, clarity, and respect.**
+We are committed to building a community that is welcoming, inclusive and intentionally safe for everyone regardless of experience level, identity, background, or viewpoints. **We value collaboration, clarity and respect.**
 
 ### Diversity, equity & inclusion
 We are committed to an inclusive, intentionally safe community. We respect and encourage participation from people of all backgrounds and identities. This includes (but is not limited to):
 
 - LGBTQIA+ people
-- People of all races, ethnicities, nationalities, and cultures
+- People of all races, ethnicities, nationalities and cultures
 - People with disabilities and neurodivergent people
 
 Harassment, discrimination and hate **have zero place** in OSIRIS JSON community. **We enforce this Code of Conduct and prioritize community safety.**
@@ -22,7 +22,7 @@ Please:
 - Be respectful and considerate in words and actions
 - Assume good intent and seek clarification before escalating
 - Give constructive feedback; focus on the work, not the person
-- Be mindful of tone-text is easy to misread specially when conversation involve different races, ethnicities, nationalities, and cultures
+- Be mindful of tone-text is easy to misread specially when conversation involve different races, ethnicities, nationalities and cultures
 - Respect differing viewpoints and lived experiences
 - Follow project guidelines (including [CONTRIBUTING](https://github.com/osirisjson/osiris/tree/main/CONTRIBUTING.md))
 
@@ -70,7 +70,7 @@ If you experience or witness unacceptable behavior, please report it privately t
 - Preferred: open a private report to maintainers (e.g. via GitHub)  
 - Optional: email the maintainers at **community@osirisjson.org**
 
-Reports are handled as confidentially as possible, and we will take action when needed.
+Reports are handled as confidentially as possible and we will take action when needed.
 
 ## Attribution
 This Code of Conduct is inspired by the Contributor Covenant (commonly used in open source communities):  

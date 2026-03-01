@@ -108,5 +108,5 @@ By contributing, you agree that your contributions are licensed under the projec
 ## GSoC (or similar programs)
 If you’re contributing with an application in mind:
 - Focus on **one meaningful area**
-- Show that you can **communicate clearly**, **ship small improvements**, and **iterate on feedback**
+- Show that you can **communicate clearly**, **ship small improvements** and **iterate on feedback**
 - A short design doc or proposal discussion beats many low-impact PRs
