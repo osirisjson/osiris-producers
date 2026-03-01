@@ -12,6 +12,7 @@
 //
 // [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/developers/producers/welcome
 // [osiris.schema.json]: https://osirisjson.org/schema/v1.0/osiris.schema.json
+// [OSIRIS-ADG-PR-SDK-1.0]: https://github.com/osirisjson/osiris-producers/blob/main/docs/guidelines/v1.0/OSIRIS-PRODUCER-SDK.md
 
 package sdk
 
