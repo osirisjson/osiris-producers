@@ -1,59 +1,57 @@
-/* 
-main.go - Entry point for the osirisjson-producer CLI dispatcher.
-Routes vendor subcommands to registered producer backends and handles
-	global flags (--help, --version, --output, --profile, --safe-failure-mode).
+/*
+main.go - Core dispatcher for OSIRIS JSON producer binaries.
 
-Usage:
-	osirisjson-producer <vendor> [flags]
-	osirisjson-producer aws --help
-	osirisjson-producer cisco --help
-	osirisjson-producer cisco apic --output topology.json
+Discovers and executes vendor-specific producer binaries on $PATH using the
+naming convention osirisjson-producer-<vendor>. This is the unified entry point:
+
+	osirisjson-producer cisco apic -h 10.0.0.1 -u admin
+	osirisjson-producer azure --subscription prod
+	osirisjson-producer --help
+
+The dispatcher itself has no vendor dependencies it is a thin routing layer.
+Each vendor binary (e.g. osirisjson-producer-cisco) is self-contained and can
+also be invoked directly.
 
 Exit codes:
+
 	0 - producer completed successfully
-	1 - producer encountered a validation or runtime error
-	2 - operational error (unknown vendor, missing flags, etc.)
+	1 - producer encountered a validation or runtime error (passed through from vendor binary)
+	2 - operational error (unknown vendor, binary not found, etc.)
 */
 package main
 
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"sort"
 	"strings"
+	"syscall"
 )
 
 // version is set at build time via -ldflags.
 var version = "dev"
 
-// vendorEntry describes a registered vendor backend.
-type vendorEntry struct {
+// knownVendor describes a vendor whose producer binary may be installed.
+// This is a string table only, no code is imported.
+type knownVendor struct {
 	name string
 	description string
-	// run will be wired when producers are implemented.
-	// Signature: func(args []string) error
+	installPkg string // Go install path (empty = not yet available).
 }
 
-// registry holds all registered vendor producers.
-// OSIRIS JSON Producers register themselves in init() via registerVendor.
-var registry = map[string]vendorEntry{}
-
-// registerVendor adds a vendor backend to the dispatcher registry.
-func registerVendor(name, description string) {
-	registry[name] = vendorEntry{name: name, description: description}
-}
-
-func init() {
-	// Vendor registrations. Each OSIRIS JSON producer package will call registerVendor
-	// in its own init() once implemented. For now, I'm declaring the planned vendors for 2026.
-	registerVendor("aws", "AWS cloud OSIRIS JSON producer")
-	registerVendor("azure", "Microsoft Azure cloud OSIRIS JSON producer")
-	registerVendor("gcp", "Google Cloud Platform OSIRIS JSON producer")
-	registerVendor("cisco", "Cisco OSIRIS JSON producer (APIC, IOS-XR, NX-OS)")
-	registerVendor("arista", "Arista EOS OSIRIS JSON producer")
-	registerVendor("nokia", "Nokia SR OS OSIRIS JSON producer")
-	registerVendor("leaseweb", "Leaseweb bare-metal OSIRIS JSON producer")
-	registerVendor("digitalocean", "DigitalOcean cloud OSIRIS JSON producer")
+// knownVendors lists all planned OSIRIS producer vendors.
+// The core dispatcher uses this for --help output and install hints.
+// Vendors not in this list are still discovered on $PATH.
+var knownVendors = []knownVendor{
+	{"aws", "[Under development] AWS cloud OSIRIS JSON producer", ""},
+	{"azure", "[Under development] Microsoft Azure cloud OSIRIS JSON producer", ""},
+	{"gcp", "[Under development] Google Cloud Platform OSIRIS JSON producer", ""},
+	{"arista", "[Under development] Arista EOS OSIRIS JSON producer", ""},
+	{"cisco", "Cisco OSIRIS JSON producer (APIC, IOS-XR, NX-OS)", "go.osirisjson.org/producers/cmd/osirisjson-producer-cisco"},
+	{"nokia", "[Under development] Nokia SR OS OSIRIS JSON producer", ""},
+	{"digitalocean", "[Under development] DigitalOcean cloud OSIRIS JSON producer", ""},
+	{"leaseweb", "[Under development] Leaseweb bare-metal OSIRIS JSON producer", ""},
 }
 
 func main() {
@@ -74,32 +72,54 @@ func main() {
 	}
 
 	vendor := args[0]
-	entry, ok := registry[vendor]
-	if !ok {
-		fmt.Fprintf(os.Stderr, "error: unknown vendor %q\n\n", vendor)
+	vendorArgs := args[1:]
+
+	// Look up the vendor binary on $PATH.
+	binaryName := "osirisjson-producer-" + vendor
+	binaryPath, err := exec.LookPath(binaryName)
+	if err != nil {
+		// Binary not found - check if it's a known vendor with install instructions.
+		if kv := findKnownVendor(vendor); kv != nil {
+			fmt.Fprintf(os.Stderr, "error: vendor %q producer is not installed\n\n", vendor)
+			fmt.Fprintf(os.Stderr, "  %s\n\n", kv.description)
+			if kv.installPkg != "" {
+				fmt.Fprintf(os.Stderr, "Install with:\n")
+				fmt.Fprintf(os.Stderr, "  go install %s@latest\n\n", kv.installPkg)
+			} else {
+				fmt.Fprintf(os.Stderr, "Status: not yet available\n")
+				fmt.Fprintf(os.Stderr, "Follow the roadmap: https://osirisjson.org/en/docs/roadmap/01-2026\n\n")
+			}
+		} else {
+			fmt.Fprintf(os.Stderr, "error: unknown vendor %q and no %q binary found on $PATH\n\n", vendor, binaryName)
+		}
 		fmt.Fprintf(os.Stderr, "Available vendors:\n")
 		printVendors(os.Stderr)
 		fmt.Fprintf(os.Stderr, "\nRun 'osirisjson-producer --help' for usage.\n")
 		os.Exit(2)
 	}
 
-	// Vendor-level help.
-	vendorArgs := args[1:]
-	if len(vendorArgs) > 0 && (vendorArgs[0] == "--help" || vendorArgs[0] == "-h") {
-		fmt.Printf("osirisjson-producer %s - %s\n\n", entry.name, entry.description)
-		fmt.Printf("Usage:\n")
-		fmt.Printf("  osirisjson-producer %s [subcommand] [flags]\n\n", entry.name)
-		fmt.Printf("Status: not yet implemented\n")
-		os.Exit(0)
+	// Execute the vendor binary, replacing this process.
+	execArgs := append([]string{binaryName}, vendorArgs...)
+	if err := syscall.Exec(binaryPath, execArgs, os.Environ()); err != nil {
+		fmt.Fprintf(os.Stderr, "error: failed to exec %s: %v\n", binaryPath, err)
+		os.Exit(2)
 	}
+}
 
-	// TODO: dispatch to the vendor's run function once producers are implemented.
-	fmt.Fprintf(os.Stderr, "error: vendor %q is registered but not yet implemented\n", vendor)
-	os.Exit(2)
+func findKnownVendor(name string) *knownVendor {
+	for i := range knownVendors {
+		if knownVendors[i].name == name {
+			return &knownVendors[i]
+		}
+	}
+	return nil
 }
 
 func printUsage() {
 	fmt.Print(`osirisjson-producer - OSIRIS JSON Producer CLI Dispatcher
+
+Routes commands to vendor-specific producer binaries (osirisjson-producer-<vendor>)
+discovered on $PATH. Each vendor binary can also be invoked directly.
 
 Usage:
   osirisjson-producer <vendor> [subcommand] [flags]
@@ -115,20 +135,40 @@ Available vendors:
 	printVendors(os.Stdout)
 	fmt.Print(`
 Examples:
-  osirisjson-producer cisco apic --output topology.json
-  osirisjson-producer aws --region us-east-1
-  osirisjson-producer arista --ssh --host spine-01.lab
+  osirisjson-producer cisco apic -h 10.0.0.1 -u admin -p secret
+  osirisjson-producer cisco template --generate apic
+  osirisjson-producer aws --region us-east-1 --profile prod
+
+Install a vendor producer:
+  go install go.osirisjson.org/producers/cmd/osirisjson-producer-cisco@latest
 
 The producer emits a valid OSIRIS JSON document to stdout.
 Operational diagnostics are written to stderr.
 
-Documentation reference: https://osirisjson.org/en/docs/getting-started/overview
+Vendors marked [Under development] are not yet available.
+Follow the roadmap: https://osirisjson.org/en/docs/roadmap/01-2026
+
+Documentation: https://osirisjson.org/en/docs/getting-started/overview
 `)
 }
 
 func printVendors(w *os.File) {
-	names := make([]string, 0, len(registry))
-	for name := range registry {
+	// Merge known vendors with any additional vendor binaries found on $PATH.
+	vendors := make(map[string]string) // name -> description
+	for _, kv := range knownVendors {
+		vendors[kv.name] = kv.description
+	}
+
+	// Discover unknown vendor binaries on $PATH.
+	discovered := discoverVendorBinaries()
+	for _, name := range discovered {
+		if _, known := vendors[name]; !known {
+			vendors[name] = "(discovered on $PATH)"
+		}
+	}
+
+	names := make([]string, 0, len(vendors))
+	for name := range vendors {
 		names = append(names, name)
 	}
 	sort.Strings(names)
@@ -141,8 +181,43 @@ func printVendors(w *os.File) {
 	}
 
 	for _, name := range names {
-		entry := registry[name]
+		desc := vendors[name]
 		padding := strings.Repeat(" ", maxLen-len(name)+2)
-		fmt.Fprintf(w, "  %s%s%s\n", name, padding, entry.description)
+
+		// Show install status.
+		installed := ""
+		binaryName := "osirisjson-producer-" + name
+		if _, err := exec.LookPath(binaryName); err == nil {
+			installed = " [installed]"
+		}
+
+		fmt.Fprintf(w, "  %s%s%s%s\n", name, padding, desc, installed)
 	}
+}
+
+// discoverVendorBinaries finds osirisjson-producer-* binaries on $PATH
+// and returns the vendor name suffixes.
+func discoverVendorBinaries() []string {
+	pathDirs := strings.Split(os.Getenv("PATH"), ":")
+	seen := map[string]bool{}
+	var vendors []string
+
+	for _, dir := range pathDirs {
+		entries, err := os.ReadDir(dir)
+		if err != nil {
+			continue
+		}
+		for _, entry := range entries {
+			name := entry.Name()
+			if strings.HasPrefix(name, "osirisjson-producer-") {
+				vendor := strings.TrimPrefix(name, "osirisjson-producer-")
+				if vendor != "" && !seen[vendor] {
+					seen[vendor] = true
+					vendors = append(vendors, vendor)
+				}
+			}
+		}
+	}
+
+	return vendors
 }
