@@ -4,7 +4,7 @@
 // For an introduction to OSIRIS JSON Producer for Cisco see:
 // "[OSIRIS-JSON-CISCO]."
 //
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/developers/producers/cisco/
+// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/cisco
 
 package shared
 
@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
@@ -207,7 +208,7 @@ func (s *stubProducer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		return nil, os.ErrNotExist
 	}
 	return &sdk.Document{
-		Schema: sdk.SchemaURI,
+		Schema:  sdk.SchemaURI,
 		Version: sdk.SpecVersion,
 		Metadata: sdk.Metadata{
 			Timestamp: "2026-01-15T10:00:00Z",
@@ -224,8 +225,8 @@ func stubFactories() FactoryRegistry {
 		return &stubProducer{fail: false}
 	}
 	return FactoryRegistry{
-		"apic": okFactory,
-		"nxos": okFactory,
+		"apic":  okFactory,
+		"nxos":  okFactory,
 		"iosxr": okFactory,
 	}
 }
@@ -239,8 +240,8 @@ func TestRunBatch(t *testing.T) {
 			{Host: "10.10.1.1", Hostname: "apic-01", Type: "apic", DC: "AMS-01", Floor: "F3", Room: "R301", Zone: "POD-A", Username: "admin", Password: "test"},
 			{Host: "10.10.1.10", Hostname: "nx-spine-01", Type: "nxos", DC: "AMS-01", Floor: "F3", Room: "R301", Zone: "POD-A", Username: "admin", Password: "test"},
 		},
-		OutputDir: outDir,
-		DetailLevel: "minimal",
+		OutputDir:       outDir,
+		DetailLevel:     "minimal",
 		SafeFailureMode: "fail-closed",
 	}
 
@@ -271,8 +272,8 @@ func TestRunBatchFlatOutput(t *testing.T) {
 			{Host: "10.0.0.1", Hostname: "spine-01", Type: "nxos", Username: "admin", Password: "test"},
 			{Host: "10.0.0.2", Hostname: "spine-02", Type: "nxos", Username: "admin", Password: "test"},
 		},
-		OutputDir: outDir,
-		DetailLevel: "minimal",
+		OutputDir:       outDir,
+		DetailLevel:     "minimal",
 		SafeFailureMode: "fail-closed",
 	}
 
@@ -298,8 +299,8 @@ func TestRunBatchUnknownType(t *testing.T) {
 		Targets: []TargetConfig{
 			{Host: "10.0.0.1", Hostname: "device-01", Type: "unknown"},
 		},
-		OutputDir: outDir,
-		DetailLevel: "minimal",
+		OutputDir:       outDir,
+		DetailLevel:     "minimal",
 		SafeFailureMode: "fail-closed",
 	}
 
@@ -322,8 +323,8 @@ func TestRunBatchAllFail(t *testing.T) {
 		Targets: []TargetConfig{
 			{Host: "10.0.0.1", Hostname: "spine-01", Type: "nxos"},
 		},
-		OutputDir: outDir,
-		DetailLevel: "minimal",
+		OutputDir:       outDir,
+		DetailLevel:     "minimal",
 		SafeFailureMode: "fail-closed",
 	}
 
@@ -349,8 +350,8 @@ func TestRunBatchPartialFailure(t *testing.T) {
 			{Host: "10.0.0.1", Hostname: "ok-device", Type: "nxos"},
 			{Host: "10.0.0.2", Hostname: "bad-device", Type: "nxos"},
 		},
-		OutputDir: outDir,
-		DetailLevel: "minimal",
+		OutputDir:       outDir,
+		DetailLevel:     "minimal",
 		SafeFailureMode: "fail-closed",
 	}
 
@@ -378,8 +379,8 @@ func TestRunBatchMixedTypes(t *testing.T) {
 			{Host: "10.0.0.2", Hostname: "nx-spine", Type: "nxos", DC: "DC1"},
 			{Host: "10.0.0.3", Hostname: "xr-pe", Type: "iosxr", DC: "DC1"},
 		},
-		OutputDir: outDir,
-		DetailLevel: "minimal",
+		OutputDir:       outDir,
+		DetailLevel:     "minimal",
 		SafeFailureMode: "fail-closed",
 	}
 

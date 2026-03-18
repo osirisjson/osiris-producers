@@ -6,7 +6,7 @@
 // For an introduction to OSIRIS JSON Producer for Cisco see:
 // "[OSIRIS-JSON-CISCO]."
 //
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/developers/producers/cisco/
+// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/cisco
 
 package shared
 
@@ -18,6 +18,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
@@ -55,7 +56,7 @@ func CSVTemplate(producerName string) string {
 # and apply to all targets in the batch.
 #
 # Output hierarchy: <output-dir>/DC/Floor/Room/Zone/Hostname.json
-# Empty location fields are skipped (e.g. no floor → DC/Room/Zone/Hostname.json).
+# Empty location fields are skipped (e.g. no floor -> DC/Room/Zone/Hostname.json).
 #
 # Example:
 dc,floor,room,zone,hostname,type,ip,port,owner,notes
@@ -67,16 +68,16 @@ AMS-01,F3,R302,POD-B,isp-pe-router,iosxr,172.16.0.1,,isp,ISP PE router - read-on
 
 // csvColumns defines the recognized column names and their indices.
 type csvColumns struct {
-	dc int
-	floor int
-	room int
-	zone int
+	dc       int
+	floor    int
+	room     int
+	zone     int
 	hostname int
-	typ int
-	ip int
-	port int
-	owner int
-	notes int
+	typ      int
+	ip       int
+	port     int
+	owner    int
+	notes    int
 }
 
 // resolveColumns maps header names to column indices.
@@ -176,7 +177,7 @@ func ParseCSV(path string) ([]TargetConfig, error) {
 	}
 
 	var targets []TargetConfig
-	lineNum := 1 // header was line 1
+	lineNum := 1 // header was line 1.
 	for {
 		record, err := r.Read()
 		if err == io.EOF {
@@ -189,7 +190,7 @@ func ParseCSV(path string) ([]TargetConfig, error) {
 
 		ip := field(record, col.ip)
 		if ip == "" {
-			continue // skip empty rows
+			continue // skip empty rows.
 		}
 
 		hostname := field(record, col.hostname)
@@ -224,16 +225,16 @@ func ParseCSV(path string) ([]TargetConfig, error) {
 		}
 
 		targets = append(targets, TargetConfig{
-			Host: host,
-			Port: port,
+			Host:     host,
+			Port:     port,
 			Hostname: hostname,
-			Type: typ,
-			DC: field(record, col.dc),
-			Floor: field(record, col.floor),
-			Room: field(record, col.room),
-			Zone: field(record, col.zone),
-			Owner: owner,
-			Notes: field(record, col.notes),
+			Type:     typ,
+			DC:       field(record, col.dc),
+			Floor:    field(record, col.floor),
+			Room:     field(record, col.room),
+			Zone:     field(record, col.zone),
+			Owner:    owner,
+			Notes:    field(record, col.notes),
 		})
 	}
 
@@ -284,7 +285,7 @@ func RunBatch(cfg *RunConfig, factories FactoryRegistry, logger *slog.Logger) er
 
 		producer := factory(target, cfg)
 		ctx := sdk.NewContext(&sdk.ProducerConfig{
-			DetailLevel: cfg.DetailLevel,
+			DetailLevel:     cfg.DetailLevel,
 			SafeFailureMode: cfg.SafeFailureMode,
 		})
 		ctx.Logger = log

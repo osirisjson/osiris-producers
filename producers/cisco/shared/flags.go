@@ -5,7 +5,7 @@
 // For an introduction to OSIRIS JSON Producer for Cisco see:
 // "[OSIRIS-JSON-CISCO]."
 //
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/developers/producers/cisco/
+// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/cisco
 
 package shared
 
@@ -26,13 +26,13 @@ func ParseFlags(producerName string, args []string, promptPassword func(string) 
 	fs := flag.NewFlagSet("osirisjson-producer cisco "+producerName, flag.ContinueOnError)
 
 	var (
-		host string
+		host     string
 		username string
 		password string
-		port int
-		source string
-		output string
-		detail string
+		port     int
+		source   string
+		output   string
+		detail   string
 		safeFail string
 		insecure bool
 	)
@@ -77,9 +77,9 @@ func ParseFlags(producerName string, args []string, promptPassword func(string) 
 	}
 
 	cfg := &RunConfig{
-		DetailLevel: detail,
+		DetailLevel:     detail,
 		SafeFailureMode: safeFail,
-		InsecureTLS: insecure,
+		InsecureTLS:     insecure,
 	}
 
 	if source != "" {
@@ -140,13 +140,13 @@ func ParseFlags(producerName string, args []string, promptPassword func(string) 
 	}
 
 	cfg.Targets = []TargetConfig{{
-		Host: h,
-		Port: p,
+		Host:     h,
+		Port:     p,
 		Hostname: h,
-		Type: producerName,
+		Type:     producerName,
 		Username: username,
 		Password: password,
-		Owner: OwnerSelf,
+		Owner:    OwnerSelf,
 	}}
 
 	return cfg, nil

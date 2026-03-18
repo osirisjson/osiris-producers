@@ -4,7 +4,7 @@
 // For an introduction to OSIRIS JSON Producer for Cisco see:
 // "[OSIRIS-JSON-CISCO]."
 //
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/developers/producers/cisco/
+// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/cisco
 
 package shared
 
@@ -14,10 +14,10 @@ import (
 
 func TestParseHostPort(t *testing.T) {
 	tests := []struct {
-		input string
+		input    string
 		wantHost string
 		wantPort int
-		wantErr bool
+		wantErr  bool
 	}{
 		// Plain hostname.
 		{"switch-01", "switch-01", 0, false},
@@ -63,34 +63,34 @@ func TestParseHostPort(t *testing.T) {
 
 func TestResolveAddr(t *testing.T) {
 	tests := []struct {
-		name string
-		target TargetConfig
+		name        string
+		target      TargetConfig
 		defaultPort int
-		want string
+		want        string
 	}{
 		{
-			name: "ipv4 default port",
-			target: TargetConfig{Host: "10.0.0.1"},
+			name:        "ipv4 default port",
+			target:      TargetConfig{Host: "10.0.0.1"},
 			defaultPort: 443,
-			want: "10.0.0.1:443",
+			want:        "10.0.0.1:443",
 		},
 		{
-			name: "ipv4 explicit port",
-			target: TargetConfig{Host: "10.0.0.1", Port: 8443},
+			name:        "ipv4 explicit port",
+			target:      TargetConfig{Host: "10.0.0.1", Port: 8443},
 			defaultPort: 443,
-			want: "10.0.0.1:8443",
+			want:        "10.0.0.1:8443",
 		},
 		{
-			name: "ipv6 default port",
-			target: TargetConfig{Host: "::1"},
+			name:        "ipv6 default port",
+			target:      TargetConfig{Host: "::1"},
 			defaultPort: 443,
-			want: "[::1]:443",
+			want:        "[::1]:443",
 		},
 		{
-			name: "hostname default port",
-			target: TargetConfig{Host: "apic.lab"},
+			name:        "hostname default port",
+			target:      TargetConfig{Host: "apic.lab"},
 			defaultPort: 443,
-			want: "apic.lab:443",
+			want:        "apic.lab:443",
 		},
 	}
 

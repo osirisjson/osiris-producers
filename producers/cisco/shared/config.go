@@ -5,7 +5,7 @@
 // For an introduction to OSIRIS JSON Producer for Cisco see:
 // "[OSIRIS-JSON-CISCO]."
 //
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/developers/producers/cisco/
+// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/cisco
 
 package shared
 
@@ -29,33 +29,33 @@ var ValidOwners = []string{OwnerSelf, OwnerISP, OwnerColo}
 // TargetConfig describes a single device to collect from.
 type TargetConfig struct {
 	// Connection.
-	Host string // IP or FQDN
-	Port int    // 0 = use producer default
+	Host     string // IP or FQDN.
+	Port     int    // 0 = use producer default.
 	Username string
 	Password string
 
 	// Identity.
-	Hostname string // device label (from CSV or derived from Host)
-	Type string // producer type: "apic", "nxos", "iosxr"
+	Hostname string // device label (from CSV or derived from Host).
+	Type     string // producer type: "apic", "nxos", "iosxr".
 
 	// Location hierarchy (batch CSV only, used for output path).
-	DC string // datacenter name
-	Floor string // floor identifier
-	Room string // room identifier
-	Zone string // zone/pod identifier
+	DC    string // datacenter name.
+	Floor string // floor identifier.
+	Room  string // room identifier.
+	Zone  string // zone/pod identifier.
 
 	// Human-only metadata (not used by producer or OSIRIS document).
-	Owner string // "self", "isp", "colo"
-	Notes string // free-text operator notes
+	Owner string // "self", "isp", "colo".
+	Notes string // free-text operator notes.
 }
 
 // RunConfig carries runtime settings resolved from flags and CSV.
 type RunConfig struct {
-	Targets []TargetConfig
-	OutputDir string // batch only; empty = stdout single mode
-	DetailLevel string // "minimal" | "detailed"
-	SafeFailureMode string // "fail-closed" | "log-and-redact" | "off"
-	InsecureTLS bool   // --insecure: skip TLS verify
+	Targets         []TargetConfig
+	OutputDir       string // batch only; empty = stdout single mode.
+	DetailLevel     string // "minimal" | "detailed".
+	SafeFailureMode string // "fail-closed" | "log-and-redact" | "off".
+	InsecureTLS     bool   // --insecure: skip TLS verify.
 }
 
 // IsBatch returns true when the run targets multiple devices.
@@ -63,9 +63,9 @@ func (c *RunConfig) IsBatch() bool {
 	return len(c.Targets) > 1
 }
 
-// OutputPath returns the hierarchical output path for a target within the
+// OutputPath returns the hierarchical output path for a target within the.
 // output directory: DC/Floor/Room/Zone/Hostname.json.
-// Empty location segments are omitted. If all segments are empty, returns
+// Empty location segments are omitted. If all segments are empty, returns.
 // just Hostname.json.
 func OutputPath(baseDir string, t TargetConfig) string {
 	parts := []string{baseDir}
@@ -108,7 +108,7 @@ func ParseHostPort(addr string) (host string, port int, err error) {
 	return addr, 0, nil
 }
 
-// ResolveAddr returns a host:port string using the given default port
+// ResolveAddr returns a host:port string using the given default port.
 // when the target has no explicit port.
 func ResolveAddr(t TargetConfig, defaultPort int) string {
 	p := t.Port

@@ -12,7 +12,7 @@
 // For an introduction to OSIRIS JSON Producer for Cisco see:
 // "[OSIRIS-JSON-CISCO]."
 //
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/developers/producers/cisco/
+// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/cisco
 
 package cisco
 
@@ -20,19 +20,21 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+
 	"go.osirisjson.org/producers/pkg/sdk"
+	"go.osirisjson.org/producers/producers/cisco/apic"
 	"go.osirisjson.org/producers/producers/cisco/shared"
 )
 
 // subProducer describes a Cisco sub-producer.
 type subProducer struct {
-	name string
+	name        string
 	description string
-	factory shared.ProducerFactory // nil until the producer is implemented.
+	factory     shared.ProducerFactory // nil until the producer is implemented.
 }
 
 var subProducers = []subProducer{
-	{"apic", "Cisco ACI/APIC fabric topology", nil},
+	{"apic", "Cisco ACI/APIC fabric topology", apic.NewFactory()},
 	{"nxos", "Cisco NX-OS device inventory", nil},
 	{"iosxr", "Cisco IOS-XR device inventory", nil},
 }
