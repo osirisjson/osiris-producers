@@ -3,7 +3,7 @@
 // For an introduction to OSIRIS JSON Producer Development Guidelines see:
 // "[OSIRIS-PRODUCER-GUIDELINES]."
 //
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/developers/producers/welcome
+// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/producers/getting-started
 
 package sdk
 
@@ -19,7 +19,7 @@ func TestMarshalDocumentFormat(t *testing.T) {
 		Metadata: Metadata{
 			Timestamp: "2026-01-15T10:00:00Z",
 			Generator: Generator{
-				Name: "test-producer",
+				Name:    "test-producer",
 				Version: "0.1.0",
 			},
 		},
@@ -53,7 +53,7 @@ func TestMarshalDocumentFormat(t *testing.T) {
 
 func TestMarshalDocumentDeterministic(t *testing.T) {
 	doc := &Document{
-		Schema: SchemaURI,
+		Schema:  SchemaURI,
 		Version: SpecVersion,
 		Metadata: Metadata{
 			Timestamp: "2026-01-15T10:00:00Z",

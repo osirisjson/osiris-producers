@@ -6,7 +6,7 @@
 // For an introduction to OSIRIS JSON Producer Development Guidelines see:
 // "[OSIRIS-PRODUCER-GUIDELINES]."
 //
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/developers/producers/welcome
+// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/producers/getting-started
 // [osiris.schema.json]: https://osirisjson.org/schema/v1.0/osiris.schema.json
 
 package sdk
@@ -41,18 +41,18 @@ var (
 
 // Valid status values for resources and connections.
 var validStatuses = map[string]bool{
-	"active": true,
+	"active":   true,
 	"inactive": true,
 	"degraded": true,
-	"retired": true,
-	"unknown": true,
+	"retired":  true,
+	"unknown":  true,
 }
 
 // Valid direction values for connections.
 var validDirections = map[string]bool{
 	"bidirectional": true,
-	"forward": true,
-	"reverse": true,
+	"forward":       true,
+	"reverse":       true,
 }
 
 // ValidateResourceType checks that a resource type matches the schema pattern.

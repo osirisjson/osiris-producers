@@ -6,7 +6,7 @@
 // For an introduction to OSIRIS JSON Producer Development Guidelines see:
 // "[OSIRIS-PRODUCER-GUIDELINES]."
 //
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/developers/producers/welcome
+// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/producers/getting-started
 
 package sdk
 
@@ -31,8 +31,8 @@ func NewResource(id, resourceType string, provider Provider) (Resource, error) {
 		return Resource{}, fmt.Errorf("resource %q: %w", id, err)
 	}
 	return Resource{
-		ID: id,
-		Type: resourceType,
+		ID:       id,
+		Type:     resourceType,
 		Provider: provider,
 	}, nil
 }
@@ -56,7 +56,7 @@ func NewCustomProvider(namespace string) (Provider, error) {
 		return Provider{}, err
 	}
 	return Provider{
-		Name: "custom",
+		Name:      "custom",
 		Namespace: namespace,
 	}, nil
 }
@@ -78,10 +78,10 @@ func NewConnection(id, connType, source, target string) (Connection, error) {
 		return Connection{}, err
 	}
 	return Connection{
-		ID: id,
-		Type: connType,
-		Source: source,
-		Target: target,
+		ID:        id,
+		Type:      connType,
+		Source:    source,
+		Target:    target,
 		Direction: "bidirectional",
 	}, nil
 }
@@ -96,7 +96,7 @@ func NewGroup(id, groupType string) (Group, error) {
 		return Group{}, err
 	}
 	return Group{
-		ID: id,
+		ID:   id,
 		Type: groupType,
 	}, nil
 }

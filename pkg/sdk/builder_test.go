@@ -6,7 +6,7 @@
 // For an introduction to OSIRIS JSON Producer Development Guidelines see:
 // "[OSIRIS-PRODUCER-GUIDELINES]."
 //
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/developers/producers/welcome
+// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/producers/getting-started
 
 package sdk
 
@@ -479,7 +479,7 @@ func TestBuildLogAndRedactAllowsSecrets(t *testing.T) {
 func TestBuildOffModeSkipsScanning(t *testing.T) {
 	ctx := &Context{
 		Config: &ProducerConfig{SafeFailureMode: Off},
-		Clock: fixedClock,
+		Clock:  fixedClock,
 	}
 	b := NewDocumentBuilder(ctx).
 		WithGenerator("test-producer", "0.1.0")
@@ -502,7 +502,7 @@ func TestBuildCleanDocumentPassesScanning(t *testing.T) {
 
 	r := mustResource("r1", "compute.vm", mustProvider("aws"))
 	r.Properties = map[string]any{
-		"hostname": "web-01",
+		"hostname":  "web-01",
 		"memory_gb": 64,
 	}
 	b.AddResource(r)

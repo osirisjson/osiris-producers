@@ -7,7 +7,7 @@
 // "[OSIRIS-PRODUCER-GUIDELINES]."
 //
 // [RFC3339]: https://datatracker.ietf.org/doc/html/rfc3339
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/developers/producers/welcome
+// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/producers/getting-started
 
 package sdk
 
@@ -27,10 +27,10 @@ func NormalizeRFC3339UTC(t time.Time) string {
 
 /*
 NormalizeToken returns a stable token form:
-	- trim surrounding whitespace
-	- lowercase
-	- collapse internal whitespace to single "-"
-	- remove leading/trailing "-"
+  - trim surrounding whitespace
+  - lowercase
+  - collapse internal whitespace to single "-"
+  - remove leading/trailing "-"
 */
 func NormalizeToken(s string) string {
 	s = strings.TrimSpace(s)

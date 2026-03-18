@@ -3,7 +3,7 @@
 // For an introduction to OSIRIS JSON Producer Development Guidelines see:
 // "[OSIRIS-PRODUCER-GUIDELINES]."
 //
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/developers/producers/welcome
+// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/producers/getting-started
 
 package sdk
 
@@ -34,7 +34,7 @@ func TestNewContextDefaults(t *testing.T) {
 
 func TestNewContextWithConfig(t *testing.T) {
 	cfg := &ProducerConfig{
-		OutputPath: "/tmp/out.json",
+		OutputPath:      "/tmp/out.json",
 		SafeFailureMode: LogAndRedact,
 	}
 	ctx := NewContext(cfg)

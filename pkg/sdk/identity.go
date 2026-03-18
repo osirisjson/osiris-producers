@@ -5,7 +5,7 @@
 // For an introduction to OSIRIS JSON Producer Development Guidelines see:
 // "[OSIRIS-PRODUCER-GUIDELINES]."
 //
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/developers/producers/welcome
+// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/producers/getting-started
 // [OSIRIS-ADG-PR-SDK-1.0]: https://github.com/osirisjson/osiris-producers/blob/main/docs/guidelines/v1.0/OSIRIS-PRODUCER-SDK.md#2-developer-utilities
 
 package sdk
@@ -58,11 +58,11 @@ func EncodeComponent(s string) string {
 
 /*
 DeriveHint implements the normative hint derivation rule:
-	1. Take substring after the rightmost "::" or "/" (whichever occurs later)
-	2. Lowercase
-	3. Replace any sequence of non-[a-z0-9] with "-"
-	4. Trim leading/trailing "-"
-	5. Truncate to max 24 chars
+ 1. Take substring after the rightmost "::" or "/" (whichever occurs later)
+ 2. Lowercase
+ 3. Replace any sequence of non-[a-z0-9] with "-"
+ 4. Trim leading/trailing "-"
+ 5. Truncate to max 24 chars
 
 If the result is empty, returns the first 8 characters of the hash.
 */
@@ -91,10 +91,10 @@ func DeriveHint(id, hash string) string {
 
 // ConnectionIDInput carries the stable parts needed to derive a connection ID.
 type ConnectionIDInput struct {
-	Type string
-	Direction string
-	Source string
-	Target string
+	Type       string
+	Direction  string
+	Source     string
+	Target     string
 	Qualifiers map[string]string
 }
 
@@ -153,9 +153,9 @@ func BuildConnectionID(canonicalKey string, hashLen int) string {
 
 // GroupIDInput carries the stable boundary needed to derive a group ID.
 type GroupIDInput struct {
-	Type string
+	Type          string
 	BoundaryToken string
-	ScopeFields map[string]string
+	ScopeFields   map[string]string
 }
 
 // GroupCanonicalKey returns the canonical key for a group.
@@ -198,14 +198,14 @@ func GroupID(in GroupIDInput) string {
 func serializeQualifiers(qualifiers map[string]string) string {
 	type kv struct {
 		encodedKey string
-		pair string
+		pair       string
 	}
 	pairs := make([]kv, 0, len(qualifiers))
 	for k, v := range qualifiers {
 		ek := EncodeComponent(k)
 		pairs = append(pairs, kv{
 			encodedKey: ek,
-			pair: ek + "=" + EncodeComponent(v),
+			pair:       ek + "=" + EncodeComponent(v),
 		})
 	}
 	sort.Slice(pairs, func(i, j int) bool {
@@ -223,7 +223,7 @@ func serializeQualifiers(qualifiers map[string]string) string {
 func serializeScopeFields(fields map[string]string) string {
 	type kv struct {
 		encodedKey string
-		pair string
+		pair       string
 	}
 	pairs := make([]kv, 0, len(fields))
 	for k, v := range fields {
@@ -233,7 +233,7 @@ func serializeScopeFields(fields map[string]string) string {
 		ek := EncodeComponent(k)
 		pairs = append(pairs, kv{
 			encodedKey: ek,
-			pair: ek + "=" + EncodeComponent(v),
+			pair:       ek + "=" + EncodeComponent(v),
 		})
 	}
 	sort.Slice(pairs, func(i, j int) bool {

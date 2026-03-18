@@ -4,7 +4,7 @@
 // For an introduction to OSIRIS JSON Producer Development Guidelines see:
 // "[OSIRIS-PRODUCER-GUIDELINES]."
 //
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/developers/producers/welcome
+// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/producers/getting-started
 
 package sdk
 
@@ -83,10 +83,10 @@ func TestScanValue(t *testing.T) {
 
 func TestScanProperties(t *testing.T) {
 	m := map[string]any{
-		"hostname": "web-01",
-		"memory_gb": 64,
+		"hostname":    "web-01",
+		"memory_gb":   64,
 		"db_password": "hunter2",
-		"endpoint": "https://user:pass@db.internal:5432",
+		"endpoint":    "https://user:pass@db.internal:5432",
 	}
 	findings := ScanProperties(m, "test")
 	if len(findings) != 2 {
@@ -123,7 +123,7 @@ func TestScanPropertiesNested(t *testing.T) {
 
 func TestScanTags(t *testing.T) {
 	m := map[string]string{
-		"env": "production",
+		"env":      "production",
 		"password": "oops",
 	}
 	findings := ScanTags(m, "test")
@@ -137,7 +137,7 @@ func TestScanTags(t *testing.T) {
 
 func TestScanResource(t *testing.T) {
 	r := Resource{
-		ID: "test-resource",
+		ID:   "test-resource",
 		Type: "compute.vm",
 		Properties: map[string]any{
 			"hostname": "web-01",
@@ -165,10 +165,10 @@ func TestScanDocumentClean(t *testing.T) {
 		Topology: Topology{
 			Resources: []Resource{
 				{
-					ID: "res-1",
+					ID:   "res-1",
 					Type: "compute.vm",
 					Properties: map[string]any{
-						"hostname": "web-01",
+						"hostname":  "web-01",
 						"memory_gb": 64,
 					},
 				},
@@ -186,7 +186,7 @@ func TestScanDocumentWithSecrets(t *testing.T) {
 		Topology: Topology{
 			Resources: []Resource{
 				{
-					ID: "res-1",
+					ID:   "res-1",
 					Type: "compute.vm",
 					Properties: map[string]any{
 						"connection_string": "postgresql://admin:s3cret@db:5432/app",
@@ -195,7 +195,7 @@ func TestScanDocumentWithSecrets(t *testing.T) {
 			},
 			Connections: []Connection{
 				{
-					ID: "conn-1",
+					ID:   "conn-1",
 					Type: "network",
 					Properties: map[string]any{
 						"auth_token": "Bearer abc123",
@@ -204,7 +204,7 @@ func TestScanDocumentWithSecrets(t *testing.T) {
 			},
 			Groups: []Group{
 				{
-					ID: "grp-1",
+					ID:   "grp-1",
 					Type: "physical.site",
 					Tags: map[string]string{
 						"api_key": "should-not-be-here",

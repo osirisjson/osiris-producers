@@ -4,7 +4,7 @@
 // For an introduction to OSIRIS JSON Producer Development Guidelines see:
 // "[OSIRIS-PRODUCER-GUIDELINES]."
 //
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/developers/producers/welcome
+// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/producers/getting-started
 
 package sdk
 
@@ -24,8 +24,8 @@ func TestHash16(t *testing.T) {
 
 func TestHashN(t *testing.T) {
 	tests := []struct {
-		key string
-		n int
+		key  string
+		n    int
 		want string
 	}{
 		{"hello", 8, "2cf24dba"},
@@ -44,7 +44,7 @@ func TestHashN(t *testing.T) {
 func TestEncodeComponent(t *testing.T) {
 	tests := []struct {
 		input string
-		want string
+		want  string
 	}{
 		{"simple", "simple"},
 		{"a|b", "a%7Cb"},
@@ -63,7 +63,7 @@ func TestEncodeComponent(t *testing.T) {
 
 func TestDeriveHint(t *testing.T) {
 	tests := []struct {
-		id string
+		id   string
 		hash string
 		want string
 	}{
@@ -72,7 +72,7 @@ func TestDeriveHint(t *testing.T) {
 		{"azure::/subscriptions/sub-123/vm01", "abcdef12", "vm01"},
 		{"/some/deep/path/resource", "abcdef12", "resource"},
 		{"UPPER::CASE-Test", "abcdef12", "case-test"}, // :: takes priority, "CASE-Test" after :: .
-		{"", "abcdef12", "abcdef12"}, // empty falls back to hash.
+		{"", "abcdef12", "abcdef12"},                  // empty falls back to hash.
 		{"mxp::a-very-long-name-that-exceeds-the-limit-of-24", "abcdef12", "a-very-long-name-that-ex"},
 	}
 	for _, tt := range tests {
@@ -86,10 +86,10 @@ func TestDeriveHint(t *testing.T) {
 func TestConnectionCanonicalKey(t *testing.T) {
 	// Forward: preserve order. Colons are not in the encode set.
 	got := ConnectionCanonicalKey(ConnectionIDInput{
-		Type: "network",
+		Type:      "network",
 		Direction: "forward",
-		Source: "mxp::sw-01",
-		Target: "mxp::sw-02",
+		Source:    "mxp::sw-01",
+		Target:    "mxp::sw-02",
 	})
 	want := "v1|network|forward|mxp::sw-01|mxp::sw-02"
 	if got != want {
@@ -98,16 +98,16 @@ func TestConnectionCanonicalKey(t *testing.T) {
 
 	// Bidirectional: sort endpoints.
 	got1 := ConnectionCanonicalKey(ConnectionIDInput{
-		Type: "network",
+		Type:      "network",
 		Direction: "bidirectional",
-		Source: "mxp::sw-02",
-		Target: "mxp::sw-01",
+		Source:    "mxp::sw-02",
+		Target:    "mxp::sw-01",
 	})
 	got2 := ConnectionCanonicalKey(ConnectionIDInput{
-		Type: "network",
+		Type:      "network",
 		Direction: "bidirectional",
-		Source: "mxp::sw-01",
-		Target: "mxp::sw-02",
+		Source:    "mxp::sw-01",
+		Target:    "mxp::sw-02",
 	})
 	if got1 != got2 {
 		t.Errorf("bidirectional keys differ: %q vs %q", got1, got2)
@@ -116,13 +116,13 @@ func TestConnectionCanonicalKey(t *testing.T) {
 
 func TestConnectionCanonicalKeyWithQualifiers(t *testing.T) {
 	got := ConnectionCanonicalKey(ConnectionIDInput{
-		Type: "dataflow.tcp",
+		Type:      "dataflow.tcp",
 		Direction: "forward",
-		Source: "mxp::plc-01",
-		Target: "mxp::printer-01",
+		Source:    "mxp::plc-01",
+		Target:    "mxp::printer-01",
 		Qualifiers: map[string]string{
 			"protocol": "tcp",
-			"port": "9100",
+			"port":     "9100",
 		},
 	})
 	// Qualifiers sorted by encoded key: port < protocol
@@ -134,10 +134,10 @@ func TestConnectionCanonicalKeyWithQualifiers(t *testing.T) {
 
 func TestBuildConnectionID(t *testing.T) {
 	ck := ConnectionCanonicalKey(ConnectionIDInput{
-		Type: "network",
+		Type:      "network",
 		Direction: "bidirectional",
-		Source: "mxp::sw-01",
-		Target: "mxp::sw-02",
+		Source:    "mxp::sw-01",
+		Target:    "mxp::sw-02",
 	})
 	id := BuildConnectionID(ck, 16)
 	if !startsWith(id, "conn-network-") {
@@ -150,7 +150,7 @@ func TestBuildConnectionID(t *testing.T) {
 
 func TestGroupID(t *testing.T) {
 	id := GroupID(GroupIDInput{
-		Type: "physical.site",
+		Type:          "physical.site",
 		BoundaryToken: "mxp",
 		ScopeFields: map[string]string{
 			"provider.name": "custom",
@@ -167,11 +167,11 @@ func TestGroupID(t *testing.T) {
 func TestGroupIDStableWithoutMembers(t *testing.T) {
 	// Membership is excluded from canonical key, so group ID is stable.
 	id1 := GroupID(GroupIDInput{
-		Type: "physical.site",
+		Type:          "physical.site",
 		BoundaryToken: "mxp",
 	})
 	id2 := GroupID(GroupIDInput{
-		Type: "physical.site",
+		Type:          "physical.site",
 		BoundaryToken: "mxp",
 	})
 	if id1 != id2 {
@@ -267,16 +267,16 @@ func TestEncodeComponentRoundTrip(t *testing.T) {
 func TestBidirectionalConnectionKeySymmetry(t *testing.T) {
 	// Swapping source and target for bidirectional MUST produce identical canonical keys.
 	key1 := ConnectionCanonicalKey(ConnectionIDInput{
-		Type: "network.l2",
+		Type:      "network.l2",
 		Direction: "bidirectional",
-		Source: "mxp::spine-01",
-		Target: "mxp::leaf-01",
+		Source:    "mxp::spine-01",
+		Target:    "mxp::leaf-01",
 	})
 	key2 := ConnectionCanonicalKey(ConnectionIDInput{
-		Type: "network.l2",
+		Type:      "network.l2",
 		Direction: "bidirectional",
-		Source: "mxp::leaf-01",
-		Target: "mxp::spine-01",
+		Source:    "mxp::leaf-01",
+		Target:    "mxp::spine-01",
 	})
 	if key1 != key2 {
 		t.Errorf("bidirectional keys should be symmetric:\n  %q\n  %q", key1, key2)
@@ -284,16 +284,16 @@ func TestBidirectionalConnectionKeySymmetry(t *testing.T) {
 
 	// Forward direction: order MUST be preserved.
 	key3 := ConnectionCanonicalKey(ConnectionIDInput{
-		Type: "network.l2",
+		Type:      "network.l2",
 		Direction: "forward",
-		Source: "mxp::spine-01",
-		Target: "mxp::leaf-01",
+		Source:    "mxp::spine-01",
+		Target:    "mxp::leaf-01",
 	})
 	key4 := ConnectionCanonicalKey(ConnectionIDInput{
-		Type: "network.l2",
+		Type:      "network.l2",
 		Direction: "forward",
-		Source: "mxp::leaf-01",
-		Target: "mxp::spine-01",
+		Source:    "mxp::leaf-01",
+		Target:    "mxp::spine-01",
 	})
 	if key3 == key4 {
 		t.Error("forward keys should NOT be symmetric when endpoints are swapped")
@@ -303,20 +303,20 @@ func TestBidirectionalConnectionKeySymmetry(t *testing.T) {
 func TestGroupIDScopeFieldsSorted(t *testing.T) {
 	// Scope fields should be sorted by encoded key, so order of map doesn't matter.
 	id1 := GroupID(GroupIDInput{
-		Type: "logical.environment",
+		Type:          "logical.environment",
 		BoundaryToken: "prod",
 		ScopeFields: map[string]string{
-			"provider.name": "aws",
+			"provider.name":    "aws",
 			"provider.account": "123456",
-			"provider.region": "eu-west-1",
+			"provider.region":  "eu-west-1",
 		},
 	})
 	id2 := GroupID(GroupIDInput{
-		Type: "logical.environment",
+		Type:          "logical.environment",
 		BoundaryToken: "prod",
 		ScopeFields: map[string]string{
 			"provider.region":  "eu-west-1",
-			"provider.name": "aws",
+			"provider.name":    "aws",
 			"provider.account": "123456",
 		},
 	})

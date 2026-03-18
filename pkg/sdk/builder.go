@@ -6,7 +6,7 @@
 // For an introduction to OSIRIS JSON Producer Development Guidelines see:
 // "[OSIRIS-PRODUCER-GUIDELINES]."
 //
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/developers/producers/welcome
+// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/producers/getting-started
 
 package sdk
 
@@ -20,13 +20,13 @@ import (
 // DocumentBuilder assembles the top-level OSIRIS document structure.
 // It enforces structural invariants and produces deterministic, diff-friendly output.
 type DocumentBuilder struct {
-	ctx *Context
+	ctx           *Context
 	generatorName string
-	generatorVer string
-	scope *Scope
-	resources []Resource
-	connections []Connection
-	groups []Group
+	generatorVer  string
+	scope         *Scope
+	resources     []Resource
+	connections   []Connection
+	groups        []Group
 }
 
 // NewDocumentBuilder creates a new builder bound to the given context.
@@ -66,18 +66,18 @@ func (b *DocumentBuilder) AddGroup(g Group) {
 Build assembles the final OSIRIS Document with all invariants enforced.
 
 Invariants:
-	- $schema and version are set from SDK constants.
-	- metadata.timestamp is set from ctx.Clock() at Build() time.
-	- metadata.generator.name and version are required.
-	- No duplicate IDs across resources, connections, or groups.
-	- Connection source/target must reference existing resource IDs.
-	- Group members must reference existing resource IDs.
-	- Group children must reference existing group IDs.
-	- Topology arrays are sorted by id.
-	- Group members and children are deduplicated and sorted.
-	- Redaction metadata is set based on config safe failure mode.
-	- Extension keys must match the osiris.* namespace pattern.
-	- Secret scanning is enforced per safe failure mode (unless mode is "off").
+  - $schema and version are set from SDK constants.
+  - metadata.timestamp is set from ctx.Clock() at Build() time.
+  - metadata.generator.name and version are required.
+  - No duplicate IDs across resources, connections, or groups.
+  - Connection source/target must reference existing resource IDs.
+  - Group members must reference existing resource IDs.
+  - Group children must reference existing group IDs.
+  - Topology arrays are sorted by id.
+  - Group members and children are deduplicated and sorted.
+  - Redaction metadata is set based on config safe failure mode.
+  - Extension keys must match the osiris.* namespace pattern.
+  - Secret scanning is enforced per safe failure mode (unless mode is "off").
 */
 func (b *DocumentBuilder) Build() (*Document, error) {
 	if b.generatorName == "" || b.generatorVer == "" {
@@ -120,7 +120,7 @@ func (b *DocumentBuilder) Build() (*Document, error) {
 	meta := Metadata{
 		Timestamp: NormalizeRFC3339UTC(b.ctx.Clock()),
 		Generator: Generator{
-			Name: b.generatorName,
+			Name:    b.generatorName,
 			Version: b.generatorVer,
 		},
 		Scope: b.scope,
@@ -144,13 +144,13 @@ func (b *DocumentBuilder) Build() (*Document, error) {
 	}
 
 	doc := &Document{
-		Schema: SchemaURI,
-		Version: SpecVersion,
+		Schema:   SchemaURI,
+		Version:  SpecVersion,
 		Metadata: meta,
 		Topology: Topology{
-			Resources: resources,
+			Resources:   resources,
 			Connections: b.connections,
-			Groups: b.groups,
+			Groups:      b.groups,
 		},
 	}
 

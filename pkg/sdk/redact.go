@@ -7,7 +7,7 @@
 // "[OSIRIS-PRODUCER-GUIDELINES]."
 //
 // [OSIRIS-ADG-PR-1.0 section 3.1.2]: https://github.com/osirisjson/osiris/blob/main/docs/guidelines/v1.0/OSIRIS-PRODUCER-GUIDELINES.md#312-detection-patterns
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/developers/producers/welcome
+// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/producers/getting-started
 
 package sdk
 
@@ -47,7 +47,7 @@ var SensitiveKeyPatterns = []string{
 // Per OSIRIS-ADG-PR-1.0 section 3.1.2.
 var sensitiveValuePatterns = []struct {
 	name string
-	re *regexp.Regexp
+	re   *regexp.Regexp
 }{
 	{"aws_access_key", regexp.MustCompile(`AKIA[0-9A-Z]{16}`)},
 	{"github_pat", regexp.MustCompile(`ghp_[A-Za-z0-9]{36}`)},

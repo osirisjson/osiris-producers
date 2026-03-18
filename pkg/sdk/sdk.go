@@ -5,7 +5,7 @@
 // For an introduction to OSIRIS JSON Producer Development Guidelines see:
 // "[OSIRIS-PRODUCER-GUIDELINES]."
 //
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/developers/producers/welcome
+// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/producers/getting-started
 // [OSIRIS JSON Schema]: https://osirisjson.org/schema/v1.0/osiris.schema.json
 
 package sdk
@@ -24,9 +24,9 @@ const SchemaURI = "https://osirisjson.org/schema/v1.0/osiris.schema.json"
 
 // SafeFailureMode defines how the producer handles detected secrets.
 const (
-	FailClosed = "fail-closed"
+	FailClosed   = "fail-closed"
 	LogAndRedact = "log-and-redact"
-	Off = "off"
+	Off          = "off"
 )
 
 // OSIRIS JSON Producer is the contract every vendor backend MUST satisfy.
@@ -46,9 +46,9 @@ type Context struct {
 // ProducerConfig carries common configuration for all producers.
 // Vendor-specific fields are defined by each producer as an embedded struct.
 type ProducerConfig struct {
-	OutputPath string `json:"output_path,omitempty"`
-	ProfileHint string `json:"profile_hint,omitempty"`
-	DetailLevel string `json:"detail_level,omitempty"`
+	OutputPath      string `json:"output_path,omitempty"`
+	ProfileHint     string `json:"profile_hint,omitempty"`
+	DetailLevel     string `json:"detail_level,omitempty"`
 	SafeFailureMode string `json:"safe_failure_mode,omitempty"`
 }
 
@@ -64,7 +64,7 @@ func NewContext(cfg *ProducerConfig) *Context {
 	return &Context{
 		Config: cfg,
 		Logger: slog.New(slog.NewTextHandler(os.Stderr, nil)),
-		Clock: time.Now,
+		Clock:  time.Now,
 	}
 }
 
