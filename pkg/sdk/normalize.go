@@ -7,7 +7,7 @@
 // "[OSIRIS-PRODUCER-GUIDELINES]."
 //
 // [RFC3339]: https://datatracker.ietf.org/doc/html/rfc3339
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/producers/getting-started
+// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/getting-started/osiris-producer-guidelines
 
 package sdk
 
