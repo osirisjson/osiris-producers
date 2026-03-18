@@ -7,7 +7,7 @@
 // "[OSIRIS-PRODUCER-GUIDELINES]."
 //
 // [OSIRIS-ADG-PR-1.0 chapter 4]: https://github.com/osirisjson/osiris/blob/dev/docs/guidelines/v1.0/OSIRIS-PRODUCER-GUIDELINES.md#4-quality-assurance
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/developers/producers/welcome
+// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/producers/getting-started
 
 package testharness
 
@@ -46,9 +46,9 @@ var FixedTestTime = time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC)
 NewTestContext returns a Context with deterministic defaults for testing
 
 Defaults:
-	- Clock: fixed to 2026-01-15T10:00:00Z
-	- Logger: writes to t.Log for test visibility
-	- Config: minimal defaults with fail-closed safe failure mode
+  - Clock: fixed to 2026-01-15T10:00:00Z
+  - Logger: writes to t.Log for test visibility
+  - Config: minimal defaults with fail-closed safe failure mode
 */
 func NewTestContext(t *testing.T, opts ...TestOption) *sdk.Context {
 	t.Helper()

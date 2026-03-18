@@ -4,7 +4,7 @@
 // For an introduction to OSIRIS JSON Producer Development Guidelines see:
 // "[OSIRIS-PRODUCER-GUIDELINES]."
 //
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/developers/producers/welcome
+// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/producers/getting-started
 
 package testharness
 
@@ -38,7 +38,7 @@ func TestNewTestContextDefaults(t *testing.T) {
 
 func TestNewTestContextWithConfig(t *testing.T) {
 	cfg := &sdk.ProducerConfig{
-		DetailLevel: "detailed",
+		DetailLevel:     "detailed",
 		SafeFailureMode: sdk.LogAndRedact,
 	}
 	ctx := NewTestContext(t, WithConfig(cfg))
