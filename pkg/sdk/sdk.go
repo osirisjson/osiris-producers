@@ -1,4 +1,4 @@
-// sdk.go - Constants, Producer interface, execution context and configuration.
+// Package sdk defines the constants, Producer interface, execution context and configuration.
 // Defines the contract every OSIRIS JSON producer must implement (Collect) and the
 // runtime context (Config, Logger, Clock) passed to producers at execution time.
 //
@@ -7,7 +7,6 @@
 //
 // [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/getting-started/osiris-producer-guidelines
 // [OSIRIS JSON Schema]: https://osirisjson.org/schema/v1.0/osiris.schema.json
-
 package sdk
 
 import (

@@ -56,16 +56,14 @@ func EncodeComponent(s string) string {
 	return s
 }
 
-/*
-DeriveHint implements the normative hint derivation rule:
- 1. Take substring after the rightmost "::" or "/" (whichever occurs later)
- 2. Lowercase
- 3. Replace any sequence of non-[a-z0-9] with "-"
- 4. Trim leading/trailing "-"
- 5. Truncate to max 24 chars
-
-If the result is empty, returns the first 8 characters of the hash.
-*/
+// DeriveHint implements the normative hint derivation rule:
+//  1. Take substring after the rightmost "::" or "/" (whichever occurs later)
+//  2. Lowercase
+//  3. Replace any sequence of non-[a-z0-9] with "-"
+//  4. Trim leading/trailing "-"
+//  5. Truncate to max 24 chars
+//
+// If the result is empty, returns the first 8 characters of the hash.
 func DeriveHint(id, hash string) string {
 	s := id
 	colonIdx := strings.LastIndex(s, "::")

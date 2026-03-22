@@ -25,13 +25,11 @@ func NormalizeRFC3339UTC(t time.Time) string {
 	return t.UTC().Format(time.RFC3339)
 }
 
-/*
-NormalizeToken returns a stable token form:
-  - trim surrounding whitespace
-  - lowercase
-  - collapse internal whitespace to single "-"
-  - remove leading/trailing "-"
-*/
+// NormalizeToken returns a stable token form:
+//   - trim surrounding whitespace
+//   - lowercase
+//   - collapse internal whitespace to single "-"
+//   - remove leading/trailing "-"
 func NormalizeToken(s string) string {
 	s = strings.TrimSpace(s)
 	s = strings.ToLower(s)
