@@ -23,7 +23,8 @@ package main
 import (
 	"fmt"
 	"os"
-	"go.osirisjson.org/producers/producers/cisco"
+
+	"go.osirisjson.org/producers/osiris/network/cisco"
 )
 
 // version is set at build time via -ldflags.
