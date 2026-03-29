@@ -22,6 +22,7 @@ import (
 
 	"go.osirisjson.org/producers/osiris/network/cisco/apic"
 	"go.osirisjson.org/producers/osiris/network/cisco/iosxe"
+	"go.osirisjson.org/producers/osiris/network/cisco/nxos"
 	"go.osirisjson.org/producers/osiris/network/cisco/run"
 	"go.osirisjson.org/producers/pkg/sdk"
 )
@@ -35,7 +36,7 @@ type subProducer struct {
 
 var subProducers = []subProducer{
 	{"apic", "Cisco ACI/APIC fabric topology", apic.NewFactory()},
-	{"nxos", "Cisco NX-OS device inventory", nil},
+	{"nxos", "Cisco NX-OS device inventory", nxos.NewFactory()},
 	{"iosxe", "Cisco IOS-XE device inventory", iosxe.NewFactory()},
 }
 
