@@ -20,6 +20,7 @@ import (
 	"log/slog"
 	"os/exec"
 	"strings"
+	"sync"
 )
 
 // SubscriptionInfo carries the resolved subscription metadata.
@@ -497,11 +498,32 @@ type SubscriptionData struct {
 	VirtualMachines      []VirtualMachine
 }
 
+// azPath resolves the absolute path to the Azure CLI binary once.
+// Using the resolved path instead of the bare "az" name prevents
+// [CWE-426](https://cwe.mitre.org/data/definitions/426) by pinning the executable location
+// at startup rather than relying on PATH at each invocation.
+var (
+	azOnce sync.Once
+	azBin  string
+	azErr  error
+)
+
+func resolveAZPath() (string, error) {
+	azOnce.Do(func() {
+		azBin, azErr = exec.LookPath("az")
+	})
+	return azBin, azErr
+}
+
 // discoverSubscriptions queries az account list to find all accessible subscriptions.
 // If tenantFilter is non-empty, only subscriptions in that tenant are returned.
 func discoverSubscriptions(tenantFilter string) ([]SubscriptionTarget, error) {
+	azPath, err := resolveAZPath()
+	if err != nil {
+		return nil, fmt.Errorf("Azure CLI (az) not found in PATH: %w", err)
+	}
 	args := []string{"account", "list", "--output", "json", "--all"}
-	out, err := exec.Command("az", args...).Output()
+	out, err := exec.Command(azPath, args...).Output()
 	if err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok {
 			return nil, fmt.Errorf("az account list failed: %s", strings.TrimSpace(string(exitErr.Stderr)))
@@ -734,14 +756,21 @@ func (c *Client) queryInto(command string, dest any) error {
 }
 
 // execAZ runs an Azure CLI command and returns the raw JSON output.
+// The az binary path is resolved once via exec.LookPath to avoid
+// untrusted search path issues [CWE-426](https://cwe.mitre.org/data/definitions/426).
 func (c *Client) execAZ(command string) ([]byte, error) {
+	azPath, err := resolveAZPath()
+	if err != nil {
+		return nil, fmt.Errorf("Azure CLI (az) not found in PATH: %w", err)
+	}
+
 	args := strings.Fields(command)
 	args = append(args, "--subscription", c.subscriptionID, "--output", "json")
 
-	fullArgs := append([]string{"az"}, args...)
+	fullArgs := append([]string{azPath}, args...)
 	c.logger.Debug("executing Azure CLI", "command", strings.Join(fullArgs, " "))
 
-	cmd := exec.Command("az", args...)
+	cmd := exec.Command(azPath, args...)
 	out, err := cmd.Output()
 	if err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok {

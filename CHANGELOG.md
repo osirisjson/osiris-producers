@@ -15,6 +15,13 @@ Package versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ---
 
+## [0.2.1] - 2026-04-06
+
+### Fixed
+- **azure/client.go**: resolve Azure CLI (`az`) binary path once via `exec.LookPath` instead of relying on bare command name per invocation. Fixes [CWE-426](https://cwe.mitre.org/data/definitions/426) untrusted search path.
+
+---
+
 ## [0.2.0] - 2026-04-06
 
 ### Added
