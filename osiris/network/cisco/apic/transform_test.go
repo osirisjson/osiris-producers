@@ -5,7 +5,7 @@
 // For an introduction to OSIRIS JSON Producer for Cisco see:
 // "[OSIRIS-JSON-CISCO]."
 //
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/cisco
+// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
 
 package apic
 
@@ -42,7 +42,7 @@ func TestTransformNodes(t *testing.T) {
 		byType[r.Type] = r
 	}
 
-	ctrl, ok := byType["network.controller"]
+	ctrl, ok := byType["osiris.cisco.controller"]
 	if !ok {
 		t.Fatal("missing controller resource")
 	}
@@ -52,8 +52,8 @@ func TestTransformNodes(t *testing.T) {
 	if ctrl.Provider.NativeID != "topology/pod-1/node-1" {
 		t.Errorf("controller NativeID: %s", ctrl.Provider.NativeID)
 	}
-	if ctrl.Status != "unknown" {
-		t.Errorf("controller status: expected unknown, got %s", ctrl.Status)
+	if ctrl.Status != "active" {
+		t.Errorf("controller status: expected active, got %s", ctrl.Status)
 	}
 	if ctrl.Properties["oob_mgmt_addr"] != "10.0.0.1" {
 		t.Errorf("controller oob_mgmt_addr: %v", ctrl.Properties["oob_mgmt_addr"])
@@ -62,7 +62,7 @@ func TestTransformNodes(t *testing.T) {
 		t.Errorf("controller fabric_domain: %v", ctrl.Properties["fabric_domain"])
 	}
 
-	spine, ok := byType["network.switch.spine"]
+	spine, ok := byType["osiris.cisco.switch.spine"]
 	if !ok {
 		t.Fatal("missing spine resource")
 	}
@@ -73,7 +73,7 @@ func TestTransformNodes(t *testing.T) {
 		t.Errorf("spine firmware version: %s", spine.Provider.Version)
 	}
 
-	if _, ok := byType["network.switch.leaf"]; !ok {
+	if _, ok := byType["osiris.cisco.switch.leaf"]; !ok {
 		t.Fatal("missing leaf resource")
 	}
 }
@@ -146,7 +146,7 @@ func TestTransformBridgeDomains(t *testing.T) {
 	}
 
 	r := resources[0]
-	if r.Type != "network.domain.bridge" {
+	if r.Type != "osiris.cisco.domain.bridge" {
 		t.Errorf("type: %s", r.Type)
 	}
 	if r.Name != "bd_App_Private" {
@@ -188,7 +188,7 @@ func TestTransformEPGs(t *testing.T) {
 	if len(dnToID) != 1 {
 		t.Fatalf("expected 1 DN mapping, got %d", len(dnToID))
 	}
-	if groups[0].Type != "logical.epg" {
+	if groups[0].Type != "osiris.cisco.epg" {
 		t.Errorf("type: %s", groups[0].Type)
 	}
 }
@@ -214,7 +214,7 @@ func TestTransformL3Outs_SkipsDummies(t *testing.T) {
 		{"dn": "uni/tn-tn_Example/out-l3out_Prod_1", "name": "l3out_Prod_1", "descr": "Production L3Out"},
 	}
 
-	resources := TransformL3Outs(l3outs)
+	resources, _ := TransformL3Outs(l3outs)
 
 	if len(resources) != 1 {
 		t.Fatalf("expected 1 resource (dummy skipped), got %d", len(resources))
@@ -222,12 +222,12 @@ func TestTransformL3Outs_SkipsDummies(t *testing.T) {
 	if resources[0].Name != "l3out_Prod_1" {
 		t.Errorf("name: %s", resources[0].Name)
 	}
-	if resources[0].Type != "network.l3out" {
+	if resources[0].Type != "osiris.cisco.l3out" {
 		t.Errorf("type: %s", resources[0].Type)
 	}
 }
 
-// ACI extension tests ---
+// ACI extension tests.
 
 func TestTransformNodes_ACIExtensions(t *testing.T) {
 	nodes := []map[string]any{
@@ -279,7 +279,7 @@ func TestTransformNodes_NoExtensionsWithoutTopSystem(t *testing.T) {
 	}
 }
 
-// Fault tests ---
+// Fault tests.
 
 func TestTransformFaults_GroupsByDN(t *testing.T) {
 	faults := []map[string]any{
@@ -349,8 +349,8 @@ func TestTransformFaults_SkipsUnknownDN(t *testing.T) {
 
 func TestWireFaultsToNodes(t *testing.T) {
 	resources := []sdk.Resource{
-		{ID: "res-node-101", Type: "network.switch.spine", Provider: sdk.Provider{NativeID: "topology/pod-1/node-101"}},
-		{ID: "res-node-102", Type: "network.switch.leaf", Provider: sdk.Provider{NativeID: "topology/pod-1/node-102"}},
+		{ID: "res-node-101", Type: "osiris.cisco.switch.spine", Provider: sdk.Provider{NativeID: "topology/pod-1/node-101"}},
+		{ID: "res-node-102", Type: "osiris.cisco.switch.leaf", Provider: sdk.Provider{NativeID: "topology/pod-1/node-102"}},
 	}
 	faultsByDN := map[string][]Fault{
 		"topology/pod-1/node-101": {{Code: "F1527", Severity: "warning"}},
@@ -381,7 +381,7 @@ func TestWireFaultsToNodes_MergesWithExistingExtensions(t *testing.T) {
 	resources := []sdk.Resource{
 		{
 			ID:       "res-node-101",
-			Type:     "network.switch.spine",
+			Type:     "osiris.cisco.switch.spine",
 			Provider: sdk.Provider{NativeID: "topology/pod-1/node-101"},
 			Extensions: map[string]any{
 				"osiris.cisco": map[string]any{"fabric_id": 1},
@@ -535,7 +535,7 @@ func TestWireEndpointsToEPGs(t *testing.T) {
 		"uni/tn-tn_Example/ap-app1/epg-epg_WEB": "group-epg-web",
 	}
 	epgGroups := []sdk.Group{
-		{ID: "group-epg-web", Type: "logical.epg", Name: "epg_WEB"},
+		{ID: "group-epg-web", Type: "osiris.cisco.epg", Name: "epg_WEB"},
 	}
 
 	WireEndpointsToEPGs(epAttrs, epgDNToID, epgGroups)
@@ -642,13 +642,13 @@ func TestMapNodeStatus(t *testing.T) {
 }
 
 func TestResourceID_Deterministic(t *testing.T) {
-	id1 := resourceID("network.controller", "topology/pod-1/node-1")
-	id2 := resourceID("network.controller", "topology/pod-1/node-1")
+	id1 := resourceID("osiris.cisco.controller", "topology/pod-1/node-1")
+	id2 := resourceID("osiris.cisco.controller", "topology/pod-1/node-1")
 	if id1 != id2 {
 		t.Errorf("resourceID not deterministic: %q != %q", id1, id2)
 	}
 
-	id3 := resourceID("network.controller", "topology/pod-1/node-2")
+	id3 := resourceID("osiris.cisco.controller", "topology/pod-1/node-2")
 	if id1 == id3 {
 		t.Errorf("different DNs should produce different IDs")
 	}

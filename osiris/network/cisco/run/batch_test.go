@@ -4,7 +4,7 @@
 // For an introduction to OSIRIS JSON Producer for Cisco see:
 // "[OSIRIS-JSON-CISCO]."
 //
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/cisco
+// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
 
 package run
 
@@ -30,12 +30,12 @@ func TestCSVTemplate(t *testing.T) {
 	if !strings.Contains(tmpl, "nxos") {
 		t.Error("template missing nxos example row")
 	}
-	if !strings.Contains(tmpl, "iosxr") {
-		t.Error("template missing iosxr example row")
+	if !strings.Contains(tmpl, "iosxe") {
+		t.Error("template missing iosxe example row")
 	}
-	// Check owner documentation.
-	if !strings.Contains(tmpl, "self") || !strings.Contains(tmpl, "isp") || !strings.Contains(tmpl, "colo") {
-		t.Error("template missing owner value documentation")
+	// Check owner values are present in example rows.
+	if !strings.Contains(tmpl, "self") || !strings.Contains(tmpl, "isp") {
+		t.Error("template missing owner values in example rows")
 	}
 }
 

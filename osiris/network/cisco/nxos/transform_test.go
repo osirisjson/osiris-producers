@@ -4,7 +4,7 @@
 // For an introduction to OSIRIS JSON Producer for Cisco see:
 // "[OSIRIS-JSON-CISCO]."
 //
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/cisco
+// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
 
 package nxos
 
@@ -36,7 +36,7 @@ func TestTransformDevice(t *testing.T) {
 	if r.Name != "LAB-SPINE01" {
 		t.Errorf("name: %s", r.Name)
 	}
-	if r.Type != "network.switch.spine" {
+	if r.Type != "osiris.cisco.switch.spine" {
 		t.Errorf("type: %s", r.Type)
 	}
 	if r.Status != "active" {
@@ -74,7 +74,7 @@ func TestTransformDevice_Leaf(t *testing.T) {
 	}
 
 	r, _ := TransformDevice("LAB-LEAF01", version)
-	if r.Type != "network.switch.leaf" {
+	if r.Type != "osiris.cisco.switch.leaf" {
 		t.Errorf("expected leaf type, got: %s", r.Type)
 	}
 }
@@ -113,7 +113,7 @@ func TestTransformInterfaces(t *testing.T) {
 	}
 
 	// Check port-channel type.
-	if resources[2].Type != "network.interface.lag" {
+	if resources[2].Type != "osiris.cisco.interface.lag" {
 		t.Errorf("port-channel should be network.interface.lag, got %s", resources[2].Type)
 	}
 }
@@ -163,7 +163,7 @@ func TestTransformLLDPNeighbors(t *testing.T) {
 	}
 
 	// Verify connection.
-	if connections[0].Type != "network.link" {
+	if connections[0].Type != "physical.ethernet" {
 		t.Errorf("connection type: %s", connections[0].Type)
 	}
 	if connections[0].Status != "active" {
@@ -382,7 +382,7 @@ func TestWireInterfacesToVLANs(t *testing.T) {
 	groups := []sdk.Group{{ID: "grp-vlan-100", Type: "network.vlan"}}
 	vlanIDToGroupID := map[string]string{"100": "grp-vlan-100"}
 
-	WireInterfacesToVLANs(vlanBrief, ifNameToID, groups, vlanIDToGroupID)
+	WireInterfacesToVLANs(vlanBrief, map[string]any{}, ifNameToID, groups, vlanIDToGroupID)
 
 	if len(groups[0].Members) != 2 {
 		t.Errorf("expected 2 VLAN members, got %d: %v", len(groups[0].Members), groups[0].Members)
@@ -412,7 +412,7 @@ func TestWireInterfacesToVRFs(t *testing.T) {
 	groups := []sdk.Group{{ID: "grp-vrf-prod", Type: "logical.vrf"}}
 	vrfNameToGroupID := map[string]string{"PROD": "grp-vrf-prod"}
 
-	WireInterfacesToVRFs(vrfDetail, ifNameToID, groups, vrfNameToGroupID)
+	WireInterfacesToVRFs(vrfDetail, nil, ifNameToID, groups, vrfNameToGroupID)
 
 	if len(groups[0].Members) != 2 {
 		t.Errorf("expected 2 VRF members, got %d: %v", len(groups[0].Members), groups[0].Members)

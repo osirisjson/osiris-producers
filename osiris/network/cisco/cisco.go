@@ -12,13 +12,14 @@
 // For an introduction to OSIRIS JSON Producer for Cisco see:
 // "[OSIRIS-JSON-CISCO]."
 //
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/cisco
+// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
 package cisco
 
 import (
 	"fmt"
 	"log/slog"
 	"os"
+	"time"
 
 	"go.osirisjson.org/producers/osiris/network/cisco/apic"
 	"go.osirisjson.org/producers/osiris/network/cisco/iosxe"
@@ -101,6 +102,8 @@ func runSubProducer(sp subProducer, args []string) error {
 		return err
 	}
 
+	cfg.Timestamp = run.FormatTimestamp(time.Now())
+
 	if cfg.IsBatch() {
 		return run.RunBatch(cfg, factoryRegistry(), defaultLogger())
 	}
@@ -108,7 +111,8 @@ func runSubProducer(sp subProducer, args []string) error {
 	return runSingle(cfg, sp.factory)
 }
 
-// runSingle executes a single-target collection and writes to stdout.
+// runSingle executes a single-target collection and writes to a local file.
+// Output filename: cisco-<type>-<timestamp>-<hostname>.json
 func runSingle(cfg *run.RunConfig, factory run.ProducerFactory) error {
 	target := cfg.Targets[0]
 	logger := defaultLogger()
@@ -127,8 +131,17 @@ func runSingle(cfg *run.RunConfig, factory run.ProducerFactory) error {
 		return fmt.Errorf("marshal failed: %w", err)
 	}
 
-	_, err = os.Stdout.Write(data)
-	return err
+	name := target.Hostname
+	if name == "" {
+		name = target.Host
+	}
+	filename := fmt.Sprintf("cisco-%s-%s-%s.json", target.Type, cfg.Timestamp, name)
+
+	if err := os.WriteFile(filename, data, 0644); err != nil {
+		return fmt.Errorf("failed to write %s: %w", filename, err)
+	}
+	fmt.Fprintf(os.Stderr, "Saved to %s\n", filename)
+	return nil
 }
 
 func runTemplate(args []string) error {
@@ -144,7 +157,11 @@ func runTemplate(args []string) error {
 	name := args[1]
 	for _, sp := range subProducers {
 		if sp.name == name {
-			fmt.Print(run.CSVTemplate(name))
+			filename := fmt.Sprintf("cisco-%s-template.csv", name)
+			if err := os.WriteFile(filename, []byte(run.CSVTemplate(name)), 0644); err != nil {
+				return fmt.Errorf("failed to write template: %w", err)
+			}
+			fmt.Printf("Template saved to %s\n", filename)
 			return nil
 		}
 	}
@@ -203,6 +220,10 @@ Batch mode flags:
 
   Generate a CSV template:
     osirisjson-producer cisco template --generate apic
+
+Output:
+  Single mode saves to: cisco-<type>-<timestamp>-<hostname>.json
+  Batch mode saves to:  <output>/DC/Floor/Room/Zone/Hostname.json
 
 Examples:
   osirisjson-producer cisco apic -h 10.0.0.1 -u admin -p secret

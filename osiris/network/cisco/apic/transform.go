@@ -5,7 +5,7 @@
 // For an introduction to OSIRIS JSON Producer for Cisco see:
 // "[OSIRIS-JSON-CISCO]."
 //
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/cisco
+// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
 
 package apic
 
@@ -23,9 +23,9 @@ const providerName = "cisco"
 
 // nodeRoleToType maps APIC fabricNode role values to OSIRIS resource types.
 var nodeRoleToType = map[string]string{
-	"controller": "network.controller",
-	"spine":      "network.switch.spine",
-	"leaf":       "network.switch.leaf",
+	"controller": "osiris.cisco.controller",
+	"spine":      "osiris.cisco.switch.spine",
+	"leaf":       "osiris.cisco.switch.leaf",
 }
 
 // TransformNodes converts fabricNode attributes (merged with topSystem and firmware)
@@ -61,8 +61,16 @@ func TransformNodes(nodes, systems, firmware []map[string]any) []sdk.Resource {
 		}
 		r.Name = name
 
-		// Map fabricSt to OSIRIS status.
+		// Map fabricSt to OSIRIS status, falling back to topSystem state
+		// for controllers where fabricSt is often empty/unknown.
 		r.Status = mapNodeStatus(str(n, "fabricSt"))
+		if r.Status == "unknown" {
+			if sys, ok := sysMap[dnPrefix(dn)]; ok {
+				if st := str(sys, "state"); st == "in-service" {
+					r.Status = "active"
+				}
+			}
+		}
 
 		props := map[string]any{
 			"serial":  str(n, "serial"),
@@ -209,7 +217,7 @@ func TransformBridgeDomains(bds []map[string]any) ([]sdk.Resource, map[string]st
 		dn := str(bd, "dn")
 		name := str(bd, "name")
 
-		id := resourceID("network.domain.bridge", dn)
+		id := resourceID("osiris.cisco.domain.bridge", dn)
 		dnToID[dn] = id
 
 		prov := sdk.Provider{
@@ -217,7 +225,7 @@ func TransformBridgeDomains(bds []map[string]any) ([]sdk.Resource, map[string]st
 			NativeID: dn,
 		}
 
-		r, err := sdk.NewResource(id, "network.domain.bridge", prov)
+		r, err := sdk.NewResource(id, "osiris.cisco.domain.bridge", prov)
 		if err != nil {
 			continue
 		}
@@ -293,12 +301,12 @@ func TransformEPGs(epgs []map[string]any) ([]sdk.Group, map[string]string) {
 		name := str(e, "name")
 
 		gid := sdk.GroupID(sdk.GroupIDInput{
-			Type:          "logical.epg",
+			Type:          "osiris.cisco.epg",
 			BoundaryToken: dn,
 		})
 		dnToID[dn] = gid
 
-		g, err := sdk.NewGroup(gid, "logical.epg")
+		g, err := sdk.NewGroup(gid, "osiris.cisco.epg")
 		if err != nil {
 			continue
 		}
@@ -318,13 +326,13 @@ func TransformEndpoints(endpoints []map[string]any) []sdk.Resource {
 		dn := str(ep, "dn")
 		mac := str(ep, "mac")
 
-		id := resourceID("network.endpoint", dn)
+		id := resourceID("osiris.cisco.endpoint", dn)
 		prov := sdk.Provider{
 			Name:     providerName,
 			NativeID: dn,
 		}
 
-		r, err := sdk.NewResource(id, "network.endpoint", prov)
+		r, err := sdk.NewResource(id, "osiris.cisco.endpoint", prov)
 		if err != nil {
 			continue
 		}
@@ -348,8 +356,11 @@ func TransformEndpoints(endpoints []map[string]any) []sdk.Resource {
 // Dummy L3Outs (name starting with __ui_svi_dummy_id_) are skipped.
 // L3Outs represent external routing boundaries - modeled as resources within
 // their parent tenant scope, not as connections.
-func TransformL3Outs(l3outs []map[string]any) []sdk.Resource {
+// Returns resources and a map of L3Out DN -> resource ID.
+func TransformL3Outs(l3outs []map[string]any) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
+	dnToID := make(map[string]string, len(l3outs))
+
 	for _, l := range l3outs {
 		name := str(l, "name")
 		if strings.HasPrefix(name, "__ui_svi_dummy_id_") {
@@ -357,13 +368,15 @@ func TransformL3Outs(l3outs []map[string]any) []sdk.Resource {
 		}
 		dn := str(l, "dn")
 
-		id := resourceID("network.l3out", dn)
+		id := resourceID("osiris.cisco.l3out", dn)
+		dnToID[dn] = id
+
 		prov := sdk.Provider{
 			Name:     providerName,
 			NativeID: dn,
 		}
 
-		r, err := sdk.NewResource(id, "network.l3out", prov)
+		r, err := sdk.NewResource(id, "osiris.cisco.l3out", prov)
 		if err != nil {
 			continue
 		}
@@ -374,7 +387,122 @@ func TransformL3Outs(l3outs []map[string]any) []sdk.Resource {
 		r.Status = "active"
 		resources = append(resources, r)
 	}
-	return resources
+	return resources, dnToID
+}
+
+// Relationship wiring from ACI relationship classes (Rs*).
+// In ACI, VRFs and EPGs are modeled as OSIRIS groups. Since OSIRIS connections
+// require resource endpoints, BD->VRF and L3Out->VRF relationships are modeled
+// as group membership (resources become members of their VRF group).
+
+// WireBDsToVRFs adds BD resource IDs as members of their associated VRF groups.
+// Uses fvRsCtx relationship class (DN: .../BD-Y/rsctx, tDn: .../ctx-Z).
+func WireBDsToVRFs(bdToCtxAttrs []map[string]any, bdDNToID map[string]string, vrfDNToID map[string]string, vrfGroups []sdk.Group) {
+	idx := groupIndex(vrfGroups)
+	for _, rel := range bdToCtxAttrs {
+		dn := str(rel, "dn")
+		tDn := str(rel, "tDn")
+		if dn == "" || tDn == "" {
+			continue
+		}
+
+		bdDN := extractParentDN(dn, "/rsctx")
+		if bdDN == "" {
+			continue
+		}
+
+		bdID, ok := bdDNToID[bdDN]
+		if !ok {
+			continue
+		}
+		vrfID, ok := vrfDNToID[tDn]
+		if !ok {
+			continue
+		}
+
+		if i, ok := idx[vrfID]; ok {
+			vrfGroups[i].AddMembers(bdID)
+		}
+	}
+}
+
+// WireL3OutsToVRFs adds L3Out resource IDs as members of their associated VRF groups.
+// Uses l3extRsEctx relationship class (DN: .../out-Y/rsectx, tDn: .../ctx-Z).
+func WireL3OutsToVRFs(l3outToCtxAttrs []map[string]any, l3outDNToID map[string]string, vrfDNToID map[string]string, vrfGroups []sdk.Group) {
+	idx := groupIndex(vrfGroups)
+	for _, rel := range l3outToCtxAttrs {
+		dn := str(rel, "dn")
+		tDn := str(rel, "tDn")
+		if dn == "" || tDn == "" {
+			continue
+		}
+
+		l3outDN := extractParentDN(dn, "/rsectx")
+		if l3outDN == "" {
+			continue
+		}
+
+		l3outID, ok := l3outDNToID[l3outDN]
+		if !ok {
+			continue
+		}
+		vrfID, ok := vrfDNToID[tDn]
+		if !ok {
+			continue
+		}
+
+		if i, ok := idx[vrfID]; ok {
+			vrfGroups[i].AddMembers(l3outID)
+		}
+	}
+}
+
+// WireEPGsToBDs adds BD resource IDs as members of their associated EPG groups.
+// Uses fvRsBd relationship class (DN: .../epg-Z/rsbd, tDn: .../BD-W).
+func WireEPGsToBDs(epgToBdAttrs []map[string]any, epgDNToID map[string]string, bdDNToID map[string]string, epgGroups []sdk.Group) {
+	idx := groupIndex(epgGroups)
+	for _, rel := range epgToBdAttrs {
+		dn := str(rel, "dn")
+		tDn := str(rel, "tDn")
+		if dn == "" || tDn == "" {
+			continue
+		}
+
+		epgDN := extractParentDN(dn, "/rsbd")
+		if epgDN == "" {
+			continue
+		}
+
+		epgID, ok := epgDNToID[epgDN]
+		if !ok {
+			continue
+		}
+		bdID, ok := bdDNToID[tDn]
+		if !ok {
+			continue
+		}
+
+		if i, ok := idx[epgID]; ok {
+			epgGroups[i].AddMembers(bdID)
+		}
+	}
+}
+
+// extractParentDN strips a known suffix from a DN to get the parent object DN.
+func extractParentDN(dn, suffix string) string {
+	if !strings.HasSuffix(dn, suffix) {
+		return ""
+	}
+	return dn[:len(dn)-len(suffix)]
+}
+
+// extractLastSegment returns the last path segment of a DN.
+func extractLastSegment(dn string) string {
+	idx := strings.LastIndex(dn, "/")
+	if idx < 0 {
+		return dn
+	}
+	return dn[idx+1:]
 }
 
 // Group membership wiring.
@@ -467,7 +595,7 @@ func WireL3OutsToTenants(l3outAttrs []map[string]any, tenantDNToID map[string]st
 			continue
 		}
 		dn := str(l, "dn")
-		l3outID := resourceID("network.l3out", dn)
+		l3outID := resourceID("osiris.cisco.l3out", dn)
 		tenantDN := extractTenantDN(dn)
 		parentID, ok := tenantDNToID[tenantDN]
 		if !ok {
@@ -486,7 +614,7 @@ func WireEndpointsToEPGs(endpointAttrs []map[string]any, epgDNToID map[string]st
 	idx := groupIndex(epgGroups)
 	for _, ep := range endpointAttrs {
 		dn := str(ep, "dn")
-		epID := resourceID("network.endpoint", dn)
+		epID := resourceID("osiris.cisco.endpoint", dn)
 		epgDN := extractEPGDN(dn)
 		parentID, ok := epgDNToID[epgDN]
 		if !ok {

@@ -5,7 +5,7 @@
 // For an introduction to OSIRIS JSON Producer for Cisco see:
 // "[OSIRIS-JSON-CISCO]."
 //
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/cisco
+// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
 
 package nxos
 
@@ -29,9 +29,9 @@ func TransformDevice(hostname string, version map[string]any) (sdk.Resource, str
 	role := classifyRole(hostname, model)
 	resType := "network.switch"
 	if role == "spine" {
-		resType = "network.switch.spine"
+		resType = "osiris.cisco.switch.spine"
 	} else if role == "leaf" {
-		resType = "network.switch.leaf"
+		resType = "osiris.cisco.switch.leaf"
 	}
 
 	canonicalKey := hostname
@@ -203,7 +203,7 @@ func TransformLLDPNeighbors(hostname string, lldp map[string]any, ifNameToID map
 
 		// Create connection.
 		connInput := sdk.ConnectionIDInput{
-			Type:      "network.link",
+			Type:      "physical.ethernet",
 			Direction: "bidirectional",
 			Source:    localID,
 			Target:    remoteID,
@@ -211,7 +211,7 @@ func TransformLLDPNeighbors(hostname string, lldp map[string]any, ifNameToID map
 		connKey := sdk.ConnectionCanonicalKey(connInput)
 		connID := sdk.BuildConnectionID(connKey, 16)
 
-		conn, err := sdk.NewConnection(connID, "network.link", localID, remoteID)
+		conn, err := sdk.NewConnection(connID, "physical.ethernet", localID, remoteID)
 		if err != nil {
 			continue
 		}
@@ -479,9 +479,11 @@ func TransformEnvironment(env map[string]any) map[string]any {
 
 // WireInterfacesToVLANs adds interface resource IDs as members of their VLAN groups.
 // Uses the VLAN assignment from "show vlan brief" port list.
-func WireInterfacesToVLANs(vlanBrief map[string]any, ifNameToID map[string]string, vlanGroups []sdk.Group, vlanIDToGroupID map[string]string) {
+func WireInterfacesToVLANs(vlanBrief map[string]any, ifBrief map[string]any, ifNameToID map[string]string, vlanGroups []sdk.Group, vlanIDToGroupID map[string]string) int {
 	idx := groupIndex(vlanGroups)
+	matched := 0
 
+	// Strategy 1: VLAN brief port list (vlanshowplist-ifidx).
 	rows := parseTableRows(vlanBrief, "TABLE_vlanbriefxbrief", "ROW_vlanbriefxbrief")
 	for _, row := range rows {
 		vlanIDStr := str(row, "vlanshowbr-vlanid")
@@ -505,15 +507,52 @@ func WireInterfacesToVLANs(vlanBrief map[string]any, ifNameToID map[string]strin
 			ifName := normalizeIfName(port)
 			if resID, ok := ifNameToID[ifName]; ok {
 				vlanGroups[gi].AddMembers(resID)
+				matched++
 			}
 		}
 	}
+
+	// Strategy 2 (fallback): scan interface brief for per-interface VLAN assignment.
+	// NX-OS "show interface brief" includes a "vlan" field per interface.
+	if matched == 0 {
+		ethRows := parseTableRows(ifBrief, "TABLE_interface", "ROW_interface")
+		for _, row := range ethRows {
+			vlanStr := str(row, "vlan")
+			if vlanStr == "" || vlanStr == "--" {
+				continue
+			}
+			gid, ok := vlanIDToGroupID[vlanStr]
+			if !ok {
+				continue
+			}
+			gi, ok := idx[gid]
+			if !ok {
+				continue
+			}
+			ifName := str(row, "interface")
+			if resID, ok := ifNameToID[ifName]; ok {
+				vlanGroups[gi].AddMembers(resID)
+				matched++
+			}
+		}
+	}
+
+	return matched
 }
 
 // WireInterfacesToVRFs adds interface resource IDs as members of their VRF groups.
 // Uses the interface list from "show vrf all detail".
-func WireInterfacesToVRFs(vrfDetail map[string]any, ifNameToID map[string]string, vrfGroups []sdk.Group, vrfNameToGroupID map[string]string) {
+//
+// NX-OS JSON output varies across platforms and versions:
+//   - TABLE_if / ROW_if with if_name (common)
+//   - TABLE_intf / ROW_intf with intf_name (some versions)
+//
+// If the VRF detail data yields 0 matches, falls back to the separate
+// vrfInterface data from "show vrf interface" (TABLE_if / ROW_if with
+// if_name and vrf_name at the top level).
+func WireInterfacesToVRFs(vrfDetail, vrfInterface map[string]any, ifNameToID map[string]string, vrfGroups []sdk.Group, vrfNameToGroupID map[string]string) int {
 	idx := groupIndex(vrfGroups)
+	matched := 0
 
 	rows := parseTableRows(vrfDetail, "TABLE_vrf", "ROW_vrf")
 	for _, row := range rows {
@@ -527,16 +566,46 @@ func WireInterfacesToVRFs(vrfDetail map[string]any, ifNameToID map[string]string
 			continue
 		}
 
-		// TABLE_if contains the interfaces in this VRF.
+		// Try TABLE_if / ROW_if first, then TABLE_intf / ROW_intf.
 		ifRows := parseTableRows(row, "TABLE_if", "ROW_if")
+		if len(ifRows) == 0 {
+			ifRows = parseTableRows(row, "TABLE_intf", "ROW_intf")
+		}
 		for _, ifRow := range ifRows {
 			ifName := str(ifRow, "if_name")
+			if ifName == "" {
+				ifName = str(ifRow, "intf_name")
+			}
 			ifName = normalizeIfName(ifName)
 			if resID, ok := ifNameToID[ifName]; ok {
 				vrfGroups[gi].AddMembers(resID)
+				matched++
 			}
 		}
 	}
+
+	// Fallback: "show vrf interface" returns a flat list of VRF-to-interface mappings.
+	if matched == 0 && vrfInterface != nil {
+		ifRows := parseTableRows(vrfInterface, "TABLE_if", "ROW_if")
+		for _, ifRow := range ifRows {
+			vrfName := str(ifRow, "vrf_name")
+			gid, ok := vrfNameToGroupID[vrfName]
+			if !ok {
+				continue
+			}
+			gi, ok := idx[gid]
+			if !ok {
+				continue
+			}
+			ifName := normalizeIfName(str(ifRow, "if_name"))
+			if resID, ok := ifNameToID[ifName]; ok {
+				vrfGroups[gi].AddMembers(resID)
+				matched++
+			}
+		}
+	}
+
+	return matched
 }
 
 // WirePortChannelsToVPC adds port-channel resource IDs as members of the vpc group.
@@ -700,7 +769,7 @@ func classifyRole(hostname, model string) string {
 func classifyInterfaceType(ifName string) string {
 	lower := strings.ToLower(ifName)
 	if strings.HasPrefix(lower, "port-channel") || strings.HasPrefix(lower, "po") {
-		return "network.interface.lag"
+		return "osiris.cisco.interface.lag"
 	}
 	return "network.interface"
 }

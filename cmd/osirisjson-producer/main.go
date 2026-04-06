@@ -24,20 +24,31 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime/debug"
 	"sort"
 	"strings"
 	"syscall"
 )
 
 // version is set at build time via -ldflags.
+// Falls back to the module version from go install (e.g. v0.1.1).
 var version = "dev"
+
+func init() {
+	if version != "dev" {
+		return
+	}
+	if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" && info.Main.Version != "(devel)" {
+		version = info.Main.Version
+	}
+}
 
 // knownVendor describes a vendor whose producer binary may be installed.
 // This is a string table only, no code is imported.
 type knownVendor struct {
-	name string
+	name        string
 	description string
-	installPkg string // Go install path (empty = not yet available).
+	installPkg  string // Go install path (empty = not yet available).
 }
 
 // knownVendors lists all planned OSIRIS producer vendors.
@@ -45,7 +56,7 @@ type knownVendor struct {
 // Vendors not in this list are still discovered on $PATH.
 var knownVendors = []knownVendor{
 	{"aws", "[Under development] AWS cloud OSIRIS JSON producer", ""},
-	{"azure", "[Under development] Microsoft Azure cloud OSIRIS JSON producer", ""},
+	{"azure", "Microsoft Azure cloud OSIRIS JSON producer", "go.osirisjson.org/producers/cmd/osirisjson-producer-azure"},
 	{"gcp", "[Under development] Google Cloud Platform OSIRIS JSON producer", ""},
 	{"arista", "[Under development] Arista EOS OSIRIS JSON producer", ""},
 	{"cisco", "Cisco OSIRIS JSON producer (APIC, IOS-XR, NX-OS)", "go.osirisjson.org/producers/cmd/osirisjson-producer-cisco"},

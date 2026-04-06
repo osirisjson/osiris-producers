@@ -5,7 +5,7 @@
 // For an introduction to OSIRIS JSON Producer for Cisco see:
 // "[OSIRIS-JSON-CISCO]."
 //
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/cisco
+// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
 package apic
 
 import (
@@ -92,6 +92,22 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		return nil, fmt.Errorf("query l3extOut: %w", err)
 	}
 
+	// Relationship classes for connections.
+	bdToCtxAttrs, err := client.QueryClass("fvRsCtx")
+	if err != nil {
+		return nil, fmt.Errorf("query fvRsCtx: %w", err)
+	}
+
+	epgToBdAttrs, err := client.QueryClass("fvRsBd")
+	if err != nil {
+		return nil, fmt.Errorf("query fvRsBd: %w", err)
+	}
+
+	l3outToCtxAttrs, err := client.QueryClass("l3extRsEctx")
+	if err != nil {
+		return nil, fmt.Errorf("query l3extRsEctx: %w", err)
+	}
+
 	// Faults are always fetched - audit-critical regardless of detail level.
 	faultAttrs, err := client.QueryClass("faultInst")
 	if err != nil {
@@ -114,7 +130,7 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	bdResources, bdDNToID := TransformBridgeDomains(bdAttrs)
 	subnetResources := TransformSubnets(subnetAttrs)
 	epgGroups, epgDNToID := TransformEPGs(epgAttrs)
-	l3outResources := TransformL3Outs(l3outAttrs)
+	l3outResources, l3outDNToID := TransformL3Outs(l3outAttrs)
 
 	// Wire relationships ("how it relates").
 	// Tenant children: VRFs and EPGs are child groups of their parent tenant.
@@ -125,6 +141,14 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	WireBDsToTenants(bdAttrs, bdDNToID, tenantDNToID, tenantGroups)
 	WireSubnetsToTenants(subnetAttrs, tenantDNToID, tenantGroups)
 	WireL3OutsToTenants(l3outAttrs, tenantDNToID, tenantGroups)
+
+	// Wire ACI relationship classes into group membership.
+	// BD -> VRF: BDs become members of their VRF group.
+	WireBDsToVRFs(bdToCtxAttrs, bdDNToID, vrfDNToID, vrfGroups)
+	// L3Out -> VRF: L3Outs become members of their VRF group.
+	WireL3OutsToVRFs(l3outToCtxAttrs, l3outDNToID, vrfDNToID, vrfGroups)
+	// EPG -> BD: BDs become members of their EPG group.
+	WireEPGsToBDs(epgToBdAttrs, epgDNToID, bdDNToID, epgGroups)
 
 	// Detailed mode: wire endpoints as members of their EPG groups.
 	if len(endpointAttrs) > 0 {
@@ -179,6 +203,7 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 
 	ctx.Logger.Info("APIC collection complete",
 		"resources", len(doc.Topology.Resources),
+		"connections", len(doc.Topology.Connections),
 		"groups", len(doc.Topology.Groups),
 	)
 

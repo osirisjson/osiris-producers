@@ -5,7 +5,7 @@
 // For an introduction to OSIRIS JSON Producer for Cisco see:
 // "[OSIRIS-JSON-CISCO]."
 //
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/cisco
+// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
 
 package apic
 
@@ -61,6 +61,15 @@ func fixtureServer(t *testing.T) *httptest.Server {
 		},
 		"fvCEp": []any{
 			apicObj("fvCEp", map[string]any{"dn": "uni/tn-tn_Example/ap-app1/epg-epg_WEB/cep-AA:BB:CC:DD:EE:FF", "mac": "AA:BB:CC:DD:EE:FF", "encap": "vlan-100", "fabricPathDn": "topology/pod-1/paths-111/pathep-[eth1/1]"}),
+		},
+		"fvRsCtx": []any{
+			apicObj("fvRsCtx", map[string]any{"dn": "uni/tn-tn_Example/BD-bd_App/rsctx", "tDn": "uni/tn-tn_Example/ctx-vrf_Prod_1", "state": "formed"}),
+		},
+		"fvRsBd": []any{
+			apicObj("fvRsBd", map[string]any{"dn": "uni/tn-tn_Example/ap-app1/epg-epg_WEB/rsbd", "tDn": "uni/tn-tn_Example/BD-bd_App", "state": "formed"}),
+		},
+		"l3extRsEctx": []any{
+			apicObj("l3extRsEctx", map[string]any{"dn": "uni/tn-tn_Example/out-l3out_Prod_1/rsectx", "tDn": "uni/tn-tn_Example/ctx-vrf_Prod_1", "state": "formed"}),
 		},
 		"faultInst": []any{
 			apicObj("faultInst", map[string]any{"dn": "topology/pod-1/node-101/sys/ch/supslot-1/sup/sensor-1/fault-F1527", "code": "F1527", "severity": "warning", "cause": "equipment-full", "descr": "Storage unit full", "created": "2026-02-25T07:32:52.237+00:00", "lastTransition": "2026-02-25T07:49:53.368+00:00", "lc": "raised", "domain": "infra", "subject": "equipment-full"}),
@@ -144,15 +153,15 @@ func TestCollect_Minimal(t *testing.T) {
 	}
 
 	typeCounts := countTypes(doc.Topology.Resources)
-	assertCount(t, typeCounts, "network.controller", 1)
-	assertCount(t, typeCounts, "network.switch.spine", 1)
-	assertCount(t, typeCounts, "network.switch.leaf", 1)
-	assertCount(t, typeCounts, "network.domain.bridge", 1)
+	assertCount(t, typeCounts, "osiris.cisco.controller", 1)
+	assertCount(t, typeCounts, "osiris.cisco.switch.spine", 1)
+	assertCount(t, typeCounts, "osiris.cisco.switch.leaf", 1)
+	assertCount(t, typeCounts, "osiris.cisco.domain.bridge", 1)
 	assertCount(t, typeCounts, "network.subnet", 1)
-	assertCount(t, typeCounts, "network.l3out", 1)
-	assertCount(t, typeCounts, "network.endpoint", 0) // minimal = no endpoints
+	assertCount(t, typeCounts, "osiris.cisco.l3out", 1)
+	assertCount(t, typeCounts, "osiris.cisco.endpoint", 0) // minimal = no endpoints
 
-	// No connections (L3Outs are resources now, not connections).
+	// No connections (ACI relationships are modeled as group membership).
 	if len(doc.Topology.Connections) != 0 {
 		t.Errorf("expected 0 connections, got %d", len(doc.Topology.Connections))
 	}
@@ -204,15 +213,15 @@ func TestCollect_Detailed(t *testing.T) {
 	}
 
 	typeCounts := countTypes(doc.Topology.Resources)
-	assertCount(t, typeCounts, "network.endpoint", 1)
+	assertCount(t, typeCounts, "osiris.cisco.endpoint", 1)
 
-	// EPG should have the endpoint as a member.
+	// EPG should have the endpoint + BD as members.
 	epgWEB := findGroup(doc.Topology.Groups, "epg_WEB")
 	if epgWEB == nil {
 		t.Fatal("missing epg_WEB group")
 	}
-	if len(epgWEB.Members) != 1 {
-		t.Errorf("epg_WEB: expected 1 endpoint member, got %d", len(epgWEB.Members))
+	if len(epgWEB.Members) != 2 {
+		t.Errorf("epg_WEB: expected 2 members (endpoint+BD), got %d: %v", len(epgWEB.Members), epgWEB.Members)
 	}
 }
 
@@ -245,7 +254,7 @@ func TestCollect_FaultExtensions(t *testing.T) {
 	// Find the spine resource (node-101) - should have 1 fault (cleared filtered).
 	var spine *sdk.Resource
 	for i, r := range doc.Topology.Resources {
-		if r.Type == "network.switch.spine" {
+		if r.Type == "osiris.cisco.switch.spine" {
 			spine = &doc.Topology.Resources[i]
 			break
 		}
@@ -299,7 +308,7 @@ func TestCollect_FaultExtensions(t *testing.T) {
 	// LEAF1 (node-111) should have 1 fault (F0532).
 	var leaf *sdk.Resource
 	for i, r := range doc.Topology.Resources {
-		if r.Type == "network.switch.leaf" {
+		if r.Type == "osiris.cisco.switch.leaf" {
 			leaf = &doc.Topology.Resources[i]
 			break
 		}
@@ -326,6 +335,63 @@ func TestCollect_FaultExtensions(t *testing.T) {
 	}
 }
 
+func TestCollect_RelationshipWiring(t *testing.T) {
+	ts := fixtureServer(t)
+	defer ts.Close()
+
+	producer, ctx := newTestProducer(t, ts, "minimal")
+	doc, err := producer.Collect(ctx)
+	if err != nil {
+		t.Fatalf("Collect failed: %v", err)
+	}
+
+	// VRF should have BD + L3Out as members (via fvRsCtx and l3extRsEctx).
+	vrfProd := findGroup(doc.Topology.Groups, "vrf_Prod_1")
+	if vrfProd == nil {
+		t.Fatal("missing vrf_Prod_1 group")
+	}
+	if len(vrfProd.Members) != 2 {
+		t.Errorf("vrf_Prod_1: expected 2 members (BD+L3Out), got %d: %v", len(vrfProd.Members), vrfProd.Members)
+	}
+
+	// EPG should have BD as a member (via fvRsBd).
+	epgWEB := findGroup(doc.Topology.Groups, "epg_WEB")
+	if epgWEB == nil {
+		t.Fatal("missing epg_WEB group")
+	}
+	if len(epgWEB.Members) != 1 {
+		t.Errorf("epg_WEB: expected 1 BD member, got %d: %v", len(epgWEB.Members), epgWEB.Members)
+	}
+
+	// Verify BD resource ID is a member of both VRF and EPG.
+	bdID := ""
+	for _, r := range doc.Topology.Resources {
+		if r.Type == "osiris.cisco.domain.bridge" {
+			bdID = r.ID
+			break
+		}
+	}
+	if bdID == "" {
+		t.Fatal("missing BD resource")
+	}
+
+	if !containsID(vrfProd.Members, bdID) {
+		t.Errorf("BD %q not found in VRF members", bdID)
+	}
+	if !containsID(epgWEB.Members, bdID) {
+		t.Errorf("BD %q not found in EPG members", bdID)
+	}
+}
+
+func containsID(ids []string, target string) bool {
+	for _, id := range ids {
+		if id == target {
+			return true
+		}
+	}
+	return false
+}
+
 func TestCollect_ACINodeExtensions(t *testing.T) {
 	ts := fixtureServer(t)
 	defer ts.Close()
@@ -339,7 +405,7 @@ func TestCollect_ACINodeExtensions(t *testing.T) {
 	// APIC1 (controller) should have ACI extensions from topSystem.
 	var ctrl *sdk.Resource
 	for i, r := range doc.Topology.Resources {
-		if r.Type == "network.controller" {
+		if r.Type == "osiris.cisco.controller" {
 			ctrl = &doc.Topology.Resources[i]
 			break
 		}
@@ -368,7 +434,7 @@ func TestCollect_ACINodeExtensions(t *testing.T) {
 	}
 }
 
-// Test helpers ---
+// Test helpers.
 
 func countTypes(resources []sdk.Resource) map[string]int {
 	m := make(map[string]int)

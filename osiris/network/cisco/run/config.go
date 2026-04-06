@@ -5,7 +5,7 @@
 // For an introduction to OSIRIS JSON Producer for Cisco see:
 // "[OSIRIS-JSON-CISCO]."
 //
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/cisco
+// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
 
 package run
 
@@ -14,6 +14,7 @@ import (
 	"net"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Owner values for batch CSV. These are human-only metadata they do not affect the producer or the OSIRIS document.
@@ -56,6 +57,12 @@ type RunConfig struct {
 	DetailLevel     string // "minimal" | "detailed".
 	SafeFailureMode string // "fail-closed" | "log-and-redact" | "off".
 	InsecureTLS     bool   // --insecure: skip TLS verify.
+	Timestamp       string // filesystem-safe UTC timestamp for output filenames.
+}
+
+// FormatTimestamp returns a filesystem-safe UTC timestamp string.
+func FormatTimestamp(t time.Time) string {
+	return t.UTC().Format("2006-01-02T15-04-05Z")
 }
 
 // IsBatch returns true when the run targets multiple devices.

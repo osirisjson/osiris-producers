@@ -15,6 +15,34 @@ Package versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ---
 
+## [0.2.0] - 2026-04-06
+
+### Added
+- **azure**: Microsoft Azure producer - full fetch of subscription topology via Azure CLI (`az`) [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/?view=azure-cli-latest)
+  - Collects VNets, subnets, NICs, NSGs, route tables, public IPs, load balancers, private endpoints, VNet gateways, NAT gateways, firewalls, app gateways, DNS zones, ExpressRoute circuits, VMs
+  - Cross-subscription VNet peering stubs with `provider.type` and `provider.subscription`
+  - Resource group resources (`container.resourcegroup`) per [OSIRIS spec Appendix C.5](https://osirisjson.org/en/docs/spec/v10/15-appendices#c5-container-and-organization-resources)
+  - Resource group and subscription group hierarchy
+  - `provider.type` populated with native ARM resource types on all resources
+  - Interactive subscription picker when no flags provided
+  - CSV batch mode, multi-subscription, and auto-discover (`--all`) modes
+  - Output batcg hierarchy: `<output>/<TenantID>/<timestamp>/<SubscriptionName>.json`
+  - Output single filename convention `microsoft-azure-<timestamp>-<SubscriptionName>.json`
+- **cmd/osirisjson-producer-azure**: standalone Azure producer binary
+
+### Changed
+- **cisco/apic**: resource types - `osiris.cisco.controller`, `osiris.cisco.switch.spine`, `osiris.cisco.switch.leaf`, `osiris.cisco.domain.bridge`, `osiris.cisco.endpoint`, `osiris.cisco.l3out`, `osiris.cisco.epg`
+- **cisco/nxos**: resource types - `osiris.cisco.switch.spine`, `osiris.cisco.switch.leaf`, `osiris.cisco.interface.lag`; connection type `physical.ethernet` (was `network.link`)
+- **cisco/iosxe**: resource types - `osiris.cisco.interface.lag`; connection type `physical.ethernet` (was `network.link`)
+- **cisco**: output filename convention changed to `cisco-<type>-<timestamp>-<hostname>.json`
+- **pkg/sdk**: `MarshalDocument` now uses `json.Encoder` with `SetEscapeHTML(false)` to emit literal `<` `>` instead of `\u003c` `\u003e`
+
+### Fixed
+- **cisco/apic**: controller nodes no longer report `unknown` status when `fabricSt` is empty - falls back to `topSystem.state` field
+- **cisco/**: Head guide URI reference for **OSIRIS-JSON-CISCO**.
+
+---
+
 ## [0.1.1] - 2026-03-30
 
 ### Fixed

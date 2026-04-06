@@ -5,7 +5,7 @@
 // For an introduction to OSIRIS JSON Producer for Cisco see:
 // "[OSIRIS-JSON-CISCO]."
 //
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/cisco
+// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
 
 package iosxe
 
@@ -21,7 +21,7 @@ import (
 const extensionNamespace = "osiris.cisco"
 const providerName = "cisco"
 
-// ---------- XML structs ----------
+// XML structs.
 
 // ietfInterfaces maps ietf-interfaces:interfaces.
 type ietfInterfaces struct {
@@ -170,7 +170,7 @@ type memoryStats struct {
 	} `xml:"memory-statistic"`
 }
 
-// ---------- Resource Transforms ----------
+// Resource Transforms.
 
 // TransformDevice converts native config XML + hardware XML into a network.router resource.
 func TransformDevice(hostname string, nativeXML []byte, hwXML []byte) (sdk.Resource, string) {
@@ -393,7 +393,7 @@ func TransformInventory(hwXML []byte) []map[string]any {
 	return items
 }
 
-// ---------- Connection Transforms ----------
+// Connection Transforms.
 
 // TransformCDPNeighbors converts CDP neighbor XML into network.link connections
 // and stub network.interface resources for remote endpoints.
@@ -457,7 +457,7 @@ func TransformCDPNeighbors(hostname string, cdpXML []byte, ifNameToID map[string
 
 		// Create connection.
 		connInput := sdk.ConnectionIDInput{
-			Type:      "network.link",
+			Type:      "physical.ethernet",
 			Direction: "bidirectional",
 			Source:    localID,
 			Target:    remoteID,
@@ -465,7 +465,7 @@ func TransformCDPNeighbors(hostname string, cdpXML []byte, ifNameToID map[string
 		connKey := sdk.ConnectionCanonicalKey(connInput)
 		connID := sdk.BuildConnectionID(connKey, 16)
 
-		conn, err := sdk.NewConnection(connID, "network.link", localID, remoteID)
+		conn, err := sdk.NewConnection(connID, "physical.ethernet", localID, remoteID)
 		if err != nil {
 			continue
 		}
@@ -478,7 +478,7 @@ func TransformCDPNeighbors(hostname string, cdpXML []byte, ifNameToID map[string
 	return connections, stubs
 }
 
-// ---------- Group Transforms ----------
+// Group Transforms.
 
 // TransformVRFs converts native VRF config XML into logical.vrf groups.
 // Returns groups and a map of VRF name -> group ID.
@@ -535,7 +535,7 @@ func TransformVRFs(hostname string, vrfXML []byte) ([]sdk.Group, map[string]stri
 	return groups, vrfNameToGroupID
 }
 
-// ---------- Wiring Functions ----------
+// Wiring Functions.
 
 // WireInterfacesToVRFs adds interface resource IDs as members of their VRF groups.
 // This is based on interface names containing the VRF name in IOS-XE configuration.
@@ -588,7 +588,7 @@ func WireInterfacesToVRFs(vrfXML []byte, ifNameToID map[string]string, groups []
 	}
 }
 
-// ---------- Detail-only Enrichment ----------
+// Detail-only Enrichment.
 
 // EnrichInterfaceCounters mutates interface resources in-place with counter statistics
 // from ietf-interfaces statistics elements.
@@ -803,7 +803,7 @@ func groupIndex(groups []sdk.Group) map[string]int {
 func classifyInterfaceType(ifName string) string {
 	lower := strings.ToLower(ifName)
 	if strings.HasPrefix(lower, "port-channel") {
-		return "network.interface.lag"
+		return "osiris.cisco.interface.lag"
 	}
 	return "network.interface"
 }

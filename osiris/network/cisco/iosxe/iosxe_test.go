@@ -6,7 +6,7 @@
 // For an introduction to OSIRIS JSON Producer for Cisco see:
 // "[OSIRIS-JSON-CISCO]."
 //
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/cisco
+// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
 
 package iosxe
 
@@ -285,7 +285,7 @@ func TestCollect_Minimal(t *testing.T) {
 	typeCounts := countTypes(doc.Topology.Resources)
 	assertCount(t, typeCounts, "network.router", 1)
 	assertCount(t, typeCounts, "network.interface", 5) // 4 local + 1 CDP stub
-	assertCount(t, typeCounts, "network.interface.lag", 1)
+	assertCount(t, typeCounts, "osiris.cisco.interface.lag", 1)
 
 	// Connections: 1 CDP link.
 	if len(doc.Topology.Connections) != 1 {
@@ -428,7 +428,7 @@ func TestCollect_CDPConnections(t *testing.T) {
 	}
 
 	conn := doc.Topology.Connections[0]
-	if conn.Type != "network.link" {
+	if conn.Type != "physical.ethernet" {
 		t.Errorf("connection type: %s", conn.Type)
 	}
 	if conn.Status != "active" {

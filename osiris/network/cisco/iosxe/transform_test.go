@@ -4,7 +4,7 @@
 // For an introduction to OSIRIS JSON Producer for Cisco see:
 // "[OSIRIS-JSON-CISCO]."
 //
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/cisco
+// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
 
 package iosxe
 
@@ -209,7 +209,7 @@ func TestTransformInterfaces(t *testing.T) {
 	if pc == nil {
 		t.Fatal("missing Port-channel1")
 	}
-	if pc.Type != "network.interface.lag" {
+	if pc.Type != "osiris.cisco.interface.lag" {
 		t.Errorf("Port-channel should be network.interface.lag, got %s", pc.Type)
 	}
 
@@ -358,7 +358,7 @@ func TestTransformCDPNeighbors(t *testing.T) {
 	}
 
 	// Verify connection.
-	if connections[0].Type != "network.link" {
+	if connections[0].Type != "physical.ethernet" {
 		t.Errorf("connection type: %s", connections[0].Type)
 	}
 	if connections[0].Status != "active" {
@@ -551,7 +551,7 @@ func TestClassifyInterfaceType(t *testing.T) {
 		{"TenGigabitEthernet0/1/0", "network.interface"},
 		{"Loopback0", "network.interface"},
 		{"Tunnel100", "network.interface"},
-		{"Port-channel1", "network.interface.lag"},
+		{"Port-channel1", "osiris.cisco.interface.lag"},
 		{"GigabitEthernet0/0/0.100", "network.interface"},
 	}
 	for _, tc := range cases {

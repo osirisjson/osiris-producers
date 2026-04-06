@@ -1,4 +1,4 @@
-// marshal.go - JSON serialization for OSIRIS documents.
+// marshal.go - JSON serialization for OSIRIS JSON documents.
 // Produces deterministic, human-readable output (2-space indent, trailing newline)
 // suitable for golden-file comparison and version control.
 //
@@ -10,17 +10,21 @@
 package sdk
 
 import (
+	"bytes"
 	"encoding/json"
 )
 
 // MarshalDocument serializes an OSIRIS document to JSON with 2-space indentation
 // and a trailing newline, producing deterministic, diff-friendly output.
+// HTML-safe escaping is disabled so that characters like <, >, & appear
+// literally in the JSON output instead of as \u003c, \u003e, \u0026.
 func MarshalDocument(doc *Document) ([]byte, error) {
-	data, err := json.MarshalIndent(doc, "", "  ")
-	if err != nil {
+	var buf bytes.Buffer
+	enc := json.NewEncoder(&buf)
+	enc.SetIndent("", "  ")
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(doc); err != nil {
 		return nil, err
 	}
-	// Append trailing newline for POSIX compliance and clean diffs.
-	data = append(data, '\n')
-	return data, nil
+	return buf.Bytes(), nil
 }

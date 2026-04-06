@@ -5,7 +5,7 @@
 // For an introduction to OSIRIS JSON Producer for Cisco see:
 // "[OSIRIS-JSON-CISCO]."
 //
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/cisco
+// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
 package nxos
 
 import (
@@ -58,7 +58,7 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		"show interface brief",
 		"show vlan brief",
 		"show vrf all detail",
-		"show lldp neighbors detail",
+		"show vrf interface",
 	})
 	if err != nil {
 		return nil, fmt.Errorf("NX-OS batch 1 query failed: %w", err)
@@ -69,21 +69,22 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	ifBriefData := batch1[2]
 	vlanBriefData := batch1[3]
 	vrfDetailData := batch1[4]
-	lldpData := batch1[5]
+	vrfInterfaceData := batch1[5]
 
-	// Batch 2: vPC and port-channel (2 commands).
-	// vPC may not be configured - handle gracefully.
+	// Batch 2: optional features - LLDP, vPC, port-channel.
+	// These may not be enabled on all devices; log and continue on failure.
 	batch2, err := client.ShowMulti([]string{
+		"show lldp neighbors detail",
 		"show vpc brief",
 		"show port-channel summary",
 	})
 	if err != nil {
-		// vPC not configured is common; treat as empty.
-		ctx.Logger.Warn("NX-OS batch 2 query failed (vPC may not be configured)", "err", err)
-		batch2 = []map[string]any{{}, {}}
+		ctx.Logger.Warn("NX-OS batch 2 query failed (LLDP/vPC may not be configured)", "err", err)
+		batch2 = []map[string]any{{}, {}, {}}
 	}
 
-	vpcBriefData := batch2[0]
+	lldpData := batch2[0]
+	vpcBriefData := batch2[1]
 
 	// Transform device.
 	deviceResource, _ := TransformDevice(hostname, versionData)
@@ -107,8 +108,9 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	vpcGroup, _ := TransformVPC(hostname, vpcBriefData)
 
 	// Wire relationships.
-	WireInterfacesToVLANs(vlanBriefData, ifNameToID, vlanGroups, vlanIDToGroupID)
-	WireInterfacesToVRFs(vrfDetailData, ifNameToID, vrfGroups, vrfNameToGroupID)
+	vlanMembers := WireInterfacesToVLANs(vlanBriefData, ifBriefData, ifNameToID, vlanGroups, vlanIDToGroupID)
+	vrfMembers := WireInterfacesToVRFs(vrfDetailData, vrfInterfaceData, ifNameToID, vrfGroups, vrfNameToGroupID)
+	ctx.Logger.Debug("group wiring complete", "vlan_members", vlanMembers, "vrf_members", vrfMembers)
 	if vpcGroup != nil {
 		WirePortChannelsToVPC(vpcBriefData, ifNameToID, vpcGroup)
 	}

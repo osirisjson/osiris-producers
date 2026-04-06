@@ -5,7 +5,7 @@
 // For an introduction to OSIRIS JSON Producer for Cisco see:
 // "[OSIRIS-JSON-CISCO]."
 //
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/cisco
+// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
 
 package nxos
 
@@ -84,6 +84,15 @@ func fixtureServer(t *testing.T) *httptest.Server {
 							"ROW_if": map[string]any{"if_name": "Ethernet1/2"},
 						},
 					},
+				},
+			},
+		},
+		"show vrf interface": {
+			"TABLE_if": map[string]any{
+				"ROW_if": []any{
+					map[string]any{"if_name": "Ethernet1/1", "vrf_name": "PROD"},
+					map[string]any{"if_name": "loopback0", "vrf_name": "PROD"},
+					map[string]any{"if_name": "Ethernet1/2", "vrf_name": "MGMT"},
 				},
 			},
 		},
@@ -287,9 +296,9 @@ func TestCollect_Minimal(t *testing.T) {
 	}
 
 	typeCounts := countTypes(doc.Topology.Resources)
-	assertCount(t, typeCounts, "network.switch.spine", 1)
+	assertCount(t, typeCounts, "osiris.cisco.switch.spine", 1)
 	assertCount(t, typeCounts, "network.interface", 4) // 3 local + 1 LLDP stub
-	assertCount(t, typeCounts, "network.interface.lag", 1)
+	assertCount(t, typeCounts, "osiris.cisco.interface.lag", 1)
 
 	// Connections: 1 LLDP link.
 	if len(doc.Topology.Connections) != 1 {
@@ -346,7 +355,7 @@ func TestCollect_Detailed(t *testing.T) {
 	// Verify device has system resources extension.
 	var device *sdk.Resource
 	for i, r := range doc.Topology.Resources {
-		if r.Type == "network.switch.spine" {
+		if r.Type == "osiris.cisco.switch.spine" {
 			device = &doc.Topology.Resources[i]
 			break
 		}
@@ -389,7 +398,7 @@ func TestCollect_DeviceExtensions(t *testing.T) {
 
 	var device *sdk.Resource
 	for i, r := range doc.Topology.Resources {
-		if r.Type == "network.switch.spine" {
+		if r.Type == "osiris.cisco.switch.spine" {
 			device = &doc.Topology.Resources[i]
 			break
 		}
@@ -439,7 +448,7 @@ func TestCollect_LLDPConnections(t *testing.T) {
 	}
 
 	conn := doc.Topology.Connections[0]
-	if conn.Type != "network.link" {
+	if conn.Type != "physical.ethernet" {
 		t.Errorf("connection type: %s", conn.Type)
 	}
 	if conn.Status != "active" {
@@ -537,7 +546,7 @@ func TestNewFactory(t *testing.T) {
 	}
 }
 
-// Test helpers ---
+// Test helpers.
 
 func countTypes(resources []sdk.Resource) map[string]int {
 	m := make(map[string]int)

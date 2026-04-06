@@ -1,16 +1,17 @@
 /*
-main.go - Standalone Cisco OSIRIS JSON producer binary.
+main.go - Standalone Azure OSIRIS JSON producer binary.
 
 This binary is fully self-contained and can be invoked directly:
 
-	osirisjson-producer-cisco apic -h 10.0.0.1 -u admin -p secret
-	osirisjson-producer-cisco nxos --help
-	osirisjson-producer-cisco template --generate apic
+	osirisjson-producer-azure -S a1b2c3d4-e5f6-7890-abcd-ef1234567890
+	osirisjson-producer-azure -s subscriptions.csv -o ./output
+	osirisjson-producer-azure template --generate
+	osirisjson-producer-azure --help
 
 It is also discovered automatically by the core osirisjson-producer
 dispatcher when the user runs:
 
-	osirisjson-producer cisco apic -h 10.0.0.1 -u admin -p secret
+	osirisjson-producer azure -S a1b2c3d4-e5f6-7890-abcd-ef1234567890
 
 Exit codes:
 
@@ -25,7 +26,7 @@ import (
 	"os"
 	"runtime/debug"
 
-	"go.osirisjson.org/producers/osiris/network/cisco"
+	"go.osirisjson.org/producers/osiris/hyperscalers/azure"
 )
 
 // version is set at build time via -ldflags.
@@ -44,16 +45,16 @@ func init() {
 func main() {
 	args := os.Args[1:]
 
-	// Handle top-level --version before delegating to cisco.Run.
+	// Handle top-level --version before delegating to azure.Run.
 	if len(args) > 0 {
 		switch args[0] {
 		case "--version", "-v", "version":
-			fmt.Printf("osirisjson-producer-cisco %s\n", version)
+			fmt.Printf("osirisjson-producer-azure %s\n", version)
 			os.Exit(0)
 		}
 	}
 
-	if err := cisco.Run(args); err != nil {
+	if err := azure.Run(args); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}

@@ -6,7 +6,7 @@
 // For an introduction to OSIRIS JSON Producer for Cisco see:
 // "[OSIRIS-JSON-CISCO]."
 //
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/cisco
+// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
 package run
 
 import (
@@ -30,38 +30,29 @@ type ProducerFactory func(target TargetConfig, cfg *RunConfig) sdk.Producer
 // Used by RunBatch to dispatch to the correct producer per CSV row.
 type FactoryRegistry map[string]ProducerFactory
 
-// CSVTemplate returns a CSV template string with header, column documentation,
-// owner value descriptions, and precompiled example rows showing all three Cisco sub-producer types.
+// CSVTemplate returns a CSV template string for batch collection of Cisco devices.
+//
+// Columns:
+//
+//	dc        - Datacenter name (used for output folder hierarchy)
+//	floor     - Floor identifier within the datacenter
+//	room      - Room identifier within the floor
+//	zone      - Zone or pod identifier within the room
+//	hostname  - Device label used as output filename (required)
+//	type      - Producer type: apic, nxos, iosxe (required)
+//	ip        - IP address or FQDN of the target device (required)
+//	port      - Override port (optional; default: producer-specific)
+//	owner     - Device ownership: self, isp, colo (optional, default: self)
+//	notes     - Free-text operator notes (ignored by producer)
+//
+// Credentials are provided via --username/--password flags
+// and apply to all targets in the batch.
+// Output hierarchy: <output-dir>/DC/Floor/Room/Zone/Hostname.json
 func CSVTemplate(producerName string) string {
-	return fmt.Sprintf(`# OSIRIS CSV batch template for Cisco %s
-# Lines starting with # are comments and will be ignored.
-#
-# Columns:
-#   dc        - Datacenter name (used for output folder hierarchy)
-#   floor     - Floor identifier within the datacenter
-#   room      - Room identifier within the floor
-#   zone      - Zone or pod identifier within the room
-#   hostname  - Device label used as output filename (required)
-#   type      - Producer type: apic, nxos, iosxr (required)
-#   ip        - IP address or FQDN of the target device (required)
-#   port      - Override port (optional; default: producer-specific)
-#   owner     - Device ownership for operator reference (does not affect collection):
-#                 self  - your own device (default if omitted)
-#                 isp   - ISP-managed device you have read access to
-#                 colo  - colocation provider equipment
-#   notes     - Free-text operator notes (ignored by producer)
-#
-# Credentials are provided via --username/--password flags
-# and apply to all targets in the batch.
-#
-# Output hierarchy: <output-dir>/DC/Floor/Room/Zone/Hostname.json
-# Empty location fields are skipped (e.g. no floor -> DC/Room/Zone/Hostname.json).
-#
-# Example:
-dc,floor,room,zone,hostname,type,ip,port,owner,notes
-AMS-01,F3,R301,POD-A,%[1]s-01,%[1]s,10.10.1.1,,self,Primary %[1]s controller
-AMS-01,F3,R301,POD-A,nx-spine-01,nxos,10.10.1.10,,self,Spine switch rack A1
-AMS-01,F3,R302,POD-B,isp-pe-router,iosxr,172.16.0.1,,isp,ISP PE router - read-only access
+	return fmt.Sprintf(`dc,floor,room,zone,hostname,type,ip,port,owner,notes
+DC-01,F1,R101,POD-A,%[1]s-01,%[1]s,192.0.2.1,,self,Example %[1]s controller
+DC-01,F1,R101,POD-A,switch-01,nxos,192.0.2.10,,self,Example spine switch
+DC-01,F1,R102,POD-B,router-01,iosxe,192.0.2.20,,isp,Example PE router
 `, producerName)
 }
 
