@@ -41,12 +41,14 @@ import (
 	"path/filepath"
 	"time"
 
+	"go.osirisjson.org/producers/pkg/osirismeta"
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
 const (
 	generatorName    = "osirisjson-producer-azure"
-	generatorVersion = "0.1.0"
+	generatorVersion = "0.4.0"
+	generatorURL     = "https://osirisjson.org"
 )
 
 // Producer implements the OSIRIS sdk.Producer interface for Azure.
@@ -87,18 +89,16 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		p.target.TenantID = sub.TenantID
 	}
 
-	detailed := p.cfg != nil && p.cfg.DetailLevel == "detailed"
-
 	// Transform Azure data to OSIRIS JSON types.
-	vnetResources := TransformVNets(data.VirtualNetworks, sub)
+	vnetResources := TransformVNets(data.VirtualNetworks, data.VNetPeerings, sub)
 	subnetResources, subnetIDMap := TransformSubnets(data.Subnets, sub)
 	nicResources, nicIDMap := TransformNICs(data.NetworkInterfaces, sub)
 	nsgResources, nsgIDMap := TransformNSGs(data.SecurityGroups, sub)
-	rtResources, rtIDMap := TransformRouteTables(data.RouteTables, sub, detailed)
-	publicIPResources := TransformPublicIPs(data.PublicIPs, sub, detailed)
-	lbResources := TransformLoadBalancers(data.LoadBalancers, sub, detailed)
+	rtResources, rtIDMap := TransformRouteTables(data.RouteTables, sub)
+	publicIPResources := TransformPublicIPs(data.PublicIPs, sub)
+	lbResources := TransformLoadBalancers(data.LoadBalancers, sub)
 	peResources := TransformPrivateEndpoints(data.PrivateEndpoints, sub)
-	gwResources := TransformVNetGateways(data.VNetGateways, sub)
+	gwResources := TransformVNetGateways(data.VNetGateways, data.GatewayConnections, sub)
 	natGWResources := TransformNATGateways(data.NATGateways, sub)
 	fwResources := TransformFirewalls(data.AzureFirewalls, sub)
 	appGWResources := TransformAppGateways(data.ApplicationGateways, sub)
@@ -106,10 +106,40 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	privateDNSResources := TransformPrivateDNSZones(data.PrivateDNSZones, sub)
 	erResources := TransformExpressRouteCircuits(data.ExpressRouteCircuits, sub)
 	vmResources := TransformVMs(data.VirtualMachines, sub)
+	aspResources, aspIDMap := TransformAppServicePlans(data.AppServicePlans, sub)
+	webAppResources, webAppIDMap := TransformWebApps(data.WebApps, sub)
+	asgResources, asgIDMap := TransformApplicationSecurityGroups(data.ApplicationSecurityGroups, sub)
+	storageResources, storageIDMap := TransformStorageAccounts(data.StorageAccounts, sub)
+	keyVaultResources, keyVaultIDMap := TransformKeyVaults(data.KeyVaults, sub)
+	acrResources, acrIDMap := TransformContainerRegistries(data.ContainerRegistries, sub)
+	miResources, _ := TransformManagedIdentities(data.ManagedIdentities, sub)
+	diskResources, diskIDMap := TransformDisks(data.Disks, sub)
+	snapshotResources, snapshotIDMap := TransformSnapshots(data.Snapshots, sub)
+	aiResources, aiIDMap := TransformApplicationInsights(data.ApplicationInsights, sub)
+	laResources, laIDMap := TransformLogAnalyticsWorkspaces(data.LogAnalyticsWorkspaces, sub)
+	rsvResources, rsvIDMap := TransformRecoveryServicesVaults(data.RecoveryServicesVaults, sub)
+	bvResources, bvIDMap := TransformBackupVaults(data.BackupVaults, sub)
+	sqlServerResources, sqlServerIDMap := TransformSQLServers(data.SQLServers, sub)
+	sqlDatabaseResources, sqlDatabaseIDMap := TransformSQLDatabases(data.SQLServers, sub)
+	pgResources, pgIDMap := TransformPostgreSQLServers(data.PostgreSQLServers, sub)
+	mysqlResources, mysqlIDMap := TransformMySQLServers(data.MySQLServers, sub)
+	cosmosResources, cosmosIDMap := TransformCosmosAccounts(data.CosmosAccounts, sub)
+	redisResources, redisIDMap := TransformRedisCaches(data.RedisCaches, sub)
+	aksResources, aksIDMap := TransformAKSClusters(data.AKSClusters, sub)
+	aksPoolResources, aksPoolIDMap := TransformAKSAgentPools(data.AKSClusters, sub)
+	containerEnvResources, containerEnvIDMap := TransformContainerAppEnvironments(data.ContainerAppEnvironments, sub)
+	containerAppResources, containerAppIDMap := TransformContainerApps(data.ContainerApps, sub)
+	containerGroupResources, containerGroupIDMap := TransformContainerGroups(data.ContainerGroups, sub)
+	serviceBusResources, serviceBusIDMap := TransformServiceBusNamespaces(data.ServiceBusNamespaces, sub)
+	eventHubsResources, eventHubsIDMap := TransformEventHubsNamespaces(data.EventHubsNamespaces, sub)
+	apimResources, apimIDMap := TransformAPIMServices(data.APIMServices, sub)
+	frontDoorResources, _ := TransformFrontDoorProfiles(data.FrontDoorProfiles, sub)
 
 	// Build ID maps for connection wiring.
 	vnetIDMap := BuildVNetIDMap(data.VirtualNetworks)
 	publicIPIDMap := BuildPublicIPIDMap(data.PublicIPs)
+	peIDMap := BuildPrivateEndpointIDMap(data.PrivateEndpoints)
+	vmIDMap := BuildVMIDMap(data.VirtualMachines)
 
 	// Network topology connections - the full end-to-end path.
 	//
@@ -144,7 +174,90 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	// Layer 9: Private DNS zone -> VNet links
 	dnsVNetConns := TransformPrivateDNSToVNetConnections(data.PrivateDNSZones, vnetIDMap)
 	//
-	// Layer 10: Gateway connections (ExpressRoute circuit <-> gateway)
+	// Layer 10: NIC -> Application Security Group membership
+	nicASGConns := TransformNICToASGConnections(data.NetworkInterfaces, nicIDMap, asgIDMap)
+	//
+	// Layer 11: App Service Plan -> Web App / Function App (contains)
+	planAppConns := TransformWebAppToPlanConnections(data.WebApps, webAppIDMap, aspIDMap)
+	//
+	// Layer 12: Web App / Function App -> VNet integration subnet
+	webAppSubnetConns := TransformWebAppToSubnetConnections(data.WebApps, webAppIDMap, subnetIDMap)
+	//
+	// Layer 13: Private Endpoint -> Web App / Function App (Private Link binding)
+	peWebAppConns := TransformPEToWebAppConnections(data.WebApps, webAppIDMap, peIDMap)
+	//
+	// Layer 14: Private Endpoint -> Storage Account / Key Vault / Container Registry
+	peStorageConns := TransformPEToStorageConnections(data.StorageAccounts, storageIDMap, peIDMap)
+	peKeyVaultConns := TransformPEToKeyVaultConnections(data.KeyVaults, keyVaultIDMap, peIDMap)
+	peACRConns := TransformPEToContainerRegistryConnections(data.ContainerRegistries, acrIDMap, peIDMap)
+	//
+	// Layer 15: Snapshot -> source disk/snapshot (creation lineage, contains/reverse)
+	snapshotDiskConns := TransformSnapshotToDiskConnections(data.Snapshots, snapshotIDMap, diskIDMap)
+	//
+	// Layer 16: Disk -> VM (managedBy attachment, contains/reverse)
+	diskVMConns := TransformDiskToVMConnections(data.Disks, diskIDMap, vmIDMap)
+	//
+	// Layer 17: App Insights -> Log Analytics workspace (workspace-based AI only)
+	aiWorkspaceConns := TransformAppInsightsToWorkspaceConnections(data.ApplicationInsights, aiIDMap, laIDMap)
+	//
+	// Layer 18: Web App / Function App -> App Insights (via hidden-link tag)
+	webAppAIConns := TransformWebAppToAppInsightsConnections(data.WebApps, webAppIDMap, aiIDMap)
+	//
+	// Layer 19: Private Endpoint -> Recovery Services Vault
+	peRSVConns := TransformPEToRecoveryServicesVaultConnections(data.RecoveryServicesVaults, rsvIDMap, peIDMap)
+	//
+	// Layer 20: Protected resource -> vault (backup data flow).
+	// Merges every ARM ID -> resource ID map so a backup item's source (VM,
+	// disk, storage account, web/function app, etc.) can be wired to the vault.
+	backupSrcIDMap := BuildAllResourceIDMap(
+		vmIDMap, diskIDMap, storageIDMap, keyVaultIDMap, acrIDMap,
+		webAppIDMap, snapshotIDMap,
+	)
+	rsvProtectedConns := TransformBackupProtectedItemConnections(data.RecoveryServicesVaults, rsvIDMap, backupSrcIDMap)
+	bvInstanceConns := TransformBackupInstanceConnections(data.BackupVaults, bvIDMap, backupSrcIDMap)
+	//
+	// Layer 21: SQL Server -> SQL Database (contains)
+	sqlServerDBConns := TransformSQLServerContainsDatabaseConnections(data.SQLServers, sqlServerIDMap, sqlDatabaseIDMap)
+	//
+	// Layer 22: Private Endpoint -> SQL Server / Cosmos DB / Redis
+	peSQLConns := TransformPEToSQLServerConnections(data.SQLServers, sqlServerIDMap, peIDMap)
+	peCosmosConns := TransformPEToCosmosAccountConnections(data.CosmosAccounts, cosmosIDMap, peIDMap)
+	peRedisConns := TransformPEToRedisConnections(data.RedisCaches, redisIDMap, peIDMap)
+	//
+	// Layer 23: PG / MySQL flexible server -> delegated subnet (VNet integrated),
+	// Redis Premium -> injected subnet. Combined DB IDs into a single lookup so
+	// the helper can resolve either source type.
+	flexServerIDMap := BuildAllResourceIDMap(pgIDMap, mysqlIDMap)
+	flexSubnetConns := TransformFlexServerToSubnetConnections(data.PostgreSQLServers, data.MySQLServers, flexServerIDMap, subnetIDMap)
+	redisSubnetConns := TransformRedisToSubnetConnections(data.RedisCaches, redisIDMap, subnetIDMap)
+	//
+	// Layer 24: AKS cluster -> agent pool (contains)
+	aksPoolConns := TransformAKSClusterContainsAgentPoolConnections(data.AKSClusters, aksIDMap, aksPoolIDMap)
+	//
+	// Layer 25: AKS node pool -> delegated subnet (network)
+	aksPoolSubnetConns := TransformAKSNodePoolToSubnetConnections(data.AKSClusters, aksPoolIDMap, subnetIDMap)
+	//
+	// Layer 26: Private Endpoint -> AKS cluster (private cluster Private Link)
+	peAKSConns := TransformPEToAKSClusterConnections(data.AKSClusters, aksIDMap, peIDMap)
+	//
+	// Layer 27: Container App Environment -> Container App (contains)
+	envAppConns := TransformContainerEnvContainsAppConnections(data.ContainerApps, containerEnvIDMap, containerAppIDMap)
+	//
+	// Layer 28: Container App Environment -> infrastructure subnet (VNet integrated)
+	envSubnetConns := TransformContainerEnvToSubnetConnections(data.ContainerAppEnvironments, containerEnvIDMap, subnetIDMap)
+	//
+	// Layer 29: ACI Container Group -> subnet (VNet integrated)
+	cgSubnetConns := TransformContainerGroupToSubnetConnections(data.ContainerGroups, containerGroupIDMap, subnetIDMap)
+	//
+	// Layer 30: Private Endpoint -> Service Bus / Event Hubs / APIM
+	peServiceBusConns := TransformPEToServiceBusConnections(data.ServiceBusNamespaces, serviceBusIDMap, peIDMap)
+	peEventHubsConns := TransformPEToEventHubsConnections(data.EventHubsNamespaces, eventHubsIDMap, peIDMap)
+	peAPIMConns := TransformPEToAPIMConnections(data.APIMServices, apimIDMap, peIDMap)
+	//
+	// Layer 31: APIM -> subnet (VNet integrated, External / Internal mode)
+	apimSubnetConns := TransformAPIMToSubnetConnections(data.APIMServices, apimIDMap, subnetIDMap)
+	//
+	// Layer 32: Gateway connections (ExpressRoute circuit <-> gateway)
 	allIDMap := BuildAllResourceIDMap(vnetIDMap, subnetIDMap, nicIDMap, nsgIDMap, rtIDMap)
 	for _, gw := range data.VNetGateways {
 		allIDMap[gw.ID] = resourceID("osiris.azure.gateway.vnet", gw.ID)
@@ -152,7 +265,7 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	for _, er := range data.ExpressRouteCircuits {
 		allIDMap[er.ID] = resourceID("osiris.azure.expressroute", er.ID)
 	}
-	gwConns := TransformGatewayConnections(data.GatewayConnections, allIDMap)
+	gwConns, gwStubs := TransformGatewayConnections(data.GatewayConnections, allIDMap)
 
 	// Build resource group resources (container.resourcegroup per OSIRIS JSON specification Appendix C.5).
 	rgResources := TransformResourceGroupResources(data.ResourceGroups, sub)
@@ -166,7 +279,20 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		len(rgResources)+len(vnetResources)+len(subnetResources)+len(nicResources)+len(nsgResources)+
 			len(rtResources)+len(publicIPResources)+len(lbResources)+len(peResources)+
 			len(gwResources)+len(natGWResources)+len(fwResources)+len(appGWResources)+
-			len(dnsResources)+len(privateDNSResources)+len(erResources)+len(vmResources))
+			len(dnsResources)+len(privateDNSResources)+len(erResources)+len(vmResources)+
+			len(aspResources)+len(webAppResources)+len(asgResources)+
+			len(storageResources)+len(keyVaultResources)+len(acrResources)+
+			len(miResources)+len(diskResources)+len(snapshotResources)+
+			len(aiResources)+len(laResources)+
+			len(rsvResources)+len(bvResources)+
+			len(sqlServerResources)+len(sqlDatabaseResources)+
+			len(pgResources)+len(mysqlResources)+
+			len(cosmosResources)+len(redisResources)+
+			len(aksResources)+len(aksPoolResources)+
+			len(containerEnvResources)+len(containerAppResources)+
+			len(containerGroupResources)+
+			len(serviceBusResources)+len(eventHubsResources)+
+			len(apimResources)+len(frontDoorResources))
 
 	allResources = append(allResources, rgResources...)
 	allResources = append(allResources, vnetResources...)
@@ -185,7 +311,36 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	allResources = append(allResources, privateDNSResources...)
 	allResources = append(allResources, erResources...)
 	allResources = append(allResources, vmResources...)
+	allResources = append(allResources, aspResources...)
+	allResources = append(allResources, webAppResources...)
+	allResources = append(allResources, asgResources...)
+	allResources = append(allResources, storageResources...)
+	allResources = append(allResources, keyVaultResources...)
+	allResources = append(allResources, acrResources...)
+	allResources = append(allResources, miResources...)
+	allResources = append(allResources, diskResources...)
+	allResources = append(allResources, snapshotResources...)
+	allResources = append(allResources, aiResources...)
+	allResources = append(allResources, laResources...)
+	allResources = append(allResources, rsvResources...)
+	allResources = append(allResources, bvResources...)
+	allResources = append(allResources, sqlServerResources...)
+	allResources = append(allResources, sqlDatabaseResources...)
+	allResources = append(allResources, pgResources...)
+	allResources = append(allResources, mysqlResources...)
+	allResources = append(allResources, cosmosResources...)
+	allResources = append(allResources, redisResources...)
+	allResources = append(allResources, aksResources...)
+	allResources = append(allResources, aksPoolResources...)
+	allResources = append(allResources, containerEnvResources...)
+	allResources = append(allResources, containerAppResources...)
+	allResources = append(allResources, containerGroupResources...)
+	allResources = append(allResources, serviceBusResources...)
+	allResources = append(allResources, eventHubsResources...)
+	allResources = append(allResources, apimResources...)
+	allResources = append(allResources, frontDoorResources...)
 	allResources = append(allResources, peeringStubs...)
+	allResources = append(allResources, gwStubs...)
 
 	// Wire resources to resource groups.
 	WireResourcesToResourceGroups(allResources, rgNameToID, rgGroups)
@@ -205,15 +360,33 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		regions = append(regions, reg)
 	}
 
+	// Build scope name: "SubscriptionID - SubscriptionName".
+	scopeName := sub.SubscriptionID
+	if sub.DisplayName != "" {
+		scopeName = sub.SubscriptionID + " - " + sub.DisplayName
+	}
+
+	// Build scope.
+	purpose, err := osirismeta.ParsePurpose(p.cfg.Purpose)
+	if err != nil {
+		return nil, fmt.Errorf("invalid purpose in config: %w", err)
+	}
+	scope := sdk.Scope{
+		Name:          scopeName,
+		Purpose:       purpose.String(),
+		Providers:     []string{providerName},
+		Accounts:      []string{sub.TenantID},
+		Subscriptions: []string{sub.SubscriptionID},
+		Regions:       regions,
+	}
+	if p.target.Environment != "" {
+		scope.Environments = []string{p.target.Environment}
+	}
+
 	// Assemble the document.
 	builder := sdk.NewDocumentBuilder(ctx).
-		WithGenerator(generatorName, generatorVersion).
-		WithScope(sdk.Scope{
-			Providers:     []string{providerName},
-			Accounts:      []string{sub.TenantID},
-			Subscriptions: []string{sub.SubscriptionID},
-			Regions:       regions,
-		})
+		WithGenerator(generatorName, generatorVersion, generatorURL).
+		WithScope(scope)
 
 	for _, r := range allResources {
 		builder.AddResource(r)
@@ -233,6 +406,36 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	allConns = append(allConns, natSubnetConns...)
 	allConns = append(allConns, natPIPConns...)
 	allConns = append(allConns, dnsVNetConns...)
+	allConns = append(allConns, nicASGConns...)
+	allConns = append(allConns, planAppConns...)
+	allConns = append(allConns, webAppSubnetConns...)
+	allConns = append(allConns, peWebAppConns...)
+	allConns = append(allConns, peStorageConns...)
+	allConns = append(allConns, peKeyVaultConns...)
+	allConns = append(allConns, peACRConns...)
+	allConns = append(allConns, snapshotDiskConns...)
+	allConns = append(allConns, diskVMConns...)
+	allConns = append(allConns, aiWorkspaceConns...)
+	allConns = append(allConns, webAppAIConns...)
+	allConns = append(allConns, peRSVConns...)
+	allConns = append(allConns, rsvProtectedConns...)
+	allConns = append(allConns, bvInstanceConns...)
+	allConns = append(allConns, sqlServerDBConns...)
+	allConns = append(allConns, peSQLConns...)
+	allConns = append(allConns, peCosmosConns...)
+	allConns = append(allConns, peRedisConns...)
+	allConns = append(allConns, flexSubnetConns...)
+	allConns = append(allConns, redisSubnetConns...)
+	allConns = append(allConns, aksPoolConns...)
+	allConns = append(allConns, aksPoolSubnetConns...)
+	allConns = append(allConns, peAKSConns...)
+	allConns = append(allConns, envAppConns...)
+	allConns = append(allConns, envSubnetConns...)
+	allConns = append(allConns, cgSubnetConns...)
+	allConns = append(allConns, peServiceBusConns...)
+	allConns = append(allConns, peEventHubsConns...)
+	allConns = append(allConns, peAPIMConns...)
+	allConns = append(allConns, apimSubnetConns...)
 	allConns = append(allConns, gwConns...)
 	for _, c := range allConns {
 		builder.AddConnection(c)
@@ -242,14 +445,22 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	for _, g := range rgGroups {
 		builder.AddGroup(g)
 	}
+	for _, g := range TransformRegionGroups(allResources, sub) {
+		builder.AddGroup(g)
+	}
 
 	doc, err := builder.Build()
 	if err != nil {
 		return nil, fmt.Errorf("document build failed: %w", err)
 	}
 
+	// Shape the emitted document per OSIRIS JSON spec chapter 13.1.3 based on the declared purpose.
+	// Collection itself is always exhaustive; the projection trims fields.
+	osirismeta.Project(doc, purpose)
+
 	ctx.Logger.Info("Azure collection complete",
 		"subscription", sub.DisplayName,
+		"purpose", purpose.String(),
 		"resources", len(doc.Topology.Resources),
 		"connections", len(doc.Topology.Connections),
 		"groups", len(doc.Topology.Groups),
@@ -336,7 +547,14 @@ func runBatch(cfg *Config, logger *slog.Logger) error {
 
 	var succeeded, failed int
 
-	for _, target := range cfg.Targets {
+	for i, target := range cfg.Targets {
+		// Brief cooldown between subscriptions to let the OS recycle TCP
+		// sockets and file descriptors, preventing connection exhaustion
+		// on large batch runs (hundreds of subscriptions).
+		if i > 0 {
+			time.Sleep(5 * time.Second)
+		}
+
 		log := logger.With(
 			"subscription", target.SubscriptionID,
 			"name", target.SubscriptionName,
@@ -346,8 +564,8 @@ func runBatch(cfg *Config, logger *slog.Logger) error {
 
 		producer := NewProducer(target, cfg)
 		ctx := sdk.NewContext(&sdk.ProducerConfig{
-			DetailLevel:     cfg.DetailLevel,
 			SafeFailureMode: cfg.SafeFailureMode,
+			Purpose:         cfg.Purpose,
 		})
 		ctx.Logger = log
 
@@ -428,24 +646,35 @@ func defaultLogger() *slog.Logger {
 
 func newSDKContext(cfg *Config) *sdk.Context {
 	return sdk.NewContext(&sdk.ProducerConfig{
-		DetailLevel:     cfg.DetailLevel,
 		SafeFailureMode: cfg.SafeFailureMode,
+		Purpose:         cfg.Purpose,
 	})
 }
 
 func printHelp() {
 	fmt.Print(`osirisjson-producer azure - Microsoft Azure OSIRIS JSON producer
 
-Collects networking and compute resources from Azure subscriptions via the
-Azure CLI (az). Requires authentication via 'az login'.
+Collects resources from Azure subscriptions via the Azure CLI (az) and
+generates OSIRIS JSON documents. Collection is always exhaustive;
+the --purpose flag shapes the emitted document per OSIRIS JSON spec chapter 13.1.3:
+documentation (default, minimal) or audit (full detail).
+Secrets are always redacted regardless of purpose level.
+
+Requires authentication via 'az login' with Reader access to the
+target subscriptions.
 
 Each subscription is exported as a self-contained OSIRIS JSON document.
-Cross-subscription references (e.g. VNet peerings) use deterministic
+Cross references (e.g. VNet peerings) use deterministic
 resource IDs that consumers can correlate across documents.
 
 Usage:
   osirisjson-producer azure [flags]
   osirisjson-producer azure template --generate
+
+Interactive mode (run without flags):
+  osirisjson-producer azure
+  Discovers all accessible subscriptions and presents a numbered list.
+  Supports selection syntax: 1,3,5 or 30-55 or 'all'.
 
 Single subscription (writes to microsoft-azure-<timestamp>-<name>.json):
   -S, --subscription    Azure subscription ID or name
@@ -460,39 +689,42 @@ Common flags:
                         Hierarchy: <output>/<TenantID>/<timestamp>/<SubName>.json
   --tenant              Azure AD / Entra ID tenant ID (optional)
   --region              Filter to a specific Azure region (optional)
-  --detail              Detail level: minimal or detailed (default: minimal)
-  --safe-failure-mode   Secret handling: fail-closed, log-and-redact, off (default: fail-closed)
+  --safe-failure-mode   Secret handling: fail-closed (default), log-and-redact, off
+` + osirismeta.PurposeHelp() + `
 
-  Generate a CSV template:
-    osirisjson-producer azure template --generate
+Other:
+  osirisjson-producer azure template --generate   Generate a CSV template for batch collection
 
 Prerequisites:
   1. Install Azure CLI: https://learn.microsoft.com/en-us/cli/azure/install-azure-cli
   2. Authenticate: az login
-  3. Ensure Reader access to target subscriptions
+  3. Ensure your RBAC allow Reader access to target subscriptions
 
 Multi-tenant:
-  Run the producer once per tenant. Each 'az login' authenticates to one tenant.
-  Use 'az login --tenant <tenant-id>' to switch tenants.
-  The output hierarchy groups documents by tenant automatically.
+  Run the producer once per tenant. Each 'az login' authenticates to one
+  tenant. Use 'az login --tenant <tenant-id>' to switch tenants. The
+  output hierarchy groups documents by tenant automatically.
 
 Examples:
-  # Single subscription (saves microsoft-azure-<timestamp>-<name>.json)
+  # Interactive mode (pick tenant subscriptions from the list)
+  osirisjson-producer azure
+
+  # Single subscription ID - minimal documentation output
   osirisjson-producer azure -S a1b2c3d4-e5f6-7890-abcd-ef1234567890
 
-  # Multiple specific subscriptions
+  # Same subscription, full audit-grade output
+  osirisjson-producer azure -S a1b2c3d4-e5f6-7890-abcd-ef1234567890 --purpose audit
+
+  # Multiple specific subscriptions IDs
   osirisjson-producer azure -S sub-id-1,sub-id-2,sub-id-3 -o ./output
 
-  # All accessible subscriptions (auto-discover)
-  osirisjson-producer azure --all -o ./output
+  # All accessible subscriptions (auto-discover), audit-grade
+  osirisjson-producer azure --all --purpose audit -o ./output
 
   # All subscriptions in a specific tenant
   osirisjson-producer azure --all --tenant f1e2d3c4-b5a6-9078-fedc-ba9876543210 -o ./output
 
-  # Batch from CSV
+  # Batch from CSV template
   osirisjson-producer azure -s subscriptions.csv -o ./output
-
-  # Generate CSV template
-  osirisjson-producer azure template --generate
 `)
 }

@@ -53,8 +53,8 @@ type Config struct {
 	Targets         []SubscriptionTarget
 	OutputDir       string // batch/export mode; empty = stdout single mode.
 	Timestamp       string // shared timestamp for the batch run.
-	DetailLevel     string // "minimal" | "detailed".
 	SafeFailureMode string // "fail-closed" | "log-and-redact" | "off".
+	Purpose         string // OSIRIS JSON spec chapter 13.1.3 output grade: "documentation" (default) | "audit".
 }
 
 // IsBatch returns true when the run targets multiple subscriptions or has an output dir.

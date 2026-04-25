@@ -24,6 +24,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"go.osirisjson.org/producers/pkg/osirismeta"
 )
 
 // ParseFlags parses CLI flags for the Azure producer and returns a Config.
@@ -37,8 +39,8 @@ func ParseFlags(args []string) (*Config, error) {
 		all          bool
 		source       string
 		output       string
-		detail       string
 		safeFail     string
+		purposeStr   string
 	)
 
 	fs.StringVar(&subscription, "S", "", "Azure subscription ID(s), comma-separated")
@@ -50,16 +52,11 @@ func ParseFlags(args []string) (*Config, error) {
 	fs.StringVar(&source, "source", "", "CSV file for batch mode")
 	fs.StringVar(&output, "o", "", "output directory (required for --all, --source, or multi-subscription)")
 	fs.StringVar(&output, "output", "", "output directory")
-	fs.StringVar(&detail, "detail", "minimal", "detail level: minimal or detailed")
 	fs.StringVar(&safeFail, "safe-failure-mode", "fail-closed", "secret handling: fail-closed, log-and-redact, or off")
+	fs.StringVar(&purposeStr, "purpose", "", "OSIRIS JSON spec chapter 13.1.3 output grade: documentation (default) or audit")
 
 	if err := fs.Parse(args); err != nil {
 		return nil, err
-	}
-
-	// Validate detail level.
-	if detail != "minimal" && detail != "detailed" {
-		return nil, fmt.Errorf("invalid --detail value %q: must be minimal or detailed", detail)
 	}
 
 	// Validate safe failure mode.
@@ -68,6 +65,11 @@ func ParseFlags(args []string) (*Config, error) {
 		// valid
 	default:
 		return nil, fmt.Errorf("invalid --safe-failure-mode value %q: must be fail-closed, log-and-redact, or off", safeFail)
+	}
+
+	purpose, err := osirismeta.ParsePurpose(purposeStr)
+	if err != nil {
+		return nil, err
 	}
 
 	// Mutual exclusivity checks.
@@ -92,8 +94,8 @@ func ParseFlags(args []string) (*Config, error) {
 		}
 		cfg := &Config{
 			OutputDir:       output,
-			DetailLevel:     detail,
 			SafeFailureMode: safeFail,
+			Purpose:         purpose.String(),
 			Targets:         targets,
 		}
 		return cfg, nil
@@ -101,8 +103,8 @@ func ParseFlags(args []string) (*Config, error) {
 
 	cfg := &Config{
 		OutputDir:       output,
-		DetailLevel:     detail,
 		SafeFailureMode: safeFail,
+		Purpose:         purpose.String(),
 	}
 
 	// --all: auto-discover subscriptions.
@@ -350,7 +352,7 @@ func selectSubscriptionsInteractive(tenantFilter, regionFilter string) ([]Subscr
 			sub.TenantID)
 	}
 
-	fmt.Fprintf(os.Stderr, "\nSelect subscriptions (comma-separated numbers, or 'all'): ")
+	fmt.Fprintf(os.Stderr, "\nSelect subscriptions (e.g. 1,3,5 or 30-55 or 'all'): ")
 
 	reader := bufio.NewReader(os.Stdin)
 	input, err := reader.ReadString('\n')
@@ -363,38 +365,74 @@ func selectSubscriptionsInteractive(tenantFilter, regionFilter string) ([]Subscr
 		return nil, fmt.Errorf("no subscriptions selected")
 	}
 
-	if strings.EqualFold(input, "all") {
-		targets := make([]SubscriptionTarget, len(available))
-		copy(targets, available)
-		for i := range targets {
-			if targets[i].Region == "" && regionFilter != "" {
-				targets[i].Region = regionFilter
-			}
-		}
-		return targets, nil
+	indices, err := parseSelection(input, len(available))
+	if err != nil {
+		return nil, err
 	}
 
-	var targets []SubscriptionTarget
+	targets := make([]SubscriptionTarget, len(indices))
+	for i, idx := range indices {
+		targets[i] = available[idx]
+		if targets[i].Region == "" && regionFilter != "" {
+			targets[i].Region = regionFilter
+		}
+	}
+
+	return targets, nil
+}
+
+// parseSelection parses an interactive selection string into 0-based indices.
+// Supports: "all", individual numbers "1,3,5", ranges "30-55", and combinations "1,3,30-55".
+func parseSelection(input string, count int) ([]int, error) {
+	if strings.EqualFold(strings.TrimSpace(input), "all") {
+		indices := make([]int, count)
+		for i := range indices {
+			indices[i] = i
+		}
+		return indices, nil
+	}
+
+	seen := map[int]bool{}
+	var indices []int
+
 	parts := strings.Split(input, ",")
 	for _, p := range parts {
 		p = strings.TrimSpace(p)
 		if p == "" {
 			continue
 		}
+
+		// Check for subscription range: "30-55".
+		if lo, hi, ok := strings.Cut(p, "-"); ok {
+			loNum, errLo := strconv.Atoi(strings.TrimSpace(lo))
+			hiNum, errHi := strconv.Atoi(strings.TrimSpace(hi))
+			if errLo != nil || errHi != nil || loNum < 1 || hiNum < 1 || loNum > count || hiNum > count {
+				return nil, fmt.Errorf("invalid range %q: enter numbers between 1 and %d", p, count)
+			}
+			if loNum > hiNum {
+				return nil, fmt.Errorf("invalid range %q: start must be <= end", p)
+			}
+			for n := loNum; n <= hiNum; n++ {
+				if !seen[n-1] {
+					seen[n-1] = true
+					indices = append(indices, n-1)
+				}
+			}
+			continue
+		}
+
 		num, err := strconv.Atoi(p)
-		if err != nil || num < 1 || num > len(available) {
-			return nil, fmt.Errorf("invalid selection %q: enter numbers between 1 and %d", p, len(available))
+		if err != nil || num < 1 || num > count {
+			return nil, fmt.Errorf("invalid selection %q: enter numbers between 1 and %d", p, count)
 		}
-		target := available[num-1]
-		if target.Region == "" && regionFilter != "" {
-			target.Region = regionFilter
+		if !seen[num-1] {
+			seen[num-1] = true
+			indices = append(indices, num-1)
 		}
-		targets = append(targets, target)
 	}
 
-	if len(targets) == 0 {
-		return nil, fmt.Errorf("no subscriptions selected")
+	if len(indices) == 0 {
+		return nil, fmt.Errorf("no items selected")
 	}
-
-	return targets, nil
+	return indices, nil
 }
