@@ -23,6 +23,7 @@ type DocumentBuilder struct {
 	ctx           *Context
 	generatorName string
 	generatorVer  string
+	generatorURL  string
 	scope         *Scope
 	resources     []Resource
 	connections   []Connection
@@ -35,9 +36,13 @@ func NewDocumentBuilder(ctx *Context) *DocumentBuilder {
 }
 
 // WithGenerator sets the generator name and version (both required).
-func (b *DocumentBuilder) WithGenerator(name, version string) *DocumentBuilder {
+// An optional URL can be provided as a third argument.
+func (b *DocumentBuilder) WithGenerator(name, version string, url ...string) *DocumentBuilder {
 	b.generatorName = name
 	b.generatorVer = version
+	if len(url) > 0 {
+		b.generatorURL = url[0]
+	}
 	return b
 }
 
@@ -122,6 +127,7 @@ func (b *DocumentBuilder) Build() (*Document, error) {
 		Generator: Generator{
 			Name:    b.generatorName,
 			Version: b.generatorVer,
+			URL:     b.generatorURL,
 		},
 		Scope: b.scope,
 	}

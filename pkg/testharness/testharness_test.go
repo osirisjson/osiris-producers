@@ -67,7 +67,7 @@ func TestAssertGoldenUpdate(t *testing.T) {
 
 	ctx := NewTestContext(t)
 	b := sdk.NewDocumentBuilder(ctx).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 	doc, err := b.Build()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -96,7 +96,7 @@ func (m *mockProducer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	r2, _ := sdk.NewResource("res-b", "compute.vm", p)
 
 	b := sdk.NewDocumentBuilder(ctx).
-		WithGenerator("mock-producer", "0.1.0")
+		WithGenerator("mock-producer", "0.2.2")
 	b.AddResource(r1)
 	b.AddResource(r2)
 	return b.Build()

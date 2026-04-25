@@ -20,7 +20,7 @@ func TestMarshalDocumentFormat(t *testing.T) {
 			Timestamp: "2026-01-15T10:00:00Z",
 			Generator: Generator{
 				Name:    "test-producer",
-				Version: "0.1.0",
+				Version: "0.2.2",
 			},
 		},
 		Topology: Topology{
@@ -57,7 +57,7 @@ func TestMarshalDocumentDeterministic(t *testing.T) {
 		Version: SpecVersion,
 		Metadata: Metadata{
 			Timestamp: "2026-01-15T10:00:00Z",
-			Generator: Generator{Name: "test", Version: "1.0.0"},
+			Generator: Generator{Name: "test", Version: "0.2.2"},
 		},
 		Topology: Topology{
 			Resources: []Resource{

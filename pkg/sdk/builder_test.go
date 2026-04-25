@@ -74,7 +74,7 @@ func TestBuildRequiresGenerator(t *testing.T) {
 
 func TestBuildSetsSchemaAndVersion(t *testing.T) {
 	b := NewDocumentBuilder(testContext()).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 	doc, err := b.Build()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -89,7 +89,7 @@ func TestBuildSetsSchemaAndVersion(t *testing.T) {
 
 func TestBuildSetsTimestamp(t *testing.T) {
 	b := NewDocumentBuilder(testContext()).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 	doc, err := b.Build()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -102,7 +102,7 @@ func TestBuildSetsTimestamp(t *testing.T) {
 
 func TestBuildSortsResourcesByID(t *testing.T) {
 	b := NewDocumentBuilder(testContext()).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 	b.AddResource(mustResource("z-resource", "compute.vm", mustProvider("aws")))
 	b.AddResource(mustResource("a-resource", "compute.vm", mustProvider("aws")))
 	b.AddResource(mustResource("m-resource", "compute.vm", mustProvider("aws")))
@@ -119,7 +119,7 @@ func TestBuildSortsResourcesByID(t *testing.T) {
 
 func TestBuildSortsConnectionsByID(t *testing.T) {
 	b := NewDocumentBuilder(testContext()).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 	b.AddResource(mustResource("a", "compute.vm", mustProvider("aws")))
 	b.AddResource(mustResource("b", "compute.vm", mustProvider("aws")))
 	b.AddResource(mustResource("c", "compute.vm", mustProvider("aws")))
@@ -138,7 +138,7 @@ func TestBuildSortsConnectionsByID(t *testing.T) {
 
 func TestBuildSortsGroupsByID(t *testing.T) {
 	b := NewDocumentBuilder(testContext()).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 	b.AddGroup(mustGroup("z-group", "physical.site"))
 	b.AddGroup(mustGroup("a-group", "physical.site"))
 
@@ -153,7 +153,7 @@ func TestBuildSortsGroupsByID(t *testing.T) {
 
 func TestBuildEmptyResourcesNotNil(t *testing.T) {
 	b := NewDocumentBuilder(testContext()).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 	doc, err := b.Build()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -169,7 +169,7 @@ func TestBuildRedactionMetadata(t *testing.T) {
 		Clock:  fixedClock,
 	}
 	b := NewDocumentBuilder(ctx).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 	doc, err := b.Build()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -184,7 +184,7 @@ func TestBuildRedactionMetadata(t *testing.T) {
 
 func TestBuildNoRedactionForFailClosed(t *testing.T) {
 	b := NewDocumentBuilder(testContext()).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 	doc, err := b.Build()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -199,7 +199,7 @@ func TestBuildNoRedactionForFailClosed(t *testing.T) {
 
 func TestBuildWithScope(t *testing.T) {
 	b := NewDocumentBuilder(testContext()).
-		WithGenerator("test-producer", "0.1.0").
+		WithGenerator("test-producer", "0.2.2").
 		WithScope(Scope{
 			Providers: []string{"cisco"},
 			Sites:     []string{"mxp"},
@@ -218,7 +218,7 @@ func TestBuildWithScope(t *testing.T) {
 
 func TestBuildDeduplicatesGroupMembers(t *testing.T) {
 	b := NewDocumentBuilder(testContext()).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 	b.AddResource(mustResource("a", "compute.vm", mustProvider("aws")))
 	b.AddResource(mustResource("b", "compute.vm", mustProvider("aws")))
 	b.AddResource(mustResource("c", "compute.vm", mustProvider("aws")))
@@ -246,7 +246,7 @@ func TestBuildDeduplicatesGroupMembers(t *testing.T) {
 // Duplicate ID detection.
 func TestBuildDuplicateResourceIDs(t *testing.T) {
 	b := NewDocumentBuilder(testContext()).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 	b.AddResource(mustResource("dup-id", "compute.vm", mustProvider("aws")))
 	b.AddResource(mustResource("dup-id", "compute.vm", mustProvider("aws")))
 
@@ -261,7 +261,7 @@ func TestBuildDuplicateResourceIDs(t *testing.T) {
 
 func TestBuildDuplicateConnectionIDs(t *testing.T) {
 	b := NewDocumentBuilder(testContext()).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 	b.AddResource(mustResource("r1", "compute.vm", mustProvider("aws")))
 	b.AddResource(mustResource("r2", "compute.vm", mustProvider("aws")))
 	b.AddConnection(mustConnection("dup-conn", "network", "r1", "r2"))
@@ -275,7 +275,7 @@ func TestBuildDuplicateConnectionIDs(t *testing.T) {
 
 func TestBuildDuplicateIDsAcrossTypes(t *testing.T) {
 	b := NewDocumentBuilder(testContext()).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 	b.AddResource(mustResource("shared-id", "compute.vm", mustProvider("aws")))
 	b.AddGroup(mustGroup("shared-id", "physical.site"))
 
@@ -288,7 +288,7 @@ func TestBuildDuplicateIDsAcrossTypes(t *testing.T) {
 // Reference integrity.
 func TestBuildConnectionBrokenSource(t *testing.T) {
 	b := NewDocumentBuilder(testContext()).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 	b.AddResource(mustResource("r1", "compute.vm", mustProvider("aws")))
 	b.AddConnection(mustConnection("c1", "network", "nonexistent", "r1"))
 
@@ -303,7 +303,7 @@ func TestBuildConnectionBrokenSource(t *testing.T) {
 
 func TestBuildConnectionBrokenTarget(t *testing.T) {
 	b := NewDocumentBuilder(testContext()).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 	b.AddResource(mustResource("r1", "compute.vm", mustProvider("aws")))
 	b.AddConnection(mustConnection("c1", "network", "r1", "nonexistent"))
 
@@ -315,7 +315,7 @@ func TestBuildConnectionBrokenTarget(t *testing.T) {
 
 func TestBuildGroupBrokenMember(t *testing.T) {
 	b := NewDocumentBuilder(testContext()).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 	b.AddResource(mustResource("r1", "compute.vm", mustProvider("aws")))
 
 	g := mustGroup("g1", "physical.site")
@@ -333,7 +333,7 @@ func TestBuildGroupBrokenMember(t *testing.T) {
 
 func TestBuildGroupBrokenChild(t *testing.T) {
 	b := NewDocumentBuilder(testContext()).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 
 	g1 := mustGroup("g1", "physical.site")
 	g1.AddChildren("nonexistent-child")
@@ -347,7 +347,7 @@ func TestBuildGroupBrokenChild(t *testing.T) {
 
 func TestBuildGroupValidChild(t *testing.T) {
 	b := NewDocumentBuilder(testContext()).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 
 	g1 := mustGroup("g-parent", "logical.region")
 	g2 := mustGroup("g-child", "physical.site")
@@ -364,7 +364,7 @@ func TestBuildGroupValidChild(t *testing.T) {
 // Extension key validation.
 func TestBuildInvalidExtensionKeyOnResource(t *testing.T) {
 	b := NewDocumentBuilder(testContext()).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 
 	r := mustResource("r1", "compute.vm", mustProvider("aws"))
 	r.Extensions = map[string]any{
@@ -383,7 +383,7 @@ func TestBuildInvalidExtensionKeyOnResource(t *testing.T) {
 
 func TestBuildInvalidExtensionKeyOnConnection(t *testing.T) {
 	b := NewDocumentBuilder(testContext()).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 	b.AddResource(mustResource("r1", "compute.vm", mustProvider("aws")))
 	b.AddResource(mustResource("r2", "compute.vm", mustProvider("aws")))
 
@@ -401,7 +401,7 @@ func TestBuildInvalidExtensionKeyOnConnection(t *testing.T) {
 
 func TestBuildInvalidExtensionKeyOnGroup(t *testing.T) {
 	b := NewDocumentBuilder(testContext()).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 
 	g := mustGroup("g1", "physical.site")
 	g.Extensions = map[string]any{
@@ -417,7 +417,7 @@ func TestBuildInvalidExtensionKeyOnGroup(t *testing.T) {
 
 func TestBuildValidExtensionKeys(t *testing.T) {
 	b := NewDocumentBuilder(testContext()).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 
 	r := mustResource("r1", "compute.vm", mustProvider("aws"))
 	r.Extensions = map[string]any{
@@ -436,7 +436,7 @@ func TestBuildValidExtensionKeys(t *testing.T) {
 // Secret scanning in Build, the regex is protocol-agnostic.
 func TestBuildFailClosedBlocksSecrets(t *testing.T) {
 	b := NewDocumentBuilder(testContext()).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 
 	r := mustResource("r1", "compute.vm", mustProvider("aws"))
 	r.Properties = map[string]any{
@@ -459,7 +459,7 @@ func TestBuildLogAndRedactAllowsSecrets(t *testing.T) {
 		Clock:  fixedClock,
 	}
 	b := NewDocumentBuilder(ctx).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 
 	r := mustResource("r1", "compute.vm", mustProvider("aws"))
 	r.Properties = map[string]any{
@@ -482,7 +482,7 @@ func TestBuildOffModeSkipsScanning(t *testing.T) {
 		Clock:  fixedClock,
 	}
 	b := NewDocumentBuilder(ctx).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 
 	r := mustResource("r1", "compute.vm", mustProvider("aws"))
 	r.Properties = map[string]any{
@@ -498,7 +498,7 @@ func TestBuildOffModeSkipsScanning(t *testing.T) {
 
 func TestBuildCleanDocumentPassesScanning(t *testing.T) {
 	b := NewDocumentBuilder(testContext()).
-		WithGenerator("test-producer", "0.1.0")
+		WithGenerator("test-producer", "0.2.2")
 
 	r := mustResource("r1", "compute.vm", mustProvider("aws"))
 	r.Properties = map[string]any{

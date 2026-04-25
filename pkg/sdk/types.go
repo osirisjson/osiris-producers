@@ -37,10 +37,14 @@ type Metadata struct {
 type Generator struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`
+	URL     string `json:"url,omitempty"`
 }
 
 // Scope describes the export boundaries.
 type Scope struct {
+	Name          string   `json:"name,omitempty"`
+	Description   string   `json:"description,omitempty"`
+	Purpose       string   `json:"purpose,omitempty"`
 	Providers     []string `json:"providers,omitempty"`
 	Accounts      []string `json:"accounts,omitempty"`
 	Regions       []string `json:"regions,omitempty"`
@@ -48,6 +52,7 @@ type Scope struct {
 	Environments  []string `json:"environments,omitempty"`
 	Subscriptions []string `json:"subscriptions,omitempty"`
 	Projects      []string `json:"projects,omitempty"`
+	Clusters      []string `json:"clusters,omitempty"`
 }
 
 // Topology contains the three topology arrays.
