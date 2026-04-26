@@ -1,4 +1,4 @@
-// transform_test.go - Unit tests for Microsoft Azure data transformation.
+// transform_test.go - Unit tests for Microsoft Azure data transformation to OSIRIS JSON mapping functions.
 //
 // For an introduction to OSIRIS JSON Producer for Microsoft Azure see:
 // "[OSIRIS-JSON-AZURE]."

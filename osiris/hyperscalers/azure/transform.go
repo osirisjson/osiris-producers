@@ -1,4 +1,4 @@
-// transform.go - Pure Microsoft Azure->OSIRIS JSON mapping functions.
+// transform.go - Pure Microsoft Azure to OSIRIS JSON mapping functions.
 // Converts Azure resource types (from CLI queries) into SDK types.
 // All functions are stateless: no I/O, no CLI calls, just data transformation.
 //

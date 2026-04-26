@@ -1,4 +1,4 @@
-// client.go - Azure CLI wrapper for the Azure OSIRIS JSON producer.
+// client.go - Azure CLI wrapper for the Microsoft Azure OSIRIS JSON producer.
 // Executes 'az' CLI commands to collect networking resources from a subscription.
 // Requires the user to be authenticated via 'az login' before running the producer.
 //
@@ -11,6 +11,7 @@
 // "[OSIRIS-JSON-AZURE]."
 //
 // [OSIRIS-JSON-AZURE]: https://osirisjson.org/en/docs/producers/hyperscalers/microsoft-azure
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/docs/spec/v10/00-preface
 
 package azure
 

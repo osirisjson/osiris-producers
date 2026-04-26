@@ -1,4 +1,4 @@
-// flags.go - CLI flag parsing for the Azure OSIRIS JSON producer.
+// flags.go - CLI flag parsing for the Microsoft Azure OSIRIS JSON producer.
 // Supports three operating modes:
 //
 //   - Single mode: --subscription <id> (writes to stdout)
@@ -12,6 +12,7 @@
 // "[OSIRIS-JSON-AZURE]."
 //
 // [OSIRIS-JSON-AZURE]: https://osirisjson.org/en/docs/producers/hyperscalers/microsoft-azure
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/docs/spec/v10/00-preface
 
 package azure
 

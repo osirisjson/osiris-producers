@@ -1,4 +1,4 @@
-// config.go - Configuration types for the Azure OSIRIS JSON producer.
+// config.go - Configuration types for the Microsoft Azure OSIRIS JSON producer.
 // Defines subscription-scoped targeting and runtime settings for Azure
 // resource collection via the Azure CLI.
 //
@@ -18,6 +18,7 @@
 // "[OSIRIS-JSON-AZURE]."
 //
 // [OSIRIS-JSON-AZURE]: https://osirisjson.org/en/docs/producers/hyperscalers/microsoft-azure
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/docs/spec/v10/00-preface
 
 package azure
 
