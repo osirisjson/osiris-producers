@@ -87,10 +87,7 @@ func TransformAppServicePlans(plans []AppServicePlan, sub SubscriptionInfo) ([]s
 //	kind contains "functionapp" -> osiris.azure.functionapp
 //	otherwise                   -> osiris.azure.webapp
 //
-// Returns resources and a map of site ARM ID -> resource ID for connection wiring.
-func TransformWebApps(apps []WebApp, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
-	var resources []sdk.Resource
-	idMap := make(map[string]string, len(apps))
+
 
 	for _, a := range apps {
 		osirisType := "osiris.azure.webapp"
