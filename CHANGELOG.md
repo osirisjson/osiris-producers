@@ -27,16 +27,50 @@ For changes to the OSIRIS specification, core documents and core schema itself, 
 
 ---
 
+## [0.5.0] - 2026-06-07
+
+Azure Hub and connectivity resource expansion. No changes to other producers in this release.
+
+| Producer | Behavior version |
+|----------|------------------|
+| Microsoft Azure OSIRIS JSON producer | [0.5.0](osiris/hyperscalers/azure/CHANGELOG.md#050---2026-06-07) |
+| Cisco APIC OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco IOS-XE OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco NX-OS OSIRIS JSON producer | 0.1.0 (no change) |
+
+### Highlights (Azure 0.5.0)
+- **Azure Bastion** (`osiris.azure.bastion`), **Traffic Manager** (`osiris.azure.trafficmanager`),
+  **DNS Private Resolver** (`osiris.azure.dns.resolver`), and **DNS Forwarding Ruleset**
+  (`osiris.azure.dns.forwardingruleset`): 4 new resource types with full connection wiring.
+- **Data-quality fixes:** NIC `private_ip` hoisted to `properties`; NSG `security_rules` moved
+  from `extensions` to `properties`; ExpressRoute gains 3 previously missing fields.
+- **Management Group hierarchy:** new `logical.managementgroup` groups with full ancestry
+  chain (root-to-leaf); subscription group gains `extensions.osiris.azure.management_group_path` (JSON array, root-to-leaf display names).
+- **MetricAlert collection restored:** criteria unmarshal bug fixed; `microsoft.insights/metricalerts`
+  is now fully collected and emitted with per-condition `criteria[]` in properties.
+- **Transform layer split:** `transform_networking.go` and (compute, web, storage, security, identity, observability, recovery, databases, containers,
+  integration, groups) extracted from the monolithic `transform.go`, covering all 16 networking resource types and 15 connection types.
+  This refactor align the Microsoft Azure producer layout with the Microsoft Azure service-category
+  taxonomy; compute, containers, storage, and other domain splits will follow. Residual `transform.go` is now few source lines of pure shared helpers.
+  No behavior change; identical output for all resource and connection types.
+- **Bug fixes promoted from [0.4.0]:** Application Gateway reclassification,
+  subnet CIDR fallback, Managed Identity IDs in properties, VNet peering
+  `allowVirtualNetworkAccess` flag.
+- **Additions promoted from [0.4.0]:** VM field depth, Azure Monitor Metric Alerts
+  (with criteria), Azure Monitor Action Groups.
+
+---
+
 ## [0.4.0] - 2026-04-25
 
 Azure resource and connection coverage expansion. No changes to other producers in this release.
 
 | Producer | Behavior version |
 |----------|------------------|
-| Azure | [0.4.0](osiris/hyperscalers/azure/CHANGELOG.md#040---2026-04-25) |
-| Cisco APIC | 0.1.0 (no change) |
-| Cisco IOS-XE | 0.1.0 (no change) |
-| Cisco NX-OS | 0.1.0 (no change) |
+| Microsoft Azure OSIRIS JSON producer | [0.4.0](osiris/hyperscalers/azure/CHANGELOG.md#040---2026-04-25) |
+| Cisco APIC OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco IOS-XE OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco NX-OS OSIRIS JSON producer | 0.1.0 (no change) |
 
 ### Highlights (Azure 0.4.0)
 - New resource types discovery: App Service Plan, Web App / Function App, ASG,
@@ -62,10 +96,10 @@ for the full list of resources, properties, edges and out-of-scope notes.
 
 | Producer | Behavior version |
 |----------|------------------|
-| Azure | [0.2.1](osiris/hyperscalers/azure/CHANGELOG.md#021---2026-04-06) |
-| Cisco APIC | 0.1.0 (no change) |
-| Cisco IOS-XE | 0.1.0 (no change) |
-| Cisco NX-OS | 0.1.0 (no change) |
+| Microsoft Azure OSIRIS JSON producer | [0.2.1](osiris/hyperscalers/azure/CHANGELOG.md#021---2026-04-06) |
+| Cisco APIC OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco IOS-XE OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco NX-OS OSIRIS JSON producer | 0.1.0 (no change) |
 
 ### Highlights
 - **Azure**: resolve `az` binary path via `exec.LookPath`. Fixes
@@ -80,10 +114,10 @@ the [OSIRIS JSON spec](https://github.com/osirisjson/osiris/blob/main/specificat
 
 | Producer | Behavior version |
 |----------|------------------|
-| Azure | [0.2.0](osiris/hyperscalers/azure/CHANGELOG.md#020---2026-04-06) (initial release) |
-| Cisco APIC | [0.1.0](osiris/network/cisco/apic/CHANGELOG.md#010---2026-03-21) (in-place changes; constant not bumped) |
-| Cisco IOS-XE | [0.1.0](osiris/network/cisco/iosxe/CHANGELOG.md#010---2026-03-21) (in-place changes; constant not bumped) |
-| Cisco NX-OS | [0.1.0](osiris/network/cisco/nxos/CHANGELOG.md#010---2026-03-21) (in-place changes; constant not bumped) |
+| Microsoft Azure OSIRIS JSON producer | [0.2.0](osiris/hyperscalers/azure/CHANGELOG.md#020---2026-04-06) (initial release) |
+| Cisco APIC OSIRIS JSON producer | [0.1.0](osiris/network/cisco/apic/CHANGELOG.md#010---2026-03-21) (in-place changes; constant not bumped) |
+| Cisco IOS-XE OSIRIS JSON producer | [0.1.0](osiris/network/cisco/iosxe/CHANGELOG.md#010---2026-03-21) (in-place changes; constant not bumped) |
+| Cisco NX-OS OSIRIS JSON producer | [0.1.0](osiris/network/cisco/nxos/CHANGELOG.md#010---2026-03-21) (in-place changes; constant not bumped) |
 
 ### Highlights
 - **Azure**: new producer - full subscription topology via the Azure CLI.
@@ -103,9 +137,9 @@ the [OSIRIS JSON spec](https://github.com/osirisjson/osiris/blob/main/specificat
 
 | Producer | Behavior version |
 |----------|------------------|
-| Cisco NX-OS | [0.1.0](osiris/network/cisco/nxos/CHANGELOG.md#010---2026-03-21) (factory wiring fix; constant not bumped) |
-| Cisco APIC | 0.1.0 (no change) |
-| Cisco IOS-XE | 0.1.0 (no change) |
+| Cisco NX-OS OSIRIS JSON producer | [0.1.0](osiris/network/cisco/nxos/CHANGELOG.md#010---2026-03-21) (factory wiring fix; constant not bumped) |
+| Cisco APIC OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco IOS-XE OSIRIS JSON producer | 0.1.0 (no change) |
 
 ### Highlights
 - **Cisco NX-OS**: wired the producer factory into the CLI dispatcher -
@@ -120,9 +154,9 @@ First Cisco producer release and core CLI dispatcher.
 
 | Producer | Behavior version |
 |----------|------------------|
-| Cisco APIC | [0.1.0](osiris/network/cisco/apic/CHANGELOG.md#010---2026-03-21) (initial release) |
-| Cisco IOS-XE | [0.1.0](osiris/network/cisco/iosxe/CHANGELOG.md#010---2026-03-21) (initial release) |
-| Cisco NX-OS | [0.1.0](osiris/network/cisco/nxos/CHANGELOG.md#010---2026-03-21) (initial release) |
+| Cisco APIC OSIRIS JSON producer | [0.1.0](osiris/network/cisco/apic/CHANGELOG.md#010---2026-03-21) (initial release) |
+| Cisco IOS-XE OSIRIS JSON producer | [0.1.0](osiris/network/cisco/iosxe/CHANGELOG.md#010---2026-03-21) (initial release) |
+| Cisco NX-OS OSIRIS JSON producer | [0.1.0](osiris/network/cisco/nxos/CHANGELOG.md#010---2026-03-21) (initial release) |
 
 ### Highlights
 - **Cisco APIC**: full ACI fabric topology, fault extensions, tenant hierarchy.
@@ -170,7 +204,8 @@ Initial SDK release. No producers shipped under this tag.
 - Removed empty `common/` stubs (replaced by `pkg/sdk/`).
 - Updated `.gitignore` for Go.
 
-[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/osirisjson/osiris-producers/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/osirisjson/osiris-producers/compare/v0.2.1...v0.4.0
 [0.2.1]: https://github.com/osirisjson/osiris-producers/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/osirisjson/osiris-producers/compare/v0.1.1...v0.2.0
