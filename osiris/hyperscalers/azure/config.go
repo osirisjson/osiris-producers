@@ -10,13 +10,11 @@
 //	    <timestamp>/
 //	      <SubscriptionName>.json
 //
-// This structure ensures that each OSIRIS document is a self-contained
+// This structure ensures that each OSIRIS JSON document is a self-contained
 // subscription snapshot, while the directory tree groups them by tenant
 // and point-in-time for easy correlation by consumers.
 //
 // For an introduction to OSIRIS JSON Producer for Microsoft Azure see:
-// "[OSIRIS-JSON-AZURE]."
-//
 // [OSIRIS-JSON-AZURE]: https://osirisjson.org/en/docs/producers/hyperscalers/microsoft-azure
 // [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/docs/spec/v10/00-preface
 
@@ -56,6 +54,11 @@ type Config struct {
 	Timestamp       string // shared timestamp for the batch run.
 	SafeFailureMode string // "fail-closed" | "log-and-redact" | "off".
 	Purpose         string // OSIRIS JSON spec chapter 13.1.3 output grade: "documentation" (default) | "audit".
+
+	// MGEntitiesCache holds the tenant-scoped management group entity tree
+	// pre-fetched once per batch run so it is not re-fetched for every subscription.
+	// nil means each subscription client will fetch independently.
+	MGEntitiesCache []MGEntity
 }
 
 // IsBatch returns true when the run targets multiple subscriptions or has an output dir.
