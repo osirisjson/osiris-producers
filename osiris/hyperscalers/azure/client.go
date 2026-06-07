@@ -8,20 +8,20 @@
 // ExpressRoute circuits, firewalls, application gateways and virtual machines.
 //
 // For an introduction to OSIRIS JSON Producer for Microsoft Azure see:
-// "[OSIRIS-JSON-AZURE]."
-//
 // [OSIRIS-JSON-AZURE]: https://osirisjson.org/en/docs/producers/hyperscalers/microsoft-azure
 // [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/docs/spec/v10/00-preface
 
 package azure
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os/exec"
 	"strings"
 	"sync"
+	"time"
 )
 
 // SubscriptionInfo carries the resolved subscription metadata.
@@ -41,9 +41,36 @@ type SubscriptionInfo struct {
 
 // ResourceGroup represents an Azure resource group.
 type ResourceGroup struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	Location string `json:"location"`
+	ID        string            `json:"id"`
+	Name      string            `json:"name"`
+	Location  string            `json:"location"`
+	Tags      map[string]string `json:"tags"`
+	ManagedBy string            `json:"managedBy"`
+	// provisioningState is nested under properties in az group list output.
+	Properties struct {
+		ProvisioningState string `json:"provisioningState"`
+	} `json:"properties"`
+}
+
+// MGEntity represents a management group or subscription entity as returned by
+// `az account management-group entities list`. The list is tenant-scoped and
+// includes both management groups (Type = "Microsoft.Management/managementGroups")
+// and subscriptions (Type = "/subscriptions").
+type MGEntity struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	DisplayName string `json:"displayName"`
+	Type        string `json:"type"`
+	TenantID    string `json:"tenantId"`
+	Parent      struct {
+		ID string `json:"id"`
+	} `json:"parent"`
+	ParentNameChain        []string `json:"parentNameChain"`
+	ParentDisplayNameChain []string `json:"parentDisplayNameChain"`
+	Permissions            string   `json:"permissions"`
+	NumberOfChildGroups    int      `json:"numberOfChildGroups"`
+	NumberOfChildren       int      `json:"numberOfChildren"`
+	NumberOfDescendants    int      `json:"numberOfDescendants"`
 }
 
 // azAddressSpace matches the az CLI nested addressSpace object.
@@ -63,6 +90,7 @@ type VirtualNetwork struct {
 	Location             string            `json:"location"`
 	ResourceGroup        string            `json:"resourceGroup"`
 	Tags                 map[string]string `json:"tags"`
+	ProvisioningState    string            `json:"provisioningState"`
 	AddressSpace         azAddressSpace    `json:"addressSpace"`
 	DhcpOptions          azDHCPOptions     `json:"dhcpOptions"`
 	Subnets              []azSubnetRef     `json:"subnets"`
@@ -101,6 +129,7 @@ type Subnet struct {
 	ID                   string              `json:"id"`
 	Name                 string              `json:"name"`
 	ResourceGroup        string              `json:"resourceGroup"`
+	ProvisioningState    string              `json:"provisioningState"`
 	AddressPrefixes      []string            `json:"addressPrefixes"`
 	AddressPrefix        string              `json:"addressPrefix"`
 	NetworkSecurityGroup *azNSGRef           `json:"networkSecurityGroup"`
@@ -184,6 +213,7 @@ type NetworkInterface struct {
 	Location                    string            `json:"location"`
 	ResourceGroup               string            `json:"resourceGroup"`
 	Tags                        map[string]string `json:"tags"`
+	ProvisioningState           string            `json:"provisioningState"`
 	IPConfigurations            []IPConfiguration `json:"ipConfigurations"`
 	NetworkSecurityGroup        *azNSGRef         `json:"networkSecurityGroup"`
 	EnableIPForwarding          bool              `json:"enableIPForwarding"`
@@ -202,15 +232,20 @@ func (n NetworkInterface) NSGId() string {
 
 // NSGSecurityRule represents a single security rule in an NSG.
 type NSGSecurityRule struct {
-	Name                     string `json:"name"`
-	Priority                 int    `json:"priority"`
-	Direction                string `json:"direction"`
-	Access                   string `json:"access"`
-	Protocol                 string `json:"protocol"`
-	SourcePortRange          string `json:"sourcePortRange"`
-	DestinationPortRange     string `json:"destinationPortRange"`
-	SourceAddressPrefix      string `json:"sourceAddressPrefix"`
-	DestinationAddressPrefix string `json:"destinationAddressPrefix"`
+	Name                       string   `json:"name"`
+	Priority                   int      `json:"priority"`
+	Direction                  string   `json:"direction"`
+	Access                     string   `json:"access"`
+	Protocol                   string   `json:"protocol"`
+	Description                string   `json:"description"`
+	SourcePortRange            string   `json:"sourcePortRange"`
+	SourcePortRanges           []string `json:"sourcePortRanges"`
+	DestinationPortRange       string   `json:"destinationPortRange"`
+	DestinationPortRanges      []string `json:"destinationPortRanges"`
+	SourceAddressPrefix        string   `json:"sourceAddressPrefix"`
+	SourceAddressPrefixes      []string `json:"sourceAddressPrefixes"`
+	DestinationAddressPrefix   string   `json:"destinationAddressPrefix"`
+	DestinationAddressPrefixes []string `json:"destinationAddressPrefixes"`
 }
 
 // NetworkSecurityGroup represents an Azure NSG.
@@ -220,6 +255,7 @@ type NetworkSecurityGroup struct {
 	Location             string            `json:"location"`
 	ResourceGroup        string            `json:"resourceGroup"`
 	Tags                 map[string]string `json:"tags"`
+	ProvisioningState    string            `json:"provisioningState"`
 	SecurityRules        []NSGSecurityRule `json:"securityRules"`
 	DefaultSecurityRules []NSGSecurityRule `json:"defaultSecurityRules"`
 	Subnets              []azSubnetRef     `json:"subnets"`
@@ -254,17 +290,21 @@ type Route struct {
 	AddressPrefix    string `json:"addressPrefix"`
 	NextHopType      string `json:"nextHopType"`
 	NextHopIPAddress string `json:"nextHopIpAddress"`
+	HasBgpOverride   bool   `json:"hasBgpOverride"`
 }
 
 // RouteTable represents an Azure route table.
 type RouteTable struct {
-	ID            string            `json:"id"`
-	Name          string            `json:"name"`
-	Location      string            `json:"location"`
-	ResourceGroup string            `json:"resourceGroup"`
-	Tags          map[string]string `json:"tags"`
-	Routes        []Route           `json:"routes"`
-	Subnets       []azSubnetRef     `json:"subnets"`
+	ID                         string            `json:"id"`
+	Name                       string            `json:"name"`
+	Location                   string            `json:"location"`
+	ResourceGroup              string            `json:"resourceGroup"`
+	Tags                       map[string]string `json:"tags"`
+	ProvisioningState          string            `json:"provisioningState"`
+	DisableBgpRoutePropagation bool              `json:"disableBgpRoutePropagation"`
+	DisablePeeringRoute        string            `json:"disablePeeringRoute"`
+	Routes                     []Route           `json:"routes"`
+	Subnets                    []azSubnetRef     `json:"subnets"`
 }
 
 // SubnetIDs returns the subnet IDs from nested references.
@@ -280,8 +320,9 @@ func (t RouteTable) SubnetIDs() []string {
 
 // azSKU matches the az CLI nested SKU object.
 type azSKU struct {
-	Name string `json:"name"`
-	Tier string `json:"tier"`
+	Name   string `json:"name"`
+	Tier   string `json:"tier"`
+	Family string `json:"family"`
 }
 
 // PublicIPAddress represents an Azure public IP.
@@ -291,9 +332,40 @@ type PublicIPAddress struct {
 	Location                 string            `json:"location"`
 	ResourceGroup            string            `json:"resourceGroup"`
 	Tags                     map[string]string `json:"tags"`
+	ProvisioningState        string            `json:"provisioningState"`
+	Zones                    []string          `json:"zones"`
 	IPAddress                string            `json:"ipAddress"`
 	PublicIPAllocationMethod string            `json:"publicIpAllocationMethod"`
 	SKU                      azSKU             `json:"sku"`
+}
+
+// PublicIPPrefix represents a Microsoft.Network/publicIPPrefixes resource.
+type PublicIPPrefix struct {
+	ID                string            `json:"id"`
+	Name              string            `json:"name"`
+	Location          string            `json:"location"`
+	ResourceGroup     string            `json:"resourceGroup"`
+	ProvisioningState string            `json:"provisioningState"`
+	Tags              map[string]string `json:"tags"`
+	SKU               azSKU             `json:"sku"`
+	PrefixLength      int               `json:"prefixLength"`
+	IPPrefix          string            `json:"ipPrefix"`
+	Zones             []string          `json:"zones"`
+	PublicIPAddresses []azPublicIPRef   `json:"publicIpAddresses"`
+}
+
+// AvailabilitySet represents a Microsoft.Compute/availabilitySets resource.
+type AvailabilitySet struct {
+	ID                        string            `json:"id"`
+	Name                      string            `json:"name"`
+	Location                  string            `json:"location"`
+	ResourceGroup             string            `json:"resourceGroup"`
+	ProvisioningState         string            `json:"provisioningState"`
+	Tags                      map[string]string `json:"tags"`
+	SKU                       azSKU             `json:"sku"`
+	PlatformFaultDomainCount  int               `json:"platformFaultDomainCount"`
+	PlatformUpdateDomainCount int               `json:"platformUpdateDomainCount"`
+	VirtualMachines           []azGatewayRef    `json:"virtualMachines"`
 }
 
 // azPublicIPRef matches az CLI nested public IP reference in frontend configs.
@@ -305,7 +377,9 @@ type azPublicIPRef struct {
 type FrontendIPConfig struct {
 	Name                      string         `json:"name"`
 	PublicIPAddress           *azPublicIPRef `json:"publicIpAddress"`
+	PrivateIPAddress          string         `json:"privateIpAddress"`
 	PrivateIPAllocationMethod string         `json:"privateIpAllocationMethod"`
+	Subnet                    *azSubnetRef   `json:"subnet"`
 }
 
 // PublicIPAddressID returns the public IP ID from the nested reference.
@@ -335,6 +409,15 @@ type LBRule struct {
 	BackendPort  int    `json:"backendPort"`
 }
 
+// LBProbe represents a load balancer health probe.
+type LBProbe struct {
+	Name              string `json:"name"`
+	Protocol          string `json:"protocol"`
+	Port              int    `json:"port"`
+	IntervalInSeconds int    `json:"intervalInSeconds"`
+	NumberOfProbes    int    `json:"numberOfProbes"`
+}
+
 // LoadBalancer represents an Azure load balancer.
 type LoadBalancer struct {
 	ID                       string               `json:"id"`
@@ -342,10 +425,15 @@ type LoadBalancer struct {
 	Location                 string               `json:"location"`
 	ResourceGroup            string               `json:"resourceGroup"`
 	Tags                     map[string]string    `json:"tags"`
+	ProvisioningState        string               `json:"provisioningState"`
+	Zones                    []string             `json:"zones"`
 	SKU                      azSKU                `json:"sku"`
 	FrontendIPConfigurations []FrontendIPConfig   `json:"frontendIpConfigurations"`
 	BackendAddressPools      []BackendAddressPool `json:"backendAddressPools"`
 	LoadBalancingRules       []LBRule             `json:"loadBalancingRules"`
+	Probes                   []LBProbe            `json:"probes"`
+	InboundNatRules          []struct{}           `json:"inboundNatRules"`
+	OutboundRules            []struct{}           `json:"outboundRules"`
 }
 
 // azNICRef matches az CLI nested NIC reference.
@@ -360,6 +448,7 @@ type PrivateEndpoint struct {
 	Location                      string                           `json:"location"`
 	ResourceGroup                 string                           `json:"resourceGroup"`
 	Tags                          map[string]string                `json:"tags"`
+	ProvisioningState             string                           `json:"provisioningState"`
 	Subnet                        *azSubnetRef                     `json:"subnet"`
 	NetworkInterfaces             []azNICRef                       `json:"networkInterfaces"`
 	PrivateLinkServiceConnections []azPrivateLinkServiceConnection `json:"privateLinkServiceConnections"`
@@ -430,14 +519,15 @@ type azVNetRef struct {
 
 // VNetPeering represents an Azure VNet peering.
 type VNetPeering struct {
-	ID                    string     `json:"id"`
-	Name                  string     `json:"name"`
-	ResourceGroup         string     `json:"resourceGroup"`
-	RemoteVirtualNetwork  *azVNetRef `json:"remoteVirtualNetwork"`
-	PeeringState          string     `json:"peeringState"`
-	AllowGatewayTransit   bool       `json:"allowGatewayTransit"`
-	AllowForwardedTraffic bool       `json:"allowForwardedTraffic"`
-	UseRemoteGateways     bool       `json:"useRemoteGateways"`
+	ID                        string     `json:"id"`
+	Name                      string     `json:"name"`
+	ResourceGroup             string     `json:"resourceGroup"`
+	RemoteVirtualNetwork      *azVNetRef `json:"remoteVirtualNetwork"`
+	PeeringState              string     `json:"peeringState"`
+	AllowGatewayTransit       bool       `json:"allowGatewayTransit"`
+	AllowForwardedTraffic     bool       `json:"allowForwardedTraffic"`
+	UseRemoteGateways         bool       `json:"useRemoteGateways"`
+	AllowVirtualNetworkAccess bool       `json:"allowVirtualNetworkAccess"`
 }
 
 // RemoteVNetID returns the remote VNet ARM ID from the nested reference.
@@ -483,17 +573,18 @@ func (g GatewayIPConfig) SubnetID() string {
 
 // VNetGateway represents an Azure virtual network gateway.
 type VNetGateway struct {
-	ID               string            `json:"id"`
-	Name             string            `json:"name"`
-	Location         string            `json:"location"`
-	ResourceGroup    string            `json:"resourceGroup"`
-	Tags             map[string]string `json:"tags"`
-	GatewayType      string            `json:"gatewayType"`
-	VPNType          string            `json:"vpnType"`
-	EnableBGP        bool              `json:"enableBgp"`
-	ActiveActive     bool              `json:"activeActive"`
-	SKU              azSKU             `json:"sku"`
-	IPConfigurations []GatewayIPConfig `json:"ipConfigurations"`
+	ID                string            `json:"id"`
+	Name              string            `json:"name"`
+	Location          string            `json:"location"`
+	ResourceGroup     string            `json:"resourceGroup"`
+	Tags              map[string]string `json:"tags"`
+	ProvisioningState string            `json:"provisioningState"`
+	GatewayType       string            `json:"gatewayType"`
+	VPNType           string            `json:"vpnType"`
+	EnableBGP         bool              `json:"enableBgp"`
+	ActiveActive      bool              `json:"activeActive"`
+	SKU               azSKU             `json:"sku"`
+	IPConfigurations  []GatewayIPConfig `json:"ipConfigurations"`
 }
 
 // azGatewayRef matches az CLI nested gateway reference.
@@ -507,7 +598,10 @@ type GatewayConnection struct {
 	Name                   string        `json:"name"`
 	Location               string        `json:"location"`
 	ResourceGroup          string        `json:"resourceGroup"`
+	ProvisioningState      string        `json:"provisioningState"`
 	ConnectionType         string        `json:"connectionType"`
+	EnableBgp              bool          `json:"enableBgp"`
+	RoutingWeight          int           `json:"routingWeight"`
 	VirtualNetworkGateway1 *azGatewayRef `json:"virtualNetworkGateway1"`
 	Peer                   *azGatewayRef `json:"peer"`
 	ExpressRouteCircuit    *azGatewayRef `json:"expressRouteCircuit"`
@@ -533,6 +627,39 @@ func (gc GatewayConnection) PeerID() string {
 	return ""
 }
 
+// RouteServerIPConfig represents an IP configuration on an Azure Route Server.
+type RouteServerIPConfig struct {
+	Name             string        `json:"name"`
+	PrivateIPAddress string        `json:"privateIpAddress"`
+	PublicIPAddress  *azGatewayRef `json:"publicIpAddress"`
+	Subnet           *azGatewayRef `json:"subnet"`
+}
+
+// RouteServerBGPPeer represents a BGP connection configured on an Azure Route Server.
+type RouteServerBGPPeer struct {
+	Name              string `json:"name"`
+	PeerAsn           int64  `json:"peerAsn"`
+	PeerIp            string `json:"peerIp"`
+	ProvisioningState string `json:"provisioningState"`
+}
+
+// RouteServer represents a Microsoft.Network/virtualHubs resource deployed as a
+// standalone Azure Route Server (not part of a Virtual WAN hub).
+type RouteServer struct {
+	ID                         string                `json:"id"`
+	Name                       string                `json:"name"`
+	Location                   string                `json:"location"`
+	ResourceGroup              string                `json:"resourceGroup"`
+	ProvisioningState          string                `json:"provisioningState"`
+	Tags                       map[string]string     `json:"tags"`
+	VirtualRouterAsn           int64                 `json:"virtualRouterAsn"`
+	VirtualRouterIps           []string              `json:"virtualRouterIps"`
+	HubRoutingPreference       string                `json:"hubRoutingPreference"`
+	AllowBranchToBranchTraffic bool                  `json:"allowBranchToBranchTraffic"`
+	IPConfigurations           []RouteServerIPConfig `json:"ipConfigurations"`
+	BGPConnections             []RouteServerBGPPeer  `json:"bgpConnections"`
+}
+
 // PrivateDNSLink represents a VNet link within a private DNS zone.
 type PrivateDNSLink struct {
 	ID                  string     `json:"id"`
@@ -551,17 +678,34 @@ func (l PrivateDNSLink) VirtualNetworkID() string {
 
 // PrivateDNSZone represents an Azure private DNS zone.
 type PrivateDNSZone struct {
-	ID            string           `json:"id"`
-	Name          string           `json:"name"`
-	ResourceGroup string           `json:"resourceGroup"`
-	Links         []PrivateDNSLink `json:"links"`
+	ID                string            `json:"id"`
+	Name              string            `json:"name"`
+	ResourceGroup     string            `json:"resourceGroup"`
+	ProvisioningState string            `json:"provisioningState"`
+	Tags              map[string]string `json:"tags,omitempty"`
+	Links             []PrivateDNSLink  `json:"links"`
+}
+
+// FlowLog represents a Microsoft.Network/networkWatchers/flowLogs resource.
+// Collected via az graph query so all flow logs are returned in a single call.
+// Note: ARM / Resource Graph returns "enabled" as 0/1 or true/false depending
+// on the API version, so the field is omitted here to avoid unmarshal errors.
+// All configured flow logs (enabled or not) describe a topology edge.
+type FlowLog struct {
+	ID               string `json:"id"`
+	Name             string `json:"name"`
+	Location         string `json:"location"`
+	ResourceGroup    string `json:"resourceGroup"`
+	TargetResourceID string `json:"targetResourceId"` // ARM ID of the NSG being monitored
+	StorageID        string `json:"storageId"`        // ARM ID of the storage account receiving logs
 }
 
 // DNSZone represents an Azure public DNS zone.
 type DNSZone struct {
-	ID            string `json:"id"`
-	Name          string `json:"name"`
-	ResourceGroup string `json:"resourceGroup"`
+	ID                string `json:"id"`
+	Name              string `json:"name"`
+	ResourceGroup     string `json:"resourceGroup"`
+	ProvisioningState string `json:"provisioningState"`
 }
 
 // NATGateway represents an Azure NAT gateway.
@@ -571,6 +715,7 @@ type NATGateway struct {
 	Location          string            `json:"location"`
 	ResourceGroup     string            `json:"resourceGroup"`
 	Tags              map[string]string `json:"tags"`
+	ProvisioningState string            `json:"provisioningState"`
 	PublicIPAddresses []azPublicIPRef   `json:"publicIpAddresses"`
 	Subnets           []azSubnetRef     `json:"subnets"`
 }
@@ -610,12 +755,14 @@ type ExpressRoutePeering struct {
 	PeeringType                string `json:"peeringType"`
 	State                      string `json:"state"`
 	ProvisioningState          string `json:"provisioningState"`
+	AzureASN                   int64  `json:"azureASN"`
 	PeerASN                    int64  `json:"peerASN"`
 	VlanID                     int    `json:"vlanId"`
 	PrimaryPeerAddressPrefix   string `json:"primaryPeerAddressPrefix"`
 	SecondaryPeerAddressPrefix string `json:"secondaryPeerAddressPrefix"`
 	PrimaryAzurePort           string `json:"primaryAzurePort"`
 	SecondaryAzurePort         string `json:"secondaryAzurePort"`
+	LastModifiedBy             string `json:"lastModifiedBy"`
 }
 
 // ExpressRouteCircuit represents an Azure ExpressRoute circuit.
@@ -625,40 +772,136 @@ type ExpressRouteCircuit struct {
 	Location                         string                       `json:"location"`
 	ResourceGroup                    string                       `json:"resourceGroup"`
 	Tags                             map[string]string            `json:"tags"`
+	ProvisioningState                string                       `json:"provisioningState"`
 	SKU                              azSKU                        `json:"sku"`
 	ServiceProviderProperties        *azServiceProviderProperties `json:"serviceProviderProperties"`
 	CircuitProvisioningState         string                       `json:"circuitProvisioningState"`
 	ServiceProviderProvisioningState string                       `json:"serviceProviderProvisioningState"`
+	ServiceKey                       string                       `json:"serviceKey"`
+	AllowGlobalReach                 bool                         `json:"allowGlobalReach"`
+	GlobalReachEnabled               bool                         `json:"globalReachEnabled"`
+	AllowClassicOperations           bool                         `json:"allowClassicOperations"`
+	EnableDirectPortRateLimit        bool                         `json:"enableDirectPortRateLimit"`
 	Peerings                         []ExpressRoutePeering        `json:"peerings"`
 }
 
 // AzureFirewall represents an Azure Firewall resource.
 type AzureFirewall struct {
-	ID            string            `json:"id"`
-	Name          string            `json:"name"`
-	Location      string            `json:"location"`
-	ResourceGroup string            `json:"resourceGroup"`
-	Tags          map[string]string `json:"tags"`
+	ID                string            `json:"id"`
+	Name              string            `json:"name"`
+	Location          string            `json:"location"`
+	ResourceGroup     string            `json:"resourceGroup"`
+	Tags              map[string]string `json:"tags"`
+	ProvisioningState string            `json:"provisioningState"`
+}
+
+// azAGWSKU is the SKU block on an Application Gateway.
+type azAGWSKU struct {
+	Name     string `json:"name"`
+	Tier     string `json:"tier"`
+	Capacity int    `json:"capacity"`
+}
+
+// azWAFConfig is the WAF configuration block on an Application Gateway.
+type azWAFConfig struct {
+	Enabled        bool   `json:"enabled"`
+	FirewallMode   string `json:"firewallMode"`
+	RuleSetType    string `json:"ruleSetType"`
+	RuleSetVersion string `json:"ruleSetVersion"`
 }
 
 // ApplicationGateway represents an Azure Application Gateway.
 type ApplicationGateway struct {
-	ID            string            `json:"id"`
-	Name          string            `json:"name"`
-	Location      string            `json:"location"`
-	ResourceGroup string            `json:"resourceGroup"`
-	Tags          map[string]string `json:"tags"`
+	ID                                  string            `json:"id"`
+	Name                                string            `json:"name"`
+	Location                            string            `json:"location"`
+	ResourceGroup                       string            `json:"resourceGroup"`
+	Tags                                map[string]string `json:"tags"`
+	Zones                               []string          `json:"zones"`
+	ProvisioningState                   string            `json:"provisioningState"`
+	OperationalState                    string            `json:"operationalState"`
+	SKU                                 azAGWSKU          `json:"sku"`
+	WebApplicationFirewallConfiguration *azWAFConfig      `json:"webApplicationFirewallConfiguration"`
+	HTTPListeners                       []struct{}        `json:"httpListeners"`
+	BackendAddressPools                 []struct{}        `json:"backendAddressPools"`
+	FrontendIPConfigurations            []struct{}        `json:"frontendIPConfigurations"`
+	EnableHttp2                         *bool             `json:"enableHttp2"`
+}
+
+// azVMHardwareProfile captures the vmSize from the nested hardwareProfile block.
+type azVMHardwareProfile struct {
+	VMSize string `json:"vmSize"`
+}
+
+// azVMImageRef captures the image reference (OS image) from storageProfile.
+type azVMImageRef struct {
+	Publisher string `json:"publisher"`
+	Offer     string `json:"offer"`
+	Sku       string `json:"sku"`
+	Version   string `json:"version"`
+}
+
+// azVMOSDisk captures OS disk info from storageProfile.
+type azVMOSDisk struct {
+	OSType string `json:"osType"`
+}
+
+// azVMStorageProfile captures image reference and OS disk.
+type azVMStorageProfile struct {
+	ImageReference azVMImageRef `json:"imageReference"`
+	OSDisk         azVMOSDisk   `json:"osDisk"`
+}
+
+// azVMOSProfile captures OS profile (computer name, admin user).
+type azVMOSProfile struct {
+	ComputerName  string `json:"computerName"`
+	AdminUsername string `json:"adminUsername"`
+}
+
+// azVMNICRef is a reference to a NIC attached to a VM.
+type azVMNICRef struct {
+	ID string `json:"id"`
+}
+
+// azVMNetworkProfile captures network interface references.
+type azVMNetworkProfile struct {
+	NetworkInterfaces []azVMNICRef `json:"networkInterfaces"`
+}
+
+// VMExtension represents a single VM extension collected via az vm extension list.
+// Collected separately from az vm list; not part of the ARM list response body.
+type VMExtension struct {
+	Name                    string `json:"name"`
+	Publisher               string `json:"publisher"`
+	ExtType                 string `json:"typePropertiesType"` // extension type name
+	TypeHandlerVersion      string `json:"typeHandlerVersion"`
+	ProvisioningState       string `json:"provisioningState"`
+	AutoUpgradeMinorVersion bool   `json:"autoUpgradeMinorVersion"`
+	EnableAutomaticUpgrade  *bool  `json:"enableAutomaticUpgrade"`
 }
 
 // VirtualMachine represents an Azure VM.
+// Field names match both `az vm list -d` (top-level flattened) and `az vm list` (nested ARM).
 type VirtualMachine struct {
 	ID            string            `json:"id"`
 	Name          string            `json:"name"`
 	Location      string            `json:"location"`
 	ResourceGroup string            `json:"resourceGroup"`
 	Tags          map[string]string `json:"tags"`
-	VMSize        string            `json:"vmSize"`
-	PowerState    string            `json:"powerState"`
+	Zones         []string          `json:"zones"`
+	// Top-level fields added by az vm list -d / az vm list (flattened by CLI)
+	VMSize            string `json:"vmSize"`
+	PowerState        string `json:"powerState"`
+	ProvisioningState string `json:"provisioningState"`
+	VMId              string `json:"vmId"`
+	LicenseType       string `json:"licenseType"`
+	// Nested ARM structure fields (from az vm list full JSON)
+	HardwareProfile azVMHardwareProfile `json:"hardwareProfile"`
+	StorageProfile  azVMStorageProfile  `json:"storageProfile"`
+	OsProfile       azVMOSProfile       `json:"osProfile"`
+	NetworkProfile  azVMNetworkProfile  `json:"networkProfile"`
+	// Collected separately under --purpose=audit via collectVMExtensions.
+	VMExtensions []VMExtension `json:"-"`
 }
 
 // azAppServicePlanSKU matches the az CLI nested SKU object for App Service Plans,
@@ -805,11 +1048,12 @@ func (w WebApp) HostPlanID() string {
 // (Microsoft.Network/applicationSecurityGroups). ASGs are identity-only
 // resources; membership is expressed via NIC ipConfigurations.
 type ApplicationSecurityGroup struct {
-	ID            string            `json:"id"`
-	Name          string            `json:"name"`
-	Location      string            `json:"location"`
-	ResourceGroup string            `json:"resourceGroup"`
-	Tags          map[string]string `json:"tags"`
+	ID                string            `json:"id"`
+	Name              string            `json:"name"`
+	Location          string            `json:"location"`
+	ResourceGroup     string            `json:"resourceGroup"`
+	Tags              map[string]string `json:"tags"`
+	ProvisioningState string            `json:"provisioningState"`
 }
 
 // azStorageSKU is the SKU sub-object on a storage account.
@@ -828,8 +1072,8 @@ type azStorageEndpoints struct {
 	Dfs   string `json:"dfs"`
 }
 
-// azStorageNetworkRuleSet is the top-level network ACL block on a storage
-// account (flattened out of properties.networkAcls by az storage account list).
+// azStorageNetworkRuleSet is the top-level network rule set block on a storage
+// account. az storage account list returns this as "networkRuleSet" at top level.
 type azStorageNetworkRuleSet struct {
 	DefaultAction       string              `json:"defaultAction"`
 	Bypass              string              `json:"bypass"`
@@ -875,7 +1119,7 @@ type StorageAccount struct {
 	ProvisioningState           string                     `json:"provisioningState"`
 	StatusOfPrimary             string                     `json:"statusOfPrimary"`
 	PrimaryEndpoints            *azStorageEndpoints        `json:"primaryEndpoints"`
-	NetworkRuleSet              *azStorageNetworkRuleSet   `json:"networkAcls"`
+	NetworkRuleSet              *azStorageNetworkRuleSet   `json:"networkRuleSet"`
 	Encryption                  *azStorageEncryption       `json:"encryption"`
 	PrivateEndpointConnections  []azPrivateEndpointConnRef `json:"privateEndpointConnections"`
 }
@@ -928,6 +1172,7 @@ type KeyVaultProperties struct {
 	EnabledForTemplateDeployment bool                       `json:"enabledForTemplateDeployment"`
 	PublicNetworkAccess          string                     `json:"publicNetworkAccess"`
 	ProvisioningState            string                     `json:"provisioningState"`
+	MinimumTLSVersion            string                     `json:"minimumTlsVersion"`
 	NetworkACLs                  *azKeyVaultNetworkACLs     `json:"networkAcls"`
 	PrivateEndpointConnections   []azPrivateEndpointConnRef `json:"privateEndpointConnections"`
 }
@@ -955,20 +1200,32 @@ type ContainerRegistry struct {
 	ZoneRedundancy             string                     `json:"zoneRedundancy"`
 	ProvisioningState          string                     `json:"provisioningState"`
 	PrivateEndpointConnections []azPrivateEndpointConnRef `json:"privateEndpointConnections"`
+	Replications               []ACRReplication           `json:"-"`
+}
+
+// ACRReplication represents Microsoft.ContainerRegistry/registries/replications.
+type ACRReplication struct {
+	ID                string `json:"id"`
+	Name              string `json:"name"`
+	Location          string `json:"location"`
+	ProvisioningState string `json:"provisioningState"`
+	RegionEndpoint    bool   `json:"regionEndpointEnabled"`
+	ZoneRedundancy    string `json:"zoneRedundancy"`
 }
 
 // ManagedIdentity represents a Microsoft.ManagedIdentity/userAssignedIdentities
 // resource. The system-assigned variant is exposed via the parent resource's
 // identity block (webapp, VM, etc.) and is NOT a standalone ARM resource.
 type ManagedIdentity struct {
-	ID            string            `json:"id"`
-	Name          string            `json:"name"`
-	Location      string            `json:"location"`
-	ResourceGroup string            `json:"resourceGroup"`
-	Tags          map[string]string `json:"tags"`
-	PrincipalID   string            `json:"principalId"`
-	ClientID      string            `json:"clientId"`
-	TenantID      string            `json:"tenantId"`
+	ID                string            `json:"id"`
+	Name              string            `json:"name"`
+	Location          string            `json:"location"`
+	ResourceGroup     string            `json:"resourceGroup"`
+	Tags              map[string]string `json:"tags"`
+	ProvisioningState string            `json:"provisioningState"`
+	PrincipalID       string            `json:"principalId"`
+	ClientID          string            `json:"clientId"`
+	TenantID          string            `json:"tenantId"`
 }
 
 // azDiskSKU is the SKU block on a managed disk / snapshot.
@@ -1263,6 +1520,7 @@ type SQLServer struct {
 	Kind          string                 `json:"kind"`
 	Properties    *azSQLServerProperties `json:"properties"`
 	Databases     []SQLDatabase          `json:"-"`
+	ElasticPools  []SQLElasticPool       `json:"-"`
 }
 
 // azSQLDatabaseSKU captures the SKU block on a SQL database.
@@ -1778,6 +2036,775 @@ type FrontDoorProfile struct {
 	Properties    *azFrontDoorProperties `json:"properties"`
 }
 
+// azMetricAlertCriteriaDimension captures a single dimension filter on a metric alert criterion.
+type azMetricAlertCriteriaDimension struct {
+	Name   string   `json:"name"`
+	Values []string `json:"values"`
+}
+
+// azMetricAlertCriteria captures a single criteria entry in a metric alert.
+type azMetricAlertCriteria struct {
+	MetricName      string                           `json:"metricName"`
+	MetricNamespace string                           `json:"metricNamespace"`
+	Operator        string                           `json:"operator"`
+	Threshold       float64                          `json:"threshold"`
+	TimeAggregation string                           `json:"timeAggregation"`
+	Dimensions      []azMetricAlertCriteriaDimension `json:"dimensions"`
+}
+
+// azMetricAlertCriteriaContainer is the discriminated-union wrapper Azure Monitor returns for
+// the "criteria" field. The API encodes it as an object with an odata.type discriminator and
+// an "allOf" array of individual criteria, NOT as a JSON array.
+type azMetricAlertCriteriaContainer struct {
+	ODataType string                  `json:"odata.type"`
+	AllOf     []azMetricAlertCriteria `json:"allOf"`
+}
+
+// azMetricAlertActionGroup is a reference to an action group in a metric alert.
+type azMetricAlertActionGroup struct {
+	ActionGroupID string `json:"actionGroupId"`
+}
+
+// MetricAlert represents an Azure Monitor metric alert rule.
+type MetricAlert struct {
+	ID                  string                         `json:"id"`
+	Name                string                         `json:"name"`
+	Location            string                         `json:"location"`
+	ResourceGroup       string                         `json:"resourceGroup"`
+	Tags                map[string]string              `json:"tags"`
+	Description         string                         `json:"description"`
+	Severity            int                            `json:"severity"`
+	Enabled             bool                           `json:"enabled"`
+	EvaluationFrequency string                         `json:"evaluationFrequency"`
+	WindowSize          string                         `json:"windowSize"`
+	Scopes              []string                       `json:"scopes"`
+	Criteria            azMetricAlertCriteriaContainer `json:"criteria"`
+	Actions             []azMetricAlertActionGroup     `json:"actions"`
+	AutoMitigate        bool                           `json:"autoMitigate"`
+	TargetResourceType  string                         `json:"targetResourceType"`
+}
+
+// ActionGroup represents an Azure Monitor action group.
+type ActionGroup struct {
+	ID             string            `json:"id"`
+	Name           string            `json:"name"`
+	Location       string            `json:"location"`
+	ResourceGroup  string            `json:"resourceGroup"`
+	Tags           map[string]string `json:"tags"`
+	GroupShortName string            `json:"groupShortName"`
+	Enabled        bool              `json:"enabled"`
+	// Receiver arrays: full payloads not stored; len() gives the count per channel.
+	EmailReceivers             []struct{} `json:"emailReceivers"`
+	SmsReceivers               []struct{} `json:"smsReceivers"`
+	WebhookReceivers           []struct{} `json:"webhookReceivers"`
+	ArmRoleReceivers           []struct{} `json:"armRoleReceivers"`
+	AzureFunctionReceivers     []struct{} `json:"azureFunctionReceivers"`
+	EventHubReceivers          []struct{} `json:"eventHubReceivers"`
+	ItsmReceivers              []struct{} `json:"itsmReceivers"`
+	AzureAppPushReceivers      []struct{} `json:"azureAppPushReceivers"`
+	AutomationRunbookReceivers []struct{} `json:"automationRunbookReceivers"`
+	VoiceReceivers             []struct{} `json:"voiceReceivers"`
+	LogicAppReceivers          []struct{} `json:"logicAppReceivers"`
+}
+
+// BastionIPConfig holds an Azure Bastion host IP configuration.
+type BastionIPConfig struct {
+	Name            string         `json:"name"`
+	PublicIPAddress *azPublicIPRef `json:"publicIpAddress"`
+	Subnet          *azSubnetRef   `json:"subnet"`
+}
+
+// BastionHost represents a Microsoft.Network/bastionHosts resource.
+type BastionHost struct {
+	ID                  string            `json:"id"`
+	Name                string            `json:"name"`
+	Location            string            `json:"location"`
+	ResourceGroup       string            `json:"resourceGroup"`
+	Tags                map[string]string `json:"tags"`
+	ProvisioningState   string            `json:"provisioningState"`
+	SKU                 azSKU             `json:"sku"`
+	DNSName             string            `json:"dnsName"`
+	ScaleUnits          int               `json:"scaleUnits"`
+	EnableTunneling     bool              `json:"enableTunneling"`
+	EnableIpConnect     bool              `json:"enableIpConnect"`
+	DisableCopyPaste    bool              `json:"disableCopyPaste"`
+	EnableShareableLink bool              `json:"enableShareableLink"`
+	EnableKerberos      bool              `json:"enableKerberos"`
+	IPConfigurations    []BastionIPConfig `json:"ipConfigurations"`
+}
+
+// TrafficManagerDNSConfig holds the DNS configuration for a Traffic Manager profile.
+type TrafficManagerDNSConfig struct {
+	RelativeName string `json:"relativeName"`
+	FQDN         string `json:"fqdn"`
+	TTL          int    `json:"ttl"`
+}
+
+// TrafficManagerMonitorConfig holds the health monitoring configuration.
+type TrafficManagerMonitorConfig struct {
+	Protocol                  string `json:"protocol"`
+	Port                      int    `json:"port"`
+	Path                      string `json:"path"`
+	IntervalInSeconds         int    `json:"intervalInSeconds"`
+	ToleratedNumberOfFailures int    `json:"toleratedNumberOfFailures"`
+	TimeoutInSeconds          int    `json:"timeoutInSeconds"`
+	ProfileMonitorStatus      string `json:"profileMonitorStatus"`
+}
+
+// TrafficManagerEndpoint holds a single endpoint within a Traffic Manager profile.
+type TrafficManagerEndpoint struct {
+	Name                  string `json:"name"`
+	Type                  string `json:"type"`
+	EndpointStatus        string `json:"endpointStatus"`
+	EndpointMonitorStatus string `json:"endpointMonitorStatus"`
+	TargetResourceID      string `json:"targetResourceId"`
+	Target                string `json:"target"`
+	Weight                int    `json:"weight"`
+	Priority              int    `json:"priority"`
+	EndpointLocation      string `json:"endpointLocation"`
+}
+
+// TrafficManagerProfile represents a Microsoft.Network/trafficManagerProfiles resource.
+type TrafficManagerProfile struct {
+	ID                   string                      `json:"id"`
+	Name                 string                      `json:"name"`
+	Location             string                      `json:"location"`
+	ResourceGroup        string                      `json:"resourceGroup"`
+	Tags                 map[string]string           `json:"tags"`
+	ProfileStatus        string                      `json:"profileStatus"`
+	TrafficRoutingMethod string                      `json:"trafficRoutingMethod"`
+	DNSConfig            TrafficManagerDNSConfig     `json:"dnsConfig"`
+	MonitorConfig        TrafficManagerMonitorConfig `json:"monitorConfig"`
+	Endpoints            []TrafficManagerEndpoint    `json:"endpoints"`
+}
+
+// DNSPrivateResolverProperties holds the nested properties block for a DNS private resolver.
+// az resource list --resource-type keeps properties nested (not flattened).
+type DNSPrivateResolverProperties struct {
+	ProvisioningState string       `json:"provisioningState"`
+	DNSResolverState  string       `json:"dnsResolverState"`
+	VirtualNetwork    *azSubnetRef `json:"virtualNetwork"`
+}
+
+// DNSPrivateResolver represents a Microsoft.Network/dnsResolvers resource.
+// Collected via az resource list --resource-type (no extension required).
+type DNSPrivateResolver struct {
+	ID            string                        `json:"id"`
+	Name          string                        `json:"name"`
+	Location      string                        `json:"location"`
+	ResourceGroup string                        `json:"resourceGroup"`
+	Tags          map[string]string             `json:"tags"`
+	Properties    *DNSPrivateResolverProperties `json:"properties"`
+}
+
+// DNSForwardingRulesetProperties holds the nested properties block for a DNS forwarding ruleset.
+type DNSForwardingRulesetProperties struct {
+	ProvisioningState            string        `json:"provisioningState"`
+	DNSResolverOutboundEndpoints []azSubnetRef `json:"dnsResolverOutboundEndpoints"`
+}
+
+// DNSForwardingRuleset represents a Microsoft.Network/dnsForwardingRulesets resource.
+// Collected via az resource list --resource-type (no extension required).
+type DNSForwardingRuleset struct {
+	ID            string                          `json:"id"`
+	Name          string                          `json:"name"`
+	Location      string                          `json:"location"`
+	ResourceGroup string                          `json:"resourceGroup"`
+	Tags          map[string]string               `json:"tags"`
+	Properties    *DNSForwardingRulesetProperties `json:"properties"`
+}
+
+// azGraphSKU holds the SKU object returned by Azure Resource Graph.
+type azGraphSKU struct {
+	Name     string `json:"name"`
+	Tier     string `json:"tier"`
+	Size     string `json:"size"`
+	Capacity int    `json:"capacity"`
+}
+
+// azGraphIdentity holds the managed-identity block returned by Azure Resource Graph.
+type azGraphIdentity struct {
+	Type        string `json:"type"`
+	PrincipalID string `json:"principalId"`
+	TenantID    string `json:"tenantId"`
+}
+
+// azGraphSystemData holds the ARM systemData block (lifecycle authorship + timestamps).
+type azGraphSystemData struct {
+	CreatedAt          string `json:"createdAt"`
+	CreatedBy          string `json:"createdBy,omitempty"`
+	CreatedByType      string `json:"createdByType,omitempty"`
+	LastModifiedAt     string `json:"lastModifiedAt"`
+	LastModifiedBy     string `json:"lastModifiedBy,omitempty"`
+	LastModifiedByType string `json:"lastModifiedByType,omitempty"`
+}
+
+// azGraphPlan holds the Marketplace plan block from the ARM resource envelope.
+type azGraphPlan struct {
+	Name          string `json:"name"`
+	Publisher     string `json:"publisher"`
+	Product       string `json:"product"`
+	PromotionCode string `json:"promotionCode"`
+}
+
+// GraphEnvelope holds the per-resource fields collected via az graph query and
+// supplementary context calls (locks, diagnostic settings). The map key is the
+// lowercase ARM resource ID; armID stores the original-case ID for CLI calls.
+type GraphEnvelope struct {
+	armID               string             // original-case ARM ID, not serialized
+	Kind                string             `json:"kind,omitempty"`
+	SKU                 *azGraphSKU        `json:"sku,omitempty"`
+	Identity            *azGraphIdentity   `json:"identity,omitempty"`
+	ManagedBy           string             `json:"managed_by,omitempty"`
+	Etag                string             `json:"etag,omitempty"`
+	Plan                *azGraphPlan       `json:"plan,omitempty"`
+	CreatedTime         string             `json:"created_at,omitempty"`
+	ChangedTime         string             `json:"changed_at,omitempty"`
+	ProvisioningState   string             `json:"provisioning_state,omitempty"`
+	SystemData          *azGraphSystemData `json:"system_data,omitempty"`
+	PublicNetworkAccess string             `json:"public_network_access,omitempty"`
+	Locks               []ResourceLock     `json:"locks,omitempty"`
+	DiagSettings        []DiagSetting      `json:"diag_settings,omitempty"`
+	RoleAssignments     []RoleAssignment   `json:"role_assignments,omitempty"`
+}
+
+// ResourceLock represents an Azure management lock attached to a resource.
+type ResourceLock struct {
+	Name  string `json:"name"`
+	Level string `json:"level"` // CanNotDelete or ReadOnly
+	Notes string `json:"notes,omitempty"`
+}
+
+// DiagSetting represents a single Azure Monitor diagnostic setting on a resource.
+type DiagSetting struct {
+	Name        string `json:"name"`
+	WorkspaceID string `json:"workspace_id,omitempty"`
+	StorageID   string `json:"storage_id,omitempty"`
+	EventHubID  string `json:"event_hub_id,omitempty"`
+}
+
+// RoleAssignment represents an Azure RBAC role assignment.
+type RoleAssignment struct {
+	RoleName      string `json:"role"`
+	PrincipalID   string `json:"principal_id"`
+	PrincipalType string `json:"principal_type,omitempty"`
+	PrincipalName string `json:"principal_name,omitempty"`
+}
+
+// ScopedRoleAssignment pairs a role assignment with its ARM scope string.
+// Used for group-level (RG / subscription / MG) role assignments that are
+// stored in bulk on SubscriptionData rather than on individual GraphEnvelopes.
+type ScopedRoleAssignment struct {
+	Scope string
+	RoleAssignment
+}
+
+// azRawRoleAssignment is the wire shape returned by az role assignment list.
+type azRawRoleAssignment struct {
+	PrincipalID        string `json:"principalId"`
+	PrincipalName      string `json:"principalName"`
+	PrincipalType      string `json:"principalType"`
+	RoleDefinitionName string `json:"roleDefinitionName"`
+	Scope              string `json:"scope"`
+}
+
+// H1 resource type structs
+
+// VMSS is an Azure Virtual Machine Scale Set.
+type VMSS struct {
+	ID            string            `json:"id"`
+	Name          string            `json:"name"`
+	Location      string            `json:"location"`
+	ResourceGroup string            `json:"resourceGroup"`
+	Tags          map[string]string `json:"tags"`
+	SKU           *azVMSSSKU        `json:"sku"`
+	Properties    *VMSSProperties   `json:"properties"`
+}
+
+type azVMSSSKU struct {
+	Name     string `json:"name"`
+	Tier     string `json:"tier"`
+	Capacity int64  `json:"capacity"`
+}
+
+type VMSSProperties struct {
+	ProvisioningState        string               `json:"provisioningState"`
+	OrchestrationMode        string               `json:"orchestrationMode"`
+	PlatformFaultDomainCount int                  `json:"platformFaultDomainCount"`
+	UpgradePolicy            *azVMSSUpgradePolicy `json:"upgradePolicy"`
+	VirtualMachineProfile    *azVMSSVMProfile     `json:"virtualMachineProfile"`
+}
+
+type azVMSSUpgradePolicy struct {
+	Mode string `json:"mode"` // Automatic, Manual, Rolling
+}
+
+type azVMSSVMProfile struct {
+	NetworkProfile *azVMSSNetworkProfile `json:"networkProfile"`
+}
+
+type azVMSSNetworkProfile struct {
+	NetworkInterfaceConfigurations []azVMSSNICConfig `json:"networkInterfaceConfigurations"`
+}
+
+type azVMSSNICConfig struct {
+	Properties *azVMSSNICConfigProps `json:"properties"`
+}
+
+type azVMSSNICConfigProps struct {
+	Primary          bool             `json:"primary"`
+	IPConfigurations []azVMSSIPConfig `json:"ipConfigurations"`
+}
+
+type azVMSSIPConfig struct {
+	Properties *azVMSSIPConfigProps `json:"properties"`
+}
+
+type azVMSSIPConfigProps struct {
+	Subnet *azVNetRef `json:"subnet"`
+}
+
+// VMSSSubnetIDs extracts all subnet ARM IDs wired to this VMSS (primary NIC, all IP configs).
+func (v *VMSS) VMSSSubnetIDs() []string {
+	if v.Properties == nil || v.Properties.VirtualMachineProfile == nil {
+		return nil
+	}
+	np := v.Properties.VirtualMachineProfile.NetworkProfile
+	if np == nil {
+		return nil
+	}
+	seen := map[string]bool{}
+	var out []string
+	for _, nic := range np.NetworkInterfaceConfigurations {
+		if nic.Properties == nil {
+			continue
+		}
+		for _, ip := range nic.Properties.IPConfigurations {
+			if ip.Properties == nil || ip.Properties.Subnet == nil {
+				continue
+			}
+			id := ip.Properties.Subnet.ID
+			if id != "" && !seen[id] {
+				seen[id] = true
+				out = append(out, id)
+			}
+		}
+	}
+	return out
+}
+
+// SQLManagedInstance is an Azure SQL Managed Instance.
+type SQLManagedInstance struct {
+	ID            string            `json:"id"`
+	Name          string            `json:"name"`
+	Location      string            `json:"location"`
+	ResourceGroup string            `json:"resourceGroup"`
+	Tags          map[string]string `json:"tags"`
+	SKU           *azSQLMISKU       `json:"sku"`
+	Properties    *SQLMIProperties  `json:"properties"`
+	Databases     []SQLMIDatabase   `json:"-"`
+}
+
+// SQLMIDatabase represents Microsoft.Sql/managedInstances/databases.
+type SQLMIDatabase struct {
+	ID                string            `json:"id"`
+	Name              string            `json:"name"`
+	Location          string            `json:"location"`
+	ResourceGroup     string            `json:"resourceGroup"`
+	Tags              map[string]string `json:"tags"`
+	Properties        *SQLMIDBProps     `json:"properties"`
+	ManagedInstanceID string            `json:"-"`
+}
+
+type SQLMIDBProps struct {
+	ProvisioningState string `json:"provisioningState"`
+	Status            string `json:"status"`
+	Collation         string `json:"collation"`
+}
+
+// SQLElasticPool represents Microsoft.Sql/servers/elasticPools.
+type SQLElasticPool struct {
+	ID            string               `json:"id"`
+	Name          string               `json:"name"`
+	Location      string               `json:"location"`
+	ResourceGroup string               `json:"resourceGroup"`
+	Tags          map[string]string    `json:"tags"`
+	Kind          string               `json:"kind"`
+	SKU           *azSQLDatabaseSKU    `json:"sku"`
+	Properties    *SQLElasticPoolProps `json:"properties"`
+	ServerID      string               `json:"-"`
+}
+
+type SQLElasticPoolProps struct {
+	ProvisioningState string `json:"provisioningState"`
+	State             string `json:"state"`
+	MaxSizeBytes      int64  `json:"maxSizeBytes"`
+	ZoneRedundant     bool   `json:"zoneRedundant"`
+	HighAvailability  *struct {
+		HighAvailabilityReplicaCount int `json:"highAvailabilityReplicaCount"`
+	} `json:"highAvailabilityReplicaConfiguration"`
+}
+
+// SQLVirtualMachine represents Microsoft.SqlVirtualMachine/SqlVirtualMachines.
+type SQLVirtualMachine struct {
+	ID            string            `json:"id"`
+	Name          string            `json:"name"`
+	Location      string            `json:"location"`
+	ResourceGroup string            `json:"resourceGroup"`
+	Tags          map[string]string `json:"tags"`
+	Properties    *SQLVMProps       `json:"properties"`
+}
+
+type SQLVMProps struct {
+	ProvisioningState    string `json:"provisioningState"`
+	SQLServerLicenseType string `json:"sqlServerLicenseType"`
+	SQLManagementType    string `json:"sqlManagementType"`
+	SQLImageSKU          string `json:"sqlImageSku"`
+	VirtualMachineID     string `json:"virtualMachineResourceId"`
+}
+
+type azSQLMISKU struct {
+	Name     string `json:"name"`
+	Tier     string `json:"tier"`
+	Family   string `json:"family"`
+	Capacity int    `json:"capacity"`
+}
+
+type SQLMIProperties struct {
+	ProvisioningState         string `json:"provisioningState"`
+	State                     string `json:"state"`
+	SubnetID                  string `json:"subnetId"`
+	VCores                    int    `json:"vCores"`
+	StorageSizeInGB           int    `json:"storageSizeInGB"`
+	LicenseType               string `json:"licenseType"`
+	PublicDataEndpointEnabled bool   `json:"publicDataEndpointEnabled"`
+	MinimalTLSVersion         string `json:"minimalTlsVersion"`
+	StorageAccountType        string `json:"storageAccountType"`
+	FullyQualifiedDomainName  string `json:"fullyQualifiedDomainName"`
+}
+
+// LogicWorkflow is an Azure Logic Apps Standard workflow.
+type LogicWorkflow struct {
+	ID            string              `json:"id"`
+	Name          string              `json:"name"`
+	Location      string              `json:"location"`
+	ResourceGroup string              `json:"resourceGroup"`
+	Tags          map[string]string   `json:"tags"`
+	Properties    *LogicWorkflowProps `json:"properties"`
+}
+
+type LogicWorkflowProps struct {
+	ProvisioningState string `json:"provisioningState"`
+	State             string `json:"state"` // Enabled, Disabled, Suspended, Deleted, Completed
+	AccessEndpoint    string `json:"accessEndpoint"`
+}
+
+// DataFactory is an Azure Data Factory.
+type DataFactory struct {
+	ID            string            `json:"id"`
+	Name          string            `json:"name"`
+	Location      string            `json:"location"`
+	ResourceGroup string            `json:"resourceGroup"`
+	Tags          map[string]string `json:"tags"`
+	Properties    *DataFactoryProps `json:"properties"`
+}
+
+type DataFactoryProps struct {
+	ProvisioningState   string `json:"provisioningState"`
+	Version             string `json:"version"`
+	PublicNetworkAccess string `json:"publicNetworkAccess"`
+}
+
+// SynapseWorkspace is an Azure Synapse Analytics workspace.
+type SynapseWorkspace struct {
+	ID            string            `json:"id"`
+	Name          string            `json:"name"`
+	Location      string            `json:"location"`
+	ResourceGroup string            `json:"resourceGroup"`
+	Tags          map[string]string `json:"tags"`
+	Properties    *SynapseProps     `json:"properties"`
+}
+
+type SynapseProps struct {
+	ProvisioningState     string            `json:"provisioningState"`
+	PublicNetworkAccess   string            `json:"publicNetworkAccess"`
+	ManagedVirtualNetwork string            `json:"managedVirtualNetwork"`
+	ConnectivityEndpoints map[string]string `json:"connectivityEndpoints"`
+}
+
+// CommunicationService is an Azure Communication Service.
+type CommunicationService struct {
+	ID            string            `json:"id"`
+	Name          string            `json:"name"`
+	Location      string            `json:"location"`
+	ResourceGroup string            `json:"resourceGroup"`
+	Tags          map[string]string `json:"tags"`
+	Properties    *CommServiceProps `json:"properties"`
+}
+
+type CommServiceProps struct {
+	ProvisioningState string `json:"provisioningState"`
+	DataLocation      string `json:"dataLocation"`
+	HostName          string `json:"hostName"`
+}
+
+// AutomationAccount is an Azure Automation Account.
+type AutomationAccount struct {
+	ID            string            `json:"id"`
+	Name          string            `json:"name"`
+	Location      string            `json:"location"`
+	ResourceGroup string            `json:"resourceGroup"`
+	Tags          map[string]string `json:"tags"`
+	SKU           *azAutoAccountSKU `json:"sku"`
+	Properties    *AutomationProps  `json:"properties"`
+}
+
+type azAutoAccountSKU struct {
+	Name string `json:"name"` // Free, Basic
+}
+
+type AutomationProps struct {
+	ProvisioningState   string `json:"provisioningState"`
+	State               string `json:"state"` // Ok, Suspended, Unavailable
+	PublicNetworkAccess *bool  `json:"publicNetworkAccess"`
+}
+
+// ArcMachine is an Azure Arc-enabled server.
+type ArcMachine struct {
+	ID            string            `json:"id"`
+	Name          string            `json:"name"`
+	Location      string            `json:"location"`
+	ResourceGroup string            `json:"resourceGroup"`
+	Tags          map[string]string `json:"tags"`
+	Properties    *ArcMachineProps  `json:"properties"`
+	Extensions    []ArcExtension    `json:"-"`
+}
+
+// ArcExtension represents Microsoft.HybridCompute/machines/extensions.
+type ArcExtension struct {
+	ID                 string `json:"id"`
+	Name               string `json:"name"`
+	Type               string `json:"type"`
+	Publisher          string `json:"publisher"`
+	TypeHandlerVersion string `json:"typeHandlerVersion"`
+	ProvisioningState  string `json:"provisioningState"`
+	AutoUpgradeMinor   bool   `json:"autoUpgradeMinorVersion"`
+}
+
+type ArcMachineProps struct {
+	ProvisioningState string `json:"provisioningState"`
+	Status            string `json:"status"` // Connected, Disconnected, Expired, Error
+	OSName            string `json:"osName"`
+	OSVersion         string `json:"osVersion"`
+	OSType            string `json:"osType"`
+	AgentVersion      string `json:"agentVersion"`
+	FQDN              string `json:"dnsFqdn"`
+}
+
+// DataCollectionRule is an Azure Monitor Data Collection Rule.
+type DataCollectionRule struct {
+	ID            string            `json:"id"`
+	Name          string            `json:"name"`
+	Location      string            `json:"location"`
+	ResourceGroup string            `json:"resourceGroup"`
+	Tags          map[string]string `json:"tags"`
+	Properties    *DCRProperties    `json:"properties"`
+}
+
+type DCRProperties struct {
+	ProvisioningState string      `json:"provisioningState"`
+	Description       string      `json:"description"`
+	DataFlows         []azDCRFlow `json:"dataFlows"`
+	Destinations      *azDCRDests `json:"destinations"`
+}
+
+type azDCRFlow struct {
+	Streams      []string `json:"streams"`
+	Destinations []string `json:"destinations"`
+}
+
+type azDCRDests struct {
+	LogAnalytics []azDCRLogAnalyticsDest `json:"logAnalytics"`
+}
+
+type azDCRLogAnalyticsDest struct {
+	WorkspaceResourceID string `json:"workspaceResourceId"`
+	Name                string `json:"name"`
+}
+
+// WorkspaceResourceIDs returns the Log Analytics workspace ARM IDs configured as destinations.
+func (d *DataCollectionRule) WorkspaceResourceIDs() []string {
+	if d.Properties == nil || d.Properties.Destinations == nil {
+		return nil
+	}
+	out := make([]string, 0, len(d.Properties.Destinations.LogAnalytics))
+	for _, la := range d.Properties.Destinations.LogAnalytics {
+		if la.WorkspaceResourceID != "" {
+			out = append(out, la.WorkspaceResourceID)
+		}
+	}
+	return out
+}
+
+// DataCollectionEndpoint is an Azure Monitor Data Collection Endpoint.
+type DataCollectionEndpoint struct {
+	ID            string            `json:"id"`
+	Name          string            `json:"name"`
+	Location      string            `json:"location"`
+	ResourceGroup string            `json:"resourceGroup"`
+	Tags          map[string]string `json:"tags"`
+	Properties    *DCEProperties    `json:"properties"`
+}
+
+type DCEProperties struct {
+	ProvisioningState string        `json:"provisioningState"`
+	NetworkAcls       *azDCENetAcls `json:"networkAcls"`
+}
+
+type azDCENetAcls struct {
+	PublicNetworkAccess string `json:"publicNetworkAccess"`
+}
+
+// AutoscaleSetting is an Azure Monitor autoscale setting.
+type AutoscaleSetting struct {
+	ID            string            `json:"id"`
+	Name          string            `json:"name"`
+	Location      string            `json:"location"`
+	ResourceGroup string            `json:"resourceGroup"`
+	Tags          map[string]string `json:"tags"`
+	Properties    *AutoscaleProps   `json:"properties"`
+}
+
+type AutoscaleProps struct {
+	Enabled           bool                 `json:"enabled"`
+	TargetResourceURI string               `json:"targetResourceUri"`
+	Profiles          []azAutoscaleProfile `json:"profiles"`
+}
+
+type azAutoscaleProfile struct {
+	Name     string               `json:"name"`
+	Capacity *azAutoscaleCapacity `json:"capacity"`
+}
+
+type azAutoscaleCapacity struct {
+	Default string `json:"default"`
+	Maximum string `json:"maximum"`
+	Minimum string `json:"minimum"`
+}
+
+// LogicAPIConnection represents Microsoft.Web/connections (API connections consumed by Logic Apps).
+type LogicAPIConnection struct {
+	ID            string                   `json:"id"`
+	Name          string                   `json:"name"`
+	Location      string                   `json:"location"`
+	ResourceGroup string                   `json:"resourceGroup"`
+	Tags          map[string]string        `json:"tags"`
+	Kind          string                   `json:"kind"`
+	Properties    *LogicAPIConnectionProps `json:"properties"`
+}
+
+type LogicAPIConnectionProps struct {
+	ProvisioningState string                    `json:"provisioningState"`
+	API               *LogicAPIConnectionAPIRef `json:"api"`
+	Statuses          []LogicAPIConnStatus      `json:"statuses"`
+}
+
+type LogicAPIConnectionAPIRef struct {
+	Name        string `json:"name"`
+	DisplayName string `json:"displayName"`
+}
+
+type LogicAPIConnStatus struct {
+	Status string `json:"status"`
+	Target string `json:"target"`
+}
+
+// EmailService represents Microsoft.Communication/EmailServices.
+type EmailService struct {
+	ID            string             `json:"id"`
+	Name          string             `json:"name"`
+	Location      string             `json:"location"`
+	ResourceGroup string             `json:"resourceGroup"`
+	Tags          map[string]string  `json:"tags"`
+	Properties    *EmailServiceProps `json:"properties"`
+}
+
+type EmailServiceProps struct {
+	ProvisioningState string `json:"provisioningState"`
+	DataLocation      string `json:"dataLocation"`
+}
+
+// EmailDomain represents Microsoft.Communication/EmailServices/Domains.
+type EmailDomain struct {
+	ID             string            `json:"id"`
+	Name           string            `json:"name"`
+	Location       string            `json:"location"`
+	ResourceGroup  string            `json:"resourceGroup"`
+	Tags           map[string]string `json:"tags"`
+	Properties     *EmailDomainProps `json:"properties"`
+	EmailServiceID string            `json:"-"` // parent email service ARM ID (parsed from domain ID)
+}
+
+type EmailDomainProps struct {
+	ProvisioningState string `json:"provisioningState"`
+	DataLocation      string `json:"dataLocation"`
+	DomainManagement  string `json:"domainManagement"`
+	MailFrom          string `json:"mailFromSenderDomain"`
+}
+
+// StreamAnalyticsJob represents Microsoft.StreamAnalytics/streamingjobs.
+type StreamAnalyticsJob struct {
+	ID            string                `json:"id"`
+	Name          string                `json:"name"`
+	Location      string                `json:"location"`
+	ResourceGroup string                `json:"resourceGroup"`
+	Tags          map[string]string     `json:"tags"`
+	SKU           *StreamAnalyticsSKU   `json:"sku"`
+	Properties    *StreamAnalyticsProps `json:"properties"`
+}
+
+type StreamAnalyticsSKU struct {
+	Name string `json:"name"`
+}
+
+type StreamAnalyticsProps struct {
+	ProvisioningState  string `json:"provisioningState"`
+	JobState           string `json:"jobState"`
+	CompatibilityLevel string `json:"compatibilityLevel"`
+	OutputStartMode    string `json:"outputStartMode"`
+}
+
+// EventGridSystemTopic represents Microsoft.EventGrid/systemTopics.
+type EventGridSystemTopic struct {
+	ID            string                     `json:"id"`
+	Name          string                     `json:"name"`
+	Location      string                     `json:"location"`
+	ResourceGroup string                     `json:"resourceGroup"`
+	Tags          map[string]string          `json:"tags"`
+	Properties    *EventGridSystemTopicProps `json:"properties"`
+}
+
+type EventGridSystemTopicProps struct {
+	ProvisioningState string `json:"provisioningState"`
+	Source            string `json:"source"`
+	TopicType         string `json:"topicType"`
+}
+
+// AppServiceSlot represents a Microsoft.Web/sites/slots deployment slot.
+type AppServiceSlot struct {
+	ID              string            `json:"id"`
+	Name            string            `json:"name"`
+	Location        string            `json:"location"`
+	ResourceGroup   string            `json:"resourceGroup"`
+	Tags            map[string]string `json:"tags"`
+	Kind            string            `json:"kind"`
+	State           string            `json:"state"`
+	Enabled         bool              `json:"enabled"`
+	DefaultHostName string            `json:"defaultHostName"`
+	SiteConfig      *WebAppSiteConfig `json:"siteConfig"`
+	WebAppID        string            `json:"-"` // parent webapp ARM ID (derived from slot ID)
+}
+
 // SubscriptionData holds all collected Azure resources for a subscription.
 type SubscriptionData struct {
 	Subscription              SubscriptionInfo
@@ -1788,11 +2815,14 @@ type SubscriptionData struct {
 	SecurityGroups            []NetworkSecurityGroup
 	RouteTables               []RouteTable
 	PublicIPs                 []PublicIPAddress
+	PublicIPPrefixes          []PublicIPPrefix
+	AvailabilitySets          []AvailabilitySet
 	LoadBalancers             []LoadBalancer
 	PrivateEndpoints          []PrivateEndpoint
 	VNetPeerings              []VNetPeering
 	VNetGateways              []VNetGateway
 	GatewayConnections        []GatewayConnection
+	RouteServers              []RouteServer
 	PrivateDNSZones           []PrivateDNSZone
 	DNSZones                  []DNSZone
 	NATGateways               []NATGateway
@@ -1826,6 +2856,37 @@ type SubscriptionData struct {
 	EventHubsNamespaces       []EventHubsNamespace
 	APIMServices              []APIMService
 	FrontDoorProfiles         []FrontDoorProfile
+	MetricAlerts              []MetricAlert
+	ActionGroups              []ActionGroup
+	ManagementGroupEntities   []MGEntity
+	BastionHosts              []BastionHost
+	TrafficManagerProfiles    []TrafficManagerProfile
+	DNSPrivateResolvers       []DNSPrivateResolver
+	DNSForwardingRulesets     []DNSForwardingRuleset
+	// H1 resources
+	VMSSes                  []VMSS
+	SQLManagedInstances     []SQLManagedInstance
+	LogicWorkflows          []LogicWorkflow
+	DataFactories           []DataFactory
+	SynapseWorkspaces       []SynapseWorkspace
+	CommunicationServices   []CommunicationService
+	AutomationAccounts      []AutomationAccount
+	ArcMachines             []ArcMachine
+	DataCollectionRules     []DataCollectionRule
+	DataCollectionEndpoints []DataCollectionEndpoint
+	AutoscaleSettings       []AutoscaleSetting
+	SQLVirtualMachines      []SQLVirtualMachine
+	LogicAPIConnections     []LogicAPIConnection
+	EmailServices           []EmailService
+	EmailDomains            []EmailDomain
+	StreamAnalyticsJobs     []StreamAnalyticsJob
+	EventGridSystemTopics   []EventGridSystemTopic
+	AppServiceSlots         []AppServiceSlot
+	GraphEnvelopes          map[string]*GraphEnvelope
+	FlowLogs                []FlowLog
+	// Group-scope (RG / subscription / MG) role assignments collected under audit.
+	// Resource-scope RAs are stored on the individual GraphEnvelope entries.
+	BulkRoleAssignments []ScopedRoleAssignment
 }
 
 // azPath resolves the absolute path to the Azure CLI binary once.
@@ -1898,8 +2959,10 @@ func discoverSubscriptions(tenantFilter string) ([]SubscriptionTarget, error) {
 
 // Client wraps the Azure CLI to collect subscription resources.
 type Client struct {
-	subscriptionID string
-	logger         *slog.Logger
+	subscriptionID     string
+	logger             *slog.Logger
+	mgEntitiesOverride []MGEntity // pre-fetched tenant-level MG entities; nil = fetch on demand.
+	purpose            string     // osirismeta purpose: "documentation" (default) or "audit"
 }
 
 // NewClient creates a new Azure CLI client for the given subscription.
@@ -1921,14 +2984,45 @@ func (c *Client) Collect() (*SubscriptionData, error) {
 	}
 	data.Subscription = sub
 
+	// Management group hierarchy runs in the background - tenant-scoped,
+	// best-effort, independent of subscription resource collection.
+	var mgWg sync.WaitGroup
+	mgWg.Add(1)
+	go func() {
+		defer mgWg.Done()
+		c.collectManagementGroupEntities(data)
+	}()
+
 	// Resource groups.
 	if err := c.queryInto("group list", &data.ResourceGroups); err != nil {
+		mgWg.Wait()
 		return nil, fmt.Errorf("fetching resource groups: %w", err)
 	}
 	c.logger.Info("collected resource groups", "count", len(data.ResourceGroups))
 
 	// Network resources - each is independent, partial failures are logged and skipped.
 	c.collectNetworkResources(data)
+
+	// Universal graph envelope: kind, sku, identity, timestamps, public_network_access.
+	// Runs for all purposes - provides the normalised osiris.azure envelope fields.
+	c.collectGraphEnvelopes(data)
+
+	// Pass-3 context collectors are expensive (per-resource calls) and only
+	// collected for audit-grade runs per OSIRIS JSON spec chapter 13 section 13.1.3.
+	if c.purpose == "audit" {
+		c.collectResourceTimestamps(data)
+		c.collectChildTimestamps(data)
+		c.collectResourceLocks(data)
+		c.collectRoleAssignments(data)
+		c.collectDiagnosticSettings(data)
+		c.collectVMExtensions(data)
+		// Effective routes per NIC: high-volume (can add 100+ MB to output).
+		// Only collected under flag "--purpose audit" Detailed (audit-focused) following OSIRIS JSON spec chapter 13 section 13.1.3.
+		c.collectEffectiveRoutes(data.NetworkInterfaces)
+	}
+
+	// Wait for background MG collection before returning.
+	mgWg.Wait()
 
 	return data, nil
 }
@@ -1949,6 +3043,8 @@ func (c *Client) collectNetworkResources(data *SubscriptionData) {
 		{"application security groups", "network asg list", &data.ApplicationSecurityGroups},
 		{"route tables", "network route-table list", &data.RouteTables},
 		{"public IPs", "network public-ip list", &data.PublicIPs},
+		{"public IP prefixes", "network public-ip prefix list", &data.PublicIPPrefixes},
+		{"availability sets", "vm availability-set list", &data.AvailabilitySets},
 		{"load balancers", "network lb list", &data.LoadBalancers},
 		{"private endpoints", "network private-endpoint list", &data.PrivateEndpoints},
 		{"private DNS zones", "network private-dns zone list", &data.PrivateDNSZones},
@@ -1957,7 +3053,7 @@ func (c *Client) collectNetworkResources(data *SubscriptionData) {
 		{"ExpressRoute circuits", "network express-route list", &data.ExpressRouteCircuits},
 		{"firewalls", "network firewall list", &data.AzureFirewalls},
 		{"application gateways", "network application-gateway list", &data.ApplicationGateways},
-		{"virtual machines", "vm list -d", &data.VirtualMachines},
+		{"virtual machines", "vm list", &data.VirtualMachines},
 		{"app service plans", "appservice plan list", &data.AppServicePlans},
 		{"app service sites", "webapp list", &data.WebApps},
 		{"storage accounts", "storage account list", &data.StorageAccounts},
@@ -1968,7 +3064,7 @@ func (c *Client) collectNetworkResources(data *SubscriptionData) {
 		{"application insights components", "resource list --resource-type microsoft.insights/components", &data.ApplicationInsights},
 		{"log analytics workspaces", "monitor log-analytics workspace list", &data.LogAnalyticsWorkspaces},
 		{"recovery services vaults", "backup vault list", &data.RecoveryServicesVaults},
-		{"backup vaults", "resource list --resource-type Microsoft.DataProtection/backupVaults", &data.BackupVaults},
+		{"backup vaults", "dataprotection backup-vault list", &data.BackupVaults},
 		{"sql servers", "sql server list", &data.SQLServers},
 		{"postgresql flexible servers", "postgres flexible-server list", &data.PostgreSQLServers},
 		{"mysql flexible servers", "mysql flexible-server list", &data.MySQLServers},
@@ -1982,15 +3078,54 @@ func (c *Client) collectNetworkResources(data *SubscriptionData) {
 		{"event hubs namespaces", "eventhubs namespace list", &data.EventHubsNamespaces},
 		{"api management services", "apim list", &data.APIMServices},
 		{"front door profiles", "afd profile list", &data.FrontDoorProfiles},
+		{"route servers", "network routeserver list", &data.RouteServers},
+		{"metric alert rules", "monitor metrics alert list", &data.MetricAlerts},
+		{"action groups", "monitor action-group list", &data.ActionGroups},
+		{"bastions", "network bastion list", &data.BastionHosts},
+		{"traffic manager profiles", "network traffic-manager profile list", &data.TrafficManagerProfiles},
+		{"DNS private resolvers", "resource list --resource-type Microsoft.Network/dnsResolvers", &data.DNSPrivateResolvers},
+		{"DNS forwarding rulesets", "resource list --resource-type Microsoft.Network/dnsForwardingRulesets", &data.DNSForwardingRulesets},
+		// H1 resources
+		{"virtual machine scale sets", "vmss list", &data.VMSSes},
+		{"SQL managed instances", "sql mi list", &data.SQLManagedInstances},
+		{"logic workflows", "logic workflow list", &data.LogicWorkflows},
+		{"data factories", "resource list --resource-type Microsoft.DataFactory/factories", &data.DataFactories},
+		{"synapse workspaces", "resource list --resource-type Microsoft.Synapse/workspaces", &data.SynapseWorkspaces},
+		{"communication services", "resource list --resource-type Microsoft.Communication/CommunicationServices", &data.CommunicationServices},
+		{"automation accounts", "automation account list", &data.AutomationAccounts},
+		{"arc machines", "resource list --resource-type Microsoft.HybridCompute/machines", &data.ArcMachines},
+		{"data collection rules", "monitor data-collection rule list", &data.DataCollectionRules},
+		{"data collection endpoints", "monitor data-collection endpoint list", &data.DataCollectionEndpoints},
+		{"autoscale settings", "resource list --resource-type Microsoft.Insights/autoscalesettings", &data.AutoscaleSettings},
+		{"sql virtual machines", "sql vm list", &data.SQLVirtualMachines},
+		{"logic api connections", "resource list --resource-type Microsoft.Web/connections", &data.LogicAPIConnections},
+		{"email services", "resource list --resource-type Microsoft.Communication/EmailServices", &data.EmailServices},
+		{"email domains", "resource list --resource-type Microsoft.Communication/EmailServices/Domains", &data.EmailDomains},
+		{"stream analytics jobs", "resource list --resource-type Microsoft.StreamAnalytics/streamingjobs", &data.StreamAnalyticsJobs},
+		{"event grid system topics", "resource list --resource-type Microsoft.EventGrid/systemTopics", &data.EventGridSystemTopics},
 	}
 
+	const baseConcurrency = 8
+	baseSem := make(chan struct{}, baseConcurrency)
+	var baseWg sync.WaitGroup
 	for _, item := range items {
-		if err := c.queryInto(item.cmd, item.dest); err != nil {
-			c.logger.Warn("failed to collect resource type, skipping", "type", item.name, "error", err)
-			continue
-		}
-		c.logger.Info("collected", "type", item.name, "count", sliceLen(item.dest))
+		baseWg.Add(1)
+		baseSem <- struct{}{}
+		go func(item collectable) {
+			defer baseWg.Done()
+			defer func() { <-baseSem }()
+			if err := c.queryInto(item.cmd, item.dest); err != nil {
+				c.logger.Warn("failed to collect resource type, skipping", "type", item.name, "error", err)
+				return
+			}
+			c.logger.Info("collected", "type", item.name, "count", sliceLen(item.dest))
+		}(item)
 	}
+	baseWg.Wait()
+
+	// Backfill minimumTlsVersion / networkAcls.defaultAction for KV and SQL -
+	// az keyvault list / az sql server list omit these from their output.
+	c.collectKVAndSQLEnrichments(data)
 
 	// Managed disks: some CLI builds / RBAC scopes reject the subscription-wide
 	// `az disk list` with "--resource-group/-g required", so iterate per RG.
@@ -1998,6 +3133,30 @@ func (c *Client) collectNetworkResources(data *SubscriptionData) {
 
 	// SQL databases: one `az sql db list` per server (no subscription-wide list).
 	c.collectSQLDatabases(data.SQLServers)
+
+	// SQL elastic pools: one `az sql elastic-pool list` per server.
+	c.collectSQLElasticPools(data.SQLServers)
+
+	// SQL MI databases: one `az sql midb list` per managed instance.
+	c.collectSQLMIDatabases(data.SQLManagedInstances)
+
+	// ACR replications: one `az acr replication list` per registry.
+	c.collectACRReplications(data.ContainerRegistries)
+
+	// Arc extensions: single Resource Graph query across all machines.
+	c.collectArcExtensions(data)
+
+	// App Service slots: one `az webapp deployment slot list` per webapp.
+	c.collectAppServiceSlots(data)
+
+	// Email domain parent-ID backfill: parse parent email service ARM ID from slot ID.
+	for i := range data.EmailDomains {
+		d := &data.EmailDomains[i]
+		// Email domain ID: .../providers/Microsoft.Communication/emailServices/<svc>/domains/<domain>
+		if idx := strings.LastIndex(strings.ToLower(d.ID), "/domains/"); idx >= 0 {
+			d.EmailServiceID = d.ID[:idx]
+		}
+	}
 
 	// Subnets require iterating per VNet (no list-all command).
 	data.Subnets = c.collectSubnets(data.VirtualNetworks)
@@ -2017,8 +3176,8 @@ func (c *Client) collectNetworkResources(data *SubscriptionData) {
 	// Private DNS zone VNet links (requires per-zone iteration).
 	c.collectPrivateDNSLinks(data.PrivateDNSZones)
 
-	// Effective routes per NIC (requires effectiveRouteTable/action permission).
-	c.collectEffectiveRoutes(data.NetworkInterfaces)
+	// NSG flow logs via Resource Graph (single query, avoids per-watcher iteration).
+	c.collectFlowLogs(data)
 
 	// Backup protected items per Recovery Services Vault.
 	c.collectBackupProtectedItems(data.RecoveryServicesVaults)
@@ -2028,6 +3187,202 @@ func (c *Client) collectNetworkResources(data *SubscriptionData) {
 
 	// AKS node pools: one `az aks nodepool list` per cluster.
 	c.collectAKSNodePools(data.AKSClusters)
+
+	// DNS resolver and ruleset properties are not returned by az resource list
+	// for these resource types (resource-provider behavior); fetch individually.
+	c.collectDNSResourceDetails(data)
+}
+
+// collectDNSResourceDetails fetches full properties for DNS resolvers and forwarding
+// rulesets via az resource show --ids. az resource list returns an empty properties
+// block for these resource types; az resource show calls the provider GET endpoint
+// directly and always includes the full detail.
+func (c *Client) collectDNSResourceDetails(data *SubscriptionData) {
+	for i := range data.DNSPrivateResolvers {
+		r := &data.DNSPrivateResolvers[i]
+		if r.Properties != nil {
+			continue
+		}
+		var full DNSPrivateResolver
+		if err := c.queryInto("resource show --ids "+r.ID, &full); err != nil {
+			c.logger.Debug("failed to fetch DNS resolver details", "id", r.ID, "error", err)
+			continue
+		}
+		r.Properties = full.Properties
+	}
+	for i := range data.DNSForwardingRulesets {
+		rs := &data.DNSForwardingRulesets[i]
+		if rs.Properties != nil {
+			continue
+		}
+		var full DNSForwardingRuleset
+		if err := c.queryInto("resource show --ids "+rs.ID, &full); err != nil {
+			c.logger.Debug("failed to fetch DNS forwarding ruleset details", "id", rs.ID, "error", err)
+			continue
+		}
+		rs.Properties = full.Properties
+	}
+}
+
+// collectKVAndSQLEnrichments backfills fields that az keyvault list and
+// az sql server list omit from their standard output. A single Resource Graph
+// query fetches minimumTlsVersion / networkAcls.defaultAction for Key Vaults
+// and minimalTlsVersion / publicNetworkAccess for SQL Servers, then merges
+// the results only where the existing struct fields are empty.
+func (c *Client) collectKVAndSQLEnrichments(data *SubscriptionData) {
+	if len(data.KeyVaults) == 0 && len(data.SQLServers) == 0 {
+		return
+	}
+	if err := c.ensureAZExtension("resource-graph"); err != nil {
+		c.logger.Debug("resource-graph unavailable; KV/SQL enrichment skipped", "error", err)
+		return
+	}
+
+	kql := fmt.Sprintf(
+		`Resources | where subscriptionId =~ '%s' | where type =~ 'microsoft.keyvault/vaults' or type =~ 'microsoft.sql/servers' | project id, type, tlsVersion = tostring(coalesce(properties.minimumTlsVersion, properties.minimalTlsVersion)), defaultAction = tostring(properties.networkAcls.defaultAction), publicNetworkAccess = tostring(properties.publicNetworkAccess), restrictOutbound = tostring(properties.restrictOutboundNetworkAccess)`,
+		c.subscriptionID,
+	)
+
+	type enrichItem struct {
+		ID                  string `json:"id"`
+		Type                string `json:"type"`
+		TLSVersion          string `json:"tlsVersion"`
+		DefaultAction       string `json:"defaultAction"`
+		PublicNetworkAccess string `json:"publicNetworkAccess"`
+		RestrictOutbound    string `json:"restrictOutbound"`
+	}
+	type enrichPage struct {
+		Count int          `json:"count"`
+		Data  []enrichItem `json:"data"`
+	}
+
+	args := []string{"graph", "query", "-q", kql, "--first", "1000"}
+	out, err := c.execAZArgsNoSub(args)
+	if err != nil {
+		c.logger.Debug("KV/SQL enrichment graph query failed", "error", err)
+		return
+	}
+	var page enrichPage
+	if err := json.Unmarshal(out, &page); err != nil {
+		c.logger.Debug("failed to parse KV/SQL enrichment response", "error", err)
+		return
+	}
+
+	kvMap := make(map[string]enrichItem, len(data.KeyVaults))
+	sqlMap := make(map[string]enrichItem, len(data.SQLServers))
+	for _, item := range page.Data {
+		lower := strings.ToLower(item.ID)
+		if strings.Contains(lower, "/microsoft.keyvault/vaults/") {
+			kvMap[lower] = item
+		} else if strings.Contains(lower, "/microsoft.sql/servers/") {
+			sqlMap[lower] = item
+		}
+	}
+
+	for i := range data.KeyVaults {
+		kv := &data.KeyVaults[i]
+		enrich, ok := kvMap[strings.ToLower(kv.ID)]
+		if !ok {
+			continue
+		}
+		if kv.Properties == nil {
+			kv.Properties = &KeyVaultProperties{}
+		}
+		if kv.Properties.MinimumTLSVersion == "" && enrich.TLSVersion != "" {
+			kv.Properties.MinimumTLSVersion = enrich.TLSVersion
+		}
+		if kv.Properties.PublicNetworkAccess == "" && enrich.PublicNetworkAccess != "" {
+			kv.Properties.PublicNetworkAccess = enrich.PublicNetworkAccess
+		}
+		if enrich.DefaultAction != "" {
+			if kv.Properties.NetworkACLs == nil {
+				kv.Properties.NetworkACLs = &azKeyVaultNetworkACLs{}
+			}
+			if kv.Properties.NetworkACLs.DefaultAction == "" {
+				kv.Properties.NetworkACLs.DefaultAction = enrich.DefaultAction
+			}
+		}
+	}
+
+	// Per-vault show fallback: az keyvault list omits minimumTlsVersion and
+	// networkAcls.defaultAction; Resource Graph returns "" for vaults that have
+	// never explicitly configured these fields (platform defaults aren't stored
+	// in ARM). Fetch the full properties for any vault still missing both values.
+	c.enrichKVWithShow(data.KeyVaults)
+
+	for i := range data.SQLServers {
+		s := &data.SQLServers[i]
+		enrich, ok := sqlMap[strings.ToLower(s.ID)]
+		if !ok {
+			continue
+		}
+		if s.Properties == nil {
+			s.Properties = &azSQLServerProperties{}
+		}
+		if s.Properties.MinimalTLSVersion == "" && enrich.TLSVersion != "" {
+			s.Properties.MinimalTLSVersion = enrich.TLSVersion
+		}
+		if s.Properties.PublicNetworkAccess == "" && enrich.PublicNetworkAccess != "" {
+			s.Properties.PublicNetworkAccess = enrich.PublicNetworkAccess
+		}
+		if s.Properties.RestrictOutboundNetworkAccess == "" && enrich.RestrictOutbound != "" {
+			s.Properties.RestrictOutboundNetworkAccess = enrich.RestrictOutbound
+		}
+	}
+}
+
+// enrichKVWithShow fetches full KV properties via az keyvault show for any vault
+// where minimumTlsVersion or networkAcls.defaultAction is still empty after the
+// Resource Graph pass. These fields are omitted from az keyvault list and may not
+// be present in Resource Graph when they equal the platform default (never stored).
+func (c *Client) enrichKVWithShow(vaults []KeyVault) {
+	// Identify which vaults need enrichment.
+	var targets []int
+	for i := range vaults {
+		kv := &vaults[i]
+		if kv.Properties == nil || kv.Properties.MinimumTLSVersion == "" {
+			targets = append(targets, i)
+		}
+	}
+	if len(targets) == 0 {
+		return
+	}
+
+	const concurrency = 8
+	sem := make(chan struct{}, concurrency)
+	var wg sync.WaitGroup
+
+	for _, idx := range targets {
+		wg.Add(1)
+		sem <- struct{}{}
+		go func(i int) {
+			defer wg.Done()
+			defer func() { <-sem }()
+			kv := &vaults[i]
+			var full KeyVault
+			if err := c.queryInto("keyvault show --name "+kv.Name+" -g "+kv.ResourceGroup, &full); err != nil {
+				c.logger.Debug("keyvault show failed", "name", kv.Name, "error", err)
+				return
+			}
+			if full.Properties == nil {
+				return
+			}
+			if kv.Properties == nil {
+				kv.Properties = &KeyVaultProperties{}
+			}
+			if kv.Properties.MinimumTLSVersion == "" && full.Properties.MinimumTLSVersion != "" {
+				kv.Properties.MinimumTLSVersion = full.Properties.MinimumTLSVersion
+			}
+			if kv.Properties.NetworkACLs == nil && full.Properties.NetworkACLs != nil {
+				kv.Properties.NetworkACLs = full.Properties.NetworkACLs
+			} else if full.Properties.NetworkACLs != nil &&
+				kv.Properties.NetworkACLs.DefaultAction == "" &&
+				full.Properties.NetworkACLs.DefaultAction != "" {
+				kv.Properties.NetworkACLs.DefaultAction = full.Properties.NetworkACLs.DefaultAction
+			}
+		}(idx)
+	}
+	wg.Wait()
 }
 
 // collectAKSNodePools enumerates agent pools per AKS cluster. `az aks nodepool
@@ -2035,21 +3390,33 @@ func (c *Client) collectNetworkResources(data *SubscriptionData) {
 // are needed for the cluster -> nodepool `contains` edge and the nodepool ->
 // subnet `network` edge. Missing permissions are logged at debug level.
 func (c *Client) collectAKSNodePools(clusters []AKSCluster) {
-	total := 0
+	const concurrency = 8
+	sem := make(chan struct{}, concurrency)
+	var wg sync.WaitGroup
+
 	for i := range clusters {
-		cl := &clusters[i]
-		cmd := fmt.Sprintf("aks nodepool list --cluster-name %s --resource-group %s", cl.Name, cl.ResourceGroup)
-		var pools []AKSAgentPool
-		if err := c.queryInto(cmd, &pools); err != nil {
-			c.logger.Debug("failed to list AKS node pools", "cluster", cl.Name, "error", err)
-			continue
-		}
-		for j := range pools {
-			pools[j].ClusterID = cl.ID
-			pools[j].ClusterName = cl.Name
-		}
-		cl.AgentPools = pools
-		total += len(pools)
+		wg.Add(1)
+		sem <- struct{}{}
+		go func(i int) {
+			defer wg.Done()
+			defer func() { <-sem }()
+			cmd := fmt.Sprintf("aks nodepool list --cluster-name %s --resource-group %s", clusters[i].Name, clusters[i].ResourceGroup)
+			var pools []AKSAgentPool
+			if err := c.queryInto(cmd, &pools); err != nil {
+				c.logger.Debug("failed to list AKS node pools", "cluster", clusters[i].Name, "error", err)
+				return
+			}
+			for j := range pools {
+				pools[j].ClusterID = clusters[i].ID
+				pools[j].ClusterName = clusters[i].Name
+			}
+			clusters[i].AgentPools = pools
+		}(i)
+	}
+	wg.Wait()
+	total := 0
+	for _, cl := range clusters {
+		total += len(cl.AgentPools)
 	}
 	if total > 0 {
 		c.logger.Info("collected", "type", "aks node pools", "count", total)
@@ -2061,16 +3428,29 @@ func (c *Client) collectAKSNodePools(clusters []AKSCluster) {
 // subscription-wide equivalent. Missing permissions or empty vaults are logged
 // at debug level and skipped.
 func (c *Client) collectBackupProtectedItems(vaults []RecoveryServicesVault) {
+	const concurrency = 8
+	sem := make(chan struct{}, concurrency)
+	var wg sync.WaitGroup
+
+	for i := range vaults {
+		wg.Add(1)
+		sem <- struct{}{}
+		go func(i int) {
+			defer wg.Done()
+			defer func() { <-sem }()
+			cmd := fmt.Sprintf("backup item list --vault-name %s --resource-group %s", vaults[i].Name, vaults[i].ResourceGroup)
+			var items []BackupProtectedItem
+			if err := c.queryInto(cmd, &items); err != nil {
+				c.logger.Debug("no backup items for RS vault", "vault", vaults[i].Name, "error", err)
+				return
+			}
+			vaults[i].ProtectedItems = items
+		}(i)
+	}
+	wg.Wait()
 	total := 0
-	for i, v := range vaults {
-		cmd := fmt.Sprintf("backup item list --vault-name %s --resource-group %s", v.Name, v.ResourceGroup)
-		var items []BackupProtectedItem
-		if err := c.queryInto(cmd, &items); err != nil {
-			c.logger.Debug("no backup items for RS vault", "vault", v.Name, "error", err)
-			continue
-		}
-		vaults[i].ProtectedItems = items
-		total += len(items)
+	for _, v := range vaults {
+		total += len(v.ProtectedItems)
 	}
 	if total > 0 {
 		c.logger.Info("collected", "type", "backup protected items", "count", total)
@@ -2080,16 +3460,29 @@ func (c *Client) collectBackupProtectedItems(vaults []RecoveryServicesVault) {
 // collectBackupInstances fetches backup instances for each Backup Vault.
 // `az dataprotection backup-instance list` requires per-vault iteration.
 func (c *Client) collectBackupInstances(vaults []BackupVault) {
+	const concurrency = 8
+	sem := make(chan struct{}, concurrency)
+	var wg sync.WaitGroup
+
+	for i := range vaults {
+		wg.Add(1)
+		sem <- struct{}{}
+		go func(i int) {
+			defer wg.Done()
+			defer func() { <-sem }()
+			cmd := fmt.Sprintf("dataprotection backup-instance list --vault-name %s --resource-group %s", vaults[i].Name, vaults[i].ResourceGroup)
+			var insts []BackupInstance
+			if err := c.queryInto(cmd, &insts); err != nil {
+				c.logger.Debug("no backup instances for Backup Vault", "vault", vaults[i].Name, "error", err)
+				return
+			}
+			vaults[i].ProtectedInstances = insts
+		}(i)
+	}
+	wg.Wait()
 	total := 0
-	for i, v := range vaults {
-		cmd := fmt.Sprintf("dataprotection backup-instance list --vault-name %s --resource-group %s", v.Name, v.ResourceGroup)
-		var insts []BackupInstance
-		if err := c.queryInto(cmd, &insts); err != nil {
-			c.logger.Debug("no backup instances for Backup Vault", "vault", v.Name, "error", err)
-			continue
-		}
-		vaults[i].ProtectedInstances = insts
-		total += len(insts)
+	for _, v := range vaults {
+		total += len(v.ProtectedInstances)
 	}
 	if total > 0 {
 		c.logger.Info("collected", "type", "backup instances", "count", total)
@@ -2098,23 +3491,35 @@ func (c *Client) collectBackupInstances(vaults []BackupVault) {
 
 // collectSubnets fetches subnets for all VNets (az has no global subnet list command).
 func (c *Client) collectSubnets(vnets []VirtualNetwork) []Subnet {
+	const concurrency = 8
+	sem := make(chan struct{}, concurrency)
+	var mu sync.Mutex
+	var wg sync.WaitGroup
 	var all []Subnet
+
 	for _, vnet := range vnets {
-		cmd := fmt.Sprintf("network vnet subnet list --vnet-name %s --resource-group %s", vnet.Name, vnet.ResourceGroup)
-		var subnets []Subnet
-		if err := c.queryInto(cmd, &subnets); err != nil {
-			c.logger.Warn("failed to collect subnets, skipping", "vnet", vnet.Name, "error", err)
-			continue
-		}
-		// Backfill the resource group since az network vnet subnet list
-		// does not always include it.
-		for i := range subnets {
-			if subnets[i].ResourceGroup == "" {
-				subnets[i].ResourceGroup = vnet.ResourceGroup
+		wg.Add(1)
+		sem <- struct{}{}
+		go func(vnet VirtualNetwork) {
+			defer wg.Done()
+			defer func() { <-sem }()
+			cmd := fmt.Sprintf("network vnet subnet list --vnet-name %s --resource-group %s", vnet.Name, vnet.ResourceGroup)
+			var subnets []Subnet
+			if err := c.queryInto(cmd, &subnets); err != nil {
+				c.logger.Warn("failed to collect subnets, skipping", "vnet", vnet.Name, "error", err)
+				return
 			}
-		}
-		all = append(all, subnets...)
+			for i := range subnets {
+				if subnets[i].ResourceGroup == "" {
+					subnets[i].ResourceGroup = vnet.ResourceGroup
+				}
+			}
+			mu.Lock()
+			all = append(all, subnets...)
+			mu.Unlock()
+		}(vnet)
 	}
+	wg.Wait()
 	if len(all) > 0 {
 		c.logger.Info("collected", "type", "subnets", "count", len(all))
 	}
@@ -2123,16 +3528,30 @@ func (c *Client) collectSubnets(vnets []VirtualNetwork) []Subnet {
 
 // collectVNetPeerings fetches peerings for all VNets.
 func (c *Client) collectVNetPeerings(vnets []VirtualNetwork) []VNetPeering {
+	const concurrency = 8
+	sem := make(chan struct{}, concurrency)
+	var mu sync.Mutex
+	var wg sync.WaitGroup
 	var all []VNetPeering
+
 	for _, vnet := range vnets {
-		cmd := fmt.Sprintf("network vnet peering list --vnet-name %s --resource-group %s", vnet.Name, vnet.ResourceGroup)
-		var peerings []VNetPeering
-		if err := c.queryInto(cmd, &peerings); err != nil {
-			c.logger.Warn("failed to collect VNet peerings, skipping", "vnet", vnet.Name, "error", err)
-			continue
-		}
-		all = append(all, peerings...)
+		wg.Add(1)
+		sem <- struct{}{}
+		go func(vnet VirtualNetwork) {
+			defer wg.Done()
+			defer func() { <-sem }()
+			cmd := fmt.Sprintf("network vnet peering list --vnet-name %s --resource-group %s", vnet.Name, vnet.ResourceGroup)
+			var peerings []VNetPeering
+			if err := c.queryInto(cmd, &peerings); err != nil {
+				c.logger.Warn("failed to collect VNet peerings, skipping", "vnet", vnet.Name, "error", err)
+				return
+			}
+			mu.Lock()
+			all = append(all, peerings...)
+			mu.Unlock()
+		}(vnet)
 	}
+	wg.Wait()
 	if len(all) > 0 {
 		c.logger.Info("collected", "type", "VNet peerings", "count", len(all))
 	}
@@ -2141,17 +3560,30 @@ func (c *Client) collectVNetPeerings(vnets []VirtualNetwork) []VNetPeering {
 
 // collectVNetGateways fetches VNet gateways per resource group.
 func (c *Client) collectVNetGateways(rgs []ResourceGroup) []VNetGateway {
+	const concurrency = 8
+	sem := make(chan struct{}, concurrency)
+	var mu sync.Mutex
+	var wg sync.WaitGroup
 	var all []VNetGateway
+
 	for _, rg := range rgs {
-		cmd := fmt.Sprintf("network vnet-gateway list --resource-group %s", rg.Name)
-		var gateways []VNetGateway
-		if err := c.queryInto(cmd, &gateways); err != nil {
-			// Most resource groups won't have gateways - debug level only.
-			c.logger.Debug("no VNet gateways in resource group", "rg", rg.Name)
-			continue
-		}
-		all = append(all, gateways...)
+		wg.Add(1)
+		sem <- struct{}{}
+		go func(rg ResourceGroup) {
+			defer wg.Done()
+			defer func() { <-sem }()
+			cmd := fmt.Sprintf("network vnet-gateway list --resource-group %s", rg.Name)
+			var gateways []VNetGateway
+			if err := c.queryInto(cmd, &gateways); err != nil {
+				c.logger.Debug("no VNet gateways in resource group", "rg", rg.Name)
+				return
+			}
+			mu.Lock()
+			all = append(all, gateways...)
+			mu.Unlock()
+		}(rg)
 	}
+	wg.Wait()
 	if len(all) > 0 {
 		c.logger.Info("collected", "type", "VNet gateways", "count", len(all))
 	}
@@ -2162,16 +3594,30 @@ func (c *Client) collectVNetGateways(rgs []ResourceGroup) []VNetGateway {
 // configurations reject the subscription-wide `az disk list` form with
 // "--resource-group/-g is required", so we iterate RGs to be safe.
 func (c *Client) collectDisks(rgs []ResourceGroup) []Disk {
+	const concurrency = 8
+	sem := make(chan struct{}, concurrency)
+	var mu sync.Mutex
+	var wg sync.WaitGroup
 	var all []Disk
+
 	for _, rg := range rgs {
-		cmd := fmt.Sprintf("disk list --resource-group %s", rg.Name)
-		var disks []Disk
-		if err := c.queryInto(cmd, &disks); err != nil {
-			c.logger.Debug("no managed disks in resource group", "rg", rg.Name)
-			continue
-		}
-		all = append(all, disks...)
+		wg.Add(1)
+		sem <- struct{}{}
+		go func(rg ResourceGroup) {
+			defer wg.Done()
+			defer func() { <-sem }()
+			cmd := fmt.Sprintf("disk list --resource-group %s", rg.Name)
+			var disks []Disk
+			if err := c.queryInto(cmd, &disks); err != nil {
+				c.logger.Debug("no managed disks in resource group", "rg", rg.Name)
+				return
+			}
+			mu.Lock()
+			all = append(all, disks...)
+			mu.Unlock()
+		}(rg)
 	}
+	wg.Wait()
 	c.logger.Info("collected", "type", "managed disks", "count", len(all))
 	return all
 }
@@ -2182,22 +3628,32 @@ func (c *Client) collectDisks(rgs []ResourceGroup) []Disk {
 // The implicit `master` system database returned by `az sql db list` is
 // skipped - it is not a topology-relevant workload database.
 func (c *Client) collectSQLDatabases(servers []SQLServer) {
+	const concurrency = 8
+	sem := make(chan struct{}, concurrency)
+	var wg sync.WaitGroup
+
 	for i := range servers {
-		srv := &servers[i]
-		cmd := fmt.Sprintf("sql db list --resource-group %s --server %s", srv.ResourceGroup, srv.Name)
-		var dbs []SQLDatabase
-		if err := c.queryInto(cmd, &dbs); err != nil {
-			c.logger.Debug("failed to list SQL databases", "server", srv.Name, "error", err)
-			continue
-		}
-		for j := range dbs {
-			if strings.EqualFold(dbs[j].Name, "master") {
-				continue
+		wg.Add(1)
+		sem <- struct{}{}
+		go func(i int) {
+			defer wg.Done()
+			defer func() { <-sem }()
+			cmd := fmt.Sprintf("sql db list --resource-group %s --server %s", servers[i].ResourceGroup, servers[i].Name)
+			var dbs []SQLDatabase
+			if err := c.queryInto(cmd, &dbs); err != nil {
+				c.logger.Debug("failed to list SQL databases", "server", servers[i].Name, "error", err)
+				return
 			}
-			dbs[j].ServerID = srv.ID
-			srv.Databases = append(srv.Databases, dbs[j])
-		}
+			for j := range dbs {
+				if strings.EqualFold(dbs[j].Name, "master") {
+					continue
+				}
+				dbs[j].ServerID = servers[i].ID
+				servers[i].Databases = append(servers[i].Databases, dbs[j])
+			}
+		}(i)
 	}
+	wg.Wait()
 	total := 0
 	for _, s := range servers {
 		total += len(s.Databases)
@@ -2207,19 +3663,260 @@ func (c *Client) collectSQLDatabases(servers []SQLServer) {
 	}
 }
 
+// collectSQLMIDatabases fetches databases for each SQL Managed Instance.
+func (c *Client) collectSQLMIDatabases(instances []SQLManagedInstance) {
+	const concurrency = 8
+	sem := make(chan struct{}, concurrency)
+	var wg sync.WaitGroup
+
+	for i := range instances {
+		wg.Add(1)
+		sem <- struct{}{}
+		go func(i int) {
+			defer wg.Done()
+			defer func() { <-sem }()
+			cmd := fmt.Sprintf("sql midb list --managed-instance %s --resource-group %s", instances[i].Name, instances[i].ResourceGroup)
+			var dbs []SQLMIDatabase
+			if err := c.queryInto(cmd, &dbs); err != nil {
+				c.logger.Debug("failed to list SQL MI databases", "instance", instances[i].Name, "error", err)
+				return
+			}
+			for j := range dbs {
+				dbs[j].ManagedInstanceID = instances[i].ID
+			}
+			instances[i].Databases = dbs
+		}(i)
+	}
+	wg.Wait()
+	total := 0
+	for _, mi := range instances {
+		total += len(mi.Databases)
+	}
+	if total > 0 {
+		c.logger.Info("collected", "type", "sql mi databases", "count", total)
+	}
+}
+
+// collectSQLElasticPools fetches elastic pools for each SQL server.
+func (c *Client) collectSQLElasticPools(servers []SQLServer) {
+	const concurrency = 8
+	sem := make(chan struct{}, concurrency)
+	var wg sync.WaitGroup
+
+	for i := range servers {
+		wg.Add(1)
+		sem <- struct{}{}
+		go func(i int) {
+			defer wg.Done()
+			defer func() { <-sem }()
+			cmd := fmt.Sprintf("sql elastic-pool list --server %s --resource-group %s", servers[i].Name, servers[i].ResourceGroup)
+			var pools []SQLElasticPool
+			if err := c.queryInto(cmd, &pools); err != nil {
+				c.logger.Debug("failed to list SQL elastic pools", "server", servers[i].Name, "error", err)
+				return
+			}
+			for j := range pools {
+				pools[j].ServerID = servers[i].ID
+			}
+			servers[i].ElasticPools = pools
+		}(i)
+	}
+	wg.Wait()
+	total := 0
+	for _, s := range servers {
+		total += len(s.ElasticPools)
+	}
+	if total > 0 {
+		c.logger.Info("collected", "type", "sql elastic pools", "count", total)
+	}
+}
+
+// collectACRReplications fetches geo-replications for each Container Registry.
+func (c *Client) collectACRReplications(registries []ContainerRegistry) {
+	const concurrency = 8
+	sem := make(chan struct{}, concurrency)
+	var wg sync.WaitGroup
+
+	for i := range registries {
+		wg.Add(1)
+		sem <- struct{}{}
+		go func(i int) {
+			defer wg.Done()
+			defer func() { <-sem }()
+			cmd := fmt.Sprintf("acr replication list --name %s --resource-group %s", registries[i].Name, registries[i].ResourceGroup)
+			var repls []ACRReplication
+			if err := c.queryInto(cmd, &repls); err != nil {
+				c.logger.Debug("failed to list ACR replications", "registry", registries[i].Name, "error", err)
+				return
+			}
+			// Exclude the home region (provisioned by default, same location as registry).
+			var nonHome []ACRReplication
+			registryLoc := strings.ToLower(strings.ReplaceAll(registries[i].Location, " ", ""))
+			for _, r := range repls {
+				replLoc := strings.ToLower(strings.ReplaceAll(r.Location, " ", ""))
+				if replLoc != registryLoc {
+					nonHome = append(nonHome, r)
+				}
+			}
+			registries[i].Replications = nonHome
+		}(i)
+	}
+	wg.Wait()
+	total := 0
+	for _, r := range registries {
+		total += len(r.Replications)
+	}
+	if total > 0 {
+		c.logger.Info("collected", "type", "acr replications", "count", total)
+	}
+}
+
+// collectArcExtensions fetches extensions for each Arc-enabled machine via Resource Graph.
+func (c *Client) collectArcExtensions(data *SubscriptionData) {
+	if len(data.ArcMachines) == 0 {
+		return
+	}
+	if err := c.ensureAZExtension("resource-graph"); err != nil {
+		c.logger.Warn("resource-graph not available; skipping arc extensions", "error", err)
+		return
+	}
+
+	// Note: autoUpgradeMinorVersion is intentionally excluded - ARM / Resource Graph
+	// returns it as 0/1 (number) which Go's json decoder rejects for bool fields.
+	kql := fmt.Sprintf(
+		`Resources | where subscriptionId =~ '%s' and type =~ 'microsoft.hybridcompute/machines/extensions' | project id, name, resourceGroup, publisher = tostring(properties.publisher), extType = tostring(properties.type), typeHandlerVersion = tostring(properties.typeHandlerVersion), provisioningState = tostring(properties.provisioningState)`,
+		c.subscriptionID,
+	)
+
+	type arcExtItem struct {
+		ID                 string `json:"id"`
+		Name               string `json:"name"`
+		ResourceGroup      string `json:"resourceGroup"`
+		Publisher          string `json:"publisher"`
+		ExtType            string `json:"extType"`
+		TypeHandlerVersion string `json:"typeHandlerVersion"`
+		ProvisioningState  string `json:"provisioningState"`
+	}
+	type graphPage struct {
+		Data []arcExtItem `json:"data"`
+	}
+
+	args := []string{"graph", "query", "-q", kql, "--first", "1000"}
+	out, err := c.execAZArgsNoSub(args)
+	if err != nil {
+		c.logger.Warn("failed to collect arc extensions", "error", err)
+		return
+	}
+
+	var page graphPage
+	if err := json.Unmarshal(out, &page); err != nil {
+		c.logger.Warn("failed to parse arc extension response", "error", err)
+		return
+	}
+
+	// Build machine ID -> index map for fast lookup.
+	machineIdx := make(map[string]int, len(data.ArcMachines))
+	for i, m := range data.ArcMachines {
+		machineIdx[strings.ToLower(m.ID)] = i
+	}
+
+	for _, item := range page.Data {
+		// Extension ID format: .../providers/Microsoft.HybridCompute/machines/{name}/extensions/{ext}
+		idx := strings.LastIndex(strings.ToLower(item.ID), "/extensions/")
+		if idx < 0 {
+			continue
+		}
+		machineArmID := item.ID[:idx]
+		i, ok := machineIdx[strings.ToLower(machineArmID)]
+		if !ok {
+			continue
+		}
+		data.ArcMachines[i].Extensions = append(data.ArcMachines[i].Extensions, ArcExtension{
+			ID:                 item.ID,
+			Name:               item.Name,
+			Type:               item.ExtType,
+			Publisher:          item.Publisher,
+			TypeHandlerVersion: item.TypeHandlerVersion,
+			ProvisioningState:  item.ProvisioningState,
+		})
+	}
+
+	total := 0
+	for _, m := range data.ArcMachines {
+		total += len(m.Extensions)
+	}
+	if total > 0 {
+		c.logger.Info("collected", "type", "arc machine extensions", "count", total)
+	}
+}
+
+// collectAppServiceSlots fetches deployment slots for each App Service / Function App.
+// az webapp deployment slot list requires --name and --resource-group.
+func (c *Client) collectAppServiceSlots(data *SubscriptionData) {
+	if len(data.WebApps) == 0 {
+		return
+	}
+	const concurrency = 8
+	sem := make(chan struct{}, concurrency)
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+
+	for _, app := range data.WebApps {
+		wg.Add(1)
+		sem <- struct{}{}
+		go func(app WebApp) {
+			defer wg.Done()
+			defer func() { <-sem }()
+			var slots []AppServiceSlot
+			cmd := fmt.Sprintf("webapp deployment slot list -n %s -g %s", app.Name, app.ResourceGroup)
+			if err := c.queryInto(cmd, &slots); err != nil || len(slots) == 0 {
+				return
+			}
+			for i := range slots {
+				// Derive parent webapp ARM ID from slot ID:
+				// <webapp-id>/slots/<slot-name>
+				if idx := strings.LastIndex(strings.ToLower(slots[i].ID), "/slots/"); idx >= 0 {
+					slots[i].WebAppID = slots[i].ID[:idx]
+				}
+			}
+			mu.Lock()
+			data.AppServiceSlots = append(data.AppServiceSlots, slots...)
+			mu.Unlock()
+		}(app)
+	}
+	wg.Wait()
+	if len(data.AppServiceSlots) > 0 {
+		c.logger.Info("collected", "type", "app service slots", "count", len(data.AppServiceSlots))
+	}
+}
+
 // collectGatewayConnections fetches gateway connections (ExpressRoute + VPN) per resource group.
 // az network vpn-connection list requires --resource-group to return results.
 func (c *Client) collectGatewayConnections(rgs []ResourceGroup) []GatewayConnection {
+	const concurrency = 8
+	sem := make(chan struct{}, concurrency)
+	var mu sync.Mutex
+	var wg sync.WaitGroup
 	var all []GatewayConnection
+
 	for _, rg := range rgs {
-		cmd := fmt.Sprintf("network vpn-connection list --resource-group %s", rg.Name)
-		var conns []GatewayConnection
-		if err := c.queryInto(cmd, &conns); err != nil {
-			c.logger.Debug("no gateway connections in resource group", "rg", rg.Name)
-			continue
-		}
-		all = append(all, conns...)
+		wg.Add(1)
+		sem <- struct{}{}
+		go func(rg ResourceGroup) {
+			defer wg.Done()
+			defer func() { <-sem }()
+			cmd := fmt.Sprintf("network vpn-connection list --resource-group %s", rg.Name)
+			var conns []GatewayConnection
+			if err := c.queryInto(cmd, &conns); err != nil {
+				c.logger.Debug("no gateway connections in resource group", "rg", rg.Name)
+				return
+			}
+			mu.Lock()
+			all = append(all, conns...)
+			mu.Unlock()
+		}(rg)
 	}
+	wg.Wait()
 	if len(all) > 0 {
 		c.logger.Info("collected", "type", "gateway connections", "count", len(all))
 	}
@@ -2228,16 +3925,27 @@ func (c *Client) collectGatewayConnections(rgs []ResourceGroup) []GatewayConnect
 
 // collectExpressRoutePeerings fetches peerings for each ExpressRoute circuit.
 func (c *Client) collectExpressRoutePeerings(circuits []ExpressRouteCircuit) {
-	for i, circuit := range circuits {
-		cmd := fmt.Sprintf("network express-route peering list --circuit-name %s --resource-group %s",
-			circuit.Name, circuit.ResourceGroup)
-		var peerings []ExpressRoutePeering
-		if err := c.queryInto(cmd, &peerings); err != nil {
-			c.logger.Debug("no peerings for ExpressRoute circuit", "circuit", circuit.Name, "error", err)
-			continue
-		}
-		circuits[i].Peerings = peerings
+	const concurrency = 8
+	sem := make(chan struct{}, concurrency)
+	var wg sync.WaitGroup
+
+	for i := range circuits {
+		wg.Add(1)
+		sem <- struct{}{}
+		go func(i int) {
+			defer wg.Done()
+			defer func() { <-sem }()
+			cmd := fmt.Sprintf("network express-route peering list --circuit-name %s --resource-group %s",
+				circuits[i].Name, circuits[i].ResourceGroup)
+			var peerings []ExpressRoutePeering
+			if err := c.queryInto(cmd, &peerings); err != nil {
+				c.logger.Debug("no peerings for ExpressRoute circuit", "circuit", circuits[i].Name, "error", err)
+				return
+			}
+			circuits[i].Peerings = peerings
+		}(i)
 	}
+	wg.Wait()
 	total := 0
 	for _, circuit := range circuits {
 		total += len(circuit.Peerings)
@@ -2270,14 +3978,22 @@ func (c *Client) queryInto(command string, dest any) error {
 	return json.Unmarshal(out, dest)
 }
 
+// azCommandTimeout is the per-call deadline for all az CLI subprocesses.
+// Prevents any single hung call from blocking collection indefinitely.
+const azCommandTimeout = 120 * time.Second
+
 // execAZ runs an Azure CLI command and returns the raw JSON output.
 // The az binary path is resolved once via exec.LookPath to avoid
 // untrusted search path issues [CWE-426](https://cwe.mitre.org/data/definitions/426).
+// Each invocation carries a 120-second deadline; a timeout is surfaced as an error.
 func (c *Client) execAZ(command string) ([]byte, error) {
 	azPath, err := resolveAZPath()
 	if err != nil {
 		return nil, fmt.Errorf("Azure CLI (az) not found in PATH: %w", err)
 	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), azCommandTimeout)
+	defer cancel()
 
 	args := strings.Fields(command)
 	args = append(args, "--subscription", c.subscriptionID, "--output", "json")
@@ -2285,15 +4001,761 @@ func (c *Client) execAZ(command string) ([]byte, error) {
 	fullArgs := append([]string{azPath}, args...)
 	c.logger.Debug("executing Azure CLI", "command", strings.Join(fullArgs, " "))
 
-	cmd := exec.Command(azPath, args...)
+	cmd := exec.CommandContext(ctx, azPath, args...)
 	out, err := cmd.Output()
 	if err != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			return nil, fmt.Errorf("az %s timed out after %v", command, azCommandTimeout)
+		}
 		if exitErr, ok := err.(*exec.ExitError); ok {
 			return nil, fmt.Errorf("az %s failed: %s", command, strings.TrimSpace(string(exitErr.Stderr)))
 		}
 		return nil, fmt.Errorf("az %s: %w", command, err)
 	}
 	return out, nil
+}
+
+// execAZTenant runs an Azure CLI command without a --subscription flag.
+// Used for tenant-scoped calls (e.g. management group entities list) where
+// the subscription context is irrelevant or actively rejected by the CLI.
+func (c *Client) execAZTenant(command string) ([]byte, error) {
+	azPath, err := resolveAZPath()
+	if err != nil {
+		return nil, fmt.Errorf("Azure CLI (az) not found in PATH: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), azCommandTimeout)
+	defer cancel()
+
+	args := strings.Fields(command)
+	args = append(args, "--output", "json")
+	c.logger.Debug("executing Azure CLI (tenant scope)", "command", strings.Join(append([]string{azPath}, args...), " "))
+	cmd := exec.CommandContext(ctx, azPath, args...)
+	out, err := cmd.Output()
+	if err != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			return nil, fmt.Errorf("az %s timed out after %v", command, azCommandTimeout)
+		}
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			return nil, fmt.Errorf("az %s failed: %s", command, strings.TrimSpace(string(exitErr.Stderr)))
+		}
+		return nil, fmt.Errorf("az %s: %w", command, err)
+	}
+	return out, nil
+}
+
+// queryTenant executes a tenant-scoped az command and unmarshals the result into dest.
+func (c *Client) queryTenant(command string, dest any) error {
+	out, err := c.execAZTenant(command)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(out, dest)
+}
+
+// execAZArgs runs an Azure CLI command with a pre-split args slice and returns raw
+// JSON output. Unlike execAZ, args are passed directly without strings.Fields splitting,
+// which is required when arguments contain spaces or special characters (e.g. KQL query
+// strings, skip tokens). Appends --subscription and --output json automatically.
+func (c *Client) execAZArgs(args []string) ([]byte, error) {
+	azPath, err := resolveAZPath()
+	if err != nil {
+		return nil, fmt.Errorf("Azure CLI (az) not found in PATH: %w", err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), azCommandTimeout)
+	defer cancel()
+
+	all := make([]string, len(args), len(args)+4)
+	copy(all, args)
+	all = append(all, "--subscription", c.subscriptionID, "--output", "json")
+
+	c.logger.Debug("executing Azure CLI", "command", strings.Join(append([]string{azPath}, all...), " "))
+	cmd := exec.CommandContext(ctx, azPath, all...)
+	out, err := cmd.Output()
+	if err != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			return nil, fmt.Errorf("az %s timed out after %v", args[0], azCommandTimeout)
+		}
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			return nil, fmt.Errorf("az %s failed: %s", args[0], strings.TrimSpace(string(exitErr.Stderr)))
+		}
+		return nil, fmt.Errorf("az %s: %w", args[0], err)
+	}
+	return out, nil
+}
+
+// execAZArgsNoSub runs an Azure CLI command with a pre-split args slice and returns
+// raw JSON output. No --subscription flag is appended; only --output json is added.
+// Used for commands like az graph query where the subscription is filtered via KQL
+// or the --subscriptions parameter rather than the global --subscription flag.
+func (c *Client) execAZArgsNoSub(args []string) ([]byte, error) {
+	azPath, err := resolveAZPath()
+	if err != nil {
+		return nil, fmt.Errorf("Azure CLI (az) not found in PATH: %w", err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), azCommandTimeout)
+	defer cancel()
+
+	all := make([]string, len(args), len(args)+2)
+	copy(all, args)
+	all = append(all, "--output", "json")
+
+	c.logger.Debug("executing Azure CLI (no-sub)", "command", strings.Join(append([]string{azPath}, all...), " "))
+	cmd := exec.CommandContext(ctx, azPath, all...)
+	out, err := cmd.Output()
+	if err != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			return nil, fmt.Errorf("az %s timed out after %v", args[0], azCommandTimeout)
+		}
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			return nil, fmt.Errorf("az %s failed: %s", args[0], strings.TrimSpace(string(exitErr.Stderr)))
+		}
+		return nil, fmt.Errorf("az %s: %w", args[0], err)
+	}
+	return out, nil
+}
+
+// ensureAZExtension runs `az extension add --name <name> --upgrade` to ensure the
+// named extension is installed before it is used. Fast when already installed.
+func (c *Client) ensureAZExtension(name string) error {
+	return installAZExtension(name)
+}
+
+// installAZExtension is the package-level implementation shared by ensureAZExtension
+// and RunPreflightChecks.
+func installAZExtension(name string) error {
+	azPath, err := resolveAZPath()
+	if err != nil {
+		return err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, azPath, "extension", "add", "--name", name, "--upgrade")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			return fmt.Errorf("az extension add %s timed out", name)
+		}
+		return fmt.Errorf("az extension add %s: %s", name, strings.TrimSpace(string(out)))
+	}
+	return nil
+}
+
+// RunPreflightChecks verifies the az CLI is available and ensures required extensions
+// are installed. Called once at startup in Run(), before any subscription discovery
+// or interactive prompts appear.
+func RunPreflightChecks(logger *slog.Logger) error {
+	azPath, err := resolveAZPath()
+	if err != nil {
+		return fmt.Errorf("Azure CLI (az) not found in PATH - install from https://learn.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest")
+	}
+	logger.Info("preflight: az CLI found", "path", azPath)
+
+	logger.Info("preflight: ensuring resource-graph extension...")
+	if err := installAZExtension("resource-graph"); err != nil {
+		logger.Warn("preflight: resource-graph extension unavailable (graph envelopes will be skipped)", "error", err)
+	} else {
+		logger.Info("preflight: resource-graph extension ready")
+	}
+
+	return nil
+}
+
+// collectGraphEnvelopes fetches per-resource metadata for all resources in the subscription
+// via az graph query (Azure Resource Graph). The query is paginated using skip_token.
+// Results are keyed by lowercase ARM resource ID. The resource-graph extension is
+// installed automatically if not already present.
+func (c *Client) collectGraphEnvelopes(data *SubscriptionData) {
+	if err := c.ensureAZExtension("resource-graph"); err != nil {
+		c.logger.Warn("failed to ensure resource-graph extension; skipping graph envelopes", "error", err)
+		return
+	}
+
+	// Note: 'etag' is not a projectable column in all Resource Graph tenants/versions;
+	// it is intentionally omitted to avoid query failure.
+	// createdTime/changedTime are NOT projected here; properties.createdTime is a
+	// resource-specific field, not the ARM metadata timestamp. Those are fetched
+	// reliably via collectResourceTimestamps ($expand on the ARM list endpoint).
+	kql := fmt.Sprintf(
+		`Resources | where subscriptionId =~ '%s' | project id, kind, sku, identity, managedBy, plan, systemData, provisioningState = tostring(properties.provisioningState), publicNetworkAccess = tostring(properties.publicNetworkAccess) | order by id asc`,
+		c.subscriptionID,
+	)
+
+	type graphItem struct {
+		ID                  string             `json:"id"`
+		Kind                string             `json:"kind"`
+		SKU                 *azGraphSKU        `json:"sku"`
+		Identity            *azGraphIdentity   `json:"identity"`
+		ManagedBy           string             `json:"managedBy"`
+		Plan                *azGraphPlan       `json:"plan"`
+		ProvisioningState   string             `json:"provisioningState"`
+		SystemData          *azGraphSystemData `json:"systemData"`
+		PublicNetworkAccess string             `json:"publicNetworkAccess"`
+	}
+	type graphPage struct {
+		Count     int         `json:"count"`
+		Data      []graphItem `json:"data"`
+		SkipToken string      `json:"skip_token"`
+	}
+
+	envelopes := make(map[string]*GraphEnvelope)
+	skipToken := ""
+
+	for {
+		args := []string{"graph", "query", "-q", kql, "--first", "1000"}
+		if skipToken != "" {
+			args = append(args, "--skip-token", skipToken)
+		}
+
+		out, err := c.execAZArgsNoSub(args)
+		if err != nil {
+			c.logger.Warn("failed to collect graph envelopes", "error", err)
+			break
+		}
+
+		var page graphPage
+		if err := json.Unmarshal(out, &page); err != nil {
+			c.logger.Warn("failed to parse graph envelope response", "error", err)
+			break
+		}
+
+		for _, item := range page.Data {
+			key := strings.ToLower(item.ID)
+			env := &GraphEnvelope{
+				armID:               item.ID,
+				Kind:                item.Kind,
+				SKU:                 item.SKU,
+				Identity:            item.Identity,
+				ManagedBy:           item.ManagedBy,
+				Plan:                item.Plan,
+				ProvisioningState:   item.ProvisioningState,
+				SystemData:          item.SystemData,
+				PublicNetworkAccess: item.PublicNetworkAccess,
+			}
+			envelopes[key] = env
+		}
+
+		if page.SkipToken == "" {
+			break
+		}
+		skipToken = page.SkipToken
+	}
+
+	data.GraphEnvelopes = envelopes
+	c.logger.Info("collected graph envelopes", "count", len(envelopes))
+}
+
+// collectResourceTimestamps fetches createdTime, changedTime, and provisioningState
+// for all subscription resources via the ARM list endpoint with $expand. This is
+// the only reliable source for ARM metadata timestamps (Resource Graph's
+// properties.createdTime is a resource-specific field, not the metadata timestamp).
+// Results are merged into existing GraphEnvelope entries; new entries are created
+// for resources not already in the map. Runs under audit purpose only since
+// created_at/changed_at are audit-gated.
+func (c *Client) collectResourceTimestamps(data *SubscriptionData) {
+	if len(data.GraphEnvelopes) == 0 {
+		return
+	}
+
+	type listItem struct {
+		ID                string `json:"id"`
+		Etag              string `json:"etag"`
+		CreatedTime       string `json:"createdTime"`
+		ChangedTime       string `json:"changedTime"`
+		ProvisioningState string `json:"provisioningState"`
+	}
+	type listPage struct {
+		Value    []listItem `json:"value"`
+		NextLink string     `json:"nextLink"`
+	}
+
+	url := fmt.Sprintf(
+		"/subscriptions/%s/resources?api-version=2021-04-01&$expand=createdTime,changedTime,provisioningState",
+		c.subscriptionID,
+	)
+
+	total := 0
+	for {
+		out, err := c.execAZArgsNoSub([]string{"rest", "--method", "GET", "--url", url})
+		if err != nil {
+			c.logger.Warn("failed to collect resource timestamps", "error", err)
+			return
+		}
+
+		var page listPage
+		if err := json.Unmarshal(out, &page); err != nil {
+			c.logger.Warn("failed to parse resource timestamps response", "error", err)
+			return
+		}
+
+		for _, item := range page.Value {
+			key := strings.ToLower(item.ID)
+			env := data.GraphEnvelopes[key]
+			if env == nil {
+				env = &GraphEnvelope{armID: item.ID}
+				data.GraphEnvelopes[key] = env
+			}
+			if item.Etag != "" && env.Etag == "" {
+				env.Etag = item.Etag
+			}
+			if item.CreatedTime != "" {
+				env.CreatedTime = item.CreatedTime
+			}
+			if item.ChangedTime != "" {
+				env.ChangedTime = item.ChangedTime
+			}
+			if item.ProvisioningState != "" && env.ProvisioningState == "" {
+				env.ProvisioningState = item.ProvisioningState
+			}
+			total++
+		}
+
+		if page.NextLink == "" {
+			break
+		}
+		url = page.NextLink
+	}
+
+	c.logger.Info("collected resource timestamps", "count", total)
+}
+
+// collectChildTimestamps fetches createdTime / changedTime for child resources
+// (SQL databases, AKS node pools) that are absent from the ARM subscription list
+// endpoint and therefore skipped by collectResourceTimestamps. One REST call is
+// made per parent (server / cluster), keeping overhead O(parents) not O(children).
+// Runs under audit purpose only (caller enforces this).
+func (c *Client) collectChildTimestamps(data *SubscriptionData) {
+	if len(data.GraphEnvelopes) == 0 {
+		return
+	}
+
+	type tsItem struct {
+		ID          string `json:"id"`
+		CreatedTime string `json:"createdTime"`
+		ChangedTime string `json:"changedTime"`
+	}
+	type tsPage struct {
+		Value []tsItem `json:"value"`
+	}
+
+	mergeTS := func(items []tsItem) {
+		for _, item := range items {
+			key := strings.ToLower(item.ID)
+			env := data.GraphEnvelopes[key]
+			if env == nil {
+				env = &GraphEnvelope{armID: item.ID}
+				data.GraphEnvelopes[key] = env
+			}
+			if env.CreatedTime != "" && env.ChangedTime != "" {
+				continue
+			}
+			if item.CreatedTime != "" {
+				env.CreatedTime = item.CreatedTime
+			}
+			if item.ChangedTime != "" {
+				env.ChangedTime = item.ChangedTime
+			}
+		}
+	}
+
+	// SQL databases - child resources of SQL servers.
+	for _, s := range data.SQLServers {
+		if len(s.Databases) == 0 {
+			continue
+		}
+		url := fmt.Sprintf(
+			"/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Sql/servers/%s/databases?api-version=2023-08-01&$expand=createdTime,changedTime,provisioningState",
+			c.subscriptionID, s.ResourceGroup, s.Name,
+		)
+		out, err := c.execAZArgsNoSub([]string{"rest", "--method", "GET", "--url", url})
+		if err != nil {
+			c.logger.Warn("failed to collect SQL database timestamps", "server", s.Name, "error", err)
+			continue
+		}
+		var page tsPage
+		if err := json.Unmarshal(out, &page); err != nil {
+			c.logger.Warn("failed to parse SQL database timestamps", "server", s.Name, "error", err)
+			continue
+		}
+		mergeTS(page.Value)
+	}
+
+	// AKS node pools - child resources of managed clusters.
+	for _, cl := range data.AKSClusters {
+		if len(cl.AgentPools) == 0 {
+			continue
+		}
+		url := fmt.Sprintf(
+			"/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ContainerService/managedClusters/%s/agentPools?api-version=2024-09-01&$expand=createdTime,changedTime,provisioningState",
+			c.subscriptionID, cl.ResourceGroup, cl.Name,
+		)
+		out, err := c.execAZArgsNoSub([]string{"rest", "--method", "GET", "--url", url})
+		if err != nil {
+			c.logger.Warn("failed to collect AKS node pool timestamps", "cluster", cl.Name, "error", err)
+			continue
+		}
+		var page tsPage
+		if err := json.Unmarshal(out, &page); err != nil {
+			c.logger.Warn("failed to parse AKS node pool timestamps", "cluster", cl.Name, "error", err)
+			continue
+		}
+		mergeTS(page.Value)
+	}
+
+	c.logger.Info("collected child resource timestamps", "sql_servers", len(data.SQLServers), "aks_clusters", len(data.AKSClusters))
+}
+
+// collectResourceLocks fetches all management locks for the subscription and attaches
+// them to matching graph envelope entries. The scope field in the lock response is the
+// ARM ID of the locked resource. Non-matching scopes (e.g. subscription/RG-level locks
+// without a resource entry in graph envelopes) are silently skipped.
+func (c *Client) collectResourceLocks(data *SubscriptionData) {
+	if len(data.GraphEnvelopes) == 0 {
+		return
+	}
+
+	var rawLocks []struct {
+		ID    string `json:"id"`
+		Name  string `json:"name"`
+		Level string `json:"level"`
+		Notes string `json:"notes"`
+	}
+	if err := c.queryInto("lock list", &rawLocks); err != nil {
+		c.logger.Warn("failed to collect resource locks", "error", err)
+		return
+	}
+	attached := 0
+	for _, l := range rawLocks {
+		// The lock id is the locked resource path + /providers/Microsoft.Authorization/locks/<name>.
+		// Strip the suffix to recover the locked resource ARM ID.
+		scope := lockScopeFromID(l.ID)
+		if scope == "" {
+			continue
+		}
+		env, ok := data.GraphEnvelopes[strings.ToLower(scope)]
+		if !ok {
+			continue
+		}
+		env.Locks = append(env.Locks, ResourceLock{
+			Name:  l.Name,
+			Level: l.Level,
+			Notes: l.Notes,
+		})
+		attached++
+	}
+	if len(rawLocks) > 0 {
+		c.logger.Info("collected resource locks", "total", len(rawLocks), "attached_to_resources", attached)
+	}
+}
+
+// lockScopeFromID extracts the locked resource ARM ID from a management lock's own ARM ID.
+// Lock IDs follow the pattern: <resource-path>/providers/Microsoft.Authorization/locks/<name>.
+// Returns empty string when the suffix cannot be found (subscription/RG level locks are skipped).
+func lockScopeFromID(lockID string) string {
+	const suffix = "/providers/microsoft.authorization/locks/"
+	idx := strings.LastIndex(strings.ToLower(lockID), suffix)
+	if idx < 0 {
+		return ""
+	}
+	scope := lockID[:idx]
+	// Skip subscription-level and RG-level scopes they have no /providers/ segment
+	// and won't match any resource in the graph envelope map.
+	if !strings.Contains(strings.ToLower(scope), "/providers/") {
+		return ""
+	}
+	return scope
+}
+
+// collectRoleAssignments fetches all RBAC role assignments in the subscription.
+// Resource-scoped RAs (scope has a /providers/ resource path) are attached to the
+// matching GraphEnvelope. Group-scoped RAs (subscription, RG, MG scope) are stored in
+// data.BulkRoleAssignments for wiring to group extensions by the caller.
+// Runs under audit purpose only (caller enforces this).
+func (c *Client) collectRoleAssignments(data *SubscriptionData) {
+	var raw []azRawRoleAssignment
+	if err := c.queryInto("role assignment list --all", &raw); err != nil {
+		c.logger.Warn("failed to collect role assignments", "error", err)
+		return
+	}
+
+	// Resolve display names for service principals.
+	nameCache := c.resolvePrincipalNames(raw)
+
+	attachedToEnvelopes := 0
+	groupScoped := 0
+	for _, ra := range raw {
+		displayName := nameCache[ra.PrincipalID]
+		if displayName == "" {
+			displayName = ra.PrincipalName
+		}
+		entry := RoleAssignment{
+			RoleName:      ra.RoleDefinitionName,
+			PrincipalID:   ra.PrincipalID,
+			PrincipalType: ra.PrincipalType,
+			PrincipalName: displayName,
+		}
+
+		if raIsResourceScope(ra.Scope) {
+			key := strings.ToLower(ra.Scope)
+			env, ok := data.GraphEnvelopes[key]
+			if !ok {
+				continue
+			}
+			env.RoleAssignments = append(env.RoleAssignments, entry)
+			attachedToEnvelopes++
+		} else {
+			data.BulkRoleAssignments = append(data.BulkRoleAssignments, ScopedRoleAssignment{
+				Scope:          ra.Scope,
+				RoleAssignment: entry,
+			})
+			groupScoped++
+		}
+	}
+	c.logger.Info("collected role assignments",
+		"total", len(raw),
+		"attached_to_envelopes", attachedToEnvelopes,
+		"group_scoped", groupScoped,
+	)
+}
+
+// raIsResourceScope returns true when the RA scope identifies a specific ARM resource
+// (has a /providers/ segment after the resource-group path). Returns false for
+// subscription-scope, RG-scope, and MG-scope assignments.
+func raIsResourceScope(scope string) bool {
+	lower := strings.ToLower(scope)
+	// MG scope: /providers/microsoft.management/...
+	if strings.HasPrefix(lower, "/providers/") {
+		return false
+	}
+	// Count meaningful path segments: /subscriptions/<sub>[/resourcegroups/<rg>[/providers/...]]
+	parts := strings.Split(strings.TrimPrefix(lower, "/"), "/")
+	switch len(parts) {
+	case 2: // /subscriptions/<sub>
+		return false
+	case 4: // /subscriptions/<sub>/resourcegroups/<rg>
+		return parts[2] != "resourcegroups" // RG scope is group-scoped, not resource-scoped
+	}
+	return true // 5+ segments: resource-level scope
+}
+
+// resolvePrincipalNames looks up the Azure AD display name for each unique
+// ServicePrincipal in raw. Returns a map from principalId -> displayName.
+// Calls az ad sp show once per unique service principal; failures are silently
+// skipped and the caller falls back to the raw principalName field.
+func (c *Client) resolvePrincipalNames(raw []azRawRoleAssignment) map[string]string {
+	cache := make(map[string]string)
+	for _, ra := range raw {
+		if strings.ToLower(ra.PrincipalType) != "serviceprincipal" {
+			continue
+		}
+		if _, seen := cache[ra.PrincipalID]; seen {
+			continue
+		}
+		cache[ra.PrincipalID] = "" // mark seen before the call
+		var sp struct {
+			DisplayName string `json:"displayName"`
+		}
+		if err := c.queryTenant(fmt.Sprintf("ad sp show --id %s", ra.PrincipalID), &sp); err != nil {
+			continue
+		}
+		if sp.DisplayName != "" && sp.DisplayName != ra.PrincipalID {
+			cache[ra.PrincipalID] = sp.DisplayName
+		}
+	}
+	return cache
+}
+
+// collectDiagnosticSettings fetches Azure Monitor diagnostic settings for each resource
+// in the graph envelope map. This is a per-resource call and can be slow on large
+// subscriptions. Results are attached to the corresponding graph envelope entry.
+// Resources that do not support diagnostic settings are silently skipped.
+func (c *Client) collectDiagnosticSettings(data *SubscriptionData) {
+	if len(data.GraphEnvelopes) == 0 {
+		return
+	}
+
+	type envEntry struct {
+		armID string
+		env   *GraphEnvelope
+	}
+	entries := make([]envEntry, 0, len(data.GraphEnvelopes))
+	for _, env := range data.GraphEnvelopes {
+		if env.armID != "" && diagSettingsSupported(env.armID) {
+			entries = append(entries, envEntry{armID: env.armID, env: env})
+		}
+	}
+
+	c.logger.Info("collecting diagnostic settings (per-resource, may take a few minutes)", "resource_count", len(entries))
+
+	// diagValue handles both the flat CLI format (workspaceId at top level)
+	// and the nested REST API format (workspaceId under properties).
+	// Azure CLI versions differ: some flatten properties, some return the raw REST envelope.
+	type diagValueProps struct {
+		WorkspaceID string `json:"workspaceId"`
+		StorageID   string `json:"storageAccountId"`
+		EventHubID  string `json:"eventHubAuthorizationRuleId"`
+	}
+	type diagValue struct {
+		Name        string         `json:"name"`
+		WorkspaceID string         `json:"workspaceId"`
+		StorageID   string         `json:"storageAccountId"`
+		EventHubID  string         `json:"eventHubAuthorizationRuleId"`
+		Properties  diagValueProps `json:"properties"`
+	}
+	// parseDiagValues extracts DiagSetting entries from raw CLI output.
+	// Handles three formats:
+	//   1. {"value": [{flat fields}]}  - Azure CLI flattened
+	//   2. [{flat fields}]             - some CLI versions return array directly
+	//   3. {"value": [{"properties":{...}}]}  - raw REST API envelope
+	parseDiagValues := func(out []byte) []diagValue {
+		// Try wrapped object first: {"value": [...]}
+		var wrapped struct {
+			Value []diagValue `json:"value"`
+		}
+		if json.Unmarshal(out, &wrapped) == nil && len(wrapped.Value) > 0 {
+			return wrapped.Value
+		}
+		// Try direct array: [{...}]
+		var direct []diagValue
+		if json.Unmarshal(out, &direct) == nil && len(direct) > 0 {
+			return direct
+		}
+		return nil
+	}
+
+	const concurrency = 16
+	sem := make(chan struct{}, concurrency)
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	totalAttached := 0
+	totalErrors := 0
+
+	for _, entry := range entries {
+		wg.Add(1)
+		sem <- struct{}{}
+		go func(e envEntry) {
+			defer wg.Done()
+			defer func() { <-sem }()
+
+			args := []string{"monitor", "diagnostic-settings", "list", "--resource", e.armID}
+			out, err := c.execAZArgs(args)
+			if err != nil {
+				c.logger.Debug("diagnostic-settings list failed", "resource", e.armID, "error", err)
+				mu.Lock()
+				totalErrors++
+				mu.Unlock()
+				return
+			}
+
+			values := parseDiagValues(out)
+			if len(values) == 0 {
+				return
+			}
+
+			diags := make([]DiagSetting, 0, len(values))
+			for _, v := range values {
+				d := DiagSetting{Name: v.Name}
+				// Prefer flat fields; fall back to nested properties for REST API format.
+				if v.WorkspaceID != "" {
+					d.WorkspaceID = v.WorkspaceID
+				} else {
+					d.WorkspaceID = v.Properties.WorkspaceID
+				}
+				if v.StorageID != "" {
+					d.StorageID = v.StorageID
+				} else {
+					d.StorageID = v.Properties.StorageID
+				}
+				if v.EventHubID != "" {
+					d.EventHubID = v.EventHubID
+				} else {
+					d.EventHubID = v.Properties.EventHubID
+				}
+				diags = append(diags, d)
+			}
+			e.env.DiagSettings = diags
+
+			mu.Lock()
+			totalAttached++
+			mu.Unlock()
+		}(entry)
+	}
+	wg.Wait()
+
+	if totalAttached > 0 {
+		c.logger.Info("collected diagnostic settings", "resources_with_settings", totalAttached)
+	} else if totalErrors > len(entries)/2 {
+		c.logger.Warn("diagnostic settings collection: majority of calls failed - account may lack Microsoft.Insights/diagnosticSettings/read permission", "errors", totalErrors, "queried", len(entries))
+	} else {
+		c.logger.Info("diagnostic settings: no settings configured on any queried resource", "queried", len(entries))
+	}
+}
+
+// collectVMExtensions fetches the installed extensions for each VM. Runs with bounded
+// concurrency (8) to keep latency manageable on large fleets. Runs under audit purpose
+// only (caller enforces this). Extensions are stored on VirtualMachine.VMExtensions.
+func (c *Client) collectVMExtensions(data *SubscriptionData) {
+	if len(data.VirtualMachines) == 0 {
+		return
+	}
+	const concurrency = 8
+	sem := make(chan struct{}, concurrency)
+	var wg sync.WaitGroup
+	total := 0
+	var mu sync.Mutex
+
+	for i := range data.VirtualMachines {
+		wg.Add(1)
+		sem <- struct{}{}
+		go func(i int) {
+			defer wg.Done()
+			defer func() { <-sem }()
+			vm := &data.VirtualMachines[i]
+			cmd := fmt.Sprintf("vm extension list --resource-group %s --vm-name %s",
+				vm.ResourceGroup, vm.Name)
+			var exts []VMExtension
+			if err := c.queryInto(cmd, &exts); err != nil {
+				c.logger.Debug("failed to collect VM extensions", "vm", vm.Name, "error", err)
+				return
+			}
+			vm.VMExtensions = exts
+			mu.Lock()
+			total += len(exts)
+			mu.Unlock()
+		}(i)
+	}
+	wg.Wait()
+	if total > 0 {
+		c.logger.Info("collected VM extensions", "vms", len(data.VirtualMachines), "total", total)
+	}
+}
+
+// collectManagementGroupEntities fetches the full entity tree visible to the current
+// user (management groups + subscriptions) via `az account management-group entities list`.
+// This is a tenant-level call and does not require a subscription context. Failures are
+// treated as non-fatal: the MG hierarchy is omitted and a warning is logged.
+func (c *Client) collectManagementGroupEntities(data *SubscriptionData) {
+	var entities []MGEntity
+	if c.mgEntitiesOverride != nil {
+		entities = c.mgEntitiesOverride
+		c.logger.Info("using cached management group entities", "total_entities", len(entities))
+	} else {
+		if err := c.queryTenant("account management-group entities list", &entities); err != nil {
+			c.logger.Warn("failed to collect management group entities, skipping MG hierarchy", "error", err)
+			return
+		}
+	}
+	data.ManagementGroupEntities = entities
+	mgCount := 0
+	for _, e := range entities {
+		if strings.EqualFold(e.Type, "Microsoft.Management/managementGroups") {
+			mgCount++
+		}
+	}
+	if c.mgEntitiesOverride == nil {
+		c.logger.Info("collected management group entities", "management_groups", mgCount, "total_entities", len(entities))
+	}
 }
 
 // EffectiveRoute represents a single effective route entry from the Azure effective route table API.
@@ -2313,15 +4775,26 @@ type effectiveRouteResult struct {
 
 // collectPrivateDNSLinks fetches VNet links for each private DNS zone.
 func (c *Client) collectPrivateDNSLinks(zones []PrivateDNSZone) {
-	for i, z := range zones {
-		cmd := fmt.Sprintf("network private-dns link vnet list --zone-name %s --resource-group %s", z.Name, z.ResourceGroup)
-		var links []PrivateDNSLink
-		if err := c.queryInto(cmd, &links); err != nil {
-			c.logger.Debug("no private DNS VNet links", "zone", z.Name, "error", err)
-			continue
-		}
-		zones[i].Links = links
+	const concurrency = 8
+	sem := make(chan struct{}, concurrency)
+	var wg sync.WaitGroup
+
+	for i := range zones {
+		wg.Add(1)
+		sem <- struct{}{}
+		go func(i int) {
+			defer wg.Done()
+			defer func() { <-sem }()
+			cmd := fmt.Sprintf("network private-dns link vnet list --zone-name %s --resource-group %s", zones[i].Name, zones[i].ResourceGroup)
+			var links []PrivateDNSLink
+			if err := c.queryInto(cmd, &links); err != nil {
+				c.logger.Debug("no private DNS VNet links", "zone", zones[i].Name, "error", err)
+				return
+			}
+			zones[i].Links = links
+		}(i)
 	}
+	wg.Wait()
 	total := 0
 	for _, z := range zones {
 		total += len(z.Links)
@@ -2329,6 +4802,36 @@ func (c *Client) collectPrivateDNSLinks(zones []PrivateDNSZone) {
 	if total > 0 {
 		c.logger.Info("collected", "type", "private DNS VNet links", "count", total)
 	}
+}
+
+// collectFlowLogs fetches NSG flow log definitions via az graph query.
+// A single KQL query returns all flow logs in the subscription without per-watcher iteration.
+func (c *Client) collectFlowLogs(data *SubscriptionData) {
+	if err := c.ensureAZExtension("resource-graph"); err != nil {
+		c.logger.Warn("resource-graph not available; skipping flow logs", "error", err)
+		return
+	}
+	kql := fmt.Sprintf(
+		`Resources | where subscriptionId =~ '%s' and type =~ 'microsoft.network/networkwatchers/flowlogs' | project id, name, location, resourceGroup, targetResourceId = tostring(properties.targetResourceId), storageId = tostring(properties.storageId), enabled = tobool(properties.enabled)`,
+		c.subscriptionID,
+	)
+	type flowLogPage struct {
+		Count int       `json:"count"`
+		Data  []FlowLog `json:"data"`
+	}
+	args := []string{"graph", "query", "-q", kql, "--first", "1000"}
+	out, err := c.execAZArgsNoSub(args)
+	if err != nil {
+		c.logger.Warn("failed to collect flow logs", "error", err)
+		return
+	}
+	var page flowLogPage
+	if err := json.Unmarshal(out, &page); err != nil {
+		c.logger.Warn("failed to parse flow log response", "error", err)
+		return
+	}
+	data.FlowLogs = page.Data
+	c.logger.Info("collected", "type", "NSG flow logs", "count", len(page.Data))
 }
 
 // isAuthError returns true if the error indicates a permission/authorization failure.
@@ -2347,6 +4850,7 @@ func (c *Client) collectEffectiveRoutes(nics []NetworkInterface) {
 	if len(nics) == 0 {
 		return
 	}
+	c.logger.Info("collecting effective routes (per-NIC action, may take a few minutes)", "nic_count", len(nics))
 
 	// Probe permission by trying NICs until we get a definitive result:
 	// - success or "not attached to VM" -> permission OK, proceed
@@ -2512,7 +5016,69 @@ func sliceLen(v any) int {
 		return len(*s)
 	case *[]FrontDoorProfile:
 		return len(*s)
+	case *[]MetricAlert:
+		return len(*s)
+	case *[]ActionGroup:
+		return len(*s)
+	case *[]MGEntity:
+		return len(*s)
+	case *[]BastionHost:
+		return len(*s)
+	case *[]TrafficManagerProfile:
+		return len(*s)
+	case *[]DNSPrivateResolver:
+		return len(*s)
+	case *[]DNSForwardingRuleset:
+		return len(*s)
 	default:
 		return 0
 	}
+}
+
+// diagSettingsSupported returns true for ARM resource types that Azure Monitor
+// supports diagnostic settings on. Filtering to this set avoids making thousands
+// of fruitless API calls against NICs, disks, alert rules, etc.
+func diagSettingsSupported(armID string) bool {
+	lower := strings.ToLower(armID)
+	for _, prefix := range diagSettingsTypes {
+		if strings.Contains(lower, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
+// diagSettingsTypes lists the ARM provider/type path segments for resource types
+// that support Azure Monitor diagnostic settings.
+var diagSettingsTypes = []string{
+	"/microsoft.network/virtualnetworks/",
+	"/microsoft.network/networksecuritygroups/",
+	"/microsoft.network/loadbalancers/",
+	"/microsoft.network/applicationgateways/",
+	"/microsoft.network/expressroutecircuits/",
+	"/microsoft.network/azurefirewalls/",
+	"/microsoft.network/virtualnetworkgateways/",
+	"/microsoft.network/privateendpoints/",
+	"/microsoft.network/publicipaddresses/",
+	"/microsoft.compute/virtualmachines/",
+	"/microsoft.storage/storageaccounts/",
+	"/microsoft.keyvault/vaults/",
+	"/microsoft.sql/servers/databases/",
+	"/microsoft.sql/servers/",
+	"/microsoft.dbforpostgresql/flexibleservers/",
+	"/microsoft.dbformysql/flexibleservers/",
+	"/microsoft.documentdb/databaseaccounts/",
+	"/microsoft.cache/redis/",
+	"/microsoft.operationalinsights/workspaces/",
+	"/microsoft.insights/components/",
+	"/microsoft.web/sites/",
+	"/microsoft.containerservice/managedclusters/",
+	"/microsoft.eventhub/namespaces/",
+	"/microsoft.servicebus/namespaces/",
+	"/microsoft.containerregistry/registries/",
+	"/microsoft.recoveryservices/vaults/",
+	"/microsoft.apimanagement/service/",
+	"/microsoft.app/managedenvironments/",
+	"/microsoft.app/containerapps/",
+	"/microsoft.network/bastionhosts/",
 }
