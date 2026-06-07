@@ -9,8 +9,6 @@
 // Authentication relies on the Azure CLI login context (az login).
 //
 // For an introduction to OSIRIS JSON Producer for Microsoft Azure see:
-// "[OSIRIS-JSON-AZURE]."
-//
 // [OSIRIS-JSON-AZURE]: https://osirisjson.org/en/docs/producers/hyperscalers/microsoft-azure
 // [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/docs/spec/v10/00-preface
 
