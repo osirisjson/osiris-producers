@@ -15,6 +15,163 @@ See the root [`CHANGELOG.md`](../../../../CHANGELOG.md) for the release-level in
 
 ---
 
+## [0.5.0] - 2026-06-07
+
+### Added
+- **Logic App API connections** (`osiris.azure.logic.apiconnection`): collects all
+  `Microsoft.Web/connections` resources via `az resource list`. Includes API name,
+  display name, and connection status.
+- **Email Services** (`osiris.azure.emailservice`): collects all
+  `Microsoft.Communication/EmailServices` resources including provisioning state
+  and data location.
+- **Email Domains** (`osiris.azure.emailservice.domain`): collects all
+  `Microsoft.Communication/EmailServices/Domains` resources including domain management
+  type and mailFrom address. Wired to parent email service (`contains/forward`).
+- **Stream Analytics jobs** (`osiris.azure.streamanalytics`): collects all
+  `Microsoft.StreamAnalytics/streamingjobs` resources including job state, SKU,
+  compatibility level, and output start mode.
+- **Event Grid system topics** (`osiris.azure.eventgrid.systemtopic`): collects all
+  `Microsoft.EventGrid/systemTopics` resources including source ARM ID and topic type.
+- **App Service slots** (`osiris.azure.webapp.slot`): collects deployment slots for
+  each App Service / Function App via `az webapp deployment slot list`. Includes
+  kind, state, and site config. Wired to parent webapp (`contains/forward`).
+- **Arc extension parse fix**: removed `autoUpgradeMinorVersion` from the Resource
+  Graph projection for Arc extensions - ARM returns this as a number (0/1) which
+  the JSON decoder rejects as a bool. Field is now excluded from collection.
+- **`network_acls` in envelope**: Key Vault `network_acls` (default_action,
+  bypass, ip_rules, vnet_subnet_ids) is now written to `extensions["osiris.azure"]`
+  in addition to `properties`. Previously only went to properties.
+- **`default_action` fallback**: For KVs with no explicit ACL configured
+  (networkAcls = null), `default_action` is derived from `publicNetworkAccess`
+  (`Disabled` -> `Deny`, otherwise `Allow`) so all 22/22 vaults carry the signal.
+- **`min_tls_version` per-vault show**: Added `enrichKVWithShow` fallback -
+  vaults still missing `minimumTlsVersion` after `az keyvault list` + Resource
+  Graph are fetched individually via `az keyvault show`.
+- **`default_action`**: SQL Server has no `networkAcls.defaultAction`;
+  `default_action` is now derived from `publicNetworkAccess` (`Disabled` -> `Deny`,
+  `Enabled` -> `Allow`) and written to `extensions["osiris.azure"]`.
+- **SQL Managed Instance databases** (`osiris.azure.sqlmidatabase`): collects all
+  `Microsoft.Sql/managedInstances/databases` via `az sql midb list` per instance.
+  Includes collation and provisioning state. Wired to parent MI (`contains/forward`).
+- **SQL elastic pools** (`osiris.azure.sql.elasticpool`): collects all
+  `Microsoft.Sql/servers/elasticPools` via `az sql elastic-pool list` per server.
+  Includes SKU/tier, capacity, max size, zone redundancy. Wired to parent SQL server
+  (`contains/forward`).
+- **SQL virtual machines** (`osiris.azure.sqlvm`): collects all
+  `Microsoft.SqlVirtualMachine/SqlVirtualMachines` via `az sql vm list`.
+  Includes license type, management type, image SKU. Wired to underlying Azure VM
+  (`dependency/forward`) via `properties.virtualMachineResourceId`.
+- **ACR geo-replications** (folded into `osiris.azure.containerregistry`): collects
+  `Microsoft.ContainerRegistry/registries/replications` via `az acr replication list`
+  per registry. Non-home-region replications are folded into
+  `extensions["osiris.azure"].replications[]` on the parent registry resource.
+- **Arc machine extensions** (folded into `osiris.azure.arc.machine`): collects
+  `Microsoft.HybridCompute/machines/extensions` via Resource Graph query.
+  Extensions are folded into `extensions["osiris.azure"].extensions[]` on the parent
+  Arc machine resource (name, type, publisher, version, status).
+- **Hub and connectivity resource expansion**: 4 new resource types with connection wiring,
+  plus 3 data-quality fixes (NIC primary IP, NSG rule location, ExpressRoute fields).
+- **Azure Bastion** (`osiris.azure.bastion`): collects all `Microsoft.Network/bastionHosts`
+  resources including SKU, scale units, feature flags (tunneling, IP connect, shareable link,
+  Kerberos, copy-paste). Wired to its `AzureBastionSubnet` (`network/forward`) and
+  public IP (`network/forward`).
+- **Traffic Manager** (`osiris.azure.trafficmanager`): collects all
+  `Microsoft.Network/trafficManagerProfiles` including routing method, DNS config (FQDN, TTL),
+  health monitor settings, and endpoint list (name, type, status, target, weight, priority).
+  Azure endpoints with a `targetResourceId` are wired to the backing resource
+  (`dependency/forward`). External (IP/FQDN) endpoints have no OSIRIS JSON target and are
+  recorded in `properties.endpoints` only.
+- **DNS Private Resolver** (`osiris.azure.dns.resolver`): collects all
+  `Microsoft.Network/dnsResolvers` resources including provisioning state, resolver state,
+  and bound VNet ID. Wired to its VNet (`network/forward`).
+- **DNS Forwarding Ruleset** (`osiris.azure.dns.forwardingruleset`): collects all
+  `Microsoft.Network/dnsForwardingRulesets` resources including outbound endpoint IDs.
+  Wired to each attached DNS private resolver (`dependency/forward`) by stripping
+  `/outboundEndpoints/{name}` from the endpoint ARM ID.
+- All four new types are included in the metric alert scope resolution map so
+  alerts monitoring them produce correct scope edges.
+- **Management Group hierarchy:** `az account management-group entities list` is called
+  once per run (tenant-scoped, best-effort). The ancestry chain of the current subscription
+  is emitted as `logical.managementgroup` groups ordered root-to-leaf, each with
+  `properties.management_group_id`, `properties.tenant_id`, and `children` wired to the
+  next MG in the chain. The leaf MG gains the subscription group as a child.
+  The `logical.subscription` group gains `extensions.osiris.azure.management_group_path`
+  as a JSON array of display names ordered root-to-leaf
+  (e.g. `["Tenant Root Group", "IT Hub", "Production"]`) so consumers can determine the
+  subscription's position in the MG tree without traversing the group hierarchy.
+  If the call fails (insufficient permissions, management-group extension not installed),
+  a warning is logged and the run continues without MG groups.
+- **VM field depth:** `TransformVMs` now emits `provisioning_state`, `vm_id`,
+  `license_type`, `os_type`, `image_publisher`, `image_offer`, `image_sku`,
+  `image_version`, `computer_name`, and `nic_count`. `provider.zone` is set for
+  zonal VMs. Both the top-level flattened `vmSize` (from `az vm list -d`) and the
+  nested `hardwareProfile.vmSize` are handled.
+- **Azure Monitor Metric Alerts** (`osiris.azure.monitor.metricalert`): collected via
+  `az monitor metrics alert list`. Properties: `severity`, `enabled`,
+  `evaluation_frequency`, `window_size`, `auto_mitigate`, `description`,
+  `target_resource_type`, `scopes`, `criteria` (metric name/namespace/operator/
+  threshold/time-aggregation per condition), `action_group_ids`.
+- **Azure Monitor Action Groups** (`osiris.azure.monitor.actiongroup`): collected via
+  `az monitor action-group list`. Properties: `group_short_name`, `enabled`,
+  `receiver_count`, `email_receiver_count`, `webhook_receiver_count`.
+
+### Fixed
+- **NIC `private_ip`**: primary private IP address is now hoisted from
+  `ip_configurations[0].private_ip_address` to `properties.private_ip` for direct access.
+- **NSG `security_rules`**: custom security rules moved from `extensions.osiris.azure` to
+  `properties.security_rules` (easier consumer access). Default (platform) rules remain
+  in `extensions.osiris.azure.default_security_rules`. Array field variants
+  (`source_port_ranges`, `destination_port_ranges`, `source_address_prefixes`,
+  `destination_address_prefixes`) are now emitted when ARM uses multi-value arrays.
+  Rule `description` field is now also included when non-empty.
+- **ExpressRoute `service_key`, `allow_classic_operations`, `enable_direct_port_rate_limit`**:
+  three previously missing fields now emitted in `extensions.osiris.azure`.
+- **Metric Alert criteria unmarshal failure:** The Azure Monitor API returns the `criteria`
+  field as a discriminated-union object (`{ "odata.type": "...", "allOf": [...] }`) rather
+  than a JSON array. The previous struct typed it as `[]azMetricAlertCriteria`, causing
+  every `az monitor metrics alert list` response to fail with
+  `json: cannot unmarshal object into Go struct field MetricAlert.criteria of type []azure.azMetricAlertCriteria`
+  and silently skip the entire resource type. Fixed by introducing `azMetricAlertCriteriaContainer`
+  (wrapping `ODataType` + `AllOf []azMetricAlertCriteria`) and updating `TransformMetricAlerts`
+  to iterate `a.Criteria.AllOf`. Individual criteria are now emitted as a `criteria` array in
+  resource properties (metric name/namespace, operator, threshold, time aggregation).
+- **Application Gateway misclassification:** `TransformAppGateways` previously emitted
+  `network.loadbalancer` for every AGW. Application Gateway is an L7 reverse proxy / WAF,
+  not a load balancer; it is now emitted as `osiris.azure.applicationgateway`. Properties
+  added: `sku_name`, `sku_tier`, `capacity`, `operational_state`, `listener_count`,
+  `backend_pool_count`, `enable_http2`, `waf_enabled`, `waf_mode`.
+  `provider.zone` is set from `zones[]` for zonal deployments.
+- **Subnet CIDR missing for most subnets:** `TransformSubnets` only checked the plural
+  `addressPrefixes` array. Most subnets (single-CIDR) use the singular `addressPrefix`
+  field returned by the ARM API. The transform now falls back to `addressPrefix` and
+  wraps it in a one-element slice so `address_prefixes` is always populated.
+- **Managed Identity IDs stripped in documentation mode:** `clientId`, `principalId`,
+  and `tenantId` were placed in `extensions` (stripped by default in documentation mode).
+  They are now emitted in `properties` so they appear in all output modes.
+- **VNet peering missing `allowVirtualNetworkAccess`:** The peering summary embedded in
+  VNet properties now includes `allow_virtual_network_access` when true, alongside the
+  existing gateway-transit and forwarded-traffic flags.
+
+### Changed
+- **Transform layer split - all remaining domains:** `transform.go` split into 11 additional
+  domain-specific focused files following the Microsoft Azure category taxonomy, completing the restructuring
+  started in v0.5.0. New files:
+  `transform_compute.go` (VM, Disk, Snapshot),
+  `transform_web.go` (App Service Plan, Web App, Function App),
+  `transform_storage.go` (Storage Account),
+  `transform_security.go` (Key Vault, Container Registry),
+  `transform_identity.go` (Managed Identity),
+  `transform_observability.go` (App Insights, Log Analytics, Metric Alert, Action Group),
+  `transform_recovery.go` (Recovery Services Vault, Backup Vault),
+  `transform_databases.go` (SQL Server, PostgreSQL, MySQL, Cosmos DB, Redis),
+  `transform_containers.go` (AKS, Container App, Container Group),
+  `transform_integration.go` (Service Bus, Event Hubs, APIM, Front Door),
+  `transform_groups.go` (Resource Group, Subscription, Region groups).
+  The residual `transform.go` now contains only truly cross-domain shared code.
+  No behavior change - identical output for all resource and connection types.
+
+---
+
 ## [0.4.0] - 2026-04-25
 
 Expands resource and connection coverage on top of the v0.3.0 `--purpose` foundation. All new resources honour the same contract: collection remains
@@ -316,6 +473,8 @@ Initial Microsoft Azure producer release.
   `microsoft-azure-<timestamp>-<SubscriptionName>.json`.
 
 [Unreleased]: ../../../CHANGELOG.md
+[0.6.0]: ../../../CHANGELOG.md#060---2026-04-29
+[0.5.0]: ../../../CHANGELOG.md#050---2026-04-29
 [0.4.0]: ../../../CHANGELOG.md#040---2026-04-25
 [0.3.0]: ../../../CHANGELOG.md#030---2026-04-20
 [0.2.1]: ../../../CHANGELOG.md#021---2026-04-06
