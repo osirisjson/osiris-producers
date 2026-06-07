@@ -1,8 +1,6 @@
 // transform_test.go - Unit tests for Microsoft Azure data transformation to OSIRIS JSON mapping functions.
 //
 // For an introduction to OSIRIS JSON Producer for Microsoft Azure see:
-// "[OSIRIS-JSON-AZURE]."
-//
 // [OSIRIS-JSON-AZURE]: https://osirisjson.org/en/docs/producers/hyperscalers/microsoft-azure
 // [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/docs/spec/v10/00-preface
 
@@ -85,7 +83,7 @@ func TestTransformSubnets(t *testing.T) {
 		},
 	}
 
-	resources, idMap := TransformSubnets(subnets, testSub)
+	resources, idMap := TransformSubnets(subnets, nil, testSub)
 
 	if len(resources) != 1 {
 		t.Fatalf("expected 1 resource, got %d", len(resources))
@@ -105,6 +103,27 @@ func TestTransformSubnets(t *testing.T) {
 	// Verify the ID map contains the subnet's ARM ID.
 	if _, ok := idMap[subnets[0].ID]; !ok {
 		t.Error("expected subnet ARM ID in ID map")
+	}
+}
+
+func TestTransformSubnetsSingularAddressPrefix(t *testing.T) {
+	subnets := []Subnet{
+		{
+			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/s1",
+			Name:          "s1",
+			ResourceGroup: "rg1",
+			AddressPrefix: "10.100.30.60/27",
+		},
+	}
+
+	resources, _ := TransformSubnets(subnets, nil, testSub)
+	if len(resources) != 1 {
+		t.Fatalf("expected 1 resource, got %d", len(resources))
+	}
+	r := resources[0]
+	prefixes, ok := r.Properties["address_prefixes"].([]string)
+	if !ok || len(prefixes) != 1 || prefixes[0] != "10.100.30.60/27" {
+		t.Errorf("expected address_prefixes [10.100.30.60/27] from singular addressPrefix, got %v", r.Properties["address_prefixes"])
 	}
 }
 
@@ -568,16 +587,22 @@ func TestTransformPrivateDNSToVNetConnections(t *testing.T) {
 	}
 	vnetIDMap := map[string]string{"/sub/vnet1": "azure::/sub/vnet1"}
 
-	conns := TransformPrivateDNSToVNetConnections(zones, vnetIDMap)
+	conns, stubs := TransformPrivateDNSToVNetConnections(zones, vnetIDMap)
 
-	if len(conns) != 1 {
-		t.Fatalf("expected 1 connection (only known VNet), got %d", len(conns))
+	if len(conns) != 2 {
+		t.Fatalf("expected 2 connections (known + cross-sub stub), got %d", len(conns))
 	}
 	if conns[0].Type != "network" {
 		t.Errorf("expected type network, got %q", conns[0].Type)
 	}
 	if conns[0].Properties["registration_enabled"] != true {
 		t.Errorf("expected registration_enabled=true")
+	}
+	if len(stubs) != 1 {
+		t.Errorf("expected 1 cross-subscription stub, got %d", len(stubs))
+	}
+	if stubs[0].Properties["cross_subscription"] != true {
+		t.Errorf("expected cross_subscription=true on stub")
 	}
 }
 
@@ -1055,8 +1080,8 @@ func TestTransformKeyVaults(t *testing.T) {
 	if r.Type != "osiris.azure.keyvault" {
 		t.Errorf("expected type osiris.azure.keyvault, got %q", r.Type)
 	}
-	if r.Properties["rbac_authorization"] != true {
-		t.Errorf("expected RBAC, got %v", r.Properties["rbac_authorization"])
+	if r.Properties["rbac_enabled"] != true {
+		t.Errorf("expected RBAC, got %v", r.Properties["rbac_enabled"])
 	}
 	if r.Properties["soft_delete_retention_days"] != 90 {
 		t.Errorf("expected soft delete retention 90, got %v", r.Properties["soft_delete_retention_days"])
@@ -1137,9 +1162,11 @@ func TestTransformManagedIdentities(t *testing.T) {
 	if r.Type != "osiris.azure.managedidentity" {
 		t.Errorf("expected type osiris.azure.managedidentity, got %q", r.Type)
 	}
-	ext, _ := r.Extensions[extensionNamespace].(map[string]any)
-	if ext == nil || ext["principal_id"] != "00000000-0000-0000-0000-000000000001" {
-		t.Errorf("expected principal_id extension")
+	if r.Properties["principal_id"] != "00000000-0000-0000-0000-000000000001" {
+		t.Errorf("expected principal_id in properties, got %v", r.Properties["principal_id"])
+	}
+	if r.Properties["client_id"] != "00000000-0000-0000-0000-000000000002" {
+		t.Errorf("expected client_id in properties, got %v", r.Properties["client_id"])
 	}
 	if idMap[ids[0].ID] != r.ID {
 		t.Errorf("idMap mismatch")
@@ -1381,8 +1408,8 @@ func TestTransformApplicationInsights(t *testing.T) {
 	if r.Properties["ingestion_mode"] != "LogAnalytics" {
 		t.Errorf("expected ingestion_mode=LogAnalytics, got %v", r.Properties["ingestion_mode"])
 	}
-	if r.Properties["disable_local_auth"] != true {
-		t.Errorf("expected disable_local_auth=true")
+	if r.Properties["entra_only"] != true {
+		t.Errorf("expected entra_only=true")
 	}
 	ext, _ := r.Extensions[extensionNamespace].(map[string]any)
 	if ext == nil || ext["workspace_resource_id"] != wsArm {
@@ -1404,8 +1431,10 @@ func TestTransformApplicationInsights(t *testing.T) {
 	if rc.Status != "active" {
 		t.Errorf("classic AI should default to active when properties absent, got %q", rc.Status)
 	}
-	if rc.Extensions != nil {
-		t.Errorf("classic AI should have no workspace extension")
+	if rcExt, _ := rc.Extensions[extensionNamespace].(map[string]any); rcExt != nil {
+		if _, has := rcExt["workspace_resource_id"]; has {
+			t.Errorf("classic AI should have no workspace extension")
+		}
 	}
 	if len(idMap) != 2 {
 		t.Errorf("expected 2 idMap entries, got %d", len(idMap))
@@ -2485,8 +2514,8 @@ func TestTransformServiceBusNamespaces(t *testing.T) {
 	if r.Properties["zone_redundant"] != true {
 		t.Errorf("expected zone_redundant=true")
 	}
-	if r.Properties["disable_local_auth"] != true {
-		t.Errorf("expected disable_local_auth=true")
+	if r.Properties["entra_only"] != true {
+		t.Errorf("expected entra_only=true")
 	}
 	ext, _ := r.Extensions[extensionNamespace].(map[string]any)
 	peIDs, _ := ext["private_endpoint_connection_ids"].([]string)
@@ -2865,5 +2894,140 @@ func TestTransformPrivateEndpoints_TargetLinkage(t *testing.T) {
 	}
 	if _, has := bare.Properties["custom_dns_configs"]; has {
 		t.Errorf("PE without custom DNS must not emit custom_dns_configs")
+	}
+}
+
+func TestTransformAppGateways(t *testing.T) {
+	http2 := true
+	gws := []ApplicationGateway{
+		{
+			ID:                "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/applicationGateways/agw1",
+			Name:              "agw1",
+			Location:          "westeurope",
+			ResourceGroup:     "rg1",
+			Zones:             []string{"1", "2"},
+			ProvisioningState: "Succeeded",
+			OperationalState:  "Running",
+			SKU:               azAGWSKU{Name: "WAF_v2", Tier: "WAF_v2", Capacity: 2},
+			WebApplicationFirewallConfiguration: &azWAFConfig{
+				Enabled:      true,
+				FirewallMode: "Prevention",
+			},
+			HTTPListeners:       []struct{}{{}},
+			BackendAddressPools: []struct{}{{}, {}},
+			EnableHttp2:         &http2,
+		},
+	}
+
+	resources := TransformAppGateways(gws, testSub)
+	if len(resources) != 1 {
+		t.Fatalf("expected 1 resource, got %d", len(resources))
+	}
+	r := resources[0]
+	if r.Type != "osiris.azure.applicationgateway" {
+		t.Errorf("expected type osiris.azure.applicationgateway, got %q", r.Type)
+	}
+	if r.Status != "active" {
+		t.Errorf("expected status active, got %q", r.Status)
+	}
+	if r.Properties["sku_name"] != "WAF_v2" {
+		t.Errorf("expected sku_name WAF_v2, got %v", r.Properties["sku_name"])
+	}
+	if r.Properties["waf_enabled"] != true {
+		t.Errorf("expected waf_enabled true, got %v", r.Properties["waf_enabled"])
+	}
+	if r.Properties["listener_count"] != 1 {
+		t.Errorf("expected listener_count 1, got %v", r.Properties["listener_count"])
+	}
+	if r.Properties["backend_pool_count"] != 2 {
+		t.Errorf("expected backend_pool_count 2, got %v", r.Properties["backend_pool_count"])
+	}
+	if r.Properties["enable_http2"] != true {
+		t.Errorf("expected enable_http2 true, got %v", r.Properties["enable_http2"])
+	}
+	if r.Provider.Zone != "1,2" {
+		t.Errorf("expected zone 1,2, got %q", r.Provider.Zone)
+	}
+}
+
+func TestTransformMetricAlerts(t *testing.T) {
+	alerts := []MetricAlert{
+		{
+			ID:                  "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Insights/metricAlerts/alert1",
+			Name:                "alert1",
+			Location:            "global",
+			ResourceGroup:       "rg1",
+			Description:         "CPU alert",
+			Severity:            2,
+			Enabled:             true,
+			EvaluationFrequency: "PT1M",
+			WindowSize:          "PT5M",
+			TargetResourceType:  "Microsoft.Compute/virtualMachines",
+			AutoMitigate:        true,
+			Scopes:              []string{"/subscriptions/11111111-1111-1111-1111-111111111111"},
+			Actions: []azMetricAlertActionGroup{
+				{ActionGroupID: "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Insights/actionGroups/ag1"},
+			},
+		},
+	}
+
+	resources, idMap := TransformMetricAlerts(alerts, testSub)
+	if len(resources) != 1 {
+		t.Fatalf("expected 1 resource, got %d", len(resources))
+	}
+	r := resources[0]
+	if r.Type != "osiris.azure.monitor.metricalert" {
+		t.Errorf("expected type osiris.azure.monitor.metricalert, got %q", r.Type)
+	}
+	if r.Status != "active" {
+		t.Errorf("expected status active, got %q", r.Status)
+	}
+	if r.Properties["severity"] != 2 {
+		t.Errorf("expected severity 2, got %v", r.Properties["severity"])
+	}
+	if r.Properties["evaluation_frequency"] != "PT1M" {
+		t.Errorf("expected evaluation_frequency PT1M, got %v", r.Properties["evaluation_frequency"])
+	}
+	if _, ok := idMap[alerts[0].ID]; !ok {
+		t.Error("expected ID in idMap")
+	}
+}
+
+func TestTransformActionGroups(t *testing.T) {
+	groups := []ActionGroup{
+		{
+			ID:               "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Insights/actionGroups/ag1",
+			Name:             "ag1",
+			Location:         "global",
+			ResourceGroup:    "rg1",
+			GroupShortName:   "ag1short",
+			Enabled:          true,
+			EmailReceivers:   []struct{}{{}, {}},
+			WebhookReceivers: []struct{}{{}},
+		},
+	}
+
+	resources, idMap := TransformActionGroups(groups, testSub)
+	if len(resources) != 1 {
+		t.Fatalf("expected 1 resource, got %d", len(resources))
+	}
+	r := resources[0]
+	if r.Type != "osiris.azure.monitor.actiongroup" {
+		t.Errorf("expected type osiris.azure.monitor.actiongroup, got %q", r.Type)
+	}
+	if r.Status != "active" {
+		t.Errorf("expected status active, got %q", r.Status)
+	}
+	if r.Properties["group_short_name"] != "ag1short" {
+		t.Errorf("expected group_short_name ag1short, got %v", r.Properties["group_short_name"])
+	}
+	if r.Properties["receiver_count"] != 3 {
+		t.Errorf("expected receiver_count 3, got %v", r.Properties["receiver_count"])
+	}
+	if r.Properties["email_receiver_count"] != 2 {
+		t.Errorf("expected email_receiver_count 2, got %v", r.Properties["email_receiver_count"])
+	}
+	if _, ok := idMap[groups[0].ID]; !ok {
+		t.Error("expected ID in idMap")
 	}
 }
