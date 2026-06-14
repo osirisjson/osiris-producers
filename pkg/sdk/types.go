@@ -26,11 +26,27 @@ type Document struct {
 
 // Metadata carries document-level information.
 type Metadata struct {
-	Timestamp       string    `json:"timestamp"`
-	Generator       Generator `json:"generator"`
-	Scope           *Scope    `json:"scope,omitempty"`
-	Redacted        *bool     `json:"redacted,omitempty"`
-	RedactionPolicy string    `json:"redaction_policy,omitempty"`
+	Timestamp       string         `json:"timestamp"`
+	Generator       Generator      `json:"generator"`
+	Scope           *Scope         `json:"scope,omitempty"`
+	Redacted        *bool          `json:"redacted,omitempty"`
+	RedactionPolicy string         `json:"redaction_policy,omitempty"`
+	Coverage        *CoverageBlock `json:"coverage,omitempty"`
+}
+
+// CoverageBlock carries per-document producer telemetry.
+// Schema-compatible via metadata's additionalProperties:true (OSIRIS JSON specification chapter 3 section 3.3.4).
+type CoverageBlock struct {
+	ServicesAttempted []string        `json:"services_attempted,omitempty"`
+	ServicesSucceeded []string        `json:"services_succeeded,omitempty"`
+	Errors            []CoverageError `json:"errors,omitempty"`
+}
+
+// CoverageError records a single resource collection failure.
+type CoverageError struct {
+	Region       string `json:"region"`
+	Resource     string `json:"resource"`
+	ErrorMessage string `json:"error_message"`
 }
 
 // Generator identifies the tool that produced the document.

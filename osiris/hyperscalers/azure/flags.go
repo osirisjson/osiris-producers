@@ -32,14 +32,15 @@ func ParseFlags(args []string) (*Config, error) {
 	fs := flag.NewFlagSet("osirisjson-producer azure", flag.ContinueOnError)
 
 	var (
-		subscription string
-		tenant       string
-		region       string
-		all          bool
-		source       string
-		output       string
-		safeFail     string
-		purposeStr   string
+		subscription   string
+		tenant         string
+		region         string
+		all            bool
+		source         string
+		output         string
+		safeFail       string
+		purposeStr     string
+		includeRawBody bool
 	)
 
 	fs.StringVar(&subscription, "S", "", "Azure subscription ID(s), comma-separated")
@@ -53,6 +54,7 @@ func ParseFlags(args []string) (*Config, error) {
 	fs.StringVar(&output, "output", "", "output directory")
 	fs.StringVar(&safeFail, "safe-failure-mode", "fail-closed", "secret handling: fail-closed, log-and-redact, or off")
 	fs.StringVar(&purposeStr, "purpose", "", "OSIRIS JSON spec chapter 13.1.3 output grade: documentation (default) or audit")
+	fs.BoolVar(&includeRawBody, "include-raw-body", false, "attach full ARM JSON body under extensions[\"osiris.azure.arm\"].body (audit mode only; lossless fallback for still unmodelled fields)")
 
 	if err := fs.Parse(args); err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func ParseFlags(args []string) (*Config, error) {
 			OutputDir:       output,
 			SafeFailureMode: safeFail,
 			Purpose:         purpose.String(),
+			IncludeRawBody:  includeRawBody,
 			Targets:         targets,
 		}
 		return cfg, nil
@@ -104,6 +107,7 @@ func ParseFlags(args []string) (*Config, error) {
 		OutputDir:       output,
 		SafeFailureMode: safeFail,
 		Purpose:         purpose.String(),
+		IncludeRawBody:  includeRawBody,
 	}
 
 	// --all: auto-discover subscriptions.

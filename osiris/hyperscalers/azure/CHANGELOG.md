@@ -11,7 +11,17 @@ See the root [`CHANGELOG.md`](../../../../CHANGELOG.md) for the release-level in
 
 ---
 
-## [Unreleased]
+## [0.5.1] - 2026-06-14
+
+### Added
+- **`--include-raw-body` flag:** When passed together with `--purpose audit`,
+  the full ARM response struct for each resource is serialised to a JSON string
+  and attached under `extensions["osiris.azure.arm"].body`.
+
+### Fixed
+- **VNet and route-table collection regression:** `az network vnet list` and
+  `az network route-table list` require `--resource-group/-g` on some Azure CLI builds
+  and RBAC scopes, causing subscriptions to silently skip VNets and route tables.
 
 ---
 

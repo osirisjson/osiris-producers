@@ -27,6 +27,23 @@ For changes to the OSIRIS specification, core documents and core schema itself, 
 
 ---
 
+## [0.5.1] - 2026-06-14
+
+Azure VNet and route-table collection regression fix. No changes to other producers in this release.
+
+| Producer | Behavior version |
+|----------|------------------|
+| Microsoft Azure OSIRIS JSON producer | [0.5.1](osiris/hyperscalers/azure/CHANGELOG.md#051---2026-06-14) |
+| Cisco APIC OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco IOS-XE OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco NX-OS OSIRIS JSON producer | 0.1.0 (no change) |
+
+### Highlights (Azure 0.5.1)
+- **Fix** VNet and route-table collection regression
+- **`--include-raw-body`** opt-in flag: attaches full ARM response body under `extensions["osiris.azure.arm"].body` for `--purpose audit` runs
+
+---
+
 ## [0.5.0] - 2026-06-07
 
 Azure Hub and connectivity resource expansion. No changes to other producers in this release.
@@ -204,7 +221,8 @@ Initial SDK release. No producers shipped under this tag.
 - Removed empty `common/` stubs (replaced by `pkg/sdk/`).
 - Updated `.gitignore` for Go.
 
-[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/osirisjson/osiris-producers/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/osirisjson/osiris-producers/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/osirisjson/osiris-producers/compare/v0.2.1...v0.4.0
 [0.2.1]: https://github.com/osirisjson/osiris-producers/compare/v0.2.0...v0.2.1

@@ -3037,11 +3037,9 @@ func (c *Client) collectNetworkResources(data *SubscriptionData) {
 	}
 
 	items := []collectable{
-		{"virtual networks", "network vnet list", &data.VirtualNetworks},
 		{"network interfaces", "network nic list", &data.NetworkInterfaces},
 		{"network security groups", "network nsg list", &data.SecurityGroups},
 		{"application security groups", "network asg list", &data.ApplicationSecurityGroups},
-		{"route tables", "network route-table list", &data.RouteTables},
 		{"public IPs", "network public-ip list", &data.PublicIPs},
 		{"public IP prefixes", "network public-ip prefix list", &data.PublicIPPrefixes},
 		{"availability sets", "vm availability-set list", &data.AvailabilitySets},
@@ -3122,6 +3120,13 @@ func (c *Client) collectNetworkResources(data *SubscriptionData) {
 		}(item)
 	}
 	baseWg.Wait()
+
+	// VNets and route tables: some CLI builds reject the subscription-wide forms
+	// (`az network vnet list`, `az network route-table list`) with
+	// "--resource-group/-g required", so iterate per RG like collectDisks does.
+	// Must run before collectSubnets / collectVNetPeerings which consume VNets.
+	data.VirtualNetworks = c.collectVNets(data.ResourceGroups)
+	data.RouteTables = c.collectRouteTables(data.ResourceGroups)
 
 	// Backfill minimumTlsVersion / networkAcls.defaultAction for KV and SQL -
 	// az keyvault list / az sql server list omit these from their output.
@@ -3619,6 +3624,64 @@ func (c *Client) collectDisks(rgs []ResourceGroup) []Disk {
 	}
 	wg.Wait()
 	c.logger.Info("collected", "type", "managed disks", "count", len(all))
+	return all
+}
+
+func (c *Client) collectVNets(rgs []ResourceGroup) []VirtualNetwork {
+	const concurrency = 8
+	sem := make(chan struct{}, concurrency)
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+	var all []VirtualNetwork
+
+	for _, rg := range rgs {
+		wg.Add(1)
+		sem <- struct{}{}
+		go func(rg ResourceGroup) {
+			defer wg.Done()
+			defer func() { <-sem }()
+			cmd := fmt.Sprintf("network vnet list --resource-group %s", rg.Name)
+			var vnets []VirtualNetwork
+			if err := c.queryInto(cmd, &vnets); err != nil {
+				c.logger.Debug("no virtual networks in resource group", "rg", rg.Name)
+				return
+			}
+			mu.Lock()
+			all = append(all, vnets...)
+			mu.Unlock()
+		}(rg)
+	}
+	wg.Wait()
+	c.logger.Info("collected", "type", "virtual networks", "count", len(all))
+	return all
+}
+
+func (c *Client) collectRouteTables(rgs []ResourceGroup) []RouteTable {
+	const concurrency = 8
+	sem := make(chan struct{}, concurrency)
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+	var all []RouteTable
+
+	for _, rg := range rgs {
+		wg.Add(1)
+		sem <- struct{}{}
+		go func(rg ResourceGroup) {
+			defer wg.Done()
+			defer func() { <-sem }()
+			cmd := fmt.Sprintf("network route-table list --resource-group %s", rg.Name)
+			var rts []RouteTable
+			if err := c.queryInto(cmd, &rts); err != nil {
+				c.logger.Debug("no route tables in resource group", "rg", rg.Name)
+				return
+			}
+			mu.Lock()
+			all = append(all, rts...)
+			mu.Unlock()
+		}(rg)
+	}
+	wg.Wait()
+	c.logger.Info("collected", "type", "route tables", "count", len(all))
 	return all
 }
 

@@ -54,6 +54,7 @@ type Config struct {
 	Timestamp       string // shared timestamp for the batch run.
 	SafeFailureMode string // "fail-closed" | "log-and-redact" | "off".
 	Purpose         string // OSIRIS JSON spec chapter 13.1.3 output grade: "documentation" (default) | "audit".
+	IncludeRawBody  bool   // when true and --purpose audit, attach the full ARM body under extensions["osiris.azure.arm"].body.
 
 	// MGEntitiesCache holds the tenant-scoped management group entity tree
 	// pre-fetched once per batch run so it is not re-fetched for every subscription.

@@ -48,7 +48,7 @@ import (
 
 const (
 	generatorName    = "osirisjson-producer-azure"
-	generatorVersion = "0.5.0"
+	generatorVersion = "0.5.1"
 	generatorURL     = "https://osirisjson.org/en/docs/producers/hyperscalers/microsoft-azure"
 )
 
@@ -850,6 +850,14 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		return nil, fmt.Errorf("document build failed: %w", err)
 	}
 
+	// Strip raw ARM bodies unless the caller opted in. In documentation mode
+	// osirismeta.Project strips all extensions anyway; this handles audit mode.
+	if !p.cfg.IncludeRawBody {
+		for i := range doc.Topology.Resources {
+			delete(doc.Topology.Resources[i].Extensions, "osiris.azure.arm")
+		}
+	}
+
 	// Shape the emitted document per OSIRIS JSON spec chapter 13.1.3 based on the declared purpose.
 	// Collection itself is always exhaustive; the projection trims fields.
 	osirismeta.Project(doc, purpose)
@@ -1107,6 +1115,9 @@ Common flags:
   --region              Filter to a specific Azure region (optional)
   --safe-failure-mode   Secret handling: fail-closed (default), log-and-redact, off
 ` + osirismeta.PurposeHelp() + `
+  --include-raw-body    When combined with --purpose audit, attach the full ARM
+                        response body for each resource under
+                        extensions["osiris.azure.arm"].body (JSON string).
 
 Other:
   osirisjson-producer azure template --generate   Generate a CSV template for batch collection
