@@ -1,0 +1,116 @@
+version: 2
+
+project_name: osiris-producers
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: osirisjson-producer
+    main: ./cmd/osirisjson-producer
+    binary: osirisjson-producer
+    env:
+      - CGO_ENABLED=0
+    tags:
+      - bundled
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+
+archives:
+  - id: bundle
+    builds:
+      - osirisjson-producer
+    name_template: "osiris-producers_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    files:
+      - CHANGELOG.md
+      - INSTALL.md
+
+nfpms:
+  - id: linux-packages
+    package_name: osiris-producers
+    builds:
+      - osirisjson-producer
+    vendor: osirisjson.org
+    homepage: https://osirisjson.org
+    maintainer: OSIRIS JSON <community@osirisjson.org>
+    description: Generate private point-in-time infrastructure snapshots from hyperscalers, hosting and cloud providers and on-premises IT/OT systems as vendor-neutral OSIRIS JSON ready for reports, diagrams, audits, diffs, CMDB/IPAM/DCIM workflows and controlled AI/MCP context.
+    license: Apache-2.0
+    formats:
+      - deb
+      - rpm
+    contents:
+      - src: ./CHANGELOG.md
+        dst: /usr/share/doc/osiris-producers/CHANGELOG.md
+
+brews:
+  - name: osirisjson-producer
+    repository:
+      owner: osirisjson
+      name: homebrew-osiris-producers
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    homepage: "https://osirisjson.org"
+    description: "Generate private point-in-time infrastructure snapshots from hyperscalers, hosting and cloud providers and on-premises IT/OT systems as vendor-neutral OSIRIS JSON ready for reports, diagrams, audits, diffs, CMDB/IPAM/DCIM workflows and controlled AI/MCP context."
+    license: "Apache-2.0"
+    install: |
+      bin.install "osirisjson-producer"
+    test: |
+      system "#{bin}/osirisjson-producer", "--version"
+
+checksum:
+  name_template: "osiris-producers_{{ .Version }}_checksums.txt"
+  algorithm: sha256
+
+release:
+  github:
+    owner: osirisjson
+    name: osiris-producers
+  draft: false
+  prerelease: auto
+  name_template: "v{{ .Version }}"
+  header: |
+    OSIRIS JSON Producers release **v{{ .Version }}**.
+
+    ### Install
+
+    **macOS** (Homebrew):
+    ```bash
+    brew tap osirisjson/osiris-producers
+    brew install osirisjson-producer
+    ```
+
+    **Linux** - install via the `.deb` or `.rpm` packages listed below, or extract the archive.
+
+    **Windows** - download the `.zip` archive below, extract and run `osirisjson-producer.exe`.
+    SmartScreen may show "Windows protected your PC" (not yet signed) - click **More info** -> **Run anyway**,
+    or right-click the .exe -> Properties -> check **Unblock** -> OK.
+
+    **Any platform (Go required):**
+    ```bash
+    go install go.osirisjson.org/producers/cmd/...@latest
+    ```
+
+    Once installed, all providers are available in a single binary:
+    ```bash
+    osirisjson-producer aws
+    osirisjson-producer azure -S <subscription-id>
+    osirisjson-producer cisco apic -h 10.0.0.1
+    ```
+
+    Full installation instructions: [INSTALL.md](https://github.com/osirisjson/osiris-producers/blob/main/INSTALL.md)
+
+    See [CHANGELOG.md](CHANGELOG.md) for the full list of changes.
