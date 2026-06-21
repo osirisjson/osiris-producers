@@ -55,14 +55,10 @@ type knownVendor struct {
 // The core dispatcher uses this for --help output and install hints.
 // Vendors not in this list are still discovered on $PATH.
 var knownVendors = []knownVendor{
-	{"aws", "[Under development] AWS cloud OSIRIS JSON producer", ""},
-	{"azure", "Microsoft Azure cloud OSIRIS JSON producer", "go.osirisjson.org/producers/cmd/osirisjson-producer-azure"},
+	{"aws", "Amazon Web Services OSIRIS JSON producer", "go.osirisjson.org/producers/cmd/osirisjson-producer-aws"},
+	{"azure", "Microsoft Azure OSIRIS JSON producer", "go.osirisjson.org/producers/cmd/osirisjson-producer-azure"},
 	{"gcp", "[Under development] Google Cloud Platform OSIRIS JSON producer", ""},
-	{"arista", "[Under development] Arista EOS OSIRIS JSON producer", ""},
 	{"cisco", "Cisco OSIRIS JSON producer (APIC, IOS-XR, NX-OS)", "go.osirisjson.org/producers/cmd/osirisjson-producer-cisco"},
-	{"nokia", "[Under development] Nokia SR OS OSIRIS JSON producer", ""},
-	{"digitalocean", "[Under development] DigitalOcean cloud OSIRIS JSON producer", ""},
-	{"leaseweb", "[Under development] Leaseweb bare-metal OSIRIS JSON producer", ""},
 }
 
 func main() {
@@ -84,6 +80,22 @@ func main() {
 
 	vendor := args[0]
 	vendorArgs := args[1:]
+
+	// Check built-in vendors first (populated when built with -tags bundled).
+	if runner, ok := builtinRunners[vendor]; ok {
+		if len(vendorArgs) > 0 {
+			switch vendorArgs[0] {
+			case "--version", "-v", "version":
+				fmt.Printf("osirisjson-producer-%s %s\n", vendor, version)
+				os.Exit(0)
+			}
+		}
+		if err := runner(vendorArgs); err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+		return
+	}
 
 	// Look up the vendor binary on $PATH.
 	binaryName := "osirisjson-producer-" + vendor
