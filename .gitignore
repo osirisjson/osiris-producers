@@ -31,15 +31,16 @@ compliance/
 *.tar.gz
 *.rar
 
-# Secrets (just in case collaborators accidentally commit them)
+# Secrets and tests (just in case collaborators accidentally commit them)
 .env
 .env.local
 .env.*.local
 secrets/
 *.pem
 *.key
+*.json
 
-# Go
+# Go and test builds
 bin/
 vendor/
 *.exe
@@ -49,5 +50,5 @@ vendor/
 *.dylib
 *.test
 *.out
-coverage.txt
-coverage.html
+*.deb
+*.rpm
