@@ -11,6 +11,7 @@ its own behavioral version (`metadata.generator.version` in emitted
 documents) in its own per-producer `CHANGELOG.md`. This file lists which
 producer behavior versions shipped under each module tag.
 
+- OSIRIS JSON producer for Amazon AWS: [`osiris/hyperscalers/aws/CHANGELOG.md`](osiris/hyperscalers/aws/CHANGELOG.md)
 - OSIRIS JSON producer for Microsoft Azure: [`osiris/hyperscalers/azure/CHANGELOG.md`](osiris/hyperscalers/azure/CHANGELOG.md)
 - OSIRIS JSON producer for Cisco APIC: [`osiris/network/cisco/apic/CHANGELOG.md`](osiris/network/cisco/apic/CHANGELOG.md)
 - OSIRIS JSON producer for Cisco IOS-XE: [`osiris/network/cisco/iosxe/CHANGELOG.md`](osiris/network/cisco/iosxe/CHANGELOG.md)
@@ -24,6 +25,41 @@ For changes to the OSIRIS specification, core documents and core schema itself, 
 ---
 
 ## [Unreleased]
+
+
+## [0.6.0] - 2026-06-22
+
+Amazon Web Services OSIRIS JSON producer.
+
+| Producer | Behavior version |
+|----------|------------------|
+| Amazon Web Services OSIRIS JSON producer | [0.1.0](osiris/hyperscalers/aws/CHANGELOG.md#010---2026-06-21) |
+| Microsoft Azure OSIRIS JSON producer | 0.5.1 (no change) |
+| Cisco APIC OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco IOS-XE OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco NX-OS OSIRIS JSON producer | 0.1.0 (no change) |
+
+### Highlights (AWS 0.1.0)
+- **Full account topology GA:** 50 distinct resource types across compute
+  (EKS, ECS, EC2, Lambda, ASG), data (RDS, DynamoDB, ElastiCache, SQS,
+  Kinesis, MSK, DocDB, Neptune, Redshift, OpenSearch, MemoryDB), storage
+  (EBS, S3, EFS, FSx), security (KMS, SecretsManager, WAFv2, ECR),
+  identity (IAM roles, OIDC/SAML providers), observability (CloudWatch,
+  Backup), networking completeness (ELBv2 listeners, CloudFront, API Gateway,
+  Direct Connect LAGs, VPC PrivateLink), serverless (Step Functions), and
+  event-driven (SNS, EventBridge) on top of the full networking foundation.
+- **Built-in secret scanner:** fail-closed pre-flight scan on every document;
+  sensitive key names and credential value patterns detected and either
+  redacted or blocked before any file is written.
+- **`metadata.coverage` transparency block:** every file records
+  `services_attempted`, `services_succeeded`, and `errors[]` so consumers
+  can distinguish empty-because-nothing-there from empty-because-error.
+- **OSIRIS JSON coreschema validation** successfully tested.
+- **`--include-raw-body`:** opt-in lossless fallback for `--purpose audit` runs.
+  Full SDK response structs attached under `extensions["osiris.aws.sdk"].body`
+  as JSON strings. Any field not yet promoted to a typed `properties` entry
+  (VPC DNS attributes, subnet map, EKS node group config, etc.) is immediately
+  accessible without extra API calls.
 
 ---
 
@@ -221,7 +257,8 @@ Initial SDK release. No producers shipped under this tag.
 - Removed empty `common/` stubs (replaced by `pkg/sdk/`).
 - Updated `.gitignore` for Go.
 
-[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/osirisjson/osiris-producers/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/osirisjson/osiris-producers/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/osirisjson/osiris-producers/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/osirisjson/osiris-producers/compare/v0.2.1...v0.4.0

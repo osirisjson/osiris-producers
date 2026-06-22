@@ -8,22 +8,23 @@
 Monorepo for the OSIRIS JSON producers.
 
 ## What is an OSIRIS JSON producer?
-an [OSIRIS JSON](https://osirisjson.org/en/docs/introduction/what-is-osiris) producer generates a private infrastructure snapshot at a point in time.
 
-It connects directly from your own environment to infrastructure sources such as hyperscalers, public cloud and hosting providers, on-premise IT systems (hypervisors,compute,storage,network) and OT systems. It discovers inventory and topology data, normalizes proprietary informations and emits a valid [OSIRIS JSON document](https://osirisjson.org/en/docs/examples/01-it-infrastructure).
+an OSIRIS JSON producer **generates a private snapshot of your infrastructure** at a point in time **without need** to connect to any third-party service or AI Platforms and MCP Servers. **You execute it fully under your complete control.**
 
-- No AI platform, MCP server or AI agent are required
-- No SaaS or intermediary API are required
-- No license or expensive consultancy are required
-- No additional software development is required
+It connects directly **from your own environment** to infrastructure sources such as hyperscalers, public cloud and hosting providers, on-premise IT systems (like for example hypervisors,bare metal servers,storage,network etc.) and OT systems. It discovers inventory and topology data, normalizes proprietary informations and emits a valid OSIRIS JSON Document like [OSIRIS JSON IT infrastructure example](https://osirisjson.org/en/docs/examples/01-it-infrastructure) and [OSIRIS JSON OT infrastructure example](https://osirisjson.org/en/docs/examples/02-ot-infrastructure).
+
+- **No** AI platform, MCP server or AI agent are required
+- **No** SaaS or intermediary API are required
+- **No** pay per use or expensive consultancy are required
+- **No** additional software development is required
 - Your infrastructure data stays under your control like your API keys and credentials to retrieve the informations and generate an OSIRIS JSON document
 
 [OSIRIS JSON producer](https://osirisjson.org/en/docs/producers/getting-started) bridge the gap between proprietary infrastructure language/format and the freedom of an open, vendor-neutral JSON format.
 
 ```mermaid
 flowchart TB
-    A["Provider/Vendor<br>AWS, Azure, GCP, Cloudflare Cisco, Arista, HPE<br>on-premise, IT/OT"] <--> B["`**OSIRIS JSON Producer**`"]
-    B --> C["generate an OSIRIS JSON document at a point-in-time of your infrastructure"]
+    A["Provider/Vendor<br>AWS,Azure,GCP,Cisco,Arista,HPE<br>on-premise IT/OT resources"] <--> B["`**OSIRIS JSON Producer run under your full control**`"]
+    B --> C["it generate an OSIRIS JSON document at a point-in-time of your infrastructure"]
     C --> n1["You can use the document<br>under your own control to develop"] & I["use OSIRIS JSON Consumers<br>(under development) to"]
     I --> D["create reports an<br>audit documents"] & E["create diagrams<br>Draw.io/Mermaid"] & F["generate diffs and<br>identify configuration drift"]
     n1 --> H["feed AI platforms<br>MCP, Agents"] & G["feed CMDB/IPAM/DCIM <br>workflows"] & F & E & D
