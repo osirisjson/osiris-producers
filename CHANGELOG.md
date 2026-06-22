@@ -27,6 +27,25 @@ For changes to the OSIRIS specification, core documents and core schema itself, 
 ## [Unreleased]
 
 
+## [0.6.1] - 2026-06-22
+
+Security hardening. No producer behavior changes.
+
+| Producer | Behavior version |
+|----------|------------------|
+| Amazon Web Services OSIRIS JSON producer | 0.1.0 (no change) |
+| Microsoft Azure OSIRIS JSON producer | 0.5.1 (no change) |
+| Cisco APIC OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco IOS-XE OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco NX-OS OSIRIS JSON producer | 0.1.0 (no change) |
+
+### Fixed
+- **AWS**: resolve `aws` CLI path via `exec.LookPath` in `initiateSSOLogin`. Fixes [CWE-426](https://cwe.mitre.org/data/definitions/426).
+- **AWS**: resolve browser launcher (`xdg-open`, `open`, `rundll32`) via `exec.LookPath` in `openBrowser`. Fixes [CWE-426](https://cwe.mitre.org/data/definitions/426).
+- **CI**: pin all GitHub Actions steps to full commit SHAs in `release.yml` and `sonarqube.yml`.
+
+---
+
 ## [0.6.0] - 2026-06-22
 
 Amazon Web Services OSIRIS JSON producer.
@@ -257,7 +276,8 @@ Initial SDK release. No producers shipped under this tag.
 - Removed empty `common/` stubs (replaced by `pkg/sdk/`).
 - Updated `.gitignore` for Go.
 
-[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.6.1...HEAD
+[0.6.1]: https://github.com/osirisjson/osiris-producers/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/osirisjson/osiris-producers/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/osirisjson/osiris-producers/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/osirisjson/osiris-producers/compare/v0.4.0...v0.5.0
