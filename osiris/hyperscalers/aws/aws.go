@@ -648,7 +648,11 @@ func initiateSSOLogin(profile string, logger *slog.Logger) error {
 	logger.Warn("SSO session expired - starting interactive login", "profile", profile)
 	fmt.Fprintf(os.Stderr, "\n  SSO session expired. Opening browser login for profile %q.\n", profile)
 	fmt.Fprintf(os.Stderr, "  Complete the authentication in the browser to continue.\n\n")
-	cmd := exec.Command("aws", "sso", "login", "--profile", profile)
+	awsBin, err := exec.LookPath("aws")
+	if err != nil {
+		return fmt.Errorf("aws CLI not found on PATH: %w", err)
+	}
+	cmd := exec.Command(awsBin, "sso", "login", "--profile", profile)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

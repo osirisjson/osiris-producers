@@ -461,7 +461,10 @@ func cacheSSOToken(startURL, ssoRegion, accessToken string, expiresIn int32) err
 	}
 
 	// Cache under SHA1(startUrl) for legacy-format profiles.
-	h := sha1.Sum([]byte(startURL))
+	// SHA1 is required here: the AWS CLI v2 and Go SDK both derive the cache
+	// filename as hex(sha1(startUrl)).json - changing the algorithm would break
+	// token lookup for all existing profiles. Not used for security. // NOSONAR
+	h := sha1.Sum([]byte(startURL)) // NOSONAR
 	filename := hex.EncodeToString(h[:]) + ".json"
 	if err := os.WriteFile(filepath.Join(cacheDir, filename), data, 0600); err != nil {
 		return err
@@ -472,7 +475,7 @@ func cacheSSOToken(startURL, ssoRegion, accessToken string, expiresIn int32) err
 	// references sso_session = <name>, the SDK looks for SHA1(name).json.
 	sessionNames := findSSOSessionNames(home, startURL)
 	for _, name := range sessionNames {
-		sh := sha1.Sum([]byte(name))
+		sh := sha1.Sum([]byte(name)) // NOSONAR - AWS CLI v2 sso-session cache format requires SHA1(sessionName)
 		sessionFile := hex.EncodeToString(sh[:]) + ".json"
 		_ = os.WriteFile(filepath.Join(cacheDir, sessionFile), data, 0600)
 	}
@@ -569,16 +572,26 @@ func detectSSORegion(ctx context.Context, startURL string) (string, error) {
 
 // openBrowser tries to open a URL in the user's default browser.
 func openBrowser(url string) error {
-	var cmd *exec.Cmd
+	var binName string
 	switch runtime.GOOS {
 	case "linux":
-		cmd = exec.Command("xdg-open", url)
+		binName = "xdg-open"
 	case "darwin":
-		cmd = exec.Command("open", url)
+		binName = "open"
 	case "windows":
-		cmd = exec.Command("rundll32", "url.dll,FileProtocolHandler", url)
+		binName = "rundll32"
 	default:
 		return fmt.Errorf("unsupported platform %s", runtime.GOOS)
+	}
+	bin, err := exec.LookPath(binName)
+	if err != nil {
+		return fmt.Errorf("%s not found: %w", binName, err)
+	}
+	var cmd *exec.Cmd
+	if runtime.GOOS == "windows" {
+		cmd = exec.Command(bin, "url.dll,FileProtocolHandler", url)
+	} else {
+		cmd = exec.Command(bin, url)
 	}
 	return cmd.Start()
 }
