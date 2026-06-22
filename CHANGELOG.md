@@ -33,7 +33,7 @@ Amazon Web Services OSIRIS JSON producer.
 
 | Producer | Behavior version |
 |----------|------------------|
-| Amazon Web Services OSIRIS JSON producer | [0.1.0](osiris/hyperscalers/aws/CHANGELOG.md#010---2026-06-21) |
+| Amazon Web Services OSIRIS JSON producer | [0.1.0](osiris/hyperscalers/aws/CHANGELOG.md#010---2026-06-22) |
 | Microsoft Azure OSIRIS JSON producer | 0.5.1 (no change) |
 | Cisco APIC OSIRIS JSON producer | 0.1.0 (no change) |
 | Cisco IOS-XE OSIRIS JSON producer | 0.1.0 (no change) |
@@ -133,7 +133,7 @@ Azure resource and connection coverage expansion. No changes to other producers 
   node pool, Container App Environment + Container App, ACI Container
   Group, Service Bus / Event Hubs namespace, APIM, Front Door, App
   Insights, Log Analytics workspace.
-- [OSIRIS JSON spec §5.2.3 connection subtypes](https://github.com/osirisjson/osiris/blob/main/specification/v1.0/OSIRIS-JSON-v1.0.md#523-standard-connection-types-v10):
+- [OSIRIS JSON specification chapter 5.2.3 connection subtypes](https://github.com/osirisjson/osiris/blob/main/specification/v1.0/OSIRIS-JSON-v1.0.md#523-standard-connection-types-v10):
 - `network.peering`, `network.vpn`,
   `network.bgp`, `dependency`, `dependency.storage`, `dependency.database`.
 - Private Endpoint `private_link_service_id` / `group_id` / `custom_dns_configs`.

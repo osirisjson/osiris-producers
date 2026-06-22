@@ -50,7 +50,7 @@ type ProducerConfig struct {
 	ProfileHint     string `json:"profile_hint,omitempty"`
 	DetailLevel     string `json:"detail_level,omitempty"`
 	SafeFailureMode string `json:"safe_failure_mode,omitempty"`
-	// Purpose shapes the emitted document per OSIRIS JSON spec §13.1.3.
+	// Purpose shapes the emitted document per OSIRIS JSON specification chapter 13.1.3.
 	// Valid values: "documentation" (minimal, default) or "audit" (full detail).
 	// See pkg/osirismeta for parsing, defaults and projection helpers.
 	Purpose string `json:"purpose,omitempty"`
