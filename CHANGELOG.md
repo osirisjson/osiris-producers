@@ -27,6 +27,23 @@ For changes to the OSIRIS specification, core documents and core schema itself, 
 ## [Unreleased]
 
 
+## [0.6.2] - 2026-06-23
+
+Homebrew packaging fix. No producer behavior changes.
+
+| Producer | Behavior version |
+|----------|------------------|
+| Amazon Web Services OSIRIS JSON producer | 0.1.0 (no change) |
+| Microsoft Azure OSIRIS JSON producer | 0.5.1 (no change) |
+| Cisco APIC OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco IOS-XE OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco NX-OS OSIRIS JSON producer | 0.1.0 (no change) |
+
+### Fixed
+- **Release**: place Homebrew formula in `Formula/` subdirectory to satisfy Homebrew 4.x tap trust requirement.
+
+---
+
 ## [0.6.1] - 2026-06-22
 
 Security hardening. No producer behavior changes.
@@ -276,7 +293,8 @@ Initial SDK release. No producers shipped under this tag.
 - Removed empty `common/` stubs (replaced by `pkg/sdk/`).
 - Updated `.gitignore` for Go.
 
-[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.6.1...HEAD
+[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.6.2...HEAD
+[0.6.2]: https://github.com/osirisjson/osiris-producers/compare/v0.6.1...v0.6.2
 [0.6.1]: https://github.com/osirisjson/osiris-producers/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/osirisjson/osiris-producers/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/osirisjson/osiris-producers/compare/v0.5.0...v0.5.1

@@ -59,6 +59,7 @@ nfpms:
 
 brews:
   - name: osirisjson-producer
+    directory: Formula
     repository:
       owner: osirisjson
       name: homebrew-osiris-producers
