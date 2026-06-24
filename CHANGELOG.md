@@ -27,6 +27,25 @@ For changes to the OSIRIS specification, core documents and core schema itself, 
 ## [Unreleased]
 
 
+## [0.6.3] - 2026-06-24
+
+AWS SSO auto-refresh fix for single and interactive modes.
+
+| Producer | Behavior version |
+|----------|------------------|
+| Amazon Web Services OSIRIS JSON producer | [0.1.1](osiris/hyperscalers/aws/CHANGELOG.md#011---2026-06-24) |
+| Microsoft Azure OSIRIS JSON producer | 0.5.1 (no change) |
+| Cisco APIC OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco IOS-XE OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco NX-OS OSIRIS JSON producer | 0.1.0 (no change) |
+
+### Fixed
+- **AWS**: single and interactive modes now run the same preflight SSO credential check
+  that batch mode runs. When the session is expired, the producer automatically triggers
+  `aws sso login` instead of failing with a manual re-authentication error.
+
+---
+
 ## [0.6.2] - 2026-06-23
 
 Homebrew packaging fix. No producer behavior changes.
@@ -293,7 +312,8 @@ Initial SDK release. No producers shipped under this tag.
 - Removed empty `common/` stubs (replaced by `pkg/sdk/`).
 - Updated `.gitignore` for Go.
 
-[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.6.2...HEAD
+[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.6.3...HEAD
+[0.6.3]: https://github.com/osirisjson/osiris-producers/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/osirisjson/osiris-producers/compare/v0.6.1...v0.6.2
 [0.6.1]: https://github.com/osirisjson/osiris-producers/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/osirisjson/osiris-producers/compare/v0.5.1...v0.6.0

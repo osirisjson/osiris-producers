@@ -11,6 +11,17 @@ See the root [`CHANGELOG.md`](../../../../CHANGELOG.md) for the release-level in
 
 ---
 
+## [0.1.1] - 2026-06-24
+
+### Fixed
+
+- **SSO auto-refresh in single/interactive mode:** `runSingle` now runs the same preflight
+  credential check that batch mode runs. When the session is expired, the producer
+  automatically triggers `aws sso login` (browser flow) before starting collection instead
+  of failing with an error message that required the user to re-authenticate manually.
+
+---
+
 ## [0.1.0] - 2026-06-22
 
 ### Added
@@ -241,4 +252,5 @@ See the root [`CHANGELOG.md`](../../../../CHANGELOG.md) for the release-level in
 
 
 [Unreleased]: ../../../CHANGELOG.md
-[0.1.0]: ../../../CHANGELOG.md
+[0.1.1]: ../../../CHANGELOG.md#011---2026-06-24
+[0.1.0]: ../../../CHANGELOG.md#010---2026-06-22

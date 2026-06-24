@@ -44,7 +44,7 @@ var errSessionExpired = errors.New("AWS session expired")
 
 const (
 	generatorName    = "osirisjson-producer-aws"
-	generatorVersion = "0.1.0"
+	generatorVersion = "0.1.1"
 	generatorURL     = "https://osirisjson.org/en/docs/producers/hyperscalers/amazon-aws"
 )
 
@@ -533,6 +533,12 @@ func Run(args []string) error {
 func runSingle(cfg *Config) error {
 	target := cfg.Targets[0]
 	logger := defaultLogger()
+
+	if err := preflightCheck(target.Profile, logger); errors.Is(err, errSessionExpired) {
+		if loginErr := initiateSSOLogin(target.Profile, logger); loginErr != nil {
+			return fmt.Errorf("SSO login failed: %w", loginErr)
+		}
+	}
 
 	regions := target.Regions
 	if len(regions) == 0 {
