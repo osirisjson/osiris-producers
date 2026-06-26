@@ -46,6 +46,7 @@ flowchart TB
 | Leaseweb | Hosting and Cloud Providers | To be planned |
 | Hetzner | Hosting and Cloud Providers | To be planned |
 | OVH | Hosting and Cloud Providers | To be planned |
+| Cisco | Networking and Telecommunications | [Available](https://osirisjson.org/en/docs/producers/network/cisco) |
 
 For the full roadmap, visit [https://osirisjson.org/en/docs/roadmap/01-2026](https://osirisjson.org/en/docs/roadmap/01-2026)
 
