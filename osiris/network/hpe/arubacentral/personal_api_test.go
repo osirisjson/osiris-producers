@@ -33,9 +33,9 @@ func TestIsPersonalAPIClient(t *testing.T) {
 	}
 }
 
-// withGreenLakeTokenURL points greenLakeTokenURL at ts for the duration of
-// the test, restoring the real HPE SSO URL on cleanup, so these tests never
-// make a live network call to sso.common.cloud.hpe.com.
+// withGreenLakeTokenURL points greenLakeTokenURL at ts for the duration
+// of the test, restoring the real HPE SSO URL on cleanup, so these
+// tests never make a live network call to sso.common.cloud.hpe.com.
 func withGreenLakeTokenURL(t *testing.T, ts *httptest.Server) {
 	t.Helper()
 	original := greenLakeTokenURL
