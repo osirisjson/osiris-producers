@@ -203,7 +203,7 @@ func TransformSwitchVLANs(serial string, vlans []SwitchVLAN, ifNameToID map[stri
 }
 
 // TransformSwitchLAGs converts a switch's link-aggregation groups into
-// OSIRIS network.lag groups, with member interfaces
+// OSIRIS osiris.hpe.arubacentral.lag groups, with member interfaces
 // resolved via ifNameToID.
 func TransformSwitchLAGs(serial string, lags []SwitchLAG, ifNameToID map[string]string) []sdk.Group {
 	var groups []sdk.Group
@@ -212,9 +212,9 @@ func TransformSwitchLAGs(serial string, lags []SwitchLAG, ifNameToID map[string]
 			continue
 		}
 		boundaryToken := fmt.Sprintf("%s|lag-%s", serial, l.ID)
-		gid := sdk.GroupID(sdk.GroupIDInput{Type: "network.lag", BoundaryToken: boundaryToken})
+		gid := sdk.GroupID(sdk.GroupIDInput{Type: "osiris.hpe.arubacentral.lag", BoundaryToken: boundaryToken})
 
-		g, err := sdk.NewGroup(gid, "network.lag")
+		g, err := sdk.NewGroup(gid, "osiris.hpe.arubacentral.lag")
 		if err != nil {
 			continue
 		}
@@ -301,16 +301,16 @@ func EnrichSwitchHardware(r *sdk.Resource, hw SwitchHardware) {
 }
 
 // TransformSwitchStack converts a stack membership response into an
-// OSIRIS network.stack group whose members are the participating
-// switches (resolved via switchIDMap).
+// OSIRIS osiris.hpe.arubacentral.stack group whose members are the
+// participating switches (resolved via switchIDMap).
 // Returns nil when the stack has no resolvable members.
 func TransformSwitchStack(serial string, stack *StackMembers, switchIDMap map[string]string) *sdk.Group {
 	if stack == nil || len(stack.Members) == 0 {
 		return nil
 	}
 
-	gid := sdk.GroupID(sdk.GroupIDInput{Type: "network.stack", BoundaryToken: serial})
-	g, err := sdk.NewGroup(gid, "network.stack")
+	gid := sdk.GroupID(sdk.GroupIDInput{Type: "osiris.hpe.arubacentral.stack", BoundaryToken: serial})
+	g, err := sdk.NewGroup(gid, "osiris.hpe.arubacentral.stack")
 	if err != nil {
 		return nil
 	}
