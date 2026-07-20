@@ -146,10 +146,6 @@ type Config struct {
 	Purpose string
 
 	// when true and --purpose audit, attach the full API response body
-	// under extensions["osiris.arubacentral"].raw useful for dev.
+	// useful for dev.
 	IncludeRawBody bool
-
-	// The --exclude flag allows users to prune unwanted fields
-	// from the output.
-	Exclude []excludePath
 }
