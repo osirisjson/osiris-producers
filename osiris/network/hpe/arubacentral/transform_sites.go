@@ -12,9 +12,8 @@ import (
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
-// TransformSites converts Aruba Central sites into OSIRIS
-// "network.site" resources. Returns the resources and a
-// siteName -> resourceID map used to wire devices back to their site.
+// TransformSites converts Aruba Central sites into
+// "osiris.hpe.arubacentral.site" resources.
 func TransformSites(sites []Site) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	nameToID := make(map[string]string, len(sites))
@@ -36,7 +35,7 @@ func TransformSites(sites []Site) ([]sdk.Resource, map[string]string) {
 			Site:     s.ScopeName,
 		}
 
-		r, err := sdk.NewResource(id, "network.site", prov)
+		r, err := sdk.NewResource(id, "osiris.hpe.arubacentral.site", prov)
 		if err != nil {
 			continue
 		}
@@ -69,10 +68,47 @@ func TransformSites(sites []Site) ([]sdk.Resource, map[string]string) {
 	return resources, nameToID
 }
 
-// EnrichSiteHealth folds a site's health overview onto its network.site
-// resource: overall health as a drift-detection signal (documentation),
-// plus device/client health breakdowns (audit only), mirroring the
-// config-health enrichment pattern used for devices.
+// TransformSiteGroups converts Aruba Central sites into OSIRIS
+// logical.site groups, the presentation-layer counterpart to the
+// osiris.hpe.arubacentral.site resources TransformSites emits above.
+// Per OSIRIS JSON spec section 6.4.3, since both a group and
+// "contains" connections are used for site containment in this
+// producer (wired in arubacentral.go), the connections are the
+// authoritative graph edge and this group is the filtering/navigation
+// presentation layer - kept deliberately lean (just membership, no
+// properties) to avoid duplicating data the resource already owns.
+func TransformSiteGroups(sites []Site) ([]sdk.Group, map[string]string) {
+	var groups []sdk.Group
+	nameToID := make(map[string]string, len(sites))
+
+	for _, s := range sites {
+		if s.ScopeName == "" {
+			continue
+		}
+		nativeID := s.ScopeID
+		if nativeID == "" {
+			nativeID = s.ID
+		}
+		if nativeID == "" {
+			continue
+		}
+		gid := sdk.GroupID(sdk.GroupIDInput{Type: "logical.site", BoundaryToken: nativeID})
+
+		g, err := sdk.NewGroup(gid, "logical.site")
+		if err != nil {
+			continue
+		}
+		g.Name = s.ScopeName
+
+		groups = append(groups, g)
+		nameToID[s.ScopeName] = gid
+	}
+
+	return groups, nameToID
+}
+
+// EnrichSiteHealth folds a site's health overview onto its
+// osiris.hpe.arubacentral.site resource.
 func EnrichSiteHealth(r *sdk.Resource, health SiteHealth, purpose string) {
 	if r.Properties == nil {
 		r.Properties = map[string]any{}
@@ -88,9 +124,10 @@ func EnrichSiteHealth(r *sdk.Resource, health SiteHealth, purpose string) {
 }
 
 // EnrichSiteDeviceHealth folds a site's per-device-category health
-// breakdown onto its network.site resource. Audit-only: like
-// device_health/client_health on EnrichSiteHealth, is more granular
-// detail than the documentation purpose's minimal health signal needs.
+// breakdown onto its osiris.hpe.arubacentral.site resource.
+// Audit-only: like device_health/client_health on EnrichSiteHealth, is
+// more granular detail than the documentation purpose's minimal
+// health signal needs.
 func EnrichSiteDeviceHealth(r *sdk.Resource, health SiteDeviceHealth, purpose string) {
 	if purpose != "audit" {
 		return
