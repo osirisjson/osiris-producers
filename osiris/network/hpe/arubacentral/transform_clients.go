@@ -51,7 +51,7 @@ func TransformClients(clients []ClientDevice, deviceIDMap map[string]string, pur
 			setIfNotEmpty(props, "client_function", cl.ClientFunction)
 			setIfNotEmpty(props, "client_manufacturer", cl.ClientManufacturer)
 			setIfNotEmpty(props, "client_operating_system", cl.ClientOperatingSystem)
-			setIfNotEmpty(props, "authentication_type", cl.AuthenticationType)
+			setIfNotEmpty(props, "security_type", cl.AuthenticationType)
 			setIfNotEmpty(props, "connected_at", cl.ConnectedAt)
 		}
 		r.Properties = props
