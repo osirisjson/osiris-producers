@@ -6,13 +6,8 @@
 // across all tokens on an account).
 //
 // Endpoint paths and query parameters below are sourced from the Aruba
-// Central "network-monitoring/v1" API reference (Switches, APs,
-// Gateways, Clients & Health, Topology & Neighbors sections). The scope
-// management endpoints (sites, device-groups, config health) are not
-// part of that curated reference; their paths are inferred from the
-// /network-config/v1alpha1/device-groups endpoint naming convention and
-// are called best-effort (a 404/failure is logged and skipped,
-// never fatal for the OSIRIS JSON producer).
+// Central "network-monitoring/v1" API reference (a 404/failure is
+// logged and skipped, never fatal for the OSIRIS JSON producer).
 //
 // OSIRIS JSON Producer for HPE Aruba Networking Central introduction:
 // [OSIRIS-JSON-HPE-ARUBA-NETWORKING]: https://docs.osirisjson.org/osiris-producers/network/hpe-aruba-networking
@@ -902,16 +897,26 @@ func (c *Client) GetSwitchVSX(serial string) (*SwitchVSX, error) {
 	return &out, nil
 }
 
-// ListAPs returns every access point in the account.
-func (c *Client) ListAPs() ([]AccessPoint, error) {
-	out, _, err := c.ListAPsWithRaw()
+// ListAPs returns every access point in the account, online and offline,
+// optionally server-side scoped to siteIDs (nil/empty for every site).
+func (c *Client) ListAPs(siteIDs []string) ([]AccessPoint, error) {
+	out, _, err := c.ListAPsWithRaw(siteIDs)
 	return out, err
 }
 
 // ListAPsWithRaw is ListAPs but also returns each item's raw JSON body
 // (same order); see ListSwitchesWithRaw.
-func (c *Client) ListAPsWithRaw() ([]AccessPoint, []json.RawMessage, error) {
-	raw, err := c.paginate("/network-monitoring/v1/aps", nil, true)
+func (c *Client) ListAPsWithRaw(siteIDs []string) ([]AccessPoint, []json.RawMessage, error) {
+	filter := "status in ('ONLINE','OFFLINE')"
+	if len(siteIDs) > 0 {
+		quoted := make([]string, len(siteIDs))
+		for i, id := range siteIDs {
+			quoted[i] = "'" + id + "'"
+		}
+		filter += " and siteId in (" + strings.Join(quoted, ",") + ")"
+	}
+	query := url.Values{"filter": {filter}}
+	raw, err := c.paginate("/network-monitoring/v1/aps", query, true)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1102,7 +1107,7 @@ func parseNeighborsResponse(body []byte) ([]Neighbor, error) {
 
 // ListSites returns every site (scope-management object) in account.
 func (c *Client) ListSites() ([]Site, error) {
-	raw, err := c.paginateWithLimit("/network-config/v1alpha1/sites", nil, false, configPageLimit)
+	raw, err := c.paginateWithLimit("/network-config/v1/sites", nil, false, configPageLimit)
 	if err != nil {
 		return nil, err
 	}

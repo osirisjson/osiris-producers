@@ -129,6 +129,71 @@ func TestListSwitches_FractionalTrendValues(t *testing.T) {
 	}
 }
 
+// TestListAPs_RequestsBothStatuses guards a bug found in API with a
+// discussion open on Airheads portal https://airheads.hpe.com/discussion/new-central-api-get-a-list-of-access-points
+// /aps returned only ONLINE devices when called with no filter leaving
+// OFFLINE access points silently absent from the result entirely (not
+// merely mis-reported).
+func TestListAPs_RequestsBothStatuses(t *testing.T) {
+	var gotFilter string
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotFilter = r.URL.Query().Get("filter")
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{
+			"items": []map[string]any{
+				{"serialNumber": "SERIAL-EXAMPLE-ONLINE", "status": "Up"},
+				{"serialNumber": "SERIAL-EXAMPLE-OFFLINE", "status": "Down"},
+			},
+		})
+	}))
+	defer ts.Close()
+
+	c := newTestClient(ts, Credentials{AccessToken: "test-access-token"})
+	aps, err := c.ListAPs(nil)
+	if err != nil {
+		t.Fatalf("ListAPs failed: %v", err)
+	}
+	if gotFilter != "status in ('ONLINE','OFFLINE')" {
+		t.Errorf("expected the request to filter for both statuses, got filter=%q", gotFilter)
+	}
+	if len(aps) != 2 {
+		t.Fatalf("expected 2 access points (online and offline), got %d", len(aps))
+	}
+}
+
+// TestListAPs_ScopesToSiteIDsWhenGiven guards a performance follow-up:
+// every --site-scoped run fetched the entire account's access points
+// regardless of --site, relying on client-side filtering to discard
+// everything outside the requested site(s) wasteful and slow (an
+// account of ove ~1000 devices for a single ~100-device site),
+// and compounding under --all where every site's Collect() call
+// re-fetched the whole account from scratch. ListAPsWithRaw now adds a
+// server-side "siteId in (...)" clause when site IDs are known.
+func TestListAPs_ScopesToSiteIDsWhenGiven(t *testing.T) {
+	var gotFilter string
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotFilter = r.URL.Query().Get("filter")
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"items": []map[string]any{}})
+	}))
+	defer ts.Close()
+
+	c := newTestClient(ts, Credentials{AccessToken: "test-access-token"})
+	if _, err := c.ListAPs([]string{"site-a-id"}); err != nil {
+		t.Fatalf("ListAPs failed: %v", err)
+	}
+	if want := "status in ('ONLINE','OFFLINE') and siteId in ('site-a-id')"; gotFilter != want {
+		t.Errorf("expected filter %q, got %q", want, gotFilter)
+	}
+
+	if _, err := c.ListAPs(nil); err != nil {
+		t.Fatalf("ListAPs failed: %v", err)
+	}
+	if want := "status in ('ONLINE','OFFLINE')"; gotFilter != want {
+		t.Errorf("expected no siteId clause when siteIDs is nil, got filter=%q", gotFilter)
+	}
+}
+
 func TestListSwitchInterfaces_OffsetPagination(t *testing.T) {
 	calls := 0
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -351,10 +416,7 @@ func TestGetOne_BareObjectEndpoint(t *testing.T) {
 	}
 }
 
-// TestListSites_UsesConfigPageLimit guards against a production failure:
-// /network-config/v1alpha1/sites rejects the default pageLimit (1000)
-// with a 400 PAGE_LIMIT_SIZE_EXCEEDED, so ListSites must page
-// at configPageLimit instead.
+// TestListSites_UsesConfigPageLimit guards against a production failure
 func TestListSites_UsesConfigPageLimit(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if got := r.URL.Query().Get("limit"); got != strconv.Itoa(configPageLimit) {
