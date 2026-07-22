@@ -35,7 +35,7 @@ const minRequestInterval = 125 * time.Millisecond
 
 const pageLimit = 1000
 
-// configPageLimit is the page size used for network-config/v1alpha1
+// configPageLimit is the page size used for network-config/v1
 // endpoints (sites, device-groups). These reject pageLimit (1000) with
 // a 400 PAGE_LIMIT_SIZE_EXCEEDED, unlike the network-monitoring/v1
 // endpoints, which accept it.
@@ -747,8 +747,7 @@ type Neighbor struct {
 	Type         string `json:"type"`
 }
 
-// Site is a scope-management site object
-// ("_kind" v1alpha1 style config object).
+// Site is a scope-management site object.
 type Site struct {
 	ID          string  `json:"id"`
 	ScopeID     string  `json:"scopeId"`
@@ -768,7 +767,7 @@ type Site struct {
 	} `json:"timezone"`
 }
 
-// DeviceGroup is a "GET /network-config/v1alpha1/device-groups" list.
+// DeviceGroup is a "GET /network-config/v1/device-groups" list.
 type DeviceGroup struct {
 	ID          string `json:"id"`
 	ScopeID     string `json:"scopeId"`
@@ -1194,7 +1193,7 @@ func (c *Client) ListIsolatedDevices(siteID string) ([]map[string]any, error) {
 // ListDeviceGroups returns every device group
 // (config-managed device collection) in the account.
 func (c *Client) ListDeviceGroups() ([]DeviceGroup, error) {
-	raw, err := c.paginateWithLimit("/network-config/v1alpha1/device-groups", nil, false, configPageLimit)
+	raw, err := c.paginateWithLimit("/network-config/v1/device-groups", nil, false, configPageLimit)
 	if err != nil {
 		return nil, err
 	}

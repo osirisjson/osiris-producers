@@ -439,7 +439,7 @@ func TestListSites_UsesConfigPageLimit(t *testing.T) {
 
 // TestListDeviceGroups_UsesConfigPageLimit mirrors
 // TestListSites_UsesConfigPageLimit for the sibling
-// /network-config/v1alpha1/device-groups endpoint.
+// /network-config/v1/device-groups endpoint.
 func TestListDeviceGroups_UsesConfigPageLimit(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if got := r.URL.Query().Get("limit"); got != strconv.Itoa(configPageLimit) {
