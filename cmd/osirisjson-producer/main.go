@@ -1,21 +1,23 @@
 /*
 main.go - Core dispatcher for OSIRIS JSON producer binaries.
 
-Discovers and executes vendor-specific producer binaries on $PATH using the
-naming convention osirisjson-producer-<vendor>. This is the unified entry point:
+Discovers and executes vendor-specific producer binaries on $PATH using
+the naming convention osirisjson-producer-<vendor>.
+This is the unified entry point:
 
 	osirisjson-producer cisco apic -h 10.0.0.1 -u admin
 	osirisjson-producer azure --subscription prod
 	osirisjson-producer --help
 
-The dispatcher itself has no vendor dependencies it is a thin routing layer.
-Each vendor binary (e.g. osirisjson-producer-cisco) is self-contained and can
-also be invoked directly.
+The dispatcher itself has no vendor dependencies it is a thin routing
+layer. Each vendor binary (e.g. osirisjson-producer-cisco) is
+self-contained and can also be invoked directly.
 
 Exit codes:
 
 	0 - producer completed successfully
-	1 - producer encountered a validation or runtime error (passed through from vendor binary)
+	1 - producer encountered a validation or runtime error (passed
+		through from vendor binary)
 	2 - operational error (unknown vendor, binary not found, etc.)
 */
 package main
@@ -59,6 +61,7 @@ var knownVendors = []knownVendor{
 	{"azure", "Microsoft Azure OSIRIS JSON producer", "go.osirisjson.org/producers/cmd/osirisjson-producer-azure"},
 	{"gcp", "[Under development] Google Cloud Platform OSIRIS JSON producer", ""},
 	{"cisco", "Cisco OSIRIS JSON producer (APIC, IOS-XR, NX-OS)", "go.osirisjson.org/producers/cmd/osirisjson-producer-cisco"},
+	{"hpe", "HPE OSIRIS JSON producer (Aruba Central)", "go.osirisjson.org/producers/cmd/osirisjson-producer-hpe"},
 }
 
 func main() {
