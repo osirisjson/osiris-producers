@@ -18,7 +18,7 @@
 // persists what was typed unless --token-file was also given.
 //
 // OSIRIS JSON Producer for HPE Aruba Networking Central introduction:
-// [OSIRIS-JSON-HPE-ARUBA-NETWORKING]: https://docs.osirisjson.org/osiris-producers/network/hpe-aruba-networking
+// [OSIRIS-JSON-HPE-ARUBA-NETWORKING]: https://docs.osirisjson.org/osiris-producers/network/hpe-aruba-networking-central
 // [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 
 package arubacentral
