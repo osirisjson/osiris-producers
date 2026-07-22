@@ -219,10 +219,8 @@ func saveTokenFile(path string, creds Credentials) error {
 // TokenFileTemplate returns a skeleton --token-file JSON document.
 func TokenFileTemplate() string {
 	return `{
-  "client_id": "your-api-gateway-client-id",
-  "client_secret": "your-api-gateway-client-secret",
-  "access_token": "your-access-token",
-  "refresh_token": "your-refresh-token"
+  "client_id": "add-here-your-api-client-id",
+  "client_secret": "add-here-your-api-client-secret"
 }
 `
 }
