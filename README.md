@@ -105,10 +105,10 @@ flowchart TD
 | **Amazon AWS** | Hyperscaler | [Available](https://docs.osirisjson.org/osiris-producers/hyperscalers/amazon-aws/) |
 | **Microsoft Azure** | Hyperscaler | [Available](https://docs.osirisjson.org/osiris-producers/hyperscalers/microsoft-azure/) |
 | **Google Cloud** | Hyperscaler | [Under development](https://osirisjson.org/en/commitments/roadmap) |
+| **HPE Aruba Central** | Network | [Available](https://docs.osirisjson.org/osiris-producers/network/hpe-aruba-networking-central) |
 | **Cisco** | Network | [Available](https://docs.osirisjson.org/osiris-producers/network/cisco/) |
 | **Cloudflare** | Hyperscaler | Planned |
 | **Proxmox VE** | Hypervisor | [Under development](https://osirisjson.org/en/commitments/roadmap) |
-| **HPE Aruba Central** | Network | [Under development](https://osirisjson.org/en/commitments/roadmap) |
 
 *For the complete roadmap, visit [osirisjson.org/en/commitments/roadmap](https://osirisjson.org/en/commitments/roadmap).*
 
