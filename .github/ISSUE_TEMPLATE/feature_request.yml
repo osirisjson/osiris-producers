@@ -1,0 +1,69 @@
+name: OSIRIS JSON Producer Feature request
+description: Propose a new capability for an existing OSIRIS JSON producer, the SDK, or tooling.
+title: "feat: <short summary>"
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For changes to the OSIRIS JSON specification or schema itself, open
+        an issue in [osirisjson/osiris](https://github.com/osirisjson/osiris/issues/new/choose)
+        instead this repository only covers OSIRIS JSON producer implementations.
+
+        Adding or suggest a brand new platform/vendor? Use the "OSIRIS JSON New producer" template
+        instead of this one.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Existing OSIRIS JSON producer (new resource type or field)
+        - pkg/sdk
+        - pkg/osirismeta (--purpose contract)
+        - cmd/osirisjson-producer (dispatcher)
+        - Tooling / CI / release process
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: >-
+        Explain the use case or limitation you are hitting. Per the
+        project's change process, discussion comes before implementation.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: >-
+        What would the emitted OSIRIS JSON, flag, or behavior look like?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: change-type
+    attributes:
+      label: Change type
+      description: >-
+        See CONTRIBUTING.md - editorial changes are reviewed faster than
+        normative ones.
+      options:
+        - Additive (new optional field/resource type, no breaking change)
+        - Breaking (changes shape/semantics of existing output)
+        - Not sure
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and this is not a duplicate
+          required: true

@@ -1,0 +1,94 @@
+name: OSIRIS JSON Producer Bug report
+description: Report incorrect, missing, or invalid output from an OSIRIS JSON producer.
+title: "bug: <short summary>"
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please search open and
+        closed issues first to avoid duplicates see also [CONTRIBUTING.md](https://github.com/osirisjson/osiris-producers/blob/main/CONTRIBUTING.md).
+
+        Do not paste real production data (IPs, hostnames, credentials, serial numbers). If needed use the test data ranges from RFC5737/RFC3849 instead.
+
+  - type: dropdown
+    id: producer
+    attributes:
+      label: Affected producer
+      description: Which producer package is affected?
+      options:
+        - Amazon AWS (osiris/hyperscalers/aws)
+        - Microsoft Azure (osiris/hyperscalers/azure)
+        - Cisco APIC (osiris/network/cisco/apic)
+        - Cisco IOS-XE (osiris/network/cisco/iosxe)
+        - Cisco NX-OS (osiris/network/cisco/nxos)
+        - HPE Aruba Networking Central (osiris/network/hpe/arubacentral)
+        - pkg/sdk
+        - pkg/osirismeta
+        - cmd/osirisjson-producer (dispatcher)
+        - Other / not sure
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Producer version
+      description: >-
+        Output of `osirisjson-producer-<vendor> --version`, or the
+        `generatorVersion` field in the emitted document.
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: >-
+        Command line invocation and flags used. Use sanitized test data, not
+        real infrastructure details.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: sample
+    attributes:
+      label: Sanitized OSIRIS JSON excerpt (optional)
+      description: >-
+        A minimal excerpt around the wrong or missing fields, with sensitive
+        values redacted or replaced with test data.
+      render: json
+
+  - type: input
+    id: go-version
+    attributes:
+      label: Go version
+      placeholder: "go version go1.25.0 linux/amd64"
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and this is not a duplicate
+          required: true
+        - label: >-
+            This report does not include real production data (e.g. IPs,
+            hostnames, credentials, serial numbers)
+          required: true

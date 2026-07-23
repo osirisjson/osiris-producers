@@ -1,0 +1,76 @@
+name: OSIRIS JSON New producer
+description: Propose adding a producer for a platform/vendor not yet implemented.
+title: "feat(<vendor>): add <vendor> producer"
+labels: ["new-producer", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing this, check whether the platform/vendor already has an empty
+        scaffolding directory under `osiris/` many are reserved but not
+        yet implemented. [See the roadmap](https://osirisjson.org/en/commitments/roadmap)
+
+  - type: input
+    id: vendor
+    attributes:
+      label: platform/vendor
+      placeholder: "e.g. Google Cloud Platform, VMware vCenter, Proxmox VE"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      description: Producers are grouped by category under osiris/ and cmd/.
+      options:
+        - hyperscalers (e.g. aws, azure, gcp, alibaba, ibm, oracle, tencent)
+        - network (e.g. cisco, hpe, arista, eos, nokia, ubiquiti)
+        - hostingproviders (e.g. digitalocean, hetzner, ovh, leaseweb)
+        - compute
+        - platforms (e.g. proxmox, vmware, nutanix, openstack)
+        - ot (e.g. schneider, zebra)
+        - storage
+        - Other / new category
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: scaffolding
+    attributes:
+      label: Existing scaffolding
+      options:
+        - label: >-
+            This platform/vendor already has an empty scaffolding directory under
+            osiris/ (checked before filing this issue)
+
+  - type: textarea
+    id: access
+    attributes:
+      label: Platform/vendor API / access method
+      description: >-
+        REST API, platform/vendor Go SDK, CLI shell-out (like Azure's `az` CLI),
+        SSH/CLI scraping (like Cisco), etc. Link to public API docs if
+        available.
+    validations:
+      required: true
+
+  - type: textarea
+    id: resources
+    attributes:
+      label: Resources and connections to capture
+      description: >-
+        Which resource types and relationships would this producer collect first?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Are you proposing to implement this yourself?
+      options:
+        - "Yes, I intend to open a PR"
+        - "No, requesting the community implement it"
+        - Not sure yet
+    validations:
+      required: true
