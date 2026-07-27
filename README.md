@@ -2,7 +2,7 @@
 
 [![GitHub license](https://img.shields.io/badge/license-Apache2.0-blue.svg)](https://raw.githubusercontent.com/osirisjson/osiris-producers/master/LICENSE)
 [![Go Reference](https://pkg.go.dev/badge/github.com/osirisjson/osiris-producers.svg)](https://pkg.go.dev/go.osirisjson.org/producers)
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=osirisjson_osiris-producers&metric=security_rating&token=341158228074a961caa8700b5b8ab74f7ac963b2)](https://sonarcloud.io/summary/new_code?id=osirisjson_osiris-producers)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=osirisjson_osiris-producers&metric=security_rating&token=341158228074a961caa8700b5b8ab74f7ac963b2)](https://sonarcloud.io/component_measures?metric=new_security_rating&id=osirisjson_osiris-producers)
 
 
 An **OSIRIS JSON Producer** is a lightweight, read-only program written in Go that runs on your workstation or server. It connects directly to supported infrastructure environments, discovers resources and relationships, normalizes vendor-specific data, redacts sensitive values, and generates a portable OSIRIS JSON document representing the infrastructure at a specific point in time.
