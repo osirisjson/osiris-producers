@@ -136,6 +136,7 @@ release:
   name_template: "v{{ .Version }}"
   header: |
     OSIRIS JSON Producers release **v{{ .Version }}**.
+    Learn how to get a portable snapshot of your IT and OT Infrastructure normalized in OSIRIS JSON format on [OSIRIS JSON Documentation](https://docs.osirisjson.org/osiris-producers/getting-started/) website.
 
     ### Install
 
