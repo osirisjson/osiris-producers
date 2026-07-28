@@ -46,7 +46,7 @@ nfpms:
     builds:
       - osirisjson-producer
     vendor: osirisjson.org
-    homepage: https://osirisjson.org
+    homepage: https://docs.osirisjson.org/osiris-producers/getting-started/
     maintainer: OSIRIS JSON <community@osirisjson.org>
     description: Generate private point-in-time infrastructure snapshots from hyperscalers, hosting and cloud providers and on-premises IT/OT systems as vendor-neutral OSIRIS JSON ready for reports, diagrams, audits, diffs, CMDB/IPAM/DCIM workflows and controlled AI/MCP context.
     license: Apache-2.0
@@ -64,13 +64,64 @@ brews:
       owner: osirisjson
       name: homebrew-osiris-producers
       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
-    homepage: "https://osirisjson.org"
+    homepage: "https://docs.osirisjson.org/osiris-producers/getting-started/"
     description: "Generate private point-in-time infrastructure snapshots from hyperscalers, hosting and cloud providers and on-premises IT/OT systems as vendor-neutral OSIRIS JSON ready for reports, diagrams, audits, diffs, CMDB/IPAM/DCIM workflows and controlled AI/MCP context."
     license: "Apache-2.0"
     install: |
       bin.install "osirisjson-producer"
     test: |
       system "#{bin}/osirisjson-producer", "--version"
+
+scoops:
+  - name: osirisjson-producer
+    ids:
+      - bundle
+    repository:
+      owner: osirisjson
+      name: scoop-osiris-producers
+      token: "{{ .Env.SCOOP_BUCKET_TOKEN }}"
+    directory: bucket
+    homepage: "https://docs.osirisjson.org/osiris-producers/getting-started/"
+    description: "Generate private point-in-time infrastructure snapshots from hyperscalers, hosting and cloud providers and on-premises IT/OT systems as vendor-neutral OSIRIS JSON ready for reports, diagrams, audits, diffs, CMDB/IPAM/DCIM workflows and controlled AI/MCP context."
+    license: Apache-2.0
+    skip_upload: auto
+
+winget:
+  - name: osirisjson-producer
+    ids:
+      - bundle
+    publisher: osirisjson
+    publisher_url: "https://docs.osirisjson.org/osiris-producers/getting-started/"
+    publisher_support_url: "https://github.com/osirisjson/osiris-producers/issues"
+    package_identifier: osirisjson.osirisjson-producer
+    short_description: "Generate private point-in-time infrastructure snapshots as vendor-neutral OSIRIS JSON."
+    description: "Generate private point-in-time infrastructure snapshots from hyperscalers, hosting and cloud providers and on-premises IT/OT systems as vendor-neutral OSIRIS JSON ready for reports, diagrams, audits, diffs, CMDB/IPAM/DCIM workflows and controlled AI/MCP context."
+    license: Apache-2.0
+    license_url: "https://github.com/osirisjson/osiris-producers/blob/main/LICENSE"
+    homepage: "https://docs.osirisjson.org/osiris-producers/getting-started/"
+    tags:
+      - infrastructure
+      - inventory
+      - network
+      - cloud
+      - hyperscalers
+      - topology
+      - on-premise
+      - tools
+      - audit
+      - json
+    skip_upload: auto
+    repository:
+      owner: osirisjson
+      name: winget-pkgs
+      branch: "osirisjson-producer-{{ .Version }}"
+      token: "{{ .Env.WINGET_GITHUB_TOKEN }}"
+      pull_request:
+        enabled: true
+        base:
+          owner: microsoft
+          name: winget-pkgs
+          branch: master
 
 checksum:
   name_template: "osiris-producers_{{ .Version }}_checksums.txt"
@@ -96,7 +147,18 @@ release:
 
     **Linux** - install via the `.deb` or `.rpm` packages listed below, or extract the archive.
 
-    **Windows** - download the `.zip` archive below, extract and run `osirisjson-producer.exe`.
+    **Windows** (winget):
+    ```powershell
+    winget install osirisjson.osirisjson-producer
+    ```
+
+    **Windows** (Scoop):
+    ```powershell
+    scoop bucket add osiris-producers https://github.com/osirisjson/scoop-osiris-producers
+    scoop install osirisjson-producer
+    ```
+
+    **Windows** (manual) - download the `.zip` archive below, extract and run `osirisjson-producer.exe`.
     SmartScreen may show "Windows protected your PC" (not yet signed) - click **More info** -> **Run anyway**,
     or right-click the .exe -> Properties -> check **Unblock** -> OK.
 

@@ -24,14 +24,16 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - name: Generate Homebrew tap token
+      - name: Generate package repository token
         id: tap-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           client-id: ${{ secrets.TAP_APP_ID }}
           private-key: ${{ secrets.TAP_APP_PRIVATE_KEY }}
           owner: osirisjson
-          repositories: homebrew-osiris-producers
+          repositories: |
+            homebrew-osiris-producers
+            scoop-osiris-producers
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@5daf1e915a5f0af01ddbcd89a43b8061ff4f1a89 # v7.2.2
@@ -42,3 +44,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_TAP_TOKEN: ${{ steps.tap-token.outputs.token }}
+          SCOOP_BUCKET_TOKEN: ${{ steps.tap-token.outputs.token }}
+          WINGET_GITHUB_TOKEN: ${{ secrets.WINGET_GITHUB_TOKEN }}
