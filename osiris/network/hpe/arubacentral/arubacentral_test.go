@@ -138,10 +138,10 @@ func TestUnmanagedDeviceMAC(t *testing.T) {
 		serial string
 		want   string
 	}{
-		{name: "valid tpd_ prefix", serial: "tpd_003a9c3d2e4a", want: "00:00:5E:00:53:14"},
+		{name: "valid tpd_ prefix", serial: "tpd_00005e005314", want: "00:00:5e:00:53:14"},
 		{name: "no tpd_ prefix", serial: "SERIAL-EXAMPLE-0001", want: ""},
-		{name: "wrong length after prefix", serial: "tpd_003a9c3d2e", want: ""},
-		{name: "non-hex after prefix", serial: "tpd_00zz9c3d2e4a", want: ""},
+		{name: "wrong length after prefix", serial: "tpd_00005e0053", want: ""},
+		{name: "non-hex after prefix", serial: "tpd_00zz5e005314", want: ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -883,9 +883,9 @@ func TestProducerCollect_UnmanagedDeviceAndIsolatedDevices(t *testing.T) {
 		"/network-monitoring/v1/config-health/SERIAL-EXAMPLE-0001/summary":        map[string]any{},
 		"/network-monitoring/v1/config-health/SERIAL-EXAMPLE-0001/issues":         map[string]any{},
 		"/network-monitoring/v1/neighbours/SERIAL-EXAMPLE-0001": []any{
-			map[string]any{"type": "Unmanaged", "_serial": "SERIAL-EXAMPLE-0001", "serial": "tpd_003a9c3d2e4a", "localPort": "1/1/1", "toPort": "eth0", "name": "example-unmanaged-switch", "siteId": "site-a-id"},
+			map[string]any{"type": "Unmanaged", "_serial": "SERIAL-EXAMPLE-0001", "serial": "tpd_00005e005314", "localPort": "1/1/1", "toPort": "eth0", "name": "example-unmanaged-switch", "siteId": "site-a-id"},
 		},
-		"/network-monitoring/v1/unmanaged-device/00:00:5E:00:53:22": map[string]any{"vendor": "Example Corp"},
+		"/network-monitoring/v1/unmanaged-device/00:00:5e:00:53:14": map[string]any{"vendor": "Example Corp"},
 		"/network-monitoring/v1/aps":                                empty, "/network-monitoring/v1/wlans": empty, "/network-monitoring/v1/radios": empty,
 		"/network-monitoring/v1/bssids": empty, "/network-monitoring/v1/swarms": empty, "/network-monitoring/v1/gateways": empty,
 		"/network-monitoring/v1/clients": empty,
@@ -922,7 +922,7 @@ func TestProducerCollect_UnmanagedDeviceAndIsolatedDevices(t *testing.T) {
 
 	var stub *sdk.Resource
 	for i, r := range doc.Topology.Resources {
-		if r.Provider.NativeID == "tpd_003a9c3d2e4a" {
+		if r.Provider.NativeID == "tpd_00005e005314" {
 			stub = &doc.Topology.Resources[i]
 		}
 	}
@@ -946,7 +946,7 @@ func TestProducerCollect_UnmanagedDeviceAndIsolatedDevices(t *testing.T) {
 	}
 	siteExt, _ := site.Extensions[extensionNamespace].(map[string]any)
 	isolated, _ := siteExt["isolated_devices_raw"].([]map[string]any)
-	if len(isolated) != 1 || isolated[0]["macAddress"] != "00:00:5E:00:53:12" {
+	if len(isolated) != 1 || isolated[0]["macAddress"] != "00:00:5E:00:53:00" {
 		t.Errorf("expected isolated_devices_raw on the site resource, got %+v", siteExt)
 	}
 }
