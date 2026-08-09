@@ -156,7 +156,7 @@ func TestTransformOMPLinksAndPeers_DedupeAcrossSources(t *testing.T) {
 		{State: "up", ASystemIP: "192.0.2.10", BSystemIP: "192.0.2.11"},
 	}
 	peers := []OMPPeer{
-		{Peer: "10.0.1.1", State: "up"},
+		{Peer: "198.51.100.1", State: "up"},
 	}
 	systemIPToDeviceID := map[string]string{
 		"192.0.2.10": "cisco.vmanage::TST0000001",

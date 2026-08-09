@@ -320,7 +320,7 @@ func TestGetDeviceInterfaces_EnvelopeShape(t *testing.T) {
 			t.Errorf("deviceId query param = %q, want %q", got, "192.0.2.10")
 		}
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"data":[{"vdevice-host-name":"192.0.2.10","ifname":"GigabitEthernet1","af-type":"ipv4","ip-address":"10.0.1.10/24","hwaddr":"02:00:00:00:53:01","if-admin-status":"Up","if-oper-status":"Up","vpn-id":"0","port-type":"transport"}]}`)
+		fmt.Fprint(w, `{"data":[{"vdevice-host-name":"192.0.2.10","ifname":"GigabitEthernet1","af-type":"ipv4","ip-address":"198.51.100.10/24","hwaddr":"02:00:00:00:53:01","if-admin-status":"Up","if-oper-status":"Up","vpn-id":"0","port-type":"transport"}]}`)
 	}))
 	defer ts.Close()
 
@@ -364,7 +364,7 @@ func TestGetDeviceInterfaces_TolerantOfNumericSpeedAndMtu(t *testing.T) {
 func TestGetWANInterfaces_EnvelopeShape(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"data":[{"vdevice-host-name":"192.0.2.10","interface":"GigabitEthernet1","color":"lte","private-ip":"10.0.1.10","public-ip":"203.0.113.10","nat-type":"E","operation-state":"up"}]}`)
+		fmt.Fprint(w, `{"data":[{"vdevice-host-name":"192.0.2.10","interface":"GigabitEthernet1","color":"lte","private-ip":"198.51.100.10","public-ip":"203.0.113.10","nat-type":"E","operation-state":"up"}]}`)
 	}))
 	defer ts.Close()
 
@@ -381,7 +381,7 @@ func TestGetWANInterfaces_EnvelopeShape(t *testing.T) {
 func TestGetSiteTopologyMonitor_EnvelopeShape(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"data":[{"device-id":"TST0000001","device-health":"green","circuits":[{"color":"lte","system_ip":"10.0.1.10","circuit-health":"green","tunnels":[{"name":"10.0.1.10:lte-10.0.1.11:lte","health":"green","state":"Up","vqoe_score":9}]}]}]}`)
+		fmt.Fprint(w, `{"data":[{"device-id":"TST0000001","device-health":"green","circuits":[{"color":"lte","system_ip":"192.0.2.10","circuit-health":"green","tunnels":[{"name":"198.51.100.10:lte-198.51.100.11:lte","health":"green","state":"Up","vqoe_score":9}]}]}]}`)
 	}))
 	defer ts.Close()
 
@@ -393,7 +393,7 @@ func TestGetSiteTopologyMonitor_EnvelopeShape(t *testing.T) {
 	if len(devices) != 1 || len(devices[0].Circuits) != 1 || len(devices[0].Circuits[0].Tunnels) != 1 {
 		t.Fatalf("unexpected site topology: %+v", devices)
 	}
-	if devices[0].Circuits[0].Tunnels[0].Name != "10.0.1.10:lte-10.0.1.11:lte" {
+	if devices[0].Circuits[0].Tunnels[0].Name != "198.51.100.10:lte-198.51.100.11:lte" {
 		t.Errorf("tunnel name = %q", devices[0].Circuits[0].Tunnels[0].Name)
 	}
 }
@@ -409,7 +409,7 @@ func TestGetOMPLinks_QueriesBothStatesAndMerges(t *testing.T) {
 		state := r.URL.Query().Get("state")
 		seenStates = append(seenStates, state)
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, `{"data":[{"state":%q,"adeviceId":"10.0.1.10","bdeviceId":"10.0.1.11","asystem-ip":"10.0.1.10","bsystem-ip":"10.0.1.11","asite-id":"100","bsite-id":"100","ahost-name":"TEST-VEDGE1","bhost-name":"TEST-VEDGE2","apersonality":"vedge","bpersonality":"vedge"}]}`, state)
+		fmt.Fprintf(w, `{"data":[{"state":%q,"adeviceId":"192.0.2.10","bdeviceId":"192.0.2.11","asystem-ip":"192.0.2.10","bsystem-ip":"192.0.2.11","asite-id":"100","bsite-id":"100","ahost-name":"TEST-VEDGE1","bhost-name":"TEST-VEDGE2","apersonality":"vedge","bpersonality":"vedge"}]}`, state)
 	}))
 	defer ts.Close()
 
@@ -429,16 +429,16 @@ func TestGetOMPLinks_QueriesBothStatesAndMerges(t *testing.T) {
 func TestGetOMPPeers_EnvelopeShape(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"data":[{"vdevice-host-name":"10.0.1.10","peer":"10.0.1.1","type":"vsmart","state":"up"}]}`)
+		fmt.Fprint(w, `{"data":[{"vdevice-host-name":"192.0.2.10","peer":"192.0.2.1","type":"vsmart","state":"up"}]}`)
 	}))
 	defer ts.Close()
 
 	c := newTestClient(t, ts)
-	peers, err := c.GetOMPPeers("10.0.1.10")
+	peers, err := c.GetOMPPeers("192.0.2.10")
 	if err != nil {
 		t.Fatalf("GetOMPPeers failed: %v", err)
 	}
-	if len(peers) != 1 || peers[0].Peer != "10.0.1.1" {
+	if len(peers) != 1 || peers[0].Peer != "192.0.2.1" {
 		t.Fatalf("unexpected OMP peers: %+v", peers)
 	}
 }
