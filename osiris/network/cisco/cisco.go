@@ -1,18 +1,26 @@
-// Package cisco implements the Cisco vendor entry point for the OSIRIS JSON producer CLI.
-// Dispatches to sub-producers (APIC, NX-OS, IOS-XE) and handles the
-// template generation command.
+// Package cisco implements the Cisco vendor entry point for the
+// OSIRIS JSON producer CLI.
+
+// Dispatches to sub-producers (APIC, NX-OS, IOS-XE, vManage) and
+// handles the template generation command.
+//
+// vManage is dispatched separately from the other three: it does not
+// implement cisco/run.ProducerFactory (one controller login fans out
+// into many per-site documents, unlike the one-CSV-row-per-device shape
+// the others share), so it is special-cased in Run below instead of
+// going through the subProducers/factoryRegistry table.
 //
 // Usage:
 //
 //	osirisjson-producer cisco apic [flags]
 //	osirisjson-producer cisco nxos [flags]
 //	osirisjson-producer cisco iosxe [flags]
-//	osirisjson-producer cisco template --generate [apic|nxos|iosxe]
+//	osirisjson-producer cisco vmanage [flags]
+//	osirisjson-producer cisco template --generate [flags]
 //
-// For an introduction to OSIRIS JSON Producer for Cisco see:
-// "[OSIRIS-JSON-CISCO]."
-//
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
+// OSIRIS JSON Producer for Cisco introduction:
+// [OSIRIS-JSON-CISCO]: https://docs.osirisjson.org/osiris-producers/network/cisco
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 package cisco
 
 import (
@@ -25,6 +33,7 @@ import (
 	"go.osirisjson.org/producers/osiris/network/cisco/iosxe"
 	"go.osirisjson.org/producers/osiris/network/cisco/nxos"
 	"go.osirisjson.org/producers/osiris/network/cisco/run"
+	"go.osirisjson.org/producers/osiris/network/cisco/vmanage"
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
@@ -32,7 +41,7 @@ import (
 type subProducer struct {
 	name        string
 	description string
-	factory     run.ProducerFactory // nil until the producer is implemented.
+	factory     run.ProducerFactory
 }
 
 var subProducers = []subProducer{
@@ -54,7 +63,7 @@ func factoryRegistry() run.FactoryRegistry {
 }
 
 // Run is the entry point called by the CLI dispatcher.
-// It receives the arguments after "cisco" (e.g. ["apic", "-h", "10.0.0.1"]).
+// It receives the arguments after "cisco".
 func Run(args []string) error {
 	if len(args) == 0 {
 		printHelp()
@@ -70,6 +79,8 @@ func Run(args []string) error {
 		return nil
 	case "template":
 		return runTemplate(subArgs)
+	case "vmanage":
+		return vmanage.Run(subArgs)
 	}
 
 	// Look up sub-producer.
@@ -83,14 +94,16 @@ func Run(args []string) error {
 }
 
 func runSubProducer(sp subProducer, args []string) error {
-	// Handle --help for unimplemented producers. Note: -h is NOT help here, it's the short flag for --host in our flag set.
+	// Handle --help for unimplemented producers.
+	// Note: -h is not help here, it's the short flag for --host in
+	// the flag set.
 	if len(args) > 0 && args[0] == "--help" {
 		fmt.Printf("osirisjson-producer cisco %s - %s\n\n", sp.name, sp.description)
 		if sp.factory == nil {
 			fmt.Printf("Status: not yet implemented\n")
 			return nil
 		}
-		// When implemented, ParseFlags will handle --help via flag.FlagSet.
+		// When implemented ParseFlags handle --help via flag.FlagSet.
 	}
 
 	if sp.factory == nil {
@@ -111,7 +124,7 @@ func runSubProducer(sp subProducer, args []string) error {
 	return runSingle(cfg, sp.factory)
 }
 
-// runSingle executes a single-target collection and writes to a local file.
+// runSingle executes a single-target collection and writes local file.
 // Output filename: cisco-<type>-<timestamp>-<hostname>.json
 func runSingle(cfg *run.RunConfig, factory run.ProducerFactory) error {
 	target := cfg.Targets[0]
@@ -199,36 +212,41 @@ Subcommands:
 		}
 		fmt.Printf("  %-8s  %s (%s)\n", sp.name, sp.description, status)
 	}
+	fmt.Printf("  %-8s  %s (%s)\n", "vmanage", "Cisco Catalyst SD-WAN Manager (vManage) site inventory", "ready")
 
 	fmt.Print(`
   template  Generate CSV batch template
 
-Single mode flags:
+Single mode flags (apic, nxos, iosxe):
   -h, --host        	Target host (IP or FQDN, optionally with :port)
   -u, --username    	Username for authentication
-  -p, --password    	Password (omit for interactive prompt)
   -P, --port        	Override port (default: producer-specific)
   --detail          	Detail level: minimal or detailed (default: minimal)
   --safe-failure-mode	Secret handling: fail-closed, log-and-redact, off (default: fail-closed)
   --insecure        	Skip TLS certificate verification
 
-Batch mode flags:
+Batch mode flags (apic, nxos, iosxe):
   -s, --source      	CSV file with targets (dc,floor,room,zone,hostname,type,ip,port,owner,notes)
   -o, --output      	Output directory (files organized as DC/Floor/Room/Zone/Hostname.json)
   -u, --username    	Default username for all targets
-  -p, --password    	Default password for all targets
 
   Generate a CSV template:
     osirisjson-producer cisco template --generate apic
 
+vmanage flags: run 'osirisjson-producer cisco vmanage --help' (no CSV
+batch mode one run targets one controller and fans out into one
+document per WAN edge site).
+
 Output:
-  Single mode saves to: cisco-<type>-<timestamp>-<hostname>.json
-  Batch mode saves to:  <output>/DC/Floor/Room/Zone/Hostname.json
+  apic/nxos/iosxe single mode saves to: cisco-<type>-<timestamp>-<hostname>.json
+  apic/nxos/iosxe batch mode saves to:  <output>/DC/Floor/Room/Zone/Hostname.json
+  vmanage saves to:                     <output>/<site-name>/cisco-vmanage-<timestamp>-<site-name>.json
 
 Examples:
-  osirisjson-producer cisco apic -h 10.0.0.1 -u admin -p secret
-  osirisjson-producer cisco nxos -h switch.lab:8443 -u admin --insecure
-  osirisjson-producer cisco apic -s datacenter.csv -o ./output -u admin -p secret
+  osirisjson-producer cisco apic -h 10.0.0.1 -u username
+  osirisjson-producer cisco nxos -h switch.lab:8443 -u username --insecure
+  osirisjson-producer cisco apic -s datacenter.csv -o ./output -u username
+  osirisjson-producer cisco vmanage -h acme.sdwan.cisco.com -u username
   osirisjson-producer cisco template --generate apic
 `)
 }
