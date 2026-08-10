@@ -3,7 +3,7 @@
 //
 // vManage is a single WAN-overlay controller: one login authenticates
 // against one controller (reachable at a customer-specific domain such
-// as acme.sdwan.cisco.com) which manages many WAN edge sites. A single
+// as vmanage.example.com) which manages many WAN edge sites. A single
 // vManage run fans out into many documents: one per WAN edge site,
 // grouped by device site-id.
 //

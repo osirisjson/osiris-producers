@@ -34,8 +34,8 @@ const (
 	generatorURL     = "https://docs.osirisjson.org/osiris-producers/network/cisco"
 )
 
-// Run is the CLI entry point for the vManage producer. It receives the
-// arguments after "vmanage" (e.g. ["-h", "acme.sdwan.cisco.com", "-u", "admin"]).
+// Run is the CLI entry point for the vManage producer.
+// It receives the arguments after "vmanage".
 func Run(args []string) error {
 	// Only the long form is checked here: -h is the documented short
 	// flag for --host (see flags.go), so it must reach ParseFlags
@@ -60,19 +60,21 @@ func Run(args []string) error {
 	return runExport(cfg)
 }
 
-// runTemplate writes a --token-file skeleton to
-// cisco-vmanage-secrets.json.
+// runTemplate writes both --secrets-file shapes, flat
+// (cisco-vmanage-secrets.json) and multi-host
+// (cisco-vmanage-secrets-multihost.json) via the shared
+// run.WriteTemplateFile vmanage has no CSV batch mode, so unlike
+// apic/iosxe/nxos it does not call run.GenerateTemplates only the two
+// --secrets-file variants apply here, not a CSV template.
 func runTemplate(args []string) error {
 	if len(args) == 0 || (args[0] != "--generate" && args[0] != "-g") {
 		fmt.Println("Usage: osirisjson-producer cisco vmanage template --generate")
 		return nil
 	}
-	filename := "cisco-vmanage-secrets.json"
-	if err := os.WriteFile(filename, []byte(TokenFileTemplate()), 0600); err != nil {
-		return fmt.Errorf("failed to write template: %w", err)
+	if err := run.WriteTemplateFile("cisco-vmanage-secrets.json", run.CredentialFileTemplate("vmanage.example.com")); err != nil {
+		return err
 	}
-	fmt.Printf("Template saved to %s\n", filename)
-	return nil
+	return run.WriteTemplateFile("cisco-vmanage-secrets-multihost.json", run.CredentialRulesFileTemplate("vmanage01.example.com", "vmanage02.example.com"))
 }
 
 // runExport authenticates once against the controller, fetches the
@@ -494,25 +496,25 @@ from 1 (very conservative) up to your controller's full observed limit.
 Authentication: there is deliberately no -p/--password flag, CLI flag
 values are visible to any local user (e.g. via ps) and get written to
 shell history. host/username/password are each resolved in this order:
-their own -h/-u flag, then --token-file, then (for whichever is still
+their own -h/-u flag, then --secrets-file, then (for whichever is still
 missing) an interactive prompt on the controlling terminal so a bare
 "osirisjson-producer cisco vmanage" with no flags at all asks for
 host, username and password one at a time, and nothing entered there
-is written to disk unless --token-file was also given.
+is written to disk unless --secrets-file was also given.
 
 Flags:
 `)
 	fmt.Print(FlagsUsage())
 	fmt.Print(`
 Other commands:
-  template --generate	Write a --token-file skeleton to cisco-vmanage-secrets.json
+  template --generate	Write a --secrets-file skeleton to cisco-vmanage-secrets.json
 
 Examples:
 	osirisjson-producer cisco vmanage
-	osirisjson-producer cisco vmanage -h acme.sdwan.cisco.com -u admin
-	osirisjson-producer cisco vmanage --token-file ./cisco-vmanage-secrets.json
-	osirisjson-producer cisco vmanage --token-file ./cisco-vmanage-secrets.json --purpose audit --site "MXP,Branch-1"
-	osirisjson-producer cisco vmanage --token-file ./cisco-vmanage-secrets.json --all -o ./output
+	osirisjson-producer cisco vmanage -h vmanage.example.com -u admin
+	osirisjson-producer cisco vmanage --secrets-file ./cisco-vmanage-secrets.json
+	osirisjson-producer cisco vmanage --secrets-file ./cisco-vmanage-secrets.json --purpose audit --site "MXP,Branch-1"
+	osirisjson-producer cisco vmanage --secrets-file ./cisco-vmanage-secrets.json --all -o ./output
 	osirisjson-producer cisco vmanage template --generate
 `)
 }

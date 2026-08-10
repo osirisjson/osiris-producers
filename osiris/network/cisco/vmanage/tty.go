@@ -4,7 +4,7 @@
 // Password prompting reuses osiris/network/cisco/run.PromptPassword
 // (hidden echo, shared with apic/nxos/iosxe). Host/username are visible
 // prompts specific to vmanage's fuller interactive login flow (see
-// flags.go's ParseFlags fallback chain: flag, then --token-file, then
+// flags.go's ParseFlags fallback chain: flag, then --secrets-file, then
 // this prompt) - apic/nxos/iosxe never need to ask for host/username
 // interactively, so this stays local to vmanage rather than living in
 // the shared run package.
