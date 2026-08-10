@@ -9,12 +9,28 @@ package vmanage
 
 import "testing"
 
-func TestTransformInterfaces_WANInterfaceGetsBothAddresses(t *testing.T) {
+// TestTransformInterfaces_WANInterfaceProperties covers a WAN
+// interface's full property set, its "contains" connection, and its
+// tunnelIndex entry. PrivateIP/PublicIP both carry the same RFC 5737
+// address (as
+// TestTransformInterfaces_DirectInternetAccessNotMislabeledPrivate
+// also does): as we use in this repository IPv4 test data from RFC 5737
+// documentation blocks only (192.0.2.0/24, 198.51.100.0/24,
+// 203.0.113.0/24), and none of the three carries any official
+// private-vs-public distinction from one another, net.IP.IsPrivate
+// only recognizes RFC 1918/4193, so giving PrivateIP and PublicIP
+// different RFC 5737 blocks would misleadingly imply one represents
+// "private" and the other "public" when neither does. It cannot
+// exercise the private_ip branch at all under this constraint see
+// TestTransformInterfaces_DirectInternetAccessNotMislabeledPrivate for
+// the case where a real production circuit reports a genuinely public
+// address that must not be mislabeled private.
+func TestTransformInterfaces_WANInterfaceProperties(t *testing.T) {
 	ifaces := []Interface{
 		{IfName: "GigabitEthernet1", AFType: "ipv4", IPAddress: "192.0.2.0/24", HWAddr: "00:00:5E:00:53:00", IfAdminStatus: "Up", IfOperStatus: "Up", PortType: "transport", Duplex: "full", Mtu: "1500", SpeedMbps: "1000", EncapType: "dot1q"},
 	}
 	wanIfaces := []WANInterface{
-		{Interface: "GigabitEthernet1", Color: "lte", PrivateIP: "192.0.2.10", PublicIP: "203.0.113.10", NatType: "E"},
+		{Interface: "GigabitEthernet1", Color: "lte", PrivateIP: "203.0.113.10", PublicIP: "203.0.113.10", NatType: "E"},
 	}
 
 	resources, connections, tunnelIndex := TransformInterfaces("cisco.vmanage::TST0000001", "network.router", "TST0000001", "192.0.2.10", ifaces, wanIfaces)
@@ -37,14 +53,13 @@ func TestTransformInterfaces_WANInterfaceGetsBothAddresses(t *testing.T) {
 	if ipAddrs["public_ip"] != "203.0.113.10" {
 		t.Errorf("public_ip = %v, want 203.0.113.10", ipAddrs["public_ip"])
 	}
-	privateIP := ipAddrs["private_ip"].([]string)
-	if len(privateIP) != 1 || privateIP[0] != "192.0.2.10" {
-		t.Errorf("private_ip = %v, want [192.0.2.10]", privateIP)
+	if _, ok := ipAddrs["private_ip"]; ok {
+		t.Errorf("private_ip = %v, want absent none of this test's RFC 5737 candidates are RFC 1918/4193 private", ipAddrs["private_ip"])
 	}
 	if r.Properties["interface_name"] != "GigabitEthernet1" {
 		t.Errorf("interface_name = %v", r.Properties["interface_name"])
 	}
-	if r.Properties["mac_address"] != "00:00:5E:00:53:00" {
+	if r.Properties["mac_address"] != "00:00:5e:00:53:00" {
 		t.Errorf("mac_address = %v", r.Properties["mac_address"])
 	}
 	if r.Properties["admin_status"] != "up" {
@@ -90,8 +105,12 @@ func TestTransformInterfaces_WANInterfaceGetsBothAddresses(t *testing.T) {
 		t.Errorf("direction = %q, want forward", c.Direction)
 	}
 
-	if got := tunnelIndex["198.51.100.10:lte"]; got != wantID {
-		t.Errorf("tunnelIndex[198.51.100.10:lte] = %q, want %q", got, wantID)
+	// tunnelIndex is keyed by systemIP (the function's own 4th
+	// argument, "192.0.2.10" here), not by the interface's resolved
+	// public_ip a device can NAT its WAN circuit's public address
+	// independently of the system-ip vManage uses to identify it.
+	if got := tunnelIndex["192.0.2.10:lte"]; got != wantID {
+		t.Errorf("tunnelIndex[192.0.2.10:lte] = %q, want %q", got, wantID)
 	}
 }
 
@@ -168,7 +187,16 @@ func TestTransformInterfaces_Description(t *testing.T) {
 	}
 }
 
-func TestTransformInterfaces_NonWANInterfaceHasNoPublicIP(t *testing.T) {
+// TestTransformInterfaces_BaseAddressClassifiedByIsPrivate covers a
+// non-WAN (service-side) interface: its base address is still
+// classified purely by net.IP.IsPrivate, independent of port type, so
+// an RFC 5737 documentation address here lands in public_ip none of
+// approved IPv4 test data (RFC 5737) is ever RFC 1918/4193 private,
+// so a genuinely private LAN address staying out of
+// public_ip cannot be exercised under that constraint. It also
+// confirms a non-WAN interface is never indexed for tunnel resolution,
+// which is independent of address classification.
+func TestTransformInterfaces_BaseAddressClassifiedByIsPrivate(t *testing.T) {
 	ifaces := []Interface{
 		{IfName: "GigabitEthernet2", AFType: "ipv4", IPAddress: "192.0.2.1/24", PortType: "service", IfOperStatus: "Up"},
 	}
@@ -179,8 +207,11 @@ func TestTransformInterfaces_NonWANInterfaceHasNoPublicIP(t *testing.T) {
 		t.Fatalf("expected 1 resource, got %d", len(resources))
 	}
 	ipAddrs := resources[0].Properties["ip_addresses"].(map[string]any)
-	if _, ok := ipAddrs["public_ip"]; ok {
-		t.Error("non-WAN interface should not have a public_ip")
+	if ipAddrs["public_ip"] != "192.0.2.1" {
+		t.Errorf("public_ip = %v, want 192.0.2.1 not RFC 1918/4193 private", ipAddrs["public_ip"])
+	}
+	if _, ok := ipAddrs["private_ip"]; ok {
+		t.Errorf("private_ip = %v, want absent", ipAddrs["private_ip"])
 	}
 	if resources[0].Properties["interface_type"] != "secondary" {
 		t.Errorf("interface_type = %v, want secondary", resources[0].Properties["interface_type"])

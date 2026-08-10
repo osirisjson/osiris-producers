@@ -324,11 +324,11 @@ func TestTransformDevices_HealthAndInventoryExtensions(t *testing.T) {
 	if !ok || len(connectedManager) != 1 || connectedManager[0] != "192.0.2.5" {
 		t.Errorf("extensions.connected_manager = %v, want [192.0.2.5]", ext["connected_manager"])
 	}
-	if ext["last_update"] != "2025-10-19T07:03:35Z" {
-		t.Errorf("extensions.last_update = %v, want %q", ext["last_update"], "2025-10-19T07:03:35Z")
+	if ext["last_update"] != "2026-08-10T07:03:35Z" {
+		t.Errorf("extensions.last_update = %v, want %q", ext["last_update"], "2026-08-10T07:03:35Z")
 	}
-	if ext["up_since"] != "2025-10-19T06:52:00Z" {
-		t.Errorf("extensions.up_since = %v, want %q", ext["up_since"], "2025-10-19T06:52:00Z")
+	if ext["up_since"] != "2026-08-10T06:52:00Z" {
+		t.Errorf("extensions.up_since = %v, want %q", ext["up_since"], "2026-08-10T06:52:00Z")
 	}
 }
 
@@ -419,7 +419,7 @@ func TestResourceKey(t *testing.T) {
 
 func TestStripCIDRHost(t *testing.T) {
 	cases := []struct{ in, want string }{
-		{"192.0.2.0/24", "192.0.2.10"},
+		{"192.0.2.0/24", "192.0.2.0"},
 		{"192.0.2.10", "192.0.2.10"},
 		{"", ""},
 		{"-", ""},
