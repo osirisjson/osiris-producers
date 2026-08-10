@@ -27,6 +27,8 @@ producer behavior versions shipped under each module tag.
   [`osiris/network/cisco/iosxe/CHANGELOG.md`](osiris/network/cisco/iosxe/CHANGELOG.md)
 - OSIRIS JSON producer for Cisco NX-OS:
   [`osiris/network/cisco/nxos/CHANGELOG.md`](osiris/network/cisco/nxos/CHANGELOG.md)
+- OSIRIS JSON producer for Cisco vManage:
+  [`osiris/network/cisco/vmanage/CHANGELOG.md`](osiris/network/cisco/vmanage/CHANGELOG.md)
 - OSIRIS JSON producer for HPE Aruba Networking Central:
   [`osiris/network/hpe/arubacentral/CHANGELOG.md`](osiris/network/hpe/arubacentral/CHANGELOG.md)
 
@@ -41,6 +43,42 @@ Repository](https://github.com/osirisjson/osiris).
 
 ## [Unreleased]
 
+## [0.6.5] - 2026-08-09
+Cisco Catalyst SD-WAN Manager (vManage) OSIRIS JSON producer.
+
+| Producer | Behavior version |
+|----------|------------------|
+| Cisco vManage OSIRIS JSON producer | [0.1.0](osiris/network/cisco/vmanage/CHANGELOG.md#010---2026-08-09) (initial release) |
+| Amazon Web Services OSIRIS JSON producer | 0.1.1 (no change) |
+| Microsoft Azure OSIRIS JSON producer | 0.5.1 (no change) |
+| Cisco APIC OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco IOS-XE OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco NX-OS OSIRIS JSON producer | 0.1.0 (no change) |
+| HPE Aruba Networking Central OSIRIS JSON producer | 0.1.0 (no change) |
+
+### Highlights (Cisco vManage 0.1.0)
+- **Full WAN edge site topology:** devices (controllers and WAN edges),
+  interfaces, SD-WAN tunnels, OMP control-plane peering, and a
+  `physical.room` group per site with geo-coordinates.
+- **One document per site:** a single controller login fans out into
+  one OSIRIS JSON document per WAN edge site, grouped by device
+  site-id.
+- **No inline password:** there is deliberately no `-p`/
+  `--password` flag. Host/username/password each fall back through
+  flag, then `--token-file`, then an interactive prompt a bare
+  `osirisjson-producer cisco vmanage` with no flags works end to end.
+- **`--include-raw-body`:** opt-in lossless fallback for `--purpose
+  audit` runs. Each collected endpoint's raw response body is attached
+  to the owning device resource, so any field not yet promoted to a
+  typed property is immediately accessible without extra API calls.
+- **Single-sourced `--help`:** the flag table shown by `--help` and the
+  one shown as a parse-error fallback are generated from the same flag
+  registration, so they can never drift apart.
+
+See the [Cisco vManage 0.1.0 entry](osiris/network/cisco/vmanage/CHANGELOG.md#010---2026-08-09)
+for the full list of resources, properties and known limitations.
+
+---
 
 ## [0.6.4] - 2026-07-23
 
@@ -410,7 +448,8 @@ Initial SDK release. No producers shipped under this tag.
 - Removed empty `common/` stubs (replaced by `pkg/sdk/`).
 - Updated `.gitignore` for Go.
 
-[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.6.4...HEAD
+[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.6.5...HEAD
+[0.6.5]: https://github.com/osirisjson/osiris-producers/compare/v0.6.4...v0.6.5
 [0.6.4]: https://github.com/osirisjson/osiris-producers/compare/v0.6.3...v0.6.4
 [0.6.3]: https://github.com/osirisjson/osiris-producers/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/osirisjson/osiris-producers/compare/v0.6.1...v0.6.2
