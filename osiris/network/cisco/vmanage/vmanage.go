@@ -507,7 +507,9 @@ Flags:
 	fmt.Print(FlagsUsage())
 	fmt.Print(`
 Other commands:
-  template --generate	Write a --secrets-file skeleton to cisco-vmanage-secrets.json
+  template --generate	Write --secrets-file skeletons: cisco-vmanage-secrets.json
+                      	(single host) and cisco-vmanage-secrets-multihost.json
+                      	(per-host/CIDR rules)
 
 Examples:
 	osirisjson-producer cisco vmanage
