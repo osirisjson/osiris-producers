@@ -1,12 +1,13 @@
-// Package run provides CSV parsing and batch orchestration for Cisco producers.
-// Provides CSV template generation, target parsing with datacenter hierarchy,
-// and a RunBatch function that writes OSIRIS documents to a hierarchical
-// directory structure (DC/Floor/Room/Zone/Hostname.json).
+// Package run provides CSV parsing and batch orchestration
+// for Cisco OSIRIS JSON Producer.
+// Provides CSV template generation, target parsing with datacenter
+// hierarchy, and a RunBatch function that writes OSIRIS JSON documents
+// to a hierarchical directory structure
+// (Datacenter/Floor/Room/Rack/Hostname.json).
 //
-// For an introduction to OSIRIS JSON Producer for Cisco see:
-// "[OSIRIS-JSON-CISCO]."
-//
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
+// OSIRIS JSON Producer for Cisco introduction:
+// [OSIRIS-JSON-CISCO]: https://docs.osirisjson.org/osiris-producers/network/cisco
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 package run
 
 import (
@@ -16,62 +17,88 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
-// ProducerFactory is a function type that creates a Producer for a given target and run configuration.
-// Each sub-producer (APIC, NX-OS, IOS-XR) registers its own factory that
-// builds the appropriate transport (HTTP or SSH) internally.
+// ProducerFactory is a function type that creates a Producer for a
+// given target and run configuration.
+// Each sub-producer (APIC, NX-OS, IOS-XE) registers its own factory
+// that builds the appropriate transport (HTTP or SSH) internally.
 type ProducerFactory func(target TargetConfig, cfg *RunConfig) sdk.Producer
 
 // FactoryRegistry maps producer type names to their factory functions.
 // Used by RunBatch to dispatch to the correct producer per CSV row.
 type FactoryRegistry map[string]ProducerFactory
 
-// CSVTemplate returns a CSV template string for batch collection of Cisco devices.
+// csvExampleRows gives CSVTemplate its one example row per producer
+// apic gets an APIC controller, nxos an NX-OS switch, iosxe an
+// IOS-XE router, each in the context that producer actually collects
+// from. Showing the other two producers' rows in, like, an
+// "iosxe template --generate" output was confusing (a user running
+// iosxe producer has no reason to see apic/nxos examples) one row,
+// matching the producer that generated the file, is clearer.
+// All template addresses are RFC 5737 compliant.
+var csvExampleRows = map[string]string{
+	"apic":  "DC-01,F1,R101,RACK-A,apic-01,192.0.2.1,",
+	"nxos":  "DC-01,F1,R101,RACK-A,nxos-01,192.0.2.10,",
+	"iosxe": "DC-01,F1,R102,RACK-B,iosxe-01,192.0.2.20,",
+}
+
+// CSVTemplate returns a CSV template string for batch collection of
+// Cisco devices, with a single example row in producerName's own
+// context (see csvExampleRows). A batch CSV is inherently
+// single-producer execution: which producer's flags/dispatch parsed
+// the file already answers "what type is every row"
+// (e.g. "osirisjson-producer cisco nxos -s targets.csv" means
+// every row in targets.csv is an NX-OS target).
 //
-// Columns:
+// Columns (see OSIRIS-JSON-v1.0 section 7.6.5 for the physical
+// containment) levels datacenter/floor/room/rack) map to:
 //
-//	dc        - Datacenter name (used for output folder hierarchy)
-//	floor     - Floor identifier within the datacenter
-//	room      - Room identifier within the floor
-//	zone      - Zone or pod identifier within the room
-//	hostname  - Device label used as output filename (required)
-//	type      - Producer type: apic, nxos, iosxe (required)
-//	ip        - IP address or FQDN of the target device (required)
-//	port      - Override port (optional; default: producer-specific)
-//	owner     - Device ownership: self, isp, colo (optional, default: self)
-//	notes     - Free-text operator notes (ignored by producer)
+//	datacenter    - Datacenter name (optional)
+//	floor         - Floor identifier within the datacenter (optional)
+//	room          - Room identifier within the floor (optional)
+//	rack          - Rack identifier within the room (optional)
+//	hostname      - Device label used as output filename (required)
+//	management_ip - IP address or FQDN of the target device (required)
+//	port          - Override port (optional; default: producer-specific)
 //
-// Credentials are provided via --username/--password flags
-// and apply to all targets in the batch.
-// Output hierarchy: <output-dir>/DC/Floor/Room/Zone/Hostname.json
+// datacenter/floor/room/rack are not mandatory, but when present they
+// build the output directory structure (see OutputPath).
+//
+// Credentials apply to every target in the batch, resolved via
+// --username and the --secrets-file/environment-variable/interactive
+// prompt chain described in flags.go's ParseFlags doc comment there is
+// no --password flag. A --secrets-file "rules" document (see
+// CredentialFile's doc comment) can supply different credentials per
+// target by host/CIDR match without needing a CSV column of its own.
+// Output hierarchy: <output-dir>/Datacenter/Floor/Room/Rack/<file>.json
 func CSVTemplate(producerName string) string {
-	return fmt.Sprintf(`dc,floor,room,zone,hostname,type,ip,port,owner,notes
-DC-01,F1,R101,POD-A,%[1]s-01,%[1]s,192.0.2.1,,self,Example %[1]s controller
-DC-01,F1,R101,POD-A,switch-01,nxos,192.0.2.10,,self,Example spine switch
-DC-01,F1,R102,POD-B,router-01,iosxe,192.0.2.20,,isp,Example PE router
-`, producerName)
+	row, ok := csvExampleRows[producerName]
+	if !ok {
+		// Defensive fallback for a producer name not in csvExampleRows
+		// (none exist today - apic/iosxe/nxos are the only callers).
+		row = fmt.Sprintf("DC-01,F1,R101,RACK-A,%[1]s-01,192.0.2.1,", producerName)
+	}
+	return fmt.Sprintf("datacenter,floor,room,rack,hostname,management_ip,port\n%s\n", row)
 }
 
 // csvColumns defines the recognized column names and their indices.
 type csvColumns struct {
-	dc       int
-	floor    int
-	room     int
-	zone     int
-	hostname int
-	typ      int
-	ip       int
-	port     int
-	owner    int
-	notes    int
+	datacenter int
+	floor      int
+	room       int
+	rack       int
+	hostname   int
+	ip         int
+	port       int
 }
 
 // resolveColumns maps header names to column indices.
-// Returns an error if required columns (hostname, type, ip) are missing.
+// Returns an error if required columns (hostname, management_ip) are missing.
 func resolveColumns(header []string) (*csvColumns, error) {
 	idx := map[string]int{}
 	for i, col := range header {
@@ -79,9 +106,8 @@ func resolveColumns(header []string) (*csvColumns, error) {
 	}
 
 	col := &csvColumns{
-		dc: -1, floor: -1, room: -1, zone: -1,
-		hostname: -1, typ: -1, ip: -1, port: -1,
-		owner: -1, notes: -1,
+		datacenter: -1, floor: -1, room: -1, rack: -1,
+		hostname: -1, ip: -1, port: -1,
 	}
 
 	// Required columns.
@@ -91,23 +117,18 @@ func resolveColumns(header []string) (*csvColumns, error) {
 	} else {
 		missing = append(missing, "hostname")
 	}
-	if v, ok := idx["type"]; ok {
-		col.typ = v
-	} else {
-		missing = append(missing, "type")
-	}
-	if v, ok := idx["ip"]; ok {
+	if v, ok := idx["management_ip"]; ok {
 		col.ip = v
 	} else {
-		missing = append(missing, "ip")
+		missing = append(missing, "management_ip")
 	}
 	if len(missing) > 0 {
 		return nil, fmt.Errorf("CSV missing required columns: %s", strings.Join(missing, ", "))
 	}
 
 	// Optional columns.
-	if v, ok := idx["dc"]; ok {
-		col.dc = v
+	if v, ok := idx["datacenter"]; ok {
+		col.datacenter = v
 	}
 	if v, ok := idx["floor"]; ok {
 		col.floor = v
@@ -115,24 +136,18 @@ func resolveColumns(header []string) (*csvColumns, error) {
 	if v, ok := idx["room"]; ok {
 		col.room = v
 	}
-	if v, ok := idx["zone"]; ok {
-		col.zone = v
+	if v, ok := idx["rack"]; ok {
+		col.rack = v
 	}
 	if v, ok := idx["port"]; ok {
 		col.port = v
-	}
-	if v, ok := idx["owner"]; ok {
-		col.owner = v
-	}
-	if v, ok := idx["notes"]; ok {
-		col.notes = v
 	}
 
 	return col, nil
 }
 
-// field safely reads a column value from a CSV record, returning "" if the
-// index is out of range or the column is not present.
+// field safely reads a column value from a CSV record, returning ""
+// if the index is out of range or the column is not present.
 func field(record []string, idx int) string {
 	if idx < 0 || idx >= len(record) {
 		return ""
@@ -140,11 +155,15 @@ func field(record []string, idx int) string {
 	return strings.TrimSpace(record[idx])
 }
 
-// ParseCSV parses a CSV file and returns a slice of TargetConfig.
-// The CSV must have "hostname", "type", and "ip" column headers.
-// Location columns (dc, floor, room, zone) and metadata columns (port, owner, notes)
-// are optional. Lines starting with # are treated as comments and skipped.
-func ParseCSV(path string) ([]TargetConfig, error) {
+// ParseCSV parses a CSV file and returns a slice of TargetConfig, every
+// one with Type set to producerType a batch CSV never names its own
+// producer type (see CSVTemplate's doc comment for why), so the caller
+// (ParseFlags, which already knows which producer's flags parsed
+// --source) supplies it uniformly for the whole file. The CSV must
+// have "hostname" and "management_ip" column headers. Location columns
+// (datacenter, floor, room, rack) and the port column are optional.
+// Lines starting with # are treated as comments and skipped.
+func ParseCSV(path, producerType string) ([]TargetConfig, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -188,43 +207,33 @@ func ParseCSV(path string) ([]TargetConfig, error) {
 			return nil, fmt.Errorf("line %d: hostname is required", lineNum)
 		}
 
-		typ := field(record, col.typ)
-		if typ == "" {
-			return nil, fmt.Errorf("line %d: type is required", lineNum)
-		}
-
 		host, port, err := ParseHostPort(ip)
 		if err != nil {
-			return nil, fmt.Errorf("line %d: invalid ip %q: %w", lineNum, ip, err)
+			return nil, fmt.Errorf("line %d: invalid management_ip %q: %w", lineNum, ip, err)
 		}
 
-		// Port column overrides ip:port.
+		// Port column overrides management_ip's own :port suffix.
+		// strconv.Atoi (rather than fmt.Sscanf, which silently accepts
+		// trailing non-numeric characters after a matched integer) plus
+		// an explicit 1-65535 range check, matching ParseHostPort's own
+		// validation so the CSV port column cannot bypass it.
 		if p := field(record, col.port); p != "" {
-			pn, err := fmt.Sscanf(p, "%d", &port)
-			if err != nil || pn != 1 {
-				return nil, fmt.Errorf("line %d: invalid port %q", lineNum, p)
+			pn, err := strconv.Atoi(p)
+			if err != nil || pn < 1 || pn > 65535 {
+				return nil, fmt.Errorf("line %d: invalid port %q: must be a base-10 integer 1-65535", lineNum, p)
 			}
-		}
-
-		owner := field(record, col.owner)
-		if owner == "" {
-			owner = OwnerSelf
-		}
-		if !isValidOwner(owner) {
-			return nil, fmt.Errorf("line %d: invalid owner %q (valid: self, isp, colo)", lineNum, owner)
+			port = pn
 		}
 
 		targets = append(targets, TargetConfig{
-			Host:     host,
-			Port:     port,
-			Hostname: hostname,
-			Type:     typ,
-			DC:       field(record, col.dc),
-			Floor:    field(record, col.floor),
-			Room:     field(record, col.room),
-			Zone:     field(record, col.zone),
-			Owner:    owner,
-			Notes:    field(record, col.notes),
+			Host:       host,
+			Port:       port,
+			Hostname:   hostname,
+			Type:       producerType,
+			Datacenter: field(record, col.datacenter),
+			Floor:      field(record, col.floor),
+			Room:       field(record, col.room),
+			Rack:       field(record, col.rack),
 		})
 	}
 
@@ -235,21 +244,14 @@ func ParseCSV(path string) ([]TargetConfig, error) {
 	return targets, nil
 }
 
-func isValidOwner(owner string) bool {
-	for _, v := range ValidOwners {
-		if owner == v {
-			return true
-		}
-	}
-	return false
-}
-
-// RunBatch executes the batch: for each target in cfg it looks up the producer factory by
-// target type, collects the document, and writes it to the hierarchical output
-// path: OutputDir/DC/Floor/Room/Zone/Hostname.json.
+// RunBatch executes the batch: for each target in cfg it looks up the
+// producer factory by target type, collects the document, and writes it
+// to the hierarchical output path:
+// OutputDir/Datacenter/Floor/Room/Rack/<file>.json.
 //
-// Failures for individual targets are logged and skipped; the function returns
-// nil if at least one target succeeded, or an error if all targets failed.
+// Failures for individual targets are logged and skipped; the function
+// returns nil if at least one target succeeded,
+// or an error if all targets failed.
 func RunBatch(cfg *RunConfig, factories FactoryRegistry, logger *slog.Logger) error {
 	if err := os.MkdirAll(cfg.OutputDir, 0755); err != nil {
 		return fmt.Errorf("creating output directory: %w", err)
@@ -294,14 +296,22 @@ func RunBatch(cfg *RunConfig, factories FactoryRegistry, logger *slog.Logger) er
 			continue
 		}
 
-		outPath := OutputPath(cfg.OutputDir, target)
+		outPath, err := OutputPath(cfg.OutputDir, cfg.Timestamp, target)
+		if err != nil {
+			log.Error("invalid output path", "error", err)
+			failed++
+			continue
+		}
 		if err := os.MkdirAll(filepath.Dir(outPath), 0755); err != nil {
 			log.Error("creating output path", "error", err, "path", outPath)
 			failed++
 			continue
 		}
 
-		if err := os.WriteFile(outPath, data, 0644); err != nil {
+		// 0600: emitted documents are infrastructure inventory snapshot
+		// (hostnames, serials, topology) and should not be world/group
+		// readable by default, only the invoking user.
+		if err := os.WriteFile(outPath, data, 0600); err != nil {
 			log.Error("write failed", "error", err, "path", outPath)
 			failed++
 			continue
