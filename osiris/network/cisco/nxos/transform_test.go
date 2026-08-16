@@ -1,10 +1,9 @@
-// transform_test.go - Unit tests for NX-OS->OSIRIS transform functions.
-// All test data is invented - no real device data.
+// transform_test.go - Unit tests for NX-OS to OSIRIS transform
+// functions.
 //
-// For an introduction to OSIRIS JSON Producer for Cisco see:
-// "[OSIRIS-JSON-CISCO]."
-//
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
+// OSIRIS JSON Producer for Cisco introduction:
+// [OSIRIS-JSON-CISCO]: https://docs.osirisjson.org/osiris-producers/network/cisco
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 
 package nxos
 
@@ -15,18 +14,18 @@ import (
 )
 
 func TestTransformDevice(t *testing.T) {
-	version := map[string]any{
-		"chassis_id":     "Nexus9000 C9508",
-		"proc_board_id":  "TST0000NX01",
-		"sys_ver_str":    "10.3(4a)",
-		"host_name":      "LAB-SPINE01",
-		"bios_ver_str":   "08.42",
-		"rr_reason":      "Reset Requested by CLI command reload",
-		"kern_uptm_days": "10",
-		"kern_uptm_hrs":  "5",
-		"kern_uptm_mins": "30",
-		"kern_uptm_secs": "15",
-		"memory":         float64(65536000),
+	version := versionResponse{
+		ChassisID:    "Nexus9000 C9508",
+		ProcBoardID:  "TST0000NX01",
+		SysVerStr:    "10.3(4a)",
+		HostName:     "LAB-SPINE01",
+		BiosVerStr:   "08.42",
+		RRReason:     "Reset Requested by CLI command reload",
+		KernUptmDays: "10",
+		KernUptmHrs:  "5",
+		KernUptmMins: "30",
+		KernUptmSecs: "15",
+		Memory:       65536000,
 	}
 
 	r, id := TransformDevice("LAB-SPINE01", version)
@@ -66,11 +65,11 @@ func TestTransformDevice(t *testing.T) {
 }
 
 func TestTransformDevice_Leaf(t *testing.T) {
-	version := map[string]any{
-		"chassis_id":    "Nexus9000 C93108TC-FX",
-		"proc_board_id": "TST0000NX02",
-		"sys_ver_str":   "10.3(4a)",
-		"host_name":     "LAB-LEAF01",
+	version := versionResponse{
+		ChassisID:   "Nexus9000 C93108TC-FX",
+		ProcBoardID: "TST0000NX02",
+		SysVerStr:   "10.3(4a)",
+		HostName:    "LAB-LEAF01",
 	}
 
 	r, _ := TransformDevice("LAB-LEAF01", version)
@@ -80,14 +79,14 @@ func TestTransformDevice_Leaf(t *testing.T) {
 }
 
 func TestTransformInterfaces(t *testing.T) {
-	ifBrief := map[string]any{
-		"TABLE_interface": map[string]any{
-			"ROW_interface": []any{
-				map[string]any{"interface": "Ethernet1/1", "state": "up", "speed": "10G", "type": "eth", "vlan": "100"},
-				map[string]any{"interface": "Ethernet1/2", "state": "down", "speed": "10G", "type": "eth", "vlan": "200"},
-				map[string]any{"interface": "port-channel10", "state": "up", "speed": "20G"},
-				map[string]any{"interface": "loopback0", "state": "up"},
-				map[string]any{"interface": "mgmt0", "state": "up"},
+	ifBrief := interfaceBriefResponse{
+		TableInterface: interfaceTable{
+			RowInterface: rowList[interfaceBriefRow]{
+				{Interface: "Ethernet1/1", State: "up", Speed: "10G", Type: "eth", VLAN: "100"},
+				{Interface: "Ethernet1/2", State: "down", Speed: "10G", Type: "eth", VLAN: "200"},
+				{Interface: "port-channel10", State: "up", Speed: "20G"},
+				{Interface: "loopback0", State: "up"},
+				{Interface: "mgmt0", State: "up"},
 			},
 		},
 	}
@@ -119,20 +118,11 @@ func TestTransformInterfaces(t *testing.T) {
 }
 
 func TestTransformLLDPNeighbors(t *testing.T) {
-	lldp := map[string]any{
-		"TABLE_nbor_detail": map[string]any{
-			"ROW_nbor_detail": []any{
-				map[string]any{
-					"l_port_id": "Ethernet1/1",
-					"sys_name":  "REMOTE-SW01",
-					"port_id":   "Ethernet1/49",
-					"mgmt_addr": "10.99.0.10",
-				},
-				map[string]any{
-					"l_port_id": "Ethernet1/2",
-					"sys_name":  "REMOTE-SW02",
-					"port_id":   "Ethernet1/50",
-				},
+	lldp := lldpNeighborsResponse{
+		TableNborDetail: lldpTable{
+			RowNborDetail: rowList[lldpNeighborRow]{
+				{LocalPortID: "Ethernet1/1", SysName: "REMOTE-SW01", PortID: "Ethernet1/49", MgmtAddr: "192.0.2.10"},
+				{LocalPortID: "Ethernet1/2", SysName: "REMOTE-SW02", PortID: "Ethernet1/50"},
 			},
 		},
 	}
@@ -158,7 +148,7 @@ func TestTransformLLDPNeighbors(t *testing.T) {
 	if stubs[0].Properties["remote_system"] != "REMOTE-SW01" {
 		t.Errorf("remote_system: %v", stubs[0].Properties["remote_system"])
 	}
-	if stubs[0].Properties["remote_mgmt_addr"] != "10.99.0.10" {
+	if stubs[0].Properties["remote_mgmt_addr"] != "192.0.2.10" {
 		t.Errorf("remote_mgmt_addr: %v", stubs[0].Properties["remote_mgmt_addr"])
 	}
 
@@ -172,12 +162,10 @@ func TestTransformLLDPNeighbors(t *testing.T) {
 }
 
 func TestTransformLLDPNeighbors_MissingLocalInterface(t *testing.T) {
-	lldp := map[string]any{
-		"TABLE_nbor_detail": map[string]any{
-			"ROW_nbor_detail": map[string]any{
-				"l_port_id": "Ethernet1/99",
-				"sys_name":  "REMOTE-SW01",
-				"port_id":   "Ethernet1/1",
+	lldp := lldpNeighborsResponse{
+		TableNborDetail: lldpTable{
+			RowNborDetail: rowList[lldpNeighborRow]{
+				{LocalPortID: "Ethernet1/99", SysName: "REMOTE-SW01", PortID: "Ethernet1/1"},
 			},
 		},
 	}
@@ -194,11 +182,11 @@ func TestTransformLLDPNeighbors_MissingLocalInterface(t *testing.T) {
 }
 
 func TestTransformVLANs(t *testing.T) {
-	vlanBrief := map[string]any{
-		"TABLE_vlanbriefxbrief": map[string]any{
-			"ROW_vlanbriefxbrief": []any{
-				map[string]any{"vlanshowbr-vlanid": "100", "vlanshowbr-vlanname": "PROD", "vlanshowbr-vlanstate": "active", "vlanshowbr-shutstate": "noshutdown"},
-				map[string]any{"vlanshowbr-vlanid": "200", "vlanshowbr-vlanname": "MGMT", "vlanshowbr-vlanstate": "active", "vlanshowbr-shutstate": "noshutdown"},
+	vlanBrief := vlanBriefResponse{
+		TableVlanBrief: vlanBriefTable{
+			RowVlanBrief: rowList[vlanBriefRow]{
+				{VLANID: "100", VLANName: "PROD", VLANState: "active", ShutState: "noshutdown"},
+				{VLANID: "200", VLANName: "MGMT", VLANState: "active", ShutState: "noshutdown"},
 			},
 		},
 	}
@@ -224,11 +212,11 @@ func TestTransformVLANs(t *testing.T) {
 }
 
 func TestTransformVRFs(t *testing.T) {
-	vrfDetail := map[string]any{
-		"TABLE_vrf": map[string]any{
-			"ROW_vrf": []any{
-				map[string]any{"vrf_name": "PROD", "vrf_id": "3", "vrf_state": "Up", "rd": "10.99.0.1:3"},
-				map[string]any{"vrf_name": "MGMT", "vrf_id": "4", "vrf_state": "Up"},
+	vrfDetail := vrfDetailResponse{
+		TableVRF: vrfTable{
+			RowVRF: rowList[vrfDetailRow]{
+				{VRFName: "PROD", VRFID: "3", VRFState: "Up", RD: "192.0.2.1:3"},
+				{VRFName: "MGMT", VRFID: "4", VRFState: "Up"},
 			},
 		},
 	}
@@ -248,17 +236,17 @@ func TestTransformVRFs(t *testing.T) {
 	if groups[0].Name != "PROD" {
 		t.Errorf("name: %s", groups[0].Name)
 	}
-	if groups[0].Properties["route_distinguisher"] != "10.99.0.1:3" {
+	if groups[0].Properties["route_distinguisher"] != "192.0.2.1:3" {
 		t.Errorf("rd: %v", groups[0].Properties["route_distinguisher"])
 	}
 }
 
 func TestTransformVPC(t *testing.T) {
-	vpcBrief := map[string]any{
-		"vpc-domain-id":             "10",
-		"vpc-role":                  "primary",
-		"vpc-peer-status":           "peer-ok",
-		"vpc-peer-keepalive-status": "peer-alive",
+	vpcBrief := vpcBriefResponse{
+		DomainID:            "10",
+		Role:                "primary",
+		PeerStatus:          "peer-ok",
+		PeerKeepaliveStatus: "peer-alive",
 	}
 
 	g, gid := TransformVPC("LAB-SW01", vpcBrief)
@@ -280,18 +268,18 @@ func TestTransformVPC(t *testing.T) {
 }
 
 func TestTransformVPC_NotConfigured(t *testing.T) {
-	g, _ := TransformVPC("LAB-SW01", map[string]any{})
+	g, _ := TransformVPC("LAB-SW01", vpcBriefResponse{})
 	if g != nil {
 		t.Error("expected nil group when vPC not configured")
 	}
 }
 
 func TestTransformInventory(t *testing.T) {
-	inv := map[string]any{
-		"TABLE_inv": map[string]any{
-			"ROW_inv": []any{
-				map[string]any{"name": "Chassis", "desc": "Nexus9000 C9508 Chassis", "productid": "N9K-C9508", "vendorid": "V01", "serialnum": "TST0000NX01"},
-				map[string]any{"name": "Slot 1", "desc": "Supervisor Module", "productid": "N9K-SUP-B+", "serialnum": "TST0000SUP1"},
+	inv := inventoryResponse{
+		TableInv: inventoryTable{
+			RowInv: rowList[inventoryRow]{
+				{Name: "Chassis", Desc: "Nexus9000 C9508 Chassis", ProductID: "N9K-C9508", VendorID: "V01", SerialNum: "TST0000NX01"},
+				{Name: "Slot 1", Desc: "Supervisor Module", ProductID: "N9K-SUP-B+", SerialNum: "TST0000SUP1"},
 			},
 		},
 	}
@@ -309,11 +297,11 @@ func TestTransformInventory(t *testing.T) {
 }
 
 func TestTransformSystemResources(t *testing.T) {
-	sysRes := map[string]any{
-		"cpu_state_idle":    "95.50",
-		"memory_usage_used": "8000000",
-		"memory_usage_free": "4000000",
-		"load_avg_1min":     "0.25",
+	sysRes := systemResourcesResponse{
+		CPUStateIdle:    "95.50",
+		MemoryUsageUsed: "8000000",
+		MemoryUsageFree: "4000000",
+		LoadAvg1Min:     "0.25",
 	}
 
 	ext := TransformSystemResources(sysRes)
@@ -332,15 +320,15 @@ func TestTransformSystemResources(t *testing.T) {
 }
 
 func TestTransformEnvironment(t *testing.T) {
-	env := map[string]any{
-		"TABLE_psinfo": map[string]any{
-			"ROW_psinfo": map[string]any{
-				"psnum": "1", "psmodel": "NXA-PAC-1100W", "ps_status": "ok", "actual_out": "350 W",
+	env := environmentResponse{
+		TablePSInfo: psuTable{
+			RowPSInfo: rowList[psuRow]{
+				{PSNum: "1", PSModel: "NXA-PAC-1100W", PSStatus: "ok", ActualOut: "350 W"},
 			},
 		},
-		"TABLE_tempinfo": map[string]any{
-			"ROW_tempinfo": map[string]any{
-				"tempmod": "1", "sensor": "CPU", "curtemp": "42", "alarmstatus": "Ok",
+		TableTempInfo: tempTable{
+			RowTempInfo: rowList[tempRow]{
+				{TempMod: "1", Sensor: "CPU", CurTemp: "42", AlarmStatus: "Ok"},
 			},
 		},
 	}
@@ -365,11 +353,10 @@ func TestTransformEnvironment(t *testing.T) {
 }
 
 func TestWireInterfacesToVLANs(t *testing.T) {
-	vlanBrief := map[string]any{
-		"TABLE_vlanbriefxbrief": map[string]any{
-			"ROW_vlanbriefxbrief": map[string]any{
-				"vlanshowbr-vlanid":   "100",
-				"vlanshowplist-ifidx": "Ethernet1/1,Ethernet1/2",
+	vlanBrief := vlanBriefResponse{
+		TableVlanBrief: vlanBriefTable{
+			RowVlanBrief: rowList[vlanBriefRow]{
+				{VLANID: "100", PortList: "Ethernet1/1,Ethernet1/2"},
 			},
 		},
 	}
@@ -382,22 +369,56 @@ func TestWireInterfacesToVLANs(t *testing.T) {
 	groups := []sdk.Group{{ID: "grp-vlan-100", Type: "network.vlan"}}
 	vlanIDToGroupID := map[string]string{"100": "grp-vlan-100"}
 
-	WireInterfacesToVLANs(vlanBrief, map[string]any{}, ifNameToID, groups, vlanIDToGroupID)
+	WireInterfacesToVLANs(vlanBrief, interfaceBriefResponse{}, ifNameToID, groups, vlanIDToGroupID)
 
 	if len(groups[0].Members) != 2 {
 		t.Errorf("expected 2 VLAN members, got %d: %v", len(groups[0].Members), groups[0].Members)
 	}
 }
 
+func TestWireInterfacesToVLANs_FallbackToInterfaceBrief(t *testing.T) {
+	// When the VLAN's own port list yields no matches, fall back to
+	// scanning "show interface brief" per-interface vlan field.
+	vlanBrief := vlanBriefResponse{
+		TableVlanBrief: vlanBriefTable{
+			RowVlanBrief: rowList[vlanBriefRow]{
+				{VLANID: "100"}, // no PortList
+			},
+		},
+	}
+	ifBrief := interfaceBriefResponse{
+		TableInterface: interfaceTable{
+			RowInterface: rowList[interfaceBriefRow]{
+				{Interface: "Ethernet1/1", VLAN: "100"},
+				{Interface: "Ethernet1/2", VLAN: "--"},
+			},
+		},
+	}
+
+	ifNameToID := map[string]string{"Ethernet1/1": "res-if-1", "Ethernet1/2": "res-if-2"}
+	groups := []sdk.Group{{ID: "grp-vlan-100", Type: "network.vlan"}}
+	vlanIDToGroupID := map[string]string{"100": "grp-vlan-100"}
+
+	matched := WireInterfacesToVLANs(vlanBrief, ifBrief, ifNameToID, groups, vlanIDToGroupID)
+	if matched != 1 {
+		t.Fatalf("expected 1 fallback match, got %d", matched)
+	}
+	if len(groups[0].Members) != 1 {
+		t.Errorf("expected 1 VLAN member, got %d: %v", len(groups[0].Members), groups[0].Members)
+	}
+}
+
 func TestWireInterfacesToVRFs(t *testing.T) {
-	vrfDetail := map[string]any{
-		"TABLE_vrf": map[string]any{
-			"ROW_vrf": map[string]any{
-				"vrf_name": "PROD",
-				"TABLE_if": map[string]any{
-					"ROW_if": []any{
-						map[string]any{"if_name": "Ethernet1/1"},
-						map[string]any{"if_name": "loopback0"},
+	vrfDetail := vrfDetailResponse{
+		TableVRF: vrfTable{
+			RowVRF: rowList[vrfDetailRow]{
+				{
+					VRFName: "PROD",
+					TableIf: vrfIfTable{
+						RowIf: rowList[vrfInterfaceIfRow]{
+							{IfName: "Ethernet1/1"},
+							{IfName: "loopback0"},
+						},
 					},
 				},
 			},
@@ -412,19 +433,71 @@ func TestWireInterfacesToVRFs(t *testing.T) {
 	groups := []sdk.Group{{ID: "grp-vrf-prod", Type: "logical.vrf"}}
 	vrfNameToGroupID := map[string]string{"PROD": "grp-vrf-prod"}
 
-	WireInterfacesToVRFs(vrfDetail, nil, ifNameToID, groups, vrfNameToGroupID)
+	WireInterfacesToVRFs(vrfDetail, vrfInterfaceResponse{}, ifNameToID, groups, vrfNameToGroupID)
 
 	if len(groups[0].Members) != 2 {
 		t.Errorf("expected 2 VRF members, got %d: %v", len(groups[0].Members), groups[0].Members)
 	}
 }
 
+func TestWireInterfacesToVRFs_TableIntfShapeFallback(t *testing.T) {
+	// Some NX-OS versions nest member interfaces under TABLE_intf/
+	// ROW_intf (intf_name) instead of TABLE_if/ROW_if (if_name).
+	vrfDetail := vrfDetailResponse{
+		TableVRF: vrfTable{
+			RowVRF: rowList[vrfDetailRow]{
+				{
+					VRFName: "PROD",
+					TableIntf: vrfIntfTable{
+						RowIntf: rowList[vrfInterfaceIntfRow]{
+							{IntfName: "Ethernet1/1"},
+						},
+					},
+				},
+			},
+		},
+	}
+	ifNameToID := map[string]string{"Ethernet1/1": "res-if-1"}
+	groups := []sdk.Group{{ID: "grp-vrf-prod", Type: "logical.vrf"}}
+	vrfNameToGroupID := map[string]string{"PROD": "grp-vrf-prod"}
+
+	matched := WireInterfacesToVRFs(vrfDetail, vrfInterfaceResponse{}, ifNameToID, groups, vrfNameToGroupID)
+	if matched != 1 {
+		t.Fatalf("expected 1 match via TABLE_intf fallback, got %d", matched)
+	}
+}
+
+func TestWireInterfacesToVRFs_FallbackToVRFInterface(t *testing.T) {
+	// When "show vrf all detail" yields 0 matches, fall back to the
+	// separate flat "show vrf interface" mapping.
+	vrfDetail := vrfDetailResponse{
+		TableVRF: vrfTable{
+			RowVRF: rowList[vrfDetailRow]{{VRFName: "PROD"}}, // no nested interfaces
+		},
+	}
+	vrfInterface := vrfInterfaceResponse{
+		TableIf: vrfInterfaceTable{
+			RowIf: rowList[vrfInterfaceFlatRow]{
+				{IfName: "Ethernet1/1", VRFName: "PROD"},
+			},
+		},
+	}
+	ifNameToID := map[string]string{"Ethernet1/1": "res-if-1"}
+	groups := []sdk.Group{{ID: "grp-vrf-prod", Type: "logical.vrf"}}
+	vrfNameToGroupID := map[string]string{"PROD": "grp-vrf-prod"}
+
+	matched := WireInterfacesToVRFs(vrfDetail, vrfInterface, ifNameToID, groups, vrfNameToGroupID)
+	if matched != 1 {
+		t.Fatalf("expected 1 fallback match, got %d", matched)
+	}
+}
+
 func TestWirePortChannelsToVPC(t *testing.T) {
-	vpcBrief := map[string]any{
-		"TABLE_vpc": map[string]any{
-			"ROW_vpc": []any{
-				map[string]any{"vpc-ifindex": "port-channel10"},
-				map[string]any{"vpc-ifindex": "port-channel20"},
+	vpcBrief := vpcBriefResponse{
+		TableVPC: vpcTable{
+			RowVPC: rowList[vpcMemberRow]{
+				{IfIndex: "port-channel10"},
+				{IfIndex: "port-channel20"},
 			},
 		},
 	}
@@ -443,42 +516,124 @@ func TestWirePortChannelsToVPC(t *testing.T) {
 	}
 }
 
-func TestParseTableRows_Single(t *testing.T) {
-	body := map[string]any{
-		"TABLE_test": map[string]any{
-			"ROW_test": map[string]any{"name": "single"},
-		},
-	}
-
-	rows := parseTableRows(body, "TABLE_test", "ROW_test")
-	if len(rows) != 1 {
-		t.Fatalf("expected 1 row, got %d", len(rows))
-	}
-	if rows[0]["name"] != "single" {
-		t.Errorf("name: %v", rows[0]["name"])
-	}
-}
-
-func TestParseTableRows_Multiple(t *testing.T) {
-	body := map[string]any{
-		"TABLE_test": map[string]any{
-			"ROW_test": []any{
-				map[string]any{"name": "first"},
-				map[string]any{"name": "second"},
+func TestTransformPortChannels(t *testing.T) {
+	pcSummary := portChannelSummaryResponse{
+		TableChannel: portChannelTable{
+			RowChannel: rowList[portChannelRow]{
+				{
+					Group:       "10",
+					PortChannel: "Po10",
+					TableMember: portChannelMemberTable{
+						RowMember: rowList[portChannelMemberRow]{
+							{Port: "Eth1/1", PortStatus: "P"},
+							{Port: "Eth1/2", PortStatus: "P"},
+						},
+					},
+				},
 			},
 		},
 	}
 
-	rows := parseTableRows(body, "TABLE_test", "ROW_test")
-	if len(rows) != 2 {
-		t.Fatalf("expected 2 rows, got %d", len(rows))
+	ifNameToID := map[string]string{
+		"port-channel10": "res-pc-10",
+		"Ethernet1/1":    "res-eth-1-1",
+		"Ethernet1/2":    "res-eth-1-2",
+	}
+
+	resources := []sdk.Resource{
+		{ID: "res-pc-10", Type: "osiris.cisco.interface.lag", Name: "port-channel10"},
+		{ID: "res-eth-1-1", Type: "network.interface", Name: "Ethernet1/1"},
+		{ID: "res-eth-1-2", Type: "network.interface", Name: "Ethernet1/2"},
+	}
+
+	connections := TransformPortChannels(pcSummary, resources, ifNameToID)
+
+	if len(connections) != 2 {
+		t.Fatalf("expected 2 contains connections, got %d", len(connections))
+	}
+	for _, c := range connections {
+		if c.Type != "contains" {
+			t.Errorf("connection type = %s, want contains", c.Type)
+		}
+		if c.Source != "res-pc-10" {
+			t.Errorf("connection source = %s, want res-pc-10", c.Source)
+		}
+		if c.Direction != "forward" {
+			t.Errorf("connection direction = %s, want forward", c.Direction)
+		}
+		if c.Properties["port_status"] != "P" {
+			t.Errorf("connection port_status = %v, want P", c.Properties["port_status"])
+		}
+	}
+
+	if resources[0].Properties["member_count"] != 2 {
+		t.Errorf("port-channel member_count = %v, want 2", resources[0].Properties["member_count"])
 	}
 }
 
-func TestParseTableRows_Empty(t *testing.T) {
-	rows := parseTableRows(map[string]any{}, "TABLE_missing", "ROW_missing")
-	if len(rows) != 0 {
-		t.Errorf("expected 0 rows, got %d", len(rows))
+func TestTransformPortChannels_UnresolvedMemberSkipped(t *testing.T) {
+	// A member port that never appeared in "show interface brief" (and
+	// therefore has no resource ID) must be skipped, not crash or
+	// produce a dangling connection member_count still only reflects
+	// rows the device actually reported, resolvable or not.
+	pcSummary := portChannelSummaryResponse{
+		TableChannel: portChannelTable{
+			RowChannel: rowList[portChannelRow]{
+				{
+					PortChannel: "Po10",
+					TableMember: portChannelMemberTable{
+						RowMember: rowList[portChannelMemberRow]{
+							{Port: "Eth1/1", PortStatus: "P"},
+							{Port: "Eth1/99", PortStatus: "P"},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	ifNameToID := map[string]string{
+		"port-channel10": "res-pc-10",
+		"Ethernet1/1":    "res-eth-1-1",
+	}
+	resources := []sdk.Resource{
+		{ID: "res-pc-10", Type: "osiris.cisco.interface.lag", Name: "port-channel10"},
+		{ID: "res-eth-1-1", Type: "network.interface", Name: "Ethernet1/1"},
+	}
+
+	connections := TransformPortChannels(pcSummary, resources, ifNameToID)
+	if len(connections) != 1 {
+		t.Fatalf("expected 1 resolvable connection, got %d", len(connections))
+	}
+	if resources[0].Properties["member_count"] != 2 {
+		t.Errorf("member_count should count every reported member row, got %v", resources[0].Properties["member_count"])
+	}
+}
+
+func TestTransformPortChannels_UnknownPortChannelSkipped(t *testing.T) {
+	// A port-channel with no matching interface resource (should not
+	// happen in practice "show interface brief" already produced
+	// every LAG resource but must not panic if it does).
+	pcSummary := portChannelSummaryResponse{
+		TableChannel: portChannelTable{
+			RowChannel: rowList[portChannelRow]{
+				{
+					PortChannel: "Po99",
+					TableMember: portChannelMemberTable{
+						RowMember: rowList[portChannelMemberRow]{
+							{Port: "Eth1/1", PortStatus: "P"},
+						},
+					},
+				},
+			},
+		},
+	}
+	ifNameToID := map[string]string{"Ethernet1/1": "res-eth-1-1"}
+	resources := []sdk.Resource{{ID: "res-eth-1-1", Type: "network.interface", Name: "Ethernet1/1"}}
+
+	connections := TransformPortChannels(pcSummary, resources, ifNameToID)
+	if len(connections) != 0 {
+		t.Errorf("expected 0 connections for an unresolvable port-channel, got %d", len(connections))
 	}
 }
 
@@ -560,17 +715,19 @@ func TestEnrichInterfaceDetails(t *testing.T) {
 		{ID: "res-if-1", Type: "network.interface", Properties: map[string]any{"speed": "10G"}},
 	}
 
-	ifDetail := map[string]any{
-		"TABLE_interface": map[string]any{
-			"ROW_interface": map[string]any{
-				"interface":    "Ethernet1/1",
-				"eth_mtu":      float64(9216),
-				"eth_bw":       float64(10000000),
-				"eth_duplex":   "full",
-				"eth_hw_addr":  "aabb.ccdd.eeff",
-				"desc":         "Uplink to spine",
-				"eth_outbytes": float64(1000000),
-				"eth_inbytes":  float64(2000000),
+	ifDetail := interfaceDetailResponse{
+		TableInterface: interfaceDetailTable{
+			RowInterface: rowList[interfaceDetailRow]{
+				{
+					Interface: "Ethernet1/1",
+					MTU:       9216,
+					Bandwidth: 10000000,
+					Duplex:    "full",
+					HWAddr:    "aabb.ccdd.eeff",
+					Desc:      "Uplink to spine",
+					OutBytes:  1000000,
+					InBytes:   2000000,
+				},
 			},
 		},
 	}

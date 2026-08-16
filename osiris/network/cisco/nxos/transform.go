@@ -1,11 +1,10 @@
-// transform.go - Pure NX-OS->OSIRIS mapping functions.
-// Converts NX-API CLI response bodies into OSIRIS types.
-// All functions are stateless: no I/O, no HTTP, just data transformation.
+// transform.go - Pure NX-OS to OSIRIS mapping functions.
+// Converts typed NX-API response DTOs (see dto.go) into OSIRIS types.
+// All functions are stateless.
 //
-// For an introduction to OSIRIS JSON Producer for Cisco see:
-// "[OSIRIS-JSON-CISCO]."
-//
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
+// OSIRIS JSON Producer for Cisco introduction:
+// [OSIRIS-JSON-CISCO]: https://docs.osirisjson.org/osiris-producers/network/cisco
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 
 package nxos
 
@@ -20,11 +19,12 @@ import (
 const extensionNamespace = "osiris.cisco"
 const providerName = "cisco"
 
-// TransformDevice converts "show version" output into a single network.switch resource.
-func TransformDevice(hostname string, version map[string]any) (sdk.Resource, string) {
-	model := str(version, "chassis_id")
-	serial := str(version, "proc_board_id")
-	swVersion := str(version, "sys_ver_str")
+// TransformDevice converts "show version" output into a single
+// network.switch resource.
+func TransformDevice(hostname string, version versionResponse) (sdk.Resource, string) {
+	model := string(version.ChassisID)
+	serial := string(version.ProcBoardID)
+	swVersion := string(version.SysVerStr)
 
 	role := classifyRole(hostname, model)
 	resType := "network.switch"
@@ -54,35 +54,35 @@ func TransformDevice(hostname string, version map[string]any) (sdk.Resource, str
 	props := map[string]any{
 		"serial":     serial,
 		"model":      model,
-		"chassis_id": str(version, "chassis_id"),
+		"chassis_id": string(version.ChassisID),
 	}
 
-	if v := str(version, "host_name"); v != "" {
+	if v := string(version.HostName); v != "" {
 		props["hostname"] = v
 	}
-	if v := num(version, "memory"); v > 0 {
+	if v := int64(version.Memory); v > 0 {
 		props["memory"] = v
 	}
-	if v := num(version, "mem_type"); v > 0 {
+	if v := int64(version.MemType); v > 0 {
 		props["memory"] = v
 	}
 
 	// Cisco extensions on device.
 	ext := make(map[string]any)
-	if v := str(version, "bios_ver_str"); v != "" {
+	if v := string(version.BiosVerStr); v != "" {
 		ext["bios_version"] = v
 	}
-	if v := str(version, "rr_reason"); v != "" {
+	if v := string(version.RRReason); v != "" {
 		ext["last_reset_reason"] = v
 	}
-	if v := str(version, "kern_uptm_days"); v != "" {
-		days := str(version, "kern_uptm_days")
-		hrs := str(version, "kern_uptm_hrs")
-		mins := str(version, "kern_uptm_mins")
-		secs := str(version, "kern_uptm_secs")
+	if v := string(version.KernUptmDays); v != "" {
+		days := v
+		hrs := string(version.KernUptmHrs)
+		mins := string(version.KernUptmMins)
+		secs := string(version.KernUptmSecs)
 		ext["kernel_uptime"] = fmt.Sprintf("%sd %sh %sm %ss", days, hrs, mins, secs)
 	}
-	if v := str(version, "rr_sys_ver"); v != "" {
+	if v := string(version.RRSysVer); v != "" {
 		ext["uptime"] = v
 	}
 
@@ -94,16 +94,15 @@ func TransformDevice(hostname string, version map[string]any) (sdk.Resource, str
 	return r, id
 }
 
-// TransformInterfaces converts "show interface brief" output into interface resources.
+// TransformInterfaces converts "show interface brief" output into
+// interface resources.
 // Returns resources and a map of interface name -> resource ID.
-func TransformInterfaces(hostname string, ifBrief map[string]any) ([]sdk.Resource, map[string]string) {
+func TransformInterfaces(hostname string, ifBrief interfaceBriefResponse) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	nameToID := make(map[string]string)
 
-	// Ethernet interfaces from TABLE_interface.
-	ethRows := parseTableRows(ifBrief, "TABLE_interface", "ROW_interface")
-	for _, row := range ethRows {
-		ifName := str(row, "interface")
+	for _, row := range ifBrief.TableInterface.RowInterface {
+		ifName := string(row.Interface)
 		if ifName == "" {
 			continue
 		}
@@ -123,25 +122,25 @@ func TransformInterfaces(hostname string, ifBrief map[string]any) ([]sdk.Resourc
 			continue
 		}
 		r.Name = ifName
-		r.Status = mapInterfaceStatus(str(row, "state"))
+		r.Status = mapInterfaceStatus(string(row.State))
 
 		props := map[string]any{}
-		if v := str(row, "speed"); v != "" {
+		if v := string(row.Speed); v != "" {
 			props["speed"] = v
 		}
-		if v := str(row, "type"); v != "" {
+		if v := string(row.Type); v != "" {
 			props["mode"] = v
 		}
-		if v := str(row, "portmode"); v != "" {
+		if v := string(row.PortMode); v != "" {
 			props["port_mode"] = v
 		}
-		if v := str(row, "state"); v != "" {
+		if v := string(row.State); v != "" {
 			props["admin_status"] = v
 		}
-		if v := str(row, "status"); v != "" {
+		if v := string(row.Status); v != "" {
 			props["oper_status"] = v
 		}
-		if v := str(row, "vlan"); v != "" {
+		if v := string(row.VLAN); v != "" {
 			props["vlan"] = v
 		}
 		if len(props) > 0 {
@@ -154,17 +153,17 @@ func TransformInterfaces(hostname string, ifBrief map[string]any) ([]sdk.Resourc
 	return resources, nameToID
 }
 
-// TransformLLDPNeighbors converts "show lldp neighbors detail" output into
-// network.link connections and stub network.interface resources for remote endpoints.
-func TransformLLDPNeighbors(hostname string, lldp map[string]any, ifNameToID map[string]string) ([]sdk.Connection, []sdk.Resource) {
+// TransformLLDPNeighbors converts "show lldp neighbors detail"
+// output into network.link connections and stub network.interface
+// resources for remote endpoints.
+func TransformLLDPNeighbors(hostname string, lldp lldpNeighborsResponse, ifNameToID map[string]string) ([]sdk.Connection, []sdk.Resource) {
 	var connections []sdk.Connection
 	var stubs []sdk.Resource
 
-	rows := parseTableRows(lldp, "TABLE_nbor_detail", "ROW_nbor_detail")
-	for _, row := range rows {
-		localPort := str(row, "l_port_id")
-		remoteSystem := str(row, "sys_name")
-		remotePort := str(row, "port_id")
+	for _, row := range lldp.TableNborDetail.RowNborDetail {
+		localPort := string(row.LocalPortID)
+		remoteSystem := string(row.SysName)
+		remotePort := string(row.PortID)
 
 		if localPort == "" || remoteSystem == "" || remotePort == "" {
 			continue
@@ -195,7 +194,7 @@ func TransformLLDPNeighbors(hostname string, lldp map[string]any, ifNameToID map
 			"remote_system": remoteSystem,
 			"remote_port":   remotePort,
 		}
-		if v := str(row, "mgmt_addr"); v != "" {
+		if v := string(row.MgmtAddr); v != "" {
 			props["remote_mgmt_addr"] = v
 		}
 		stub.Properties = props
@@ -226,14 +225,13 @@ func TransformLLDPNeighbors(hostname string, lldp map[string]any, ifNameToID map
 
 // TransformVLANs converts "show vlan brief" output into VLAN groups.
 // Returns groups and a map of VLAN ID string -> group ID.
-func TransformVLANs(hostname string, vlanBrief map[string]any) ([]sdk.Group, map[string]string) {
+func TransformVLANs(hostname string, vlanBrief vlanBriefResponse) ([]sdk.Group, map[string]string) {
 	var groups []sdk.Group
 	vlanIDToGroupID := make(map[string]string)
 
-	rows := parseTableRows(vlanBrief, "TABLE_vlanbriefxbrief", "ROW_vlanbriefxbrief")
-	for _, row := range rows {
-		vlanIDStr := str(row, "vlanshowbr-vlanid")
-		vlanName := str(row, "vlanshowbr-vlanname")
+	for _, row := range vlanBrief.TableVlanBrief.RowVlanBrief {
+		vlanIDStr := string(row.VLANID)
+		vlanName := string(row.VLANName)
 
 		if vlanIDStr == "" {
 			continue
@@ -258,10 +256,10 @@ func TransformVLANs(hostname string, vlanBrief map[string]any) ([]sdk.Group, map
 		props := map[string]any{
 			"vlan_id": vlanIDStr,
 		}
-		if v := str(row, "vlanshowbr-vlanstate"); v != "" {
+		if v := string(row.VLANState); v != "" {
 			props["state"] = v
 		}
-		if v := str(row, "vlanshowbr-shutstate"); v != "" {
+		if v := string(row.ShutState); v != "" {
 			props["admin_state"] = v
 		}
 		g.Properties = props
@@ -274,13 +272,12 @@ func TransformVLANs(hostname string, vlanBrief map[string]any) ([]sdk.Group, map
 
 // TransformVRFs converts "show vrf all detail" output into VRF groups.
 // Returns groups and a map of VRF name -> group ID.
-func TransformVRFs(hostname string, vrfDetail map[string]any) ([]sdk.Group, map[string]string) {
+func TransformVRFs(hostname string, vrfDetail vrfDetailResponse) ([]sdk.Group, map[string]string) {
 	var groups []sdk.Group
 	vrfNameToGroupID := make(map[string]string)
 
-	rows := parseTableRows(vrfDetail, "TABLE_vrf", "ROW_vrf")
-	for _, row := range rows {
-		vrfName := str(row, "vrf_name")
+	for _, row := range vrfDetail.TableVRF.RowVRF {
+		vrfName := string(row.VRFName)
 		if vrfName == "" {
 			continue
 		}
@@ -299,13 +296,13 @@ func TransformVRFs(hostname string, vrfDetail map[string]any) ([]sdk.Group, map[
 		g.Name = vrfName
 
 		props := map[string]any{}
-		if v := str(row, "vrf_id"); v != "" {
+		if v := string(row.VRFID); v != "" {
 			props["vrf_id"] = v
 		}
-		if v := str(row, "vrf_state"); v != "" {
+		if v := string(row.VRFState); v != "" {
 			props["state"] = v
 		}
-		if v := str(row, "rd"); v != "" {
+		if v := string(row.RD); v != "" {
 			props["route_distinguisher"] = v
 		}
 		if len(props) > 0 {
@@ -319,9 +316,10 @@ func TransformVRFs(hostname string, vrfDetail map[string]any) ([]sdk.Group, map[
 }
 
 // TransformVPC converts "show vpc brief" output into a vPC group.
-// Returns nil group and empty string if vPC is not configured (graceful).
-func TransformVPC(hostname string, vpcBrief map[string]any) (*sdk.Group, string) {
-	domainID := str(vpcBrief, "vpc-domain-id")
+// Returns nil group and empty string if vPC is
+// not configured (graceful).
+func TransformVPC(hostname string, vpcBrief vpcBriefResponse) (*sdk.Group, string) {
+	domainID := string(vpcBrief.DomainID)
 	if domainID == "" || domainID == "not configured" {
 		return nil, ""
 	}
@@ -341,13 +339,13 @@ func TransformVPC(hostname string, vpcBrief map[string]any) (*sdk.Group, string)
 	props := map[string]any{
 		"domain_id": domainID,
 	}
-	if v := str(vpcBrief, "vpc-role"); v != "" {
+	if v := string(vpcBrief.Role); v != "" {
 		props["role"] = v
 	}
-	if v := str(vpcBrief, "vpc-peer-status"); v != "" {
+	if v := string(vpcBrief.PeerStatus); v != "" {
 		props["peer_status"] = v
 	}
-	if v := str(vpcBrief, "vpc-peer-keepalive-status"); v != "" {
+	if v := string(vpcBrief.PeerKeepaliveStatus); v != "" {
 		props["peer_keepalive_status"] = v
 	}
 	g.Properties = props
@@ -355,26 +353,25 @@ func TransformVPC(hostname string, vpcBrief map[string]any) (*sdk.Group, string)
 	return &g, gid
 }
 
-// TransformInventory converts "show inventory" output into an inventory array
-// for the device's cisco extension.
-func TransformInventory(inventory map[string]any) []map[string]any {
-	rows := parseTableRows(inventory, "TABLE_inv", "ROW_inv")
+// TransformInventory converts "show inventory" output into an
+// inventory array for the device's cisco extension.
+func TransformInventory(inventory inventoryResponse) []map[string]any {
 	var items []map[string]any
-	for _, row := range rows {
+	for _, row := range inventory.TableInv.RowInv {
 		item := map[string]any{}
-		if v := str(row, "name"); v != "" {
+		if v := string(row.Name); v != "" {
 			item["name"] = v
 		}
-		if v := str(row, "desc"); v != "" {
+		if v := string(row.Desc); v != "" {
 			item["description"] = v
 		}
-		if v := str(row, "productid"); v != "" {
+		if v := string(row.ProductID); v != "" {
 			item["product_id"] = v
 		}
-		if v := str(row, "vendorid"); v != "" {
+		if v := string(row.VendorID); v != "" {
 			item["vendor_id"] = v
 		}
-		if v := str(row, "serialnum"); v != "" {
+		if v := string(row.SerialNum); v != "" {
 			item["serial"] = v
 		}
 		if len(item) > 0 {
@@ -386,25 +383,25 @@ func TransformInventory(inventory map[string]any) []map[string]any {
 
 // TransformSystemResources converts "show system resources" output into
 // cisco extension fields for CPU, memory, and load.
-func TransformSystemResources(sysRes map[string]any) map[string]any {
+func TransformSystemResources(sysRes systemResourcesResponse) map[string]any {
 	ext := make(map[string]any)
 
-	if v := str(sysRes, "cpu_state_idle"); v != "" {
+	if v := string(sysRes.CPUStateIdle); v != "" {
 		if f, err := strconv.ParseFloat(v, 64); err == nil {
 			ext["cpu_idle"] = f
 		}
 	}
-	if v := str(sysRes, "memory_usage_used"); v != "" {
+	if v := string(sysRes.MemoryUsageUsed); v != "" {
 		if n, err := strconv.ParseInt(v, 10, 64); err == nil {
 			ext["memory_used"] = n
 		}
 	}
-	if v := str(sysRes, "memory_usage_free"); v != "" {
+	if v := string(sysRes.MemoryUsageFree); v != "" {
 		if n, err := strconv.ParseInt(v, 10, 64); err == nil {
 			ext["memory_free"] = n
 		}
 	}
-	if v := str(sysRes, "load_avg_1min"); v != "" {
+	if v := string(sysRes.LoadAvg1Min); v != "" {
 		if f, err := strconv.ParseFloat(v, 64); err == nil {
 			ext["load_avg_1min"] = f
 		}
@@ -415,25 +412,24 @@ func TransformSystemResources(sysRes map[string]any) map[string]any {
 
 // TransformEnvironment converts "show environment" output into
 // cisco extension fields for power supplies and temperature.
-func TransformEnvironment(env map[string]any) map[string]any {
+func TransformEnvironment(env environmentResponse) map[string]any {
 	ext := make(map[string]any)
 
 	// Power supplies.
-	psuRows := parseTableRows(env, "TABLE_psinfo", "ROW_psinfo")
-	if len(psuRows) > 0 {
+	if len(env.TablePSInfo.RowPSInfo) > 0 {
 		var psus []map[string]any
-		for _, row := range psuRows {
+		for _, row := range env.TablePSInfo.RowPSInfo {
 			psu := map[string]any{}
-			if v := str(row, "psnum"); v != "" {
+			if v := string(row.PSNum); v != "" {
 				psu["id"] = v
 			}
-			if v := str(row, "psmodel"); v != "" {
+			if v := string(row.PSModel); v != "" {
 				psu["model"] = v
 			}
-			if v := str(row, "ps_status"); v != "" {
+			if v := string(row.PSStatus); v != "" {
 				psu["status"] = v
 			}
-			if v := str(row, "actual_out"); v != "" {
+			if v := string(row.ActualOut); v != "" {
 				psu["actual_output"] = v
 			}
 			if len(psu) > 0 {
@@ -446,21 +442,20 @@ func TransformEnvironment(env map[string]any) map[string]any {
 	}
 
 	// Temperature sensors.
-	tempRows := parseTableRows(env, "TABLE_tempinfo", "ROW_tempinfo")
-	if len(tempRows) > 0 {
+	if len(env.TableTempInfo.RowTempInfo) > 0 {
 		var temps []map[string]any
-		for _, row := range tempRows {
+		for _, row := range env.TableTempInfo.RowTempInfo {
 			temp := map[string]any{}
-			if v := str(row, "tempmod"); v != "" {
+			if v := string(row.TempMod); v != "" {
 				temp["module"] = v
 			}
-			if v := str(row, "sensor"); v != "" {
+			if v := string(row.Sensor); v != "" {
 				temp["sensor"] = v
 			}
-			if v := str(row, "curtemp"); v != "" {
+			if v := string(row.CurTemp); v != "" {
 				temp["current"] = v
 			}
-			if v := str(row, "alarmstatus"); v != "" {
+			if v := string(row.AlarmStatus); v != "" {
 				temp["alarm_status"] = v
 			}
 			if len(temp) > 0 {
@@ -477,16 +472,16 @@ func TransformEnvironment(env map[string]any) map[string]any {
 
 // Wiring functions - add interface resource IDs to group members.
 
-// WireInterfacesToVLANs adds interface resource IDs as members of their VLAN groups.
+// WireInterfacesToVLANs adds interface resource IDs as members of
+// their VLAN groups.
 // Uses the VLAN assignment from "show vlan brief" port list.
-func WireInterfacesToVLANs(vlanBrief map[string]any, ifBrief map[string]any, ifNameToID map[string]string, vlanGroups []sdk.Group, vlanIDToGroupID map[string]string) int {
+func WireInterfacesToVLANs(vlanBrief vlanBriefResponse, ifBrief interfaceBriefResponse, ifNameToID map[string]string, vlanGroups []sdk.Group, vlanIDToGroupID map[string]string) int {
 	idx := groupIndex(vlanGroups)
 	matched := 0
 
 	// Strategy 1: VLAN brief port list (vlanshowplist-ifidx).
-	rows := parseTableRows(vlanBrief, "TABLE_vlanbriefxbrief", "ROW_vlanbriefxbrief")
-	for _, row := range rows {
-		vlanIDStr := str(row, "vlanshowbr-vlanid")
+	for _, row := range vlanBrief.TableVlanBrief.RowVlanBrief {
+		vlanIDStr := string(row.VLANID)
 		gid, ok := vlanIDToGroupID[vlanIDStr]
 		if !ok {
 			continue
@@ -497,7 +492,7 @@ func WireInterfacesToVLANs(vlanBrief map[string]any, ifBrief map[string]any, ifN
 		}
 
 		// vlanshowplist-ifidx contains comma-separated interface names.
-		portList := str(row, "vlanshowplist-ifidx")
+		portList := string(row.PortList)
 		if portList == "" {
 			continue
 		}
@@ -512,12 +507,12 @@ func WireInterfacesToVLANs(vlanBrief map[string]any, ifBrief map[string]any, ifN
 		}
 	}
 
-	// Strategy 2 (fallback): scan interface brief for per-interface VLAN assignment.
-	// NX-OS "show interface brief" includes a "vlan" field per interface.
+	// fallback: scan interface brief for per-interface VLAN assignment.
+	// NX-OS "show interface brief" includes a "vlan"
+	// field per interface.
 	if matched == 0 {
-		ethRows := parseTableRows(ifBrief, "TABLE_interface", "ROW_interface")
-		for _, row := range ethRows {
-			vlanStr := str(row, "vlan")
+		for _, row := range ifBrief.TableInterface.RowInterface {
+			vlanStr := string(row.VLAN)
 			if vlanStr == "" || vlanStr == "--" {
 				continue
 			}
@@ -529,7 +524,7 @@ func WireInterfacesToVLANs(vlanBrief map[string]any, ifBrief map[string]any, ifN
 			if !ok {
 				continue
 			}
-			ifName := str(row, "interface")
+			ifName := string(row.Interface)
 			if resID, ok := ifNameToID[ifName]; ok {
 				vlanGroups[gi].AddMembers(resID)
 				matched++
@@ -540,7 +535,8 @@ func WireInterfacesToVLANs(vlanBrief map[string]any, ifBrief map[string]any, ifN
 	return matched
 }
 
-// WireInterfacesToVRFs adds interface resource IDs as members of their VRF groups.
+// WireInterfacesToVRFs adds interface resource IDs as members of
+// their VRF groups.
 // Uses the interface list from "show vrf all detail".
 //
 // NX-OS JSON output varies across platforms and versions:
@@ -550,13 +546,12 @@ func WireInterfacesToVLANs(vlanBrief map[string]any, ifBrief map[string]any, ifN
 // If the VRF detail data yields 0 matches, falls back to the separate
 // vrfInterface data from "show vrf interface" (TABLE_if / ROW_if with
 // if_name and vrf_name at the top level).
-func WireInterfacesToVRFs(vrfDetail, vrfInterface map[string]any, ifNameToID map[string]string, vrfGroups []sdk.Group, vrfNameToGroupID map[string]string) int {
+func WireInterfacesToVRFs(vrfDetail vrfDetailResponse, vrfInterface vrfInterfaceResponse, ifNameToID map[string]string, vrfGroups []sdk.Group, vrfNameToGroupID map[string]string) int {
 	idx := groupIndex(vrfGroups)
 	matched := 0
 
-	rows := parseTableRows(vrfDetail, "TABLE_vrf", "ROW_vrf")
-	for _, row := range rows {
-		vrfName := str(row, "vrf_name")
+	for _, row := range vrfDetail.TableVRF.RowVRF {
+		vrfName := string(row.VRFName)
 		gid, ok := vrfNameToGroupID[vrfName]
 		if !ok {
 			continue
@@ -566,16 +561,9 @@ func WireInterfacesToVRFs(vrfDetail, vrfInterface map[string]any, ifNameToID map
 			continue
 		}
 
-		// Try TABLE_if / ROW_if first, then TABLE_intf / ROW_intf.
-		ifRows := parseTableRows(row, "TABLE_if", "ROW_if")
-		if len(ifRows) == 0 {
-			ifRows = parseTableRows(row, "TABLE_intf", "ROW_intf")
-		}
-		for _, ifRow := range ifRows {
-			ifName := str(ifRow, "if_name")
-			if ifName == "" {
-				ifName = str(ifRow, "intf_name")
-			}
+		// interfaceNames tries TABLE_if / ROW_if first, then falls back
+		// to TABLE_intf / ROW_intf see vrfDetailRow.interfaceNames.
+		for _, ifName := range row.interfaceNames() {
 			ifName = normalizeIfName(ifName)
 			if resID, ok := ifNameToID[ifName]; ok {
 				vrfGroups[gi].AddMembers(resID)
@@ -584,11 +572,11 @@ func WireInterfacesToVRFs(vrfDetail, vrfInterface map[string]any, ifNameToID map
 		}
 	}
 
-	// Fallback: "show vrf interface" returns a flat list of VRF-to-interface mappings.
-	if matched == 0 && vrfInterface != nil {
-		ifRows := parseTableRows(vrfInterface, "TABLE_if", "ROW_if")
-		for _, ifRow := range ifRows {
-			vrfName := str(ifRow, "vrf_name")
+	// fallback: "show vrf interface" returns a flat list of
+	// VRF-to-interface mappings.
+	if matched == 0 {
+		for _, ifRow := range vrfInterface.TableIf.RowIf {
+			vrfName := string(ifRow.VRFName)
 			gid, ok := vrfNameToGroupID[vrfName]
 			if !ok {
 				continue
@@ -597,7 +585,7 @@ func WireInterfacesToVRFs(vrfDetail, vrfInterface map[string]any, ifNameToID map
 			if !ok {
 				continue
 			}
-			ifName := normalizeIfName(str(ifRow, "if_name"))
+			ifName := normalizeIfName(string(ifRow.IfName))
 			if resID, ok := ifNameToID[ifName]; ok {
 				vrfGroups[gi].AddMembers(resID)
 				matched++
@@ -608,15 +596,15 @@ func WireInterfacesToVRFs(vrfDetail, vrfInterface map[string]any, ifNameToID map
 	return matched
 }
 
-// WirePortChannelsToVPC adds port-channel resource IDs as members of the vpc group.
-func WirePortChannelsToVPC(vpcBrief map[string]any, ifNameToID map[string]string, vpcGroup *sdk.Group) {
+// WirePortChannelsToVPC adds port-channel resource IDs as
+// members of the vpc group.
+func WirePortChannelsToVPC(vpcBrief vpcBriefResponse, ifNameToID map[string]string, vpcGroup *sdk.Group) {
 	if vpcGroup == nil {
 		return
 	}
 
-	rows := parseTableRows(vpcBrief, "TABLE_vpc", "ROW_vpc")
-	for _, row := range rows {
-		pcName := str(row, "vpc-ifindex")
+	for _, row := range vpcBrief.TableVPC.RowVPC {
+		pcName := string(row.IfIndex)
 		if pcName == "" {
 			continue
 		}
@@ -627,18 +615,98 @@ func WirePortChannelsToVPC(vpcBrief map[string]any, ifNameToID map[string]string
 	}
 }
 
-// EnrichInterfaceDetails mutates interface resources in-place with detailed
-// information from "show interface" (full output).
-func EnrichInterfaceDetails(hostname string, ifDetail map[string]any, resources []sdk.Resource, ifNameToID map[string]string) {
+// TransformPortChannels converts "show port-channel summary" output
+// into "contains" connections from each port-channel (LAG) resource
+// to its bundled physical member interfaces, and enriches the
+// port-channel resource's own properties with its member count.
+// The port-channel resource itself is expected to already exist
+// (from TransformInterfaces, via ifNameToID) this only wires
+// membership, it does not create the LAG resource.
+// A port-channel with no resolvable member interfaces (a rare
+// data row, or the LAG resource itself missing) yields no connections
+// for that row and leaves member_count unset.
+//
+// Only "group" (bundle number), "port-channel" (LAG interface name) and
+// the member "port" list are read NX-API's own per-row protocol field
+// name (LACP vs. PAgP vs. static) is not confirmed against a real
+// response yet, so it is deliberately not extracted here rather
+// than guessed.
+func TransformPortChannels(pcSummary portChannelSummaryResponse, resources []sdk.Resource, ifNameToID map[string]string) []sdk.Connection {
+	resIdx := make(map[string]int, len(resources))
+	for i, r := range resources {
+		resIdx[r.ID] = i
+	}
+
+	var connections []sdk.Connection
+
+	for _, row := range pcSummary.TableChannel.RowChannel {
+		pcName := normalizeIfName(string(row.PortChannel))
+		if pcName == "" {
+			continue
+		}
+		pcID, ok := ifNameToID[pcName]
+		if !ok {
+			continue
+		}
+
+		memberCount := 0
+		for _, memberRow := range row.TableMember.RowMember {
+			portName := normalizeIfName(string(memberRow.Port))
+			if portName == "" {
+				continue
+			}
+			memberCount++
+
+			portID, ok := ifNameToID[portName]
+			if !ok {
+				continue
+			}
+
+			canonicalKey := sdk.ConnectionCanonicalKey(sdk.ConnectionIDInput{
+				Type:      "contains",
+				Direction: "forward",
+				Source:    pcID,
+				Target:    portID,
+			})
+			connID := sdk.BuildConnectionID(canonicalKey, 16)
+			conn, err := sdk.NewConnection(connID, "contains", pcID, portID)
+			if err != nil {
+				continue
+			}
+			conn.Name = fmt.Sprintf("%s contains %s", pcName, portName)
+			conn.Direction = "forward"
+			conn.Status = "active"
+			if v := string(memberRow.PortStatus); v != "" {
+				conn.Properties = map[string]any{"port_status": v}
+			}
+
+			connections = append(connections, conn)
+		}
+
+		if memberCount > 0 {
+			if ri, ok := resIdx[pcID]; ok {
+				if resources[ri].Properties == nil {
+					resources[ri].Properties = make(map[string]any)
+				}
+				resources[ri].Properties["member_count"] = memberCount
+			}
+		}
+	}
+
+	return connections
+}
+
+// EnrichInterfaceDetails mutates interface resources in-place with
+// detailed information from "show interface" (full output).
+func EnrichInterfaceDetails(hostname string, ifDetail interfaceDetailResponse, resources []sdk.Resource, ifNameToID map[string]string) {
 	// Build reverse map: resource ID -> index in resources.
 	resIdx := make(map[string]int, len(resources))
 	for i, r := range resources {
 		resIdx[r.ID] = i
 	}
 
-	rows := parseTableRows(ifDetail, "TABLE_interface", "ROW_interface")
-	for _, row := range rows {
-		ifName := str(row, "interface")
+	for _, row := range ifDetail.TableInterface.RowInterface {
+		ifName := string(row.Interface)
 		if ifName == "" {
 			continue
 		}
@@ -656,33 +724,33 @@ func EnrichInterfaceDetails(hostname string, ifDetail map[string]any, resources 
 		}
 		props := resources[ri].Properties
 
-		if v := num(row, "eth_mtu"); v > 0 {
+		if v := int64(row.MTU); v > 0 {
 			props["mtu"] = v
 		}
-		if v := num(row, "eth_bw"); v > 0 {
+		if v := int64(row.Bandwidth); v > 0 {
 			props["bandwidth"] = v
 		}
-		if v := str(row, "eth_duplex"); v != "" {
+		if v := string(row.Duplex); v != "" {
 			props["duplex"] = v
 		}
-		if v := str(row, "eth_hw_addr"); v != "" {
+		if v := string(row.HWAddr); v != "" {
 			props["mac_address"] = sdk.NormalizeMAC(v)
 		}
-		if v := str(row, "desc"); v != "" {
+		if v := string(row.Desc); v != "" {
 			props["description"] = v
 		}
 
 		// Counters.
-		if v := num(row, "eth_outbytes"); v > 0 {
+		if v := int64(row.OutBytes); v > 0 {
 			props["tx_bytes"] = v
 		}
-		if v := num(row, "eth_inbytes"); v > 0 {
+		if v := int64(row.InBytes); v > 0 {
 			props["rx_bytes"] = v
 		}
-		if v := num(row, "eth_outpkts"); v > 0 {
+		if v := int64(row.OutPkts); v > 0 {
 			props["tx_packets"] = v
 		}
-		if v := num(row, "eth_inpkts"); v > 0 {
+		if v := int64(row.InPkts); v > 0 {
 			props["rx_packets"] = v
 		}
 	}
@@ -690,7 +758,8 @@ func EnrichInterfaceDetails(hostname string, ifDetail map[string]any, resources 
 
 // Helper functions.
 
-// resourceID generates a deterministic resource ID from type and canonical suffix.
+// resourceID generates a deterministic resource ID from type
+// and canonical suffix.
 func resourceID(resType, canonicalSuffix string) string {
 	canonicalKey := fmt.Sprintf("v1|%s|%s", resType, canonicalSuffix)
 	hash := sdk.Hash16(canonicalKey)
@@ -698,48 +767,14 @@ func resourceID(resType, canonicalSuffix string) string {
 	return fmt.Sprintf("res-%s-%s-%s", resType, hint, hash)
 }
 
-// groupIndex builds a map of group ID -> index in slice for efficient mutation.
+// groupIndex builds a map of group ID -> index in slice for
+// efficient mutation.
 func groupIndex(groups []sdk.Group) map[string]int {
 	idx := make(map[string]int, len(groups))
 	for i, g := range groups {
 		idx[g.ID] = i
 	}
 	return idx
-}
-
-// parseTableRows handles NX-API polymorphism for TABLE/ROW structures.
-// When a single row exists, NX-API returns it as an object rather than an array.
-func parseTableRows(body map[string]any, tableKey, rowKey string) []map[string]any {
-	table, ok := body[tableKey]
-	if !ok {
-		return nil
-	}
-
-	tableMap, ok := table.(map[string]any)
-	if !ok {
-		return nil
-	}
-
-	rowData, ok := tableMap[rowKey]
-	if !ok {
-		return nil
-	}
-
-	// NX-API polymorphism: single row = object, multiple = array.
-	switch v := rowData.(type) {
-	case map[string]any:
-		return []map[string]any{v}
-	case []any:
-		var rows []map[string]any
-		for _, item := range v {
-			if m, ok := item.(map[string]any); ok {
-				rows = append(rows, m)
-			}
-		}
-		return rows
-	}
-
-	return nil
 }
 
 // classifyRole heuristically determines if a device is leaf or spine.
@@ -765,7 +800,8 @@ func classifyRole(hostname, model string) string {
 	return ""
 }
 
-// classifyInterfaceType determines the OSIRIS type for an interface by name.
+// classifyInterfaceType determines the OSIRIS type for an
+// interface by name.
 func classifyInterfaceType(ifName string) string {
 	lower := strings.ToLower(ifName)
 	if strings.HasPrefix(lower, "port-channel") || strings.HasPrefix(lower, "po") {
@@ -774,7 +810,8 @@ func classifyInterfaceType(ifName string) string {
 	return "network.interface"
 }
 
-// mapInterfaceStatus converts NX-OS interface state to OSIRIS status values.
+// mapInterfaceStatus converts NX-OS interface state to
+// OSIRIS status values.
 func mapInterfaceStatus(state string) string {
 	switch strings.ToLower(state) {
 	case "up":
@@ -799,50 +836,8 @@ func normalizeIfName(name string) string {
 	return name
 }
 
-// str safely extracts a string value from an attribute map.
-func str(attrs map[string]any, key string) string {
-	if attrs == nil {
-		return ""
-	}
-	if v, ok := attrs[key]; ok {
-		switch s := v.(type) {
-		case string:
-			return s
-		case float64:
-			if s == float64(int64(s)) {
-				return strconv.FormatInt(int64(s), 10)
-			}
-			return strconv.FormatFloat(s, 'f', -1, 64)
-		}
-	}
-	return ""
-}
-
-// num safely extracts a numeric value from an attribute map.
-func num(attrs map[string]any, key string) int64 {
-	if attrs == nil {
-		return 0
-	}
-	v, ok := attrs[key]
-	if !ok {
-		return 0
-	}
-	switch n := v.(type) {
-	case float64:
-		return int64(n)
-	case int64:
-		return n
-	case int:
-		return int64(n)
-	case string:
-		if i, err := strconv.ParseInt(n, 10, 64); err == nil {
-			return i
-		}
-	}
-	return 0
-}
-
-// ensureCiscoExtension ensures the extensions map and osiris.cisco sub-map exist.
+// ensureCiscoExtension ensures the extensions map and
+// osiris.cisco sub-map exist.
 func ensureCiscoExtension(ext *map[string]any) {
 	if *ext == nil {
 		*ext = make(map[string]any)
