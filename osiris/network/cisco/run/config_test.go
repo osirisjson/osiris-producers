@@ -9,7 +9,16 @@ package run
 
 import (
 	"testing"
+	"time"
 )
+
+func TestFormatTimestamp(t *testing.T) {
+	got := FormatTimestamp(time.Date(2026, time.August, 16, 12, 54, 22, 0, time.UTC))
+	want := "2026-08-16T12-54-22Z"
+	if got != want {
+		t.Errorf("FormatTimestamp = %q, want %q", got, want)
+	}
+}
 
 func TestParseHostPort(t *testing.T) {
 	tests := []struct {
@@ -100,35 +109,6 @@ func TestResolveAddr(t *testing.T) {
 				t.Errorf("ResolveAddr() = %q, want %q", got, tt.want)
 			}
 		})
-	}
-}
-
-func TestRunConfigIsBatch(t *testing.T) {
-	single := &RunConfig{Mode: ModeSingle, Targets: []TargetConfig{{Host: "a"}}}
-	if single.IsBatch() {
-		t.Error("Mode: single should not be batch")
-	}
-
-	batchOneRow := &RunConfig{Mode: ModeBatch, Targets: []TargetConfig{{Host: "a"}}}
-	if !batchOneRow.IsBatch() {
-		t.Error("a one-row CSV started via --source is still batch input")
-	}
-
-	batchManyRows := &RunConfig{Mode: ModeBatch, Targets: []TargetConfig{{Host: "a"}, {Host: "b"}}}
-	if !batchManyRows.IsBatch() {
-		t.Error("multiple targets under Mode: batch should be batch")
-	}
-}
-
-func TestRunConfigIsBatch_FallsBackToTargetCountWhenModeUnset(t *testing.T) {
-	single := &RunConfig{Targets: []TargetConfig{{Host: "a"}}}
-	if single.IsBatch() {
-		t.Error("single target with unset Mode should not be batch")
-	}
-
-	multi := &RunConfig{Targets: []TargetConfig{{Host: "a"}, {Host: "b"}}}
-	if !multi.IsBatch() {
-		t.Error("multiple targets with unset Mode should be batch")
 	}
 }
 
