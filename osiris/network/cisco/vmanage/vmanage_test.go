@@ -388,19 +388,19 @@ func TestRunExport_DeviceFetchFailureIsFatal(t *testing.T) {
 
 // A connection failure here (not a nil return) proves Run() reached
 // ParseFlags/runExport instead of short-circuiting to printHelp.
-// Password is supplied via --token-file rather than -p (there is no
+// Password is supplied via --secrets-file rather than -p (there is no
 // such flag - see flags.go) so this doesn't depend on a controlling
 // terminal being available to satisfy the interactive prompt fallback.
 func TestRun_ShortHostFlagNotMistakenForHelp(t *testing.T) {
 	dir := t.TempDir()
-	tokenFile := filepath.Join(dir, "cisco-vmanage-secrets.json")
-	if err := os.WriteFile(tokenFile, []byte(`{"password":"changeme"}`), 0600); err != nil {
+	secretsFile := filepath.Join(dir, "cisco-vmanage-secrets.json")
+	if err := os.WriteFile(secretsFile, []byte(`{"password":"changeme"}`), 0600); err != nil {
 		t.Fatalf("writing token file: %v", err)
 	}
 
 	// 127.0.0.1:1 is loopback with a closed port: connection refused
 	// immediately, no external network dependency, no timeout wait.
-	err := Run([]string{"-h", "127.0.0.1:1", "-u", "user", "--token-file", tokenFile})
+	err := Run([]string{"-h", "127.0.0.1:1", "-u", "user", "--secrets-file", secretsFile})
 	if err == nil {
 		t.Fatal("expected Run to attempt a connection and fail, not silently succeed via the help path")
 	}

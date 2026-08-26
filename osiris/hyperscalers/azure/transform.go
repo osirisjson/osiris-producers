@@ -1,5 +1,7 @@
-// transform.go - Shared utilities and cross-domain helpers for the Azure OSIRIS JSON producer.
-// All functions are stateless: no I/O, no CLI calls, just data transformation.
+// transform.go - Shared utilities and cross-domain helpers for the
+// Azure OSIRIS JSON producer.
+// All functions are stateless: no I/O, no CLI calls,
+// just data transformation.
 //
 // Domain-specific transforms live in dedicated files:
 //   transform_networking.go    - VNet, Subnet, NIC, NSG, LB, Private Endpoint, Gateway, DNS, ExpressRoute, ASG
@@ -22,8 +24,8 @@
 //   - ID utilities: extractLastSegment, BuildAllResourceIDMap
 //
 // For an introduction to OSIRIS JSON Producer for Microsoft Azure see:
-// [OSIRIS-JSON-AZURE]: https://osirisjson.org/en/docs/producers/hyperscalers/microsoft-azure
-// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/docs/spec/v10/00-preface
+// [OSIRIS-JSON-AZURE]: https://docs.osirisjson.org/osiris-producers/hyperscalers/microsoft-azure/
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 
 package azure
 
@@ -51,10 +53,16 @@ func resourceID(_ string, armID string) string {
 
 // azureProvider creates a Provider for an Azure resource.
 // The nativeType parameter is the ARM resource type (e.g. "Microsoft.Network/virtualNetworks").
+//
+// Provider.Namespace is deliberately left unset here.
+// Per OSIRIS-JSON-v1.0 section 4.3.5 that field identifies an
+// organization-specific namespace and is only valid alongside
+// provider.name = "custom" the ARM provider namespace
+// (e.g. "Microsoft.Network") is already fully present as the prefix of
+// Type below, so there is no separate value to carry.
 func azureProvider(armID, nativeType, location string, sub SubscriptionInfo) sdk.Provider {
 	return sdk.Provider{
 		Name:         providerName,
-		Namespace:    extractARMNamespace(nativeType),
 		NativeID:     armID,
 		Account:      sub.SubscriptionID,
 		Type:         nativeType,
@@ -65,15 +73,6 @@ func azureProvider(armID, nativeType, location string, sub SubscriptionInfo) sdk
 		Version:      armAPIVersion(nativeType),
 		Source:       "azure-cli",
 	}
-}
-
-// extractARMNamespace returns the provider namespace from an ARM resource type string.
-// "Microsoft.Network/virtualNetworks" -> "Microsoft.Network"
-func extractARMNamespace(nativeType string) string {
-	if idx := strings.Index(nativeType, "/"); idx >= 0 {
-		return nativeType[:idx]
-	}
-	return nativeType
 }
 
 // armAPIVersion returns the latest stable ARM API version for the given resource type.

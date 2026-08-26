@@ -1,58 +1,64 @@
-// config.go - Target and run configuration for Cisco producers.
-// Defines the shared data structures that all Cisco sub-producers (APIC, NX-OS, IOS-XR)
-// use for connection targets and runtime settings.
+// config.go - Target and run configuration
+// for Cisco OSIRIS JSON Producer.
+// Defines the shared data structures that all Cisco sub-producers
+// (APIC, NX-OS, IOS-XE) use for connection targets and runtime settings.
 //
-// For an introduction to OSIRIS JSON Producer for Cisco see:
-// "[OSIRIS-JSON-CISCO]."
-//
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
+// OSIRIS JSON Producer for Cisco introduction:
+// [OSIRIS-JSON-CISCO]: https://docs.osirisjson.org/osiris-producers/network/cisco
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 
 package run
 
 import (
 	"fmt"
 	"net"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 )
 
-// Owner values for batch CSV. These are human-only metadata they do not affect the producer or the OSIRIS document.
+// Run modes. ParseFlags sets RunConfig.Mode explicitly based on which
+// flag (-h/--host vs. -s/--source) selected it, rather than IsBatch
+// inferring batch from len(Targets) > 1 a one-row CSV is still batch
+// input and must honor its requested --output directory, which
+// inference alone would get wrong.
 const (
-	OwnerSelf = "self" // your own device (default)
-	OwnerISP  = "isp"  // ISP-managed device you have read access to
-	OwnerColo = "colo" // colocation equipment
+	ModeSingle = "single"
+	ModeBatch  = "batch"
 )
 
-// ValidOwners is the set of accepted owner values in batch CSV.
-var ValidOwners = []string{OwnerSelf, OwnerISP, OwnerColo}
-
-// TargetConfig describes a single device to collect from.
+// TargetConfig describes a single device to collect from. Type is
+// always set from the CLI subcommand that parsed this target (e.g.
+// "nxos" for "cisco nxos -s ..."), never read from the batch CSV a
+// batch file is inherently single-producer, since which producer's
+// flags/dispatch parsed it already answers that question.
 type TargetConfig struct {
 	// Connection.
-	Host     string // IP or FQDN.
+	Host     string // IP or FQDN (from the CSV's management_ip column, or --host).
 	Port     int    // 0 = use producer default.
 	Username string
 	Password string
 
 	// Identity.
 	Hostname string // device label (from CSV or derived from Host).
-	Type     string // producer type: "apic", "nxos", "iosxr".
+	Type     string // producer type: "apic", "nxos", "iosxe".
 
 	// Location hierarchy (batch CSV only, used for output path).
-	DC    string // datacenter name.
-	Floor string // floor identifier.
-	Room  string // room identifier.
-	Zone  string // zone/pod identifier.
-
-	// Human-only metadata (not used by producer or OSIRIS document).
-	Owner string // "self", "isp", "colo".
-	Notes string // free-text operator notes.
+	// Optional per OSIRIS-JSON-v1.0 section 7.6.5's physical
+	// containment levels; used to build the output directory structure
+	// when present, and reserved for a future
+	// physical.datacenter/room/rack group mapping (not yet implemented).
+	Datacenter string // datacenter name.
+	Floor      string // floor identifier.
+	Room       string // room identifier.
+	Rack       string // rack identifier.
 }
 
 // RunConfig carries runtime settings resolved from flags and CSV.
 type RunConfig struct {
 	Targets         []TargetConfig
+	Mode            string // ModeSingle or ModeBatch; set explicitly by ParseFlags.
 	OutputDir       string // batch only; empty = stdout single mode.
 	DetailLevel     string // "minimal" | "detailed".
 	SafeFailureMode string // "fail-closed" | "log-and-redact" | "off".
@@ -62,31 +68,92 @@ type RunConfig struct {
 
 // FormatTimestamp returns a filesystem-safe UTC timestamp string.
 func FormatTimestamp(t time.Time) string {
-	return t.UTC().Format("2006-01-02T15-04-05Z")
+	return t.UTC().Format("2026-01-02T15-04-05Z")
 }
 
-// IsBatch returns true when the run targets multiple devices.
+// IsBatch returns true when the run was explicitly started in batch
+// mode (-s/--source), regardless of how many targets that CSV
+// contained. A RunConfig built without going through ParseFlags (e.g.
+// directly in a test) with Mode left unset falls back to the target
+// count for backward compatibility.
 func (c *RunConfig) IsBatch() bool {
+	if c.Mode != "" {
+		return c.Mode == ModeBatch
+	}
 	return len(c.Targets) > 1
 }
 
-// OutputPath returns the hierarchical output path for a target within the.
-// output directory: DC/Floor/Room/Zone/Hostname.json.
-// Empty location segments are omitted. If all segments are empty, returns.
-// just Hostname.json.
-func OutputPath(baseDir string, t TargetConfig) string {
-	parts := []string{baseDir}
-	for _, seg := range []string{t.DC, t.Floor, t.Room, t.Zone} {
-		if seg != "" {
-			parts = append(parts, seg)
+// SanitizePathSegment validates a single path component (a CSV
+// datacenter/floor/room/rack/hostname field, or a --host value used as
+// a filename) before it is used to build an output file path. Rejects
+// anything that could escape the intended output directory or corrupt
+// the path: embedded path separators (so a single CSV field can never
+// inject extra directory levels or an absolute path), the special "."
+// and ".." segments, and control characters. Returns the segment
+// unchanged when it is safe to use as-is.
+func SanitizePathSegment(seg string) (string, error) {
+	if seg == "" {
+		return "", fmt.Errorf("empty path segment")
+	}
+	if seg == "." || seg == ".." {
+		return "", fmt.Errorf("invalid path segment %q", seg)
+	}
+	if strings.ContainsAny(seg, "/\\") {
+		return "", fmt.Errorf("path segment %q must not contain a path separator", seg)
+	}
+	for _, r := range seg {
+		if r < 0x20 || r == 0x7f {
+			return "", fmt.Errorf("path segment %q contains a control character", seg)
 		}
 	}
+	return seg, nil
+}
+
+// OutputPath returns the hierarchical output path for a target within
+// the output directory:
+// Datacenter/Floor/Room/Rack/cisco-<type>-<timestamp>-<hostname>.json.
+// Empty location segments are omitted; if all are empty, returns just
+// the filename. The filename matches single mode's own
+// cisco-<type>-<timestamp>-<hostname>.json convention (see cisco.go's
+// runSingle) rather than a bare Hostname.json, so a repeated batch run
+// against the same targets does not silently overwrite the previous
+// run's output, and a file can be identified by producer type and
+// capture time without needing its directory context. Every non-empty
+// segment is validated by SanitizePathSegment first, and the final
+// path is confirmed to still resolve inside baseDir, so a hostile CSV
+// field (absolute path, "../.." traversal, embedded separator) cannot
+// write outside the requested output directory.
+func OutputPath(baseDir, timestamp string, t TargetConfig) (string, error) {
+	parts := []string{baseDir}
+	for _, seg := range []string{t.Datacenter, t.Floor, t.Room, t.Rack} {
+		if seg == "" {
+			continue
+		}
+		clean, err := SanitizePathSegment(seg)
+		if err != nil {
+			return "", fmt.Errorf("output path: %w", err)
+		}
+		parts = append(parts, clean)
+	}
+
 	name := t.Hostname
 	if name == "" {
 		name = t.Host
 	}
-	parts = append(parts, name+".json")
-	return strings.Join(parts, "/")
+	clean, err := SanitizePathSegment(name)
+	if err != nil {
+		return "", fmt.Errorf("output path: %w", err)
+	}
+	parts = append(parts, fmt.Sprintf("cisco-%s-%s-%s.json", t.Type, timestamp, clean))
+
+	full := filepath.Join(parts...)
+
+	rel, err := filepath.Rel(filepath.Clean(baseDir), full)
+	if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return "", fmt.Errorf("output path for %q escapes the output directory", name)
+	}
+
+	return full, nil
 }
 
 // ParseHostPort splits a host string into host and port components.

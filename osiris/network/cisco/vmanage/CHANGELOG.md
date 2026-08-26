@@ -21,6 +21,46 @@ the release-level index of which producers shipped under each tag.
 
 ---
 
+## [Unreleased]
+
+### Changed
+- `--secrets-file` now loads through the shared
+  `osiris/network/cisco/run` credential-file loader (also used by
+  apic/iosxe/nxos's `--secrets-file`), which rejects symlinks,
+  group/other permission bits, and files not owned by the invoking
+  user. Previously loaded via a local, unchecked `os.ReadFile` +
+  `json.Unmarshal` pair with none of those guarantees.
+- `template --generate`'s file-writing now goes through the same
+  shared helper apic/iosxe/nxos use (`run.WriteTemplateFile`); the
+  written file (`cisco-vmanage-secrets.json`) and its `{host, username,
+  password}` shape are unchanged.
+- `--secrets-file` now also accepts the "rules" shape apic/iosxe/nxos's
+  for multi-host targets. vManage has exactly one target host per
+  run, so this is most useful for reusing one `--secrets-file` across
+  multiple controllers (matched by host/CIDR) rather than for a
+  per-target batch, but the resolution logic and the file shape is
+  now identical to every other Cisco producer.
+
+### Fixed
+- Every documentation-only example host across this producer (CLI help
+  text, doc comments, the generated `cisco-vmanage-secrets.json`
+  template, and test fixtures) changed from `acme.sdwan.cisco.com` to
+  `vmanage.example.com` the former was not an RFC 2606 reserved
+  domain and could collide with a real registered domain; the latter
+  uses the `example.com` domain RFC 2606 reserves for exactly this
+  purpose. No behavioral change.
+- `template --generate` now also writes
+  `cisco-vmanage-secrets-multihost.json` (the rules shape) alongside
+  the existing `cisco-vmanage-secrets.json` (the flat single host shape)+
+  each carrying its own explanatory `"$comment"` field.
+  Unlike apic/iosxe/nxos (whose example "hosts" patterns are RFC 5737 
+  CIDR/exact-IP blocks), vmanage's `cisco-vmanage-secrets-multihost.json`
+  uses two example RFC 2606 FQDNs (`vmanage01.example.com`, 
+  `vmanage02.example.com`), matching how vmanage targets are actually
+  addressed a controller hostname, not a bare IP. 
+  Both example files use the same plain
+  `user`/`changeme` credential placeholders everywhere.
+
 ## [0.1.0] - 2026-08-09
 
 Initial Cisco vManage producer release.
@@ -144,26 +184,26 @@ Initial Cisco vManage producer release.
 - `--purpose documentation|audit` support: audit adds serial numbers,
   certificate validity and geo-coordinates.
 - `-h/--host` accepts customer-specific domains (e.g.
-  `acme.sdwan.cisco.com`) as well as bare IPs, optionally with `:port`
+  `vmanage.example.com`) as well as bare IPs, optionally with `:port`
   (`-P/--port` overrides). `-u/--username` for authentication. There is
   deliberately no `-p/--password` flag a CLI flag value is visible to
   any local user (e.g. via `ps`) and gets written to shell history.
   `-h`/`-u`/password are each resolved in this order: their own flag,
-  then `--token-file`, then (for whichever is still missing) an
+  then `--secrets-file`, then (for whichever is still missing) an
   interactive prompt on the controlling terminal host/username
   visibly, password hidden so a bare
   `osirisjson-producer cisco vmanage` with no flags at all still works
   end to end, asking for whatever it needs one at a time. Nothing
-  entered interactively is written to disk unless `--token-file` was
+  entered interactively is written to disk unless `--secrets-file` was
   also given.
-- `--token-file`: a JSON file with `{host, username, password}` - any
+- `--secrets-file`: a JSON file with `{host, username, password}` any
   field it omits still falls back to its own flag or an interactive
   prompt, so a partially-filled file is fine.
   `template --generate` writes a skeleton to
   `cisco-vmanage-secrets.json`.
 - `--include-raw-body` (requires `--purpose audit`): attaches each
   collected endpoint's full, unmodified API response body to the
-  owning device resource under `extensions["osiris.cisco.vmanage"]` -
+  owning device resource under `extensions["osiris.cisco.vmanage"]`
   the device's own `GET /dataservice/device` object (`raw`),
   `interfaces_raw`, `wan_interfaces_raw` (when non-empty),
   `omp_peers_raw`, and `site_topology_raw` (matched back to the device
@@ -254,4 +294,5 @@ Initial Cisco vManage producer release.
   covers `state` at every level these would otherwise inform, so the
   extra per-device calls did not add new modeled fields.
 
+[Unreleased]: ../../../../CHANGELOG.md
 [0.1.0]: ../../../../CHANGELOG.md#unreleased

@@ -1,9 +1,9 @@
 // Package azure implements the Microsoft Azure OSIRIS JSON producer.
-// Collects networking and compute resources from Azure subscriptions via the
-// Azure CLI (az) and generates OSIRIS JSON documents.
+// Collects networking and compute resources from Azure subscriptions
+// via the Azure CLI (az) and generates OSIRIS JSON documents.
 //
-// The producer requires the user to be authenticated via 'az login' and have
-// Reader access to the target subscriptions.
+// The producer requires the user to be authenticated via 'az login' and
+// have Reader access to the target subscriptions.
 //
 // Operating modes:
 //
@@ -20,17 +20,18 @@
 //	    <timestamp>/
 //	      <SubscriptionName>.json
 //
-// Each subscription is a self-contained OSIRIS JSON document. Consumers can
-// correlate documents across subscriptions (e.g. cross-subscription VNet
-// peerings reference remote subscription IDs as resources).
+// Each subscription is a self-contained OSIRIS JSON document.
+// Consumers can correlate documents across subscriptions
+// (e.g. cross-subscription VNet peerings reference remote subscription
+// IDs as resources).
 //
 // For multi-tenant environments, users run the producer once per tenant
 // (each az login authenticates to one tenant). The output hierarchy
 // naturally separates tenants into their own directories.
 //
 // For an introduction to OSIRIS JSON Producer for Microsoft Azure see:
-// [OSIRIS-JSON-AZURE]: https://osirisjson.org/en/docs/producers/hyperscalers/microsoft-azure
-// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/docs/spec/v10/00-preface
+// [OSIRIS-JSON-AZURE]: https://docs.osirisjson.org/osiris-producers/hyperscalers/microsoft-azure/
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 
 package azure
 
@@ -48,18 +49,20 @@ import (
 
 const (
 	generatorName    = "osirisjson-producer-azure"
-	generatorVersion = "0.5.1"
-	generatorURL     = "https://osirisjson.org/en/docs/producers/hyperscalers/microsoft-azure"
+	generatorVersion = "0.5.2"
+	generatorURL     = "https://docs.osirisjson.org/osiris-producers/hyperscalers/microsoft-azure/"
 )
 
-// Producer implements the OSIRIS JSON sdk.Producer interface for Microsoft Azure.
+// Producer implements the OSIRIS JSON sdk.Producer interface for
+// Microsoft Azure.
 type Producer struct {
 	target SubscriptionTarget
 	cfg    *Config
 	client *Client // injectable for testing.
 }
 
-// NewProducer creates an Azure producer for the given subscription target.
+// NewProducer creates an Azure producer for the given
+// subscription target.
 func NewProducer(target SubscriptionTarget, cfg *Config) *Producer {
 	return &Producer{target: target, cfg: cfg}
 }
@@ -71,8 +74,9 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		client = NewClient(p.target.SubscriptionID, ctx.Logger)
 	}
 	client.purpose = p.cfg.Purpose
-	// Inject pre-fetched MG entities from a batch run to avoid N redundant
-	// tenant-scoped API calls (one per subscription, all returning the same data).
+	// Inject pre-fetched MG entities from a batch run to avoid N
+	// redundant tenant-scoped API calls (one per subscription,
+	// all returning the same data).
 	if len(p.cfg.MGEntitiesCache) > 0 {
 		client.mgEntitiesOverride = p.cfg.MGEntitiesCache
 	}
@@ -307,7 +311,7 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	// Layer 32: Gateway connections (ExpressRoute circuit <-> gateway)
 	allIDMap := BuildAllResourceIDMap(vnetIDMap, subnetIDMap, nicIDMap, nsgIDMap, rtIDMap)
 	for _, gw := range data.VNetGateways {
-		allIDMap[gw.ID] = resourceID("osiris.azure.gateway.vnet", gw.ID)
+		allIDMap[gw.ID] = resourceID("network.gateway", gw.ID)
 	}
 	for _, er := range data.ExpressRouteCircuits {
 		allIDMap[er.ID] = resourceID("osiris.azure.expressroute", er.ID)

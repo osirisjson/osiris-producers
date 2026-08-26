@@ -1,11 +1,11 @@
 // nxos_test.go - Integration tests for the Cisco NX-OS producer.
 // Verifies end-to-end Collect behavior using a canned fixture server,
-// including detail levels, LLDP connections, VLAN/VRF membership and deterministic output.
+// including detail levels, LLDP connections, VLAN/VRF membership
+// and deterministic output.
 //
-// For an introduction to OSIRIS JSON Producer for Cisco see:
-// "[OSIRIS-JSON-CISCO]."
-//
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
+// OSIRIS JSON Producer for Cisco introduction:
+// [OSIRIS-JSON-CISCO]: https://docs.osirisjson.org/osiris-producers/network/cisco
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 
 package nxos
 
@@ -21,12 +21,11 @@ import (
 	"go.osirisjson.org/producers/pkg/testharness"
 )
 
-// fixtureServer creates an httptest.Server that serves canned NX-API responses.
-// Routes commands by parsing the "input" field from the POST body.
-func fixtureServer(t *testing.T) *httptest.Server {
-	t.Helper()
-
-	fixtures := map[string]map[string]any{
+// fixtureBodies returns the canned NX-API command bodies shared by
+// fixtureServer and fixtureServerWithFailingCommand, keyed by the
+// exact CLI command string.
+func fixtureBodies() map[string]map[string]any {
+	return map[string]map[string]any{
 		"show version": {
 			"chassis_id":     "Nexus9000 C9508",
 			"proc_board_id":  "TST0000NX01",
@@ -68,6 +67,7 @@ func fixtureServer(t *testing.T) *httptest.Server {
 		},
 		"show vrf all detail": {
 			"TABLE_vrf": map[string]any{
+
 				"ROW_vrf": []any{
 					map[string]any{
 						"vrf_name": "PROD", "vrf_id": "3", "vrf_state": "Up",
@@ -102,7 +102,7 @@ func fixtureServer(t *testing.T) *httptest.Server {
 					"l_port_id": "Ethernet1/1",
 					"sys_name":  "REMOTE-SW01",
 					"port_id":   "Ethernet1/49",
-					"mgmt_addr": "10.99.0.10",
+					"mgmt_addr": "192.0.2.10",
 				},
 			},
 		},
@@ -117,7 +117,20 @@ func fixtureServer(t *testing.T) *httptest.Server {
 				},
 			},
 		},
-		"show port-channel summary": {},
+		"show port-channel summary": {
+			"TABLE_channel": map[string]any{
+				"ROW_channel": map[string]any{
+					"group":        "10",
+					"port-channel": "Po10",
+					"TABLE_member": map[string]any{
+						"ROW_member": []any{
+							map[string]any{"port": "Eth1/1", "port-status": "P"},
+							map[string]any{"port": "Eth1/2", "port-status": "P"},
+						},
+					},
+				},
+			},
+		},
 		"show interface": {
 			"TABLE_interface": map[string]any{
 				"ROW_interface": []any{
@@ -145,6 +158,62 @@ func fixtureServer(t *testing.T) *httptest.Server {
 			},
 		},
 	}
+}
+
+// fixtureServer creates an httptest.Server that serves fixtureBodies'
+// canned NX-API responses. Routes commands by parsing the "input"
+// field from the POST body.
+func fixtureServer(t *testing.T) *httptest.Server {
+	t.Helper()
+	return newFixtureServer(t, "", nil)
+}
+
+// fixtureServerWithFailingCommand behaves like fixtureServer but makes
+// failCmd fail (CLI code 400) instead of returning its normal fixture,
+// while every other command in the same batch still succeeds: one
+// command failing inside a multi-command batch must not erase its
+// siblings' data from the emitted document.
+func fixtureServerWithFailingCommand(t *testing.T, failCmd string) *httptest.Server {
+	t.Helper()
+	return newFixtureServer(t, failCmd, nil)
+}
+
+// fixtureServerWithCommandCounter behaves like fixtureServer but also
+// counts how many times each command string was requested, across every
+// Show/ShowMulti call made against it regardless of whether the calls
+// came from Client.Login or a later batch. "show version" must be
+// requested exactly once per run, whether that one request happens
+// during Login or (when Login was never called,
+// e.g. an injected pre-authenticated Client) during batch 1.
+func fixtureServerWithCommandCounter(t *testing.T) (*httptest.Server, map[string]int) {
+	t.Helper()
+	counts := make(map[string]int)
+	return newFixtureServer(t, "", counts), counts
+}
+
+// newFixtureServer backs fixtureServer, fixtureServerWithFailingCommand
+// and fixtureServerWithCommandCounter. When failCmd is non-empty, that
+// one command returns CLI code 400 instead of its fixtureBodies() entry;
+// every other command is unaffected. When counts is non-nil, every
+// command seen (successful or not) increments its own entry.
+func newFixtureServer(t *testing.T, failCmd string, counts map[string]int) *httptest.Server {
+	t.Helper()
+	fixtures := fixtureBodies()
+
+	outputFor := func(cmd string) map[string]any {
+		if counts != nil {
+			counts[cmd]++
+		}
+		if failCmd != "" && cmd == failCmd {
+			return map[string]any{"code": "400", "msg": "Command failed", "body": json.RawMessage(`""`)}
+		}
+		fixture := fixtures[cmd]
+		if fixture == nil {
+			fixture = map[string]any{}
+		}
+		bodyBytes, _ := json.Marshal(fixture)
+		return map[string]any{"code": "200", "msg": "Success", "body": json.RawMessage(bodyBytes)}
+	}
 
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -162,24 +231,13 @@ func fixtureServer(t *testing.T) *httptest.Server {
 		}
 		json.Unmarshal(body, &req)
 
-		// Parse semicolon-separated commands.
 		commands := splitCommands(req.InsAPI.Input)
 
 		if len(commands) == 1 {
-			// Single command: return single output object.
-			fixture := fixtures[commands[0]]
-			if fixture == nil {
-				fixture = map[string]any{}
-			}
-			bodyBytes, _ := json.Marshal(fixture)
 			resp := map[string]any{
 				"ins_api": map[string]any{
 					"outputs": map[string]any{
-						"output": map[string]any{
-							"code": "200",
-							"msg":  "Success",
-							"body": json.RawMessage(bodyBytes),
-						},
+						"output": outputFor(commands[0]),
 					},
 				},
 			}
@@ -187,19 +245,9 @@ func fixtureServer(t *testing.T) *httptest.Server {
 			return
 		}
 
-		// Multiple commands: return array of outputs.
 		var outputs []map[string]any
 		for _, cmd := range commands {
-			fixture := fixtures[cmd]
-			if fixture == nil {
-				fixture = map[string]any{}
-			}
-			bodyBytes, _ := json.Marshal(fixture)
-			outputs = append(outputs, map[string]any{
-				"code": "200",
-				"msg":  "Success",
-				"body": json.RawMessage(bodyBytes),
-			})
+			outputs = append(outputs, outputFor(cmd))
 		}
 		resp := map[string]any{
 			"ins_api": map[string]any{
@@ -258,7 +306,7 @@ func newTestProducer(t *testing.T, ts *httptest.Server, detailLevel string) (*Pr
 		SafeFailureMode: sdk.FailClosed,
 	}))
 	return &Producer{
-		target: run.TargetConfig{Host: "10.99.0.1", Hostname: "LAB-SW01", Username: "admin", Password: "test"},
+		target: run.TargetConfig{Host: "192.0.2.1", Hostname: "LAB-SW01", Username: "admin", Password: "test"},
 		cfg:    &run.RunConfig{DetailLevel: detailLevel},
 		client: &Client{
 			baseURL:    ts.URL,
@@ -300,9 +348,10 @@ func TestCollect_Minimal(t *testing.T) {
 	assertCount(t, typeCounts, "network.interface", 4) // 3 local + 1 LLDP stub
 	assertCount(t, typeCounts, "osiris.cisco.interface.lag", 1)
 
-	// Connections: 1 LLDP link.
-	if len(doc.Topology.Connections) != 1 {
-		t.Errorf("expected 1 connection, got %d", len(doc.Topology.Connections))
+	// Connections: 1 LLDP link + 2 port-channel "contains"
+	// (Eth1/1, Eth1/2 -> Po10).
+	if len(doc.Topology.Connections) != 3 {
+		t.Errorf("expected 3 connections, got %d", len(doc.Topology.Connections))
 	}
 
 	// Groups: 2 VLANs + 2 VRFs + 1 vPC = 5.
@@ -443,13 +492,15 @@ func TestCollect_LLDPConnections(t *testing.T) {
 		t.Fatalf("Collect failed: %v", err)
 	}
 
-	if len(doc.Topology.Connections) != 1 {
-		t.Fatalf("expected 1 connection, got %d", len(doc.Topology.Connections))
+	var conn *sdk.Connection
+	for i, c := range doc.Topology.Connections {
+		if c.Type == "physical.ethernet" {
+			conn = &doc.Topology.Connections[i]
+			break
+		}
 	}
-
-	conn := doc.Topology.Connections[0]
-	if conn.Type != "physical.ethernet" {
-		t.Errorf("connection type: %s", conn.Type)
+	if conn == nil {
+		t.Fatalf("missing physical.ethernet (LLDP) connection among %d connections", len(doc.Topology.Connections))
 	}
 	if conn.Status != "active" {
 		t.Errorf("connection status: %s", conn.Status)
@@ -538,9 +589,345 @@ func TestCollect_VRFMembership(t *testing.T) {
 	}
 }
 
+func TestCollect_LLDPFailureDoesNotEraseVPCOrPortChannel(t *testing.T) {
+	// "show lldp neighbors detail" failing (a switch with LLDP disabled,
+	// for example) must not also erase vPC or port-channel data fetched
+	// successfully in the same batch. This was the exact all-or-nothing
+	// bug: a single command's CLI-level failure used to fail the whole
+	// ShowMulti call, and the caller's fallback zeroed every command in
+	// that batch, not just the failed one.
+	ts := fixtureServerWithFailingCommand(t, "show lldp neighbors detail")
+	defer ts.Close()
+
+	producer, ctx := newTestProducer(t, ts, "minimal")
+	doc, err := producer.Collect(ctx)
+	if err != nil {
+		t.Fatalf("Collect should not fail when only LLDP is unavailable: %v", err)
+	}
+
+	// No LLDP connection or stub LLDP genuinely failed. The 2
+	// port-channel "contains" connections (Eth1/1, Eth1/2 -> Po10) must
+	// still be present they come from an unrelated ShowMulti batch
+	// entirely, but also prove that a failure inside batch 2 (LLDP)
+	// does not erase port-channel data fetched in the very same batch.
+	for _, c := range doc.Topology.Connections {
+		if c.Type == "physical.ethernet" {
+			t.Errorf("unexpected physical.ethernet (LLDP) connection: LLDP failed, should have produced none")
+		}
+	}
+	if len(doc.Topology.Connections) != 2 {
+		t.Errorf("expected 2 connections (port-channel contains only), got %d", len(doc.Topology.Connections))
+	}
+
+	// vPC group must still be present it succeeded in the same batch
+	// as the failed LLDP command.
+	vpcFound := false
+	for _, g := range doc.Topology.Groups {
+		if g.Type == "network.vpc" {
+			vpcFound = true
+			break
+		}
+	}
+	if !vpcFound {
+		t.Error("vPC group missing - LLDP's failure incorrectly erased sibling batch data")
+	}
+
+	// VLAN/VRF groups (from the unrelated batch1 call) must also be
+	// completely unaffected.
+	if len(doc.Topology.Groups) != 5 {
+		t.Errorf("expected 5 groups (2 VLAN + 2 VRF + 1 vPC), got %d", len(doc.Topology.Groups))
+	}
+}
+
+func TestCollect_PortChannelMembership(t *testing.T) {
+	// "show port-channel summary" was fetched but never
+	// consumed this verifies its response now produces "contains"
+	// connections from the Po10 LAG resource to its physical members
+	// and a member_count property on the LAG resource itself.
+	ts := fixtureServer(t)
+	defer ts.Close()
+
+	producer, ctx := newTestProducer(t, ts, "minimal")
+	doc, err := producer.Collect(ctx)
+	if err != nil {
+		t.Fatalf("Collect failed: %v", err)
+	}
+
+	resourceByID := make(map[string]sdk.Resource)
+	var lag *sdk.Resource
+	for i, r := range doc.Topology.Resources {
+		resourceByID[r.ID] = r
+		if r.Name == "port-channel10" {
+			lag = &doc.Topology.Resources[i]
+		}
+	}
+	if lag == nil {
+		t.Fatal("missing port-channel10 resource")
+	}
+	if lag.Properties["member_count"] != 2 {
+		t.Errorf("port-channel10 member_count: %v", lag.Properties["member_count"])
+	}
+
+	var containsConns []sdk.Connection
+	for _, c := range doc.Topology.Connections {
+		if c.Type == "contains" {
+			containsConns = append(containsConns, c)
+		}
+	}
+	if len(containsConns) != 2 {
+		t.Fatalf("expected 2 contains connections, got %d", len(containsConns))
+	}
+
+	wantTargets := map[string]bool{"Ethernet1/1": false, "Ethernet1/2": false}
+	for _, c := range containsConns {
+		if c.Source != lag.ID {
+			t.Errorf("contains connection source = %s, want %s (port-channel10)", c.Source, lag.ID)
+		}
+		if c.Direction != "forward" {
+			t.Errorf("contains connection direction = %s, want forward", c.Direction)
+		}
+		target, ok := resourceByID[c.Target]
+		if !ok {
+			t.Fatalf("contains connection target %s not found in resources", c.Target)
+		}
+		if _, tracked := wantTargets[target.Name]; !tracked {
+			t.Errorf("unexpected contains connection target: %s", target.Name)
+			continue
+		}
+		wantTargets[target.Name] = true
+		if c.Properties["port_status"] != "P" {
+			t.Errorf("contains connection to %s: port_status = %v, want P", target.Name, c.Properties["port_status"])
+		}
+	}
+	for name, seen := range wantTargets {
+		if !seen {
+			t.Errorf("missing contains connection to %s", name)
+		}
+	}
+}
+
+func TestCollect_ReusesLoginVersionData(t *testing.T) {
+	// Login already fetches "show version" once to validate
+	// credentials; Collect must reuse that body rather than fetching it
+	// again in batch 1. Login and Collect share the same *Client here
+	// (unlike newTestProducer's other callers, which inject a client
+	// that never went through Login at all), so this is the one test
+	// that actually exercises the login-then-collect path this fix
+	// targets.
+	ts, counts := fixtureServerWithCommandCounter(t)
+	defer ts.Close()
+
+	ctx := testharness.NewTestContext(t, testharness.WithConfig(&sdk.ProducerConfig{
+		DetailLevel:     "minimal",
+		SafeFailureMode: sdk.FailClosed,
+	}))
+	client := &Client{
+		baseURL:    ts.URL,
+		httpClient: ts.Client(),
+		logger:     ctx.Logger,
+	}
+	if err := client.Login("admin", "test"); err != nil {
+		t.Fatalf("Login failed: %v", err)
+	}
+
+	producer := &Producer{
+		target: run.TargetConfig{Host: "192.0.2.1", Hostname: "LAB-SW01", Username: "admin", Password: "test"},
+		cfg:    &run.RunConfig{DetailLevel: "minimal"},
+		client: client,
+	}
+	doc, err := producer.Collect(ctx)
+	if err != nil {
+		t.Fatalf("Collect failed: %v", err)
+	}
+
+	if counts["show version"] != 1 {
+		t.Errorf(`"show version" requested %d times across Login+Collect, want exactly 1`, counts["show version"])
+	}
+
+	// The device resource must still be built correctly from the
+	// Login-cached version data - not silently empty.
+	var device *sdk.Resource
+	for i, r := range doc.Topology.Resources {
+		if r.Type == "osiris.cisco.switch.spine" {
+			device = &doc.Topology.Resources[i]
+			break
+		}
+	}
+	if device == nil {
+		t.Fatal("missing device resource")
+	}
+	if device.Properties["model"] != "Nexus9000 C9508" {
+		t.Errorf("device model: %v", device.Properties["model"])
+	}
+}
+
+func TestCollect_CoverageReportsSucceededAndFailed(t *testing.T) {
+	// attempted/succeeded/failed/unavailable per command must
+	// be visible in the emitted document itself,
+	// not only in stderr logs.
+	ts := fixtureServerWithFailingCommand(t, "show lldp neighbors detail")
+	defer ts.Close()
+
+	producer, ctx := newTestProducer(t, ts, "minimal")
+	doc, err := producer.Collect(ctx)
+	if err != nil {
+		t.Fatalf("Collect failed: %v", err)
+	}
+
+	var device *sdk.Resource
+	for i, r := range doc.Topology.Resources {
+		if r.Type == "osiris.cisco.switch.spine" {
+			device = &doc.Topology.Resources[i]
+			break
+		}
+	}
+	if device == nil {
+		t.Fatal("missing device resource")
+	}
+	cisco, ok := device.Extensions[extensionNamespace].(map[string]any)
+	if !ok {
+		t.Fatal("device should have osiris.cisco extension")
+	}
+	coverage, ok := cisco["coverage"].([]map[string]any)
+	if !ok {
+		t.Fatalf("expected coverage extension, got %v", cisco["coverage"])
+	}
+
+	byCommand := make(map[string]map[string]any, len(coverage))
+	for _, entry := range coverage {
+		byCommand[entry["command"].(string)] = entry
+	}
+
+	failed, ok := byCommand["show lldp neighbors detail"]
+	if !ok {
+		t.Fatal("missing coverage entry for show lldp neighbors detail")
+	}
+	if failed["status"] != "failed" {
+		t.Errorf("lldp status = %v, want failed", failed["status"])
+	}
+	if failed["error"] == nil || failed["error"] == "" {
+		t.Error("failed coverage entry should carry its error message")
+	}
+
+	succeeded, ok := byCommand["show vpc brief"]
+	if !ok {
+		t.Fatal("missing coverage entry for show vpc brief")
+	}
+	if succeeded["status"] != "succeeded" {
+		t.Errorf("vpc brief status = %v, want succeeded", succeeded["status"])
+	}
+	if _, hasErr := succeeded["error"]; hasErr {
+		t.Error("succeeded coverage entry should not carry an error field")
+	}
+
+	// Every batch 1 command must also be represented (minimal mode still
+	// issues "show version" in batch 1 here, since the fixture-injected
+	// client bypasses Login).
+	for _, cmd := range []string{"show version", "show inventory", "show interface brief", "show vlan brief", "show vrf all detail", "show vrf interface", "show port-channel summary"} {
+		if _, ok := byCommand[cmd]; !ok {
+			t.Errorf("missing coverage entry for %q", cmd)
+		}
+	}
+}
+
+func TestCollect_CoverageMarksWholeBatchUnavailableOnTransportFailure(t *testing.T) {
+	// A batch-level transport failure (a malformed envelope, or a
+	// result count that does not match the number of commands sent see
+	// ShowMulti's contract) must still produce one "unavailable"
+	// coverage entry per command in that batch, not silently omit them.
+	// Batch 1 succeeds normally here; only batch 2 (identified by
+	// containing the LLDP command) is made to return a mismatched
+	// output count.
+	fixtures := fixtureBodies()
+	outputFor := func(cmd string) map[string]any {
+		fixture := fixtures[cmd]
+		if fixture == nil {
+			fixture = map[string]any{}
+		}
+		bodyBytes, _ := json.Marshal(fixture)
+		return map[string]any{"code": "200", "msg": "Success", "body": json.RawMessage(bodyBytes)}
+	}
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		body, _ := io.ReadAll(r.Body)
+		var req struct {
+			InsAPI struct {
+				Input string `json:"input"`
+			} `json:"ins_api"`
+		}
+		json.Unmarshal(body, &req)
+		commands := splitCommands(req.InsAPI.Input)
+
+		for _, c := range commands {
+			if c == "show lldp neighbors detail" {
+				// Batch 2: declare 0 outputs for 3 commands sent
+				// a transport-level mismatch, not a per-command failure.
+				resp := map[string]any{
+					"ins_api": map[string]any{
+						"outputs": map[string]any{"output": []map[string]any{}},
+					},
+				}
+				json.NewEncoder(w).Encode(resp)
+				return
+			}
+		}
+
+		if len(commands) == 1 {
+			resp := map[string]any{"ins_api": map[string]any{"outputs": map[string]any{"output": outputFor(commands[0])}}}
+			json.NewEncoder(w).Encode(resp)
+			return
+		}
+		var outputs []map[string]any
+		for _, cmd := range commands {
+			outputs = append(outputs, outputFor(cmd))
+		}
+		json.NewEncoder(w).Encode(map[string]any{"ins_api": map[string]any{"outputs": map[string]any{"output": outputs}}})
+	}))
+	defer ts.Close()
+
+	producer, ctx := newTestProducer(t, ts, "minimal")
+	doc, err := producer.Collect(ctx)
+	if err != nil {
+		t.Fatalf("Collect should tolerate a batch 2 transport failure: %v", err)
+	}
+
+	var device *sdk.Resource
+	for i, r := range doc.Topology.Resources {
+		if r.Type == "osiris.cisco.switch.spine" {
+			device = &doc.Topology.Resources[i]
+			break
+		}
+	}
+	if device == nil {
+		t.Fatal("missing device resource")
+	}
+	cisco, ok := device.Extensions[extensionNamespace].(map[string]any)
+	if !ok {
+		t.Fatal("device should have osiris.cisco extension")
+	}
+	coverage, ok := cisco["coverage"].([]map[string]any)
+	if !ok {
+		t.Fatalf("expected coverage extension, got %v", cisco["coverage"])
+	}
+	byCommand := make(map[string]map[string]any, len(coverage))
+	for _, entry := range coverage {
+		byCommand[entry["command"].(string)] = entry
+	}
+	for _, cmd := range []string{"show lldp neighbors detail", "show vpc brief", "show port-channel summary"} {
+		entry, ok := byCommand[cmd]
+		if !ok {
+			t.Fatalf("missing coverage entry for %q", cmd)
+		}
+		if entry["status"] != "unavailable" {
+			t.Errorf("%s status = %v, want unavailable", cmd, entry["status"])
+		}
+	}
+}
+
 func TestNewFactory(t *testing.T) {
 	factory := NewFactory()
-	p := factory(run.TargetConfig{Host: "10.99.0.1"}, &run.RunConfig{})
+	p := factory(run.TargetConfig{Host: "192.0.2.1"}, &run.RunConfig{})
 	if _, ok := p.(*Producer); !ok {
 		t.Error("factory should return *Producer")
 	}

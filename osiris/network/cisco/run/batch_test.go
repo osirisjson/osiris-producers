@@ -1,10 +1,10 @@
-// batch_test.go - Tests for CSV template generation, datacenter-hierarchy CSV parsing,
-// batch orchestration with hierarchical output, mixed producer types and partial failures.
+// batch_test.go - Tests for CSV template generation,
+// datacenter-hierarchy CSV parsing, batch orchestration with
+// hierarchical output, mixed producer types and partial failures.
 //
-// For an introduction to OSIRIS JSON Producer for Cisco see:
-// "[OSIRIS-JSON-CISCO]."
-//
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
+// OSIRIS JSON Producer for Cisco introduction:
+// [OSIRIS-JSON-CISCO]: https://docs.osirisjson.org/osiris-producers/network/cisco
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 
 package run
 
@@ -19,23 +19,46 @@ import (
 )
 
 func TestCSVTemplate(t *testing.T) {
-	tmpl := CSVTemplate("apic")
-	if !strings.Contains(tmpl, "dc,floor,room,zone,hostname,type,ip,port,owner,notes") {
-		t.Error("template missing header row")
+	tests := []struct {
+		producer     string
+		wantHostname string
+		wantIP       string
+	}{
+		{"apic", "apic-01", "192.0.2.1"},
+		{"nxos", "nxos-01", "192.0.2.10"},
+		{"iosxe", "iosxe-01", "192.0.2.20"},
 	}
-	if !strings.Contains(tmpl, "apic") {
-		t.Error("template missing producer name")
+	for _, tt := range tests {
+		t.Run(tt.producer, func(t *testing.T) {
+			tmpl := CSVTemplate(tt.producer)
+			if !strings.Contains(tmpl, "datacenter,floor,room,rack,hostname,management_ip,port") {
+				t.Error("template missing header row")
+			}
+			if !strings.Contains(tmpl, tt.wantHostname) {
+				t.Errorf("template missing expected hostname %s", tt.wantHostname)
+			}
+			if !strings.Contains(tmpl, tt.wantIP) {
+				t.Errorf("template missing expected RFC 5737 address %s", tt.wantIP)
+			}
+			// No "type" column: a batch CSV is inherently
+			// single-producer, so it must not repeat the producer name
+			// as a data value.
+			if strings.Contains(tmpl, ","+tt.producer+",") {
+				t.Errorf("template should not have a type column value %q", tt.producer)
+			}
+			// Exactly one data row (plus the header line).
+			lines := strings.Split(strings.TrimRight(tmpl, "\n"), "\n")
+			if len(lines) != 2 {
+				t.Errorf("expected header + exactly 1 data row, got %d lines: %v", len(lines), lines)
+			}
+		})
 	}
-	// Check that example rows are present.
-	if !strings.Contains(tmpl, "nxos") {
-		t.Error("template missing nxos example row")
-	}
-	if !strings.Contains(tmpl, "iosxe") {
-		t.Error("template missing iosxe example row")
-	}
-	// Check owner values are present in example rows.
-	if !strings.Contains(tmpl, "self") || !strings.Contains(tmpl, "isp") {
-		t.Error("template missing owner values in example rows")
+}
+
+func TestCSVTemplate_UnknownProducerFallsBackGracefully(t *testing.T) {
+	tmpl := CSVTemplate("futurevendor")
+	if !strings.Contains(tmpl, "futurevendor-01") {
+		t.Errorf("expected a fallback example row for an unrecognized producer name, got: %s", tmpl)
 	}
 }
 
@@ -43,16 +66,16 @@ func TestParseCSV(t *testing.T) {
 	dir := t.TempDir()
 	csvPath := filepath.Join(dir, "targets.csv")
 	content := `# Comment line
-dc,floor,room,zone,hostname,type,ip,port,owner,notes
-AMS-01,F3,R301,POD-A,apic-01,apic,10.10.1.1,,self,Primary controller
-AMS-01,F3,R301,POD-A,nx-spine-01,nxos,10.10.1.10,8443,self,Spine switch
-AMS-01,F3,R302,POD-B,isp-pe-router,iosxr,172.16.0.1,,isp,ISP PE router
+datacenter,floor,room,rack,hostname,management_ip,port
+MXP,F3,R301,RACK-A,switch-spine01,192.0.2.50,
+MXP,F3,R301,RACK-A,switch-spine02,192.0.2.60,8443
+MXP,F3,R302,RACK-B,switch-spine03,192.0.2.70,
 `
 	if err := os.WriteFile(csvPath, []byte(content), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	targets, err := ParseCSV(csvPath)
+	targets, err := ParseCSV(csvPath, "nxos")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -60,88 +83,56 @@ AMS-01,F3,R302,POD-B,isp-pe-router,iosxr,172.16.0.1,,isp,ISP PE router
 		t.Fatalf("expected 3 targets, got %d", len(targets))
 	}
 
-	// First target: APIC.
-	if targets[0].Host != "10.10.1.1" || targets[0].Hostname != "apic-01" {
+	// A batch CSV is inherently single-producer: every target gets the
+	// type passed in by the caller, never a per-row CSV value.
+	for i, tgt := range targets {
+		if tgt.Type != "nxos" {
+			t.Errorf("target[%d].Type = %q, want nxos", i, tgt.Type)
+		}
+	}
+
+	if targets[0].Host != "192.0.2.50" || targets[0].Hostname != "switch-spine01" {
 		t.Errorf("target[0] = %+v", targets[0])
 	}
-	if targets[0].Type != "apic" || targets[0].DC != "AMS-01" || targets[0].Zone != "POD-A" {
-		t.Errorf("target[0] type/location = %+v", targets[0])
-	}
-	if targets[0].Owner != "self" {
-		t.Errorf("target[0] owner = %q, want self", targets[0].Owner)
+	if targets[0].Datacenter != "MXP" || targets[0].Floor != "F3" || targets[0].Room != "R301" || targets[0].Rack != "RACK-A" {
+		t.Errorf("target[0] location = %+v", targets[0])
 	}
 
-	// Second target: NX-OS with explicit port.
-	if targets[1].Port != 8443 || targets[1].Type != "nxos" {
-		t.Errorf("target[1] = %+v", targets[1])
+	if targets[1].Port != 8443 {
+		t.Errorf("target[1] port = %d, want 8443", targets[1].Port)
 	}
 
-	// Third target: IOS-XR with ISP owner.
-	if targets[2].Type != "iosxr" || targets[2].Owner != "isp" {
-		t.Errorf("target[2] = %+v", targets[2])
-	}
-}
-
-func TestParseCSVOwnerDefault(t *testing.T) {
-	dir := t.TempDir()
-	csvPath := filepath.Join(dir, "targets.csv")
-	content := "hostname,type,ip\nswitch-01,nxos,10.0.0.1\n"
-	if err := os.WriteFile(csvPath, []byte(content), 0644); err != nil {
-		t.Fatal(err)
-	}
-
-	targets, err := ParseCSV(csvPath)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if targets[0].Owner != "self" {
-		t.Errorf("owner should default to self, got %q", targets[0].Owner)
-	}
-}
-
-func TestParseCSVInvalidOwner(t *testing.T) {
-	dir := t.TempDir()
-	csvPath := filepath.Join(dir, "targets.csv")
-	content := "hostname,type,ip,owner\nswitch-01,nxos,10.0.0.1,vendor\n"
-	if err := os.WriteFile(csvPath, []byte(content), 0644); err != nil {
-		t.Fatal(err)
-	}
-
-	_, err := ParseCSV(csvPath)
-	if err == nil {
-		t.Fatal("expected error for invalid owner")
-	}
-	if !strings.Contains(err.Error(), "invalid owner") {
-		t.Errorf("error = %q, want mention of invalid owner", err.Error())
+	if targets[2].Room != "R302" || targets[2].Rack != "RACK-B" {
+		t.Errorf("target[2] location = %+v", targets[2])
 	}
 }
 
 func TestParseCSVMissingRequiredColumns(t *testing.T) {
 	dir := t.TempDir()
 	csvPath := filepath.Join(dir, "targets.csv")
-	content := "dc,floor,ip\nAMS-01,F3,10.0.0.1\n"
+	content := "datacenter,floor,management_ip\nMXP,F3,192.0.2.1\n"
 	if err := os.WriteFile(csvPath, []byte(content), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	_, err := ParseCSV(csvPath)
+	_, err := ParseCSV(csvPath, "nxos")
 	if err == nil {
 		t.Fatal("expected error for missing required columns")
 	}
-	if !strings.Contains(err.Error(), "hostname") || !strings.Contains(err.Error(), "type") {
-		t.Errorf("error = %q, want mention of hostname and type", err.Error())
+	if !strings.Contains(err.Error(), "hostname") {
+		t.Errorf("error = %q, want mention of hostname", err.Error())
 	}
 }
 
 func TestParseCSVMinimalColumns(t *testing.T) {
 	dir := t.TempDir()
 	csvPath := filepath.Join(dir, "targets.csv")
-	content := "hostname,type,ip\nspine-01,nxos,10.0.0.1\nspine-02,nxos,10.0.0.2\n"
+	content := "hostname,management_ip\nspine-01,192.0.2.1\nspine-02,192.0.2.2\n"
 	if err := os.WriteFile(csvPath, []byte(content), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	targets, err := ParseCSV(csvPath)
+	targets, err := ParseCSV(csvPath, "nxos")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -156,12 +147,12 @@ func TestParseCSVMinimalColumns(t *testing.T) {
 func TestParseCSVEmpty(t *testing.T) {
 	dir := t.TempDir()
 	csvPath := filepath.Join(dir, "targets.csv")
-	content := "hostname,type,ip\n"
+	content := "hostname,management_ip\n"
 	if err := os.WriteFile(csvPath, []byte(content), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	_, err := ParseCSV(csvPath)
+	_, err := ParseCSV(csvPath, "nxos")
 	if err == nil {
 		t.Fatal("expected error for empty CSV")
 	}
@@ -170,12 +161,12 @@ func TestParseCSVEmpty(t *testing.T) {
 func TestParseCSVMissingHostname(t *testing.T) {
 	dir := t.TempDir()
 	csvPath := filepath.Join(dir, "targets.csv")
-	content := "hostname,type,ip\n,nxos,10.0.0.1\n"
+	content := "hostname,management_ip\n,192.0.2.1\n"
 	if err := os.WriteFile(csvPath, []byte(content), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	_, err := ParseCSV(csvPath)
+	_, err := ParseCSV(csvPath, "nxos")
 	if err == nil {
 		t.Fatal("expected error for missing hostname")
 	}
@@ -184,17 +175,45 @@ func TestParseCSVMissingHostname(t *testing.T) {
 func TestParseCSVPortColumn(t *testing.T) {
 	dir := t.TempDir()
 	csvPath := filepath.Join(dir, "targets.csv")
-	content := "hostname,type,ip,port\nswitch-01,nxos,10.0.0.1,8443\n"
+	content := "hostname,management_ip,port\nswitch-01,192.0.2.1,8443\n"
 	if err := os.WriteFile(csvPath, []byte(content), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	targets, err := ParseCSV(csvPath)
+	targets, err := ParseCSV(csvPath, "nxos")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if targets[0].Port != 8443 {
 		t.Errorf("port = %d, want 8443", targets[0].Port)
+	}
+}
+
+func TestParseCSVPortOutOfRange(t *testing.T) {
+	dir := t.TempDir()
+	csvPath := filepath.Join(dir, "targets.csv")
+	content := "hostname,management_ip,port\nswitch-01,192.0.2.1,99999\n"
+	if err := os.WriteFile(csvPath, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := ParseCSV(csvPath, "nxos")
+	if err == nil {
+		t.Fatal("expected error for out-of-range port")
+	}
+}
+
+func TestParseCSVPortTrailingGarbage(t *testing.T) {
+	dir := t.TempDir()
+	csvPath := filepath.Join(dir, "targets.csv")
+	content := "hostname,management_ip,port\nswitch-01,192.0.2.1,8443abc\n"
+	if err := os.WriteFile(csvPath, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := ParseCSV(csvPath, "nxos")
+	if err == nil {
+		t.Fatal("expected error for port with trailing non-numeric characters")
 	}
 }
 
@@ -227,7 +246,7 @@ func stubFactories() FactoryRegistry {
 	return FactoryRegistry{
 		"apic":  okFactory,
 		"nxos":  okFactory,
-		"iosxr": okFactory,
+		"iosxe": okFactory,
 	}
 }
 
@@ -237,12 +256,13 @@ func TestRunBatch(t *testing.T) {
 
 	cfg := &RunConfig{
 		Targets: []TargetConfig{
-			{Host: "10.10.1.1", Hostname: "apic-01", Type: "apic", DC: "AMS-01", Floor: "F3", Room: "R301", Zone: "POD-A", Username: "admin", Password: "test"},
-			{Host: "10.10.1.10", Hostname: "nx-spine-01", Type: "nxos", DC: "AMS-01", Floor: "F3", Room: "R301", Zone: "POD-A", Username: "admin", Password: "test"},
+			{Host: "192.0.2.50", Hostname: "apic-01", Type: "apic", Datacenter: "MXP", Floor: "F3", Room: "R301", Rack: "RACK-A", Username: "admin", Password: "test"},
+			{Host: "192.0.2.60", Hostname: "switch-spine01", Type: "nxos", Datacenter: "MXP", Floor: "F3", Room: "R301", Rack: "RACK-A", Username: "admin", Password: "test"},
 		},
 		OutputDir:       outDir,
 		DetailLevel:     "minimal",
 		SafeFailureMode: "fail-closed",
+		Timestamp:       "2026-01-15T10-00-00Z",
 	}
 
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
@@ -250,10 +270,12 @@ func TestRunBatch(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	// Check hierarchical output files exist.
+	// Check hierarchical output files exist, named like single mode's
+	// own cisco-<type>-<timestamp>-<hostname>.json convention so a
+	// repeated batch run does not silently overwrite prior output.
 	expected := []string{
-		"output/AMS-01/F3/R301/POD-A/apic-01.json",
-		"output/AMS-01/F3/R301/POD-A/nx-spine-01.json",
+		"output/MXP/F3/R301/RACK-A/cisco-apic-2026-01-15T10-00-00Z-apic-01.json",
+		"output/MXP/F3/R301/RACK-A/cisco-nxos-2026-01-15T10-00-00Z-switch-spine01.json",
 	}
 	for _, rel := range expected {
 		path := filepath.Join(dir, rel)
@@ -269,12 +291,13 @@ func TestRunBatchFlatOutput(t *testing.T) {
 
 	cfg := &RunConfig{
 		Targets: []TargetConfig{
-			{Host: "10.0.0.1", Hostname: "spine-01", Type: "nxos", Username: "admin", Password: "test"},
-			{Host: "10.0.0.2", Hostname: "spine-02", Type: "nxos", Username: "admin", Password: "test"},
+			{Host: "192.0.2.1", Hostname: "spine-01", Type: "nxos", Username: "admin", Password: "test"},
+			{Host: "192.0.2.2", Hostname: "spine-02", Type: "nxos", Username: "admin", Password: "test"},
 		},
 		OutputDir:       outDir,
 		DetailLevel:     "minimal",
 		SafeFailureMode: "fail-closed",
+		Timestamp:       "2026-01-15T10-00-00Z",
 	}
 
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
@@ -283,7 +306,7 @@ func TestRunBatchFlatOutput(t *testing.T) {
 	}
 
 	// No hierarchy - files at root of output dir.
-	for _, name := range []string{"spine-01.json", "spine-02.json"} {
+	for _, name := range []string{"cisco-nxos-2026-01-15T10-00-00Z-spine-01.json", "cisco-nxos-2026-01-15T10-00-00Z-spine-02.json"} {
 		path := filepath.Join(outDir, name)
 		if _, err := os.Stat(path); os.IsNotExist(err) {
 			t.Errorf("expected output file %s", path)
@@ -297,7 +320,7 @@ func TestRunBatchUnknownType(t *testing.T) {
 
 	cfg := &RunConfig{
 		Targets: []TargetConfig{
-			{Host: "10.0.0.1", Hostname: "device-01", Type: "unknown"},
+			{Host: "192.0.2.1", Hostname: "device-01", Type: "unknown"},
 		},
 		OutputDir:       outDir,
 		DetailLevel:     "minimal",
@@ -321,7 +344,7 @@ func TestRunBatchAllFail(t *testing.T) {
 
 	cfg := &RunConfig{
 		Targets: []TargetConfig{
-			{Host: "10.0.0.1", Hostname: "spine-01", Type: "nxos"},
+			{Host: "192.0.2.1", Hostname: "spine-01", Type: "nxos"},
 		},
 		OutputDir:       outDir,
 		DetailLevel:     "minimal",
@@ -347,12 +370,13 @@ func TestRunBatchPartialFailure(t *testing.T) {
 
 	cfg := &RunConfig{
 		Targets: []TargetConfig{
-			{Host: "10.0.0.1", Hostname: "ok-device", Type: "nxos"},
-			{Host: "10.0.0.2", Hostname: "bad-device", Type: "nxos"},
+			{Host: "192.0.2.1", Hostname: "ok-device", Type: "nxos"},
+			{Host: "192.0.2.2", Hostname: "bad-device", Type: "nxos"},
 		},
 		OutputDir:       outDir,
 		DetailLevel:     "minimal",
 		SafeFailureMode: "fail-closed",
+		Timestamp:       "2026-01-15T10-00-00Z",
 	}
 
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
@@ -361,11 +385,11 @@ func TestRunBatchPartialFailure(t *testing.T) {
 		t.Fatalf("partial failure should not return error: %v", err)
 	}
 
-	if _, err := os.Stat(filepath.Join(outDir, "ok-device.json")); os.IsNotExist(err) {
-		t.Error("expected ok-device.json to exist")
+	if _, err := os.Stat(filepath.Join(outDir, "cisco-nxos-2026-01-15T10-00-00Z-ok-device.json")); os.IsNotExist(err) {
+		t.Error("expected ok-device output file to exist")
 	}
-	if _, err := os.Stat(filepath.Join(outDir, "bad-device.json")); !os.IsNotExist(err) {
-		t.Error("expected bad-device.json to NOT exist")
+	if _, err := os.Stat(filepath.Join(outDir, "cisco-nxos-2026-01-15T10-00-00Z-bad-device.json")); !os.IsNotExist(err) {
+		t.Error("expected bad-device output file to NOT exist")
 	}
 }
 
@@ -375,13 +399,14 @@ func TestRunBatchMixedTypes(t *testing.T) {
 
 	cfg := &RunConfig{
 		Targets: []TargetConfig{
-			{Host: "10.0.0.1", Hostname: "apic-01", Type: "apic", DC: "DC1"},
-			{Host: "10.0.0.2", Hostname: "nx-spine", Type: "nxos", DC: "DC1"},
-			{Host: "10.0.0.3", Hostname: "xr-pe", Type: "iosxr", DC: "DC1"},
+			{Host: "192.0.2.1", Hostname: "apic-01", Type: "apic", Datacenter: "MXP"},
+			{Host: "192.0.2.2", Hostname: "nx-spine", Type: "nxos", Datacenter: "MXP"},
+			{Host: "192.0.2.3", Hostname: "xr-pe", Type: "iosxe", Datacenter: "MXP"},
 		},
 		OutputDir:       outDir,
 		DetailLevel:     "minimal",
 		SafeFailureMode: "fail-closed",
+		Timestamp:       "2026-01-15T10-00-00Z",
 	}
 
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
@@ -389,8 +414,8 @@ func TestRunBatchMixedTypes(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	for _, name := range []string{"apic-01.json", "nx-spine.json", "xr-pe.json"} {
-		path := filepath.Join(outDir, "DC1", name)
+	for _, name := range []string{"cisco-apic-2026-01-15T10-00-00Z-apic-01.json", "cisco-nxos-2026-01-15T10-00-00Z-nx-spine.json", "cisco-iosxe-2026-01-15T10-00-00Z-xr-pe.json"} {
+		path := filepath.Join(outDir, "MXP", name)
 		if _, err := os.Stat(path); os.IsNotExist(err) {
 			t.Errorf("expected output file %s", path)
 		}

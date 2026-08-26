@@ -1,8 +1,9 @@
-// transform_integration.go - Integration resource and connection transforms (Service Bus, Event Hubs, APIM, Front Door).
+// transform_integration.go - Integration resource and connection
+// transforms (Service Bus, Event Hubs, APIM, Front Door).
 //
 // For an introduction to OSIRIS JSON Producer for Microsoft Azure see:
-// [OSIRIS-JSON-AZURE]: https://osirisjson.org/en/docs/producers/hyperscalers/microsoft-azure
-// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/docs/spec/v10/00-preface
+// [OSIRIS-JSON-AZURE]: https://docs.osirisjson.org/osiris-producers/hyperscalers/microsoft-azure/
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 
 package azure
 
@@ -12,29 +13,34 @@ import (
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
-// TransformServiceBusNamespaces converts Microsoft.ServiceBus/namespaces into
-// OSIRIS JSON resources of type osiris.azure.servicebus.namespace. Queue topic and subscription enumeration is out of scope.
+// TransformServiceBusNamespaces converts Microsoft.ServiceBus/namespaces
+// into OSIRIS JSON resources of the standard type application.queue
+// (OSIRIS-JSON-v1.0 section 7.7.3 maps Microsoft.ServiceBus/namespaces
+// directly to application.queue).
 func TransformServiceBusNamespaces(namespaces []ServiceBusNamespace, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	return transformMessagingNamespaces(
-		"osiris.azure.servicebus.namespace",
+		"application.queue",
 		"Microsoft.ServiceBus/namespaces",
 		messagingIterServiceBus(namespaces),
 		sub,
 	)
 }
 
-// TransformEventHubsNamespaces converts Microsoft.EventHub/namespaces into
-// OSIRIS JSON resources of type osiris.azure.eventhubs.namespace.
+// TransformEventHubsNamespaces converts Microsoft.EventHub/namespaces
+// into OSIRIS JSON resources of the standard type application.eventstream
+// (OSIRIS-JSON-v1.0 section 7.2.2 names "Azure Event Hubs" directly
+// under application.eventstream's use cases).
 func TransformEventHubsNamespaces(namespaces []EventHubsNamespace, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	return transformMessagingNamespaces(
-		"osiris.azure.eventhubs.namespace",
+		"application.eventstream",
 		"Microsoft.EventHub/namespaces",
 		messagingIterEventHubs(namespaces),
 		sub,
 	)
 }
 
-// messagingNamespaceView unifies ServiceBus + EventHubs namespace iteration for the shared transform body.
+// messagingNamespaceView unifies ServiceBus + EventHubs namespace
+// iteration for the shared transform body.
 type messagingNamespaceView struct {
 	ID            string
 	Name          string

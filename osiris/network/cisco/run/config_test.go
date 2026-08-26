@@ -1,10 +1,9 @@
-// config_test.go - Tests for target configuration, host:port parsing, address
-// resolution and hierarchical output path generation.
+// config_test.go - Tests for target configuration, host:port parsing,
+// address resolution and hierarchical output path generation.
 //
-// For an introduction to OSIRIS JSON Producer for Cisco see:
-// "[OSIRIS-JSON-CISCO]."
-//
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
+// OSIRIS JSON Producer for Cisco introduction:
+// [OSIRIS-JSON-CISCO]: https://docs.osirisjson.org/osiris-producers/network/cisco
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 
 package run
 
@@ -24,9 +23,9 @@ func TestParseHostPort(t *testing.T) {
 		// FQDN.
 		{"apic.lab.local", "apic.lab.local", 0, false},
 		// IPv4 no port.
-		{"10.0.0.1", "10.0.0.1", 0, false},
+		{"192.0.2.1", "192.0.2.1", 0, false},
 		// IPv4 with port.
-		{"10.0.0.1:443", "10.0.0.1", 443, false},
+		{"192.0.2.1:443", "192.0.2.1", 443, false},
 		// IPv6 bare brackets.
 		{"[::1]", "::1", 0, false},
 		// IPv6 with port.
@@ -70,15 +69,15 @@ func TestResolveAddr(t *testing.T) {
 	}{
 		{
 			name:        "ipv4 default port",
-			target:      TargetConfig{Host: "10.0.0.1"},
+			target:      TargetConfig{Host: "192.0.2.1"},
 			defaultPort: 443,
-			want:        "10.0.0.1:443",
+			want:        "192.0.2.1:443",
 		},
 		{
 			name:        "ipv4 explicit port",
-			target:      TargetConfig{Host: "10.0.0.1", Port: 8443},
+			target:      TargetConfig{Host: "192.0.2.1", Port: 8443},
 			defaultPort: 443,
-			want:        "10.0.0.1:8443",
+			want:        "192.0.2.1:8443",
 		},
 		{
 			name:        "ipv6 default port",
@@ -105,18 +104,76 @@ func TestResolveAddr(t *testing.T) {
 }
 
 func TestRunConfigIsBatch(t *testing.T) {
-	single := &RunConfig{Targets: []TargetConfig{{Host: "a"}}}
+	single := &RunConfig{Mode: ModeSingle, Targets: []TargetConfig{{Host: "a"}}}
 	if single.IsBatch() {
-		t.Error("single target should not be batch")
+		t.Error("Mode: single should not be batch")
 	}
 
-	batch := &RunConfig{Targets: []TargetConfig{{Host: "a"}, {Host: "b"}}}
-	if !batch.IsBatch() {
-		t.Error("multiple targets should be batch")
+	batchOneRow := &RunConfig{Mode: ModeBatch, Targets: []TargetConfig{{Host: "a"}}}
+	if !batchOneRow.IsBatch() {
+		t.Error("a one-row CSV started via --source is still batch input")
+	}
+
+	batchManyRows := &RunConfig{Mode: ModeBatch, Targets: []TargetConfig{{Host: "a"}, {Host: "b"}}}
+	if !batchManyRows.IsBatch() {
+		t.Error("multiple targets under Mode: batch should be batch")
+	}
+}
+
+func TestRunConfigIsBatch_FallsBackToTargetCountWhenModeUnset(t *testing.T) {
+	single := &RunConfig{Targets: []TargetConfig{{Host: "a"}}}
+	if single.IsBatch() {
+		t.Error("single target with unset Mode should not be batch")
+	}
+
+	multi := &RunConfig{Targets: []TargetConfig{{Host: "a"}, {Host: "b"}}}
+	if !multi.IsBatch() {
+		t.Error("multiple targets with unset Mode should be batch")
+	}
+}
+
+func TestSanitizePathSegment(t *testing.T) {
+	tests := []struct {
+		seg     string
+		wantErr bool
+	}{
+		{"MXP", false},
+		{"spine-01", false},
+		{"", true},
+		{".", true},
+		{"..", true},
+		{"../escape", true},
+		{"a/b", true},
+		{"a\\b", true},
+		{"/etc/passwd", true},
+		{"name\x00withnull", true},
+		{"name\nwithnewline", true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.seg, func(t *testing.T) {
+			_, err := SanitizePathSegment(tt.seg)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SanitizePathSegment(%q) error = %v, wantErr = %v", tt.seg, err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestOutputPath_RejectsTraversal(t *testing.T) {
+	tests := []TargetConfig{
+		{Host: "192.0.2.1", Hostname: "../../etc/passwd"},
+		{Host: "192.0.2.2", Hostname: "ok", Datacenter: "../escape"},
+		{Host: "192.0.2.3", Hostname: "ok", Rack: "a/b"},
+	}
+	for _, tgt := range tests {
+		if _, err := OutputPath("/output", "2026-01-15T10-00-00Z", tgt); err == nil {
+			t.Errorf("OutputPath(%+v) expected error, got none", tgt)
+		}
 	}
 }
 
 func TestOutputPath(t *testing.T) {
+	const ts = "2026-01-15T10-00-00Z"
 	tests := []struct {
 		name   string
 		target TargetConfig
@@ -125,38 +182,41 @@ func TestOutputPath(t *testing.T) {
 		{
 			name: "full hierarchy",
 			target: TargetConfig{
-				Host: "10.0.0.1", Hostname: "apic-01",
-				DC: "AMS-01", Floor: "F3", Room: "R301", Zone: "POD-A",
+				Host: "192.0.2.1", Hostname: "apic-01", Type: "apic",
+				Datacenter: "MXP", Floor: "F3", Room: "R301", Rack: "RACK-A",
 			},
-			want: "/output/AMS-01/F3/R301/POD-A/apic-01.json",
+			want: "/output/MXP/F3/R301/RACK-A/cisco-apic-" + ts + "-apic-01.json",
 		},
 		{
-			name: "partial hierarchy (DC and zone only)",
+			name: "partial hierarchy (datacenter and rack only)",
 			target: TargetConfig{
-				Host: "10.0.0.2", Hostname: "spine-01",
-				DC: "AMS-01", Zone: "POD-B",
+				Host: "192.0.2.2", Hostname: "spine-01", Type: "nxos",
+				Datacenter: "MXP", Rack: "RACK-B",
 			},
-			want: "/output/AMS-01/POD-B/spine-01.json",
+			want: "/output/MXP/RACK-B/cisco-nxos-" + ts + "-spine-01.json",
 		},
 		{
 			name: "no hierarchy (flat)",
 			target: TargetConfig{
-				Host: "10.0.0.3", Hostname: "leaf-01",
+				Host: "192.0.2.3", Hostname: "leaf-01", Type: "nxos",
 			},
-			want: "/output/leaf-01.json",
+			want: "/output/cisco-nxos-" + ts + "-leaf-01.json",
 		},
 		{
 			name: "hostname defaults to Host",
 			target: TargetConfig{
-				Host: "10.0.0.4", DC: "DC1",
+				Host: "192.0.2.4", Datacenter: "MXP", Type: "iosxe",
 			},
-			want: "/output/DC1/10.0.0.4.json",
+			want: "/output/MXP/cisco-iosxe-" + ts + "-192.0.2.4.json",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := OutputPath("/output", tt.target)
+			got, err := OutputPath("/output", ts, tt.target)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
 			if got != tt.want {
 				t.Errorf("OutputPath() = %q, want %q", got, tt.want)
 			}
