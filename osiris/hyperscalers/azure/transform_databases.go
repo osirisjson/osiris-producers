@@ -1,8 +1,9 @@
-// transform_databases.go - Database resource and connection transforms (SQL Server, PostgreSQL, MySQL, Cosmos DB, Redis).
+// transform_databases.go - Database resource and connection transforms
+// (SQL Server, PostgreSQL, MySQL, Cosmos DB, Redis).
 //
 // For an introduction to OSIRIS JSON Producer for Microsoft Azure see:
-// [OSIRIS-JSON-AZURE]: https://osirisjson.org/en/docs/producers/hyperscalers/microsoft-azure
-// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/docs/spec/v10/00-preface
+// [OSIRIS-JSON-AZURE]: https://docs.osirisjson.org/osiris-producers/hyperscalers/microsoft-azure/
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 
 package azure
 
@@ -13,9 +14,11 @@ import (
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
-// TransformSQLServers converts Microsoft.Sql/servers into OSIRIS JSON resources
-// of type osiris.azure.sqlserver. Administrator passwords are never emitted as per OSIRIS JSON spec chapter 13;
-// the login name is treated as non-secret (it is a user principal, not authentication material on its own).
+// TransformSQLServers converts Microsoft.Sql/servers into OSIRIS JSON
+// resources of type osiris.azure.sqlserver. Administrator passwords are
+// never emitted as per OSIRIS JSON spec chapter 13;
+// the login name is treated as non-secret (it is a user principal, not
+// authentication material on its own).
 func TransformSQLServers(servers []SQLServer, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(servers))
@@ -85,19 +88,22 @@ func TransformSQLServers(servers []SQLServer, sub SubscriptionInfo) ([]sdk.Resou
 }
 
 // TransformSQLDatabases converts Microsoft.Sql/servers/databases into
-// OSIRIS JSON resources of type osiris.azure.sqldatabase. The implicit `master` database is skipped at collection time.
+// OSIRIS JSON resources of the standard type application.database
+// (OSIRIS-JSON-v1.0 section 7.2.1 maps Azure SQL Database directly to
+// application.database). The implicit `master` database is skipped at
+// collection time.
 func TransformSQLDatabases(servers []SQLServer, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string)
 
 	for _, s := range servers {
 		for _, db := range s.Databases {
-			id := resourceID("osiris.azure.sqldatabase", db.ID)
+			id := resourceID("application.database", db.ID)
 			idMap[db.ID] = id
 
 			prov := azureProvider(db.ID, "Microsoft.Sql/servers/databases", db.Location, sub)
 
-			r, err := sdk.NewResource(id, "osiris.azure.sqldatabase", prov)
+			r, err := sdk.NewResource(id, "application.database", prov)
 			if err != nil {
 				continue
 			}
@@ -158,21 +164,27 @@ func TransformSQLDatabases(servers []SQLServer, sub SubscriptionInfo) ([]sdk.Res
 }
 
 // TransformPostgreSQLServers converts Microsoft.DBforPostgreSQL/flexibleServers
-// into OSIRIS JSON resources of type osiris.azure.postgresqlserver.
+// into OSIRIS JSON resources of the standard type application.database
+// a flexible server is itself the running PostgreSQL instance, matching
+// OSIRIS-JSON-v1.0 section 7.2.1's "self-hosted databases
+// (PostgreSQL...)" use case.
 func TransformPostgreSQLServers(servers []PostgreSQLServer, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	return transformFlexServers(
-		"osiris.azure.postgresqlserver",
+		"application.database",
 		"Microsoft.DBforPostgreSQL/flexibleServers",
 		flexServerIter(servers),
 		sub,
 	)
 }
 
-// TransformMySQLServers converts Microsoft.DBforMySQL/flexibleServers into
-// OSIRIS JSON resources of type osiris.azure.mysqlserver.
+// TransformMySQLServers converts Microsoft.DBforMySQL/flexibleServers
+// into OSIRIS JSON resources of the standard type application.database
+// a flexible server is itself the running MySQL instance, matching
+// OSIRIS-JSON-v1.0 section 7.2.1's "self-hosted databases (...MySQL)"
+// use case.
 func TransformMySQLServers(servers []MySQLServer, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	return transformFlexServers(
-		"osiris.azure.mysqlserver",
+		"application.database",
 		"Microsoft.DBforMySQL/flexibleServers",
 		flexServerIterMySQL(servers),
 		sub,
@@ -313,20 +325,22 @@ func transformFlexServers(osirisType, armType string, views []flexServerView, su
 	return resources, idMap
 }
 
-// TransformCosmosAccounts converts Microsoft.DocumentDB/databaseAccounts into
-// OSIRIS JSON resources of type osiris.azure.cosmosaccount. Primary/secondary
-// keys and connection strings are never collected (credentials, not topology).
+// TransformCosmosAccounts converts Microsoft.DocumentDB/databaseAccounts
+// into OSIRIS JSON resources of the standard type application.database
+// (OSIRIS-JSON-v1.0 section 7.2.1 maps CosmosDB directly to
+// application.database). Primary/secondary keys and connection strings
+// are never collected.
 func TransformCosmosAccounts(accts []CosmosAccount, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(accts))
 
 	for _, a := range accts {
-		id := resourceID("osiris.azure.cosmosaccount", a.ID)
+		id := resourceID("application.database", a.ID)
 		idMap[a.ID] = id
 
 		prov := azureProvider(a.ID, "Microsoft.DocumentDB/databaseAccounts", a.Location, sub)
 
-		r, err := sdk.NewResource(id, "osiris.azure.cosmosaccount", prov)
+		r, err := sdk.NewResource(id, "application.database", prov)
 		if err != nil {
 			continue
 		}
@@ -447,21 +461,23 @@ func flattenCosmosVNetRules(rules []azCosmosVNetRule) []map[string]any {
 	return out
 }
 
-// TransformRedisCaches converts Microsoft.Cache/Redis into OSIRIS JSON resources
-// of type osiris.azure.redis. Access keys are never collected.
+// TransformRedisCaches converts Microsoft.Cache/Redis into OSIRIS JSON
+// resources of the standard type application.cache (OSIRIS-JSON-v1.0
+// section 7.7.3 maps Microsoft.Cache/redis directly to
+// application.cache). Access keys are never collected.
 func TransformRedisCaches(caches []RedisCache, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(caches))
 
 	for _, c := range caches {
-		id := resourceID("osiris.azure.redis", c.ID)
+		id := resourceID("application.cache", c.ID)
 		idMap[c.ID] = id
 
 		prov := azureProvider(c.ID, "Microsoft.Cache/Redis", c.Location, sub)
 		if len(c.Zones) > 0 {
 			prov.Zone = strings.Join(c.Zones, ",")
 		}
-		r, err := sdk.NewResource(id, "osiris.azure.redis", prov)
+		r, err := sdk.NewResource(id, "application.cache", prov)
 		if err != nil {
 			continue
 		}
@@ -881,18 +897,22 @@ func TransformRedisToSubnetConnections(caches []RedisCache, redisIDMap, subnetID
 	return connections
 }
 
-// TransformSQLMIDatabases converts SQL Managed Instance databases into OSIRIS JSON resources.
+// TransformSQLMIDatabases converts SQL Managed Instance databases into
+// OSIRIS JSON resources of the standard type application.database same
+// reasoning as TransformSQLDatabases (OSIRIS-JSON-v1.0 section 7.2.1):
+// the database itself, not the managed instance that hosts it, is
+// the data-holding resource.
 func TransformSQLMIDatabases(instances []SQLManagedInstance, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string)
 
 	for _, mi := range instances {
 		for _, db := range mi.Databases {
-			id := resourceID("osiris.azure.sqlmidatabase", db.ID)
+			id := resourceID("application.database", db.ID)
 			idMap[db.ID] = id
 
 			prov := azureProvider(db.ID, "Microsoft.Sql/managedInstances/databases", db.Location, sub)
-			r, err := sdk.NewResource(id, "osiris.azure.sqlmidatabase", prov)
+			r, err := sdk.NewResource(id, "application.database", prov)
 			if err != nil {
 				continue
 			}
