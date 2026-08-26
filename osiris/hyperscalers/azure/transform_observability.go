@@ -1,8 +1,9 @@
-// transform_observability.go - Observability resource and connection transforms (App Insights, Log Analytics, Metric Alert, Action Group).
+// transform_observability.go - Observability resource and connection
+// transforms (App Insights, Log Analytics, Metric Alert, Action Group).
 //
 // For an introduction to OSIRIS JSON Producer for Microsoft Azure see:
-// [OSIRIS-JSON-AZURE]: https://osirisjson.org/en/docs/producers/hyperscalers/microsoft-azure
-// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/docs/spec/v10/00-preface
+// [OSIRIS-JSON-AZURE]: https://docs.osirisjson.org/osiris-producers/hyperscalers/microsoft-azure/
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 
 package azure
 

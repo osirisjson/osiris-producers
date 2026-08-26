@@ -1,15 +1,17 @@
-// client.go - Azure CLI wrapper for the Microsoft Azure OSIRIS JSON producer.
-// Executes 'az' CLI commands to collect networking resources from a subscription.
-// Requires the user to be authenticated via 'az login' before running the producer.
+// client.go - Azure CLI wrapper for the Microsoft Azure OSIRIS JSON
+// producer. Executes 'az' CLI commands to collect networking resources
+// from a subscription. Requires the user to be authenticated via
+// 'az login' before running the producer.
 //
-// The client fetches all resource types that appear in real Azure production
-// environments: VNets, subnets, NICs, NSGs, route tables, public IPs, load
-// balancers, private endpoints, VNet peerings, gateways, DNS zones, NAT gateways,
-// ExpressRoute circuits, firewalls, application gateways and virtual machines.
+// The client fetches all resource types that appear in real Azure
+// production environments: VNets, subnets, NICs, NSGs, route tables,
+// public IPs, load balancers, private endpoints, VNet peerings,
+// gateways, DNS zones, NAT gateways, ExpressRoute circuits, firewalls,
+// application gateways and virtual machines.
 //
 // For an introduction to OSIRIS JSON Producer for Microsoft Azure see:
-// [OSIRIS-JSON-AZURE]: https://osirisjson.org/en/docs/producers/hyperscalers/microsoft-azure
-// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/docs/spec/v10/00-preface
+// [OSIRIS-JSON-AZURE]: https://docs.osirisjson.org/osiris-producers/hyperscalers/microsoft-azure/
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 
 package azure
 

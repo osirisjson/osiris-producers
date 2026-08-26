@@ -1,8 +1,9 @@
-// transform_test.go - Unit tests for Microsoft Azure data transformation to OSIRIS JSON mapping functions.
+// transform_test.go - Unit tests for Microsoft Azure data
+// transformation to OSIRIS JSON mapping functions.
 //
 // For an introduction to OSIRIS JSON Producer for Microsoft Azure see:
-// [OSIRIS-JSON-AZURE]: https://osirisjson.org/en/docs/producers/hyperscalers/microsoft-azure
-// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/docs/spec/v10/00-preface
+// [OSIRIS-JSON-AZURE]: https://docs.osirisjson.org/osiris-producers/hyperscalers/microsoft-azure/
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 
 package azure
 
@@ -746,8 +747,8 @@ func TestTransformWebApps(t *testing.T) {
 	if len(resources) != 2 {
 		t.Fatalf("expected 2 resources, got %d", len(resources))
 	}
-	if resources[0].Type != "osiris.azure.webapp" {
-		t.Errorf("expected first site osiris.azure.webapp, got %q", resources[0].Type)
+	if resources[0].Type != "application.service" {
+		t.Errorf("expected first site application.service, got %q", resources[0].Type)
 	}
 	if resources[0].Status != "active" {
 		t.Errorf("expected first site status active, got %q", resources[0].Status)
@@ -766,8 +767,8 @@ func TestTransformWebApps(t *testing.T) {
 		t.Errorf("expected identity.type SystemAssigned, got %v", ext["identity"])
 	}
 
-	if resources[1].Type != "osiris.azure.functionapp" {
-		t.Errorf("expected second site osiris.azure.functionapp (kind routing), got %q", resources[1].Type)
+	if resources[1].Type != "compute.function.serverless" {
+		t.Errorf("expected second site compute.function.serverless (kind routing), got %q", resources[1].Type)
 	}
 	if resources[1].Status != "inactive" {
 		t.Errorf("expected function app inactive (disabled), got %q", resources[1].Status)
@@ -884,7 +885,7 @@ func TestTransformPEToWebAppConnections(t *testing.T) {
 		t.Errorf("expected target site, got %q", conns[0].Target)
 	}
 	if conns[0].Type != "dependency" {
-		t.Errorf("expected PE->WebApp type 'dependency' per spec §5.2.3, got %q", conns[0].Type)
+		t.Errorf("expected PE->WebApp type 'dependency' per specification chapter 5.2.3, got %q", conns[0].Type)
 	}
 }
 
@@ -1239,8 +1240,8 @@ func TestTransformSnapshots(t *testing.T) {
 		t.Fatalf("expected 1 resource, got %d", len(resources))
 	}
 	r := resources[0]
-	if r.Type != "osiris.azure.snapshot" {
-		t.Errorf("expected type osiris.azure.snapshot, got %q", r.Type)
+	if r.Type != "compute.vm.snapshot" {
+		t.Errorf("expected type compute.vm.snapshot, got %q", r.Type)
 	}
 	if r.Properties["incremental"] != true {
 		t.Errorf("expected incremental=true")
@@ -1857,8 +1858,8 @@ func TestTransformSQLDatabases(t *testing.T) {
 		t.Fatalf("expected 1 resource, got %d", len(resources))
 	}
 	r := resources[0]
-	if r.Type != "osiris.azure.sqldatabase" {
-		t.Errorf("expected type osiris.azure.sqldatabase, got %q", r.Type)
+	if r.Type != "application.database" {
+		t.Errorf("expected type application.database, got %q", r.Type)
 	}
 	if r.Status != "active" {
 		t.Errorf("expected status active (Online -> active), got %q", r.Status)
@@ -1925,8 +1926,8 @@ func TestTransformPostgreSQLServers(t *testing.T) {
 		t.Fatalf("expected 1 resource, got %d", len(resources))
 	}
 	r := resources[0]
-	if r.Type != "osiris.azure.postgresqlserver" {
-		t.Errorf("expected type osiris.azure.postgresqlserver, got %q", r.Type)
+	if r.Type != "application.database" {
+		t.Errorf("expected type application.database, got %q", r.Type)
 	}
 	if r.Status != "active" {
 		t.Errorf("expected status active (Ready -> active), got %q", r.Status)
@@ -1975,8 +1976,8 @@ func TestTransformMySQLServers(t *testing.T) {
 	if len(resources) != 1 {
 		t.Fatalf("expected 1 resource, got %d", len(resources))
 	}
-	if resources[0].Type != "osiris.azure.mysqlserver" {
-		t.Errorf("expected type osiris.azure.mysqlserver, got %q", resources[0].Type)
+	if resources[0].Type != "application.database" {
+		t.Errorf("expected type application.database, got %q", resources[0].Type)
 	}
 	if resources[0].Properties["tier"] != "Burstable" {
 		t.Errorf("expected tier=Burstable")
@@ -2027,8 +2028,8 @@ func TestTransformCosmosAccounts(t *testing.T) {
 		t.Fatalf("expected 1 resource, got %d", len(resources))
 	}
 	r := resources[0]
-	if r.Type != "osiris.azure.cosmosaccount" {
-		t.Errorf("expected type osiris.azure.cosmosaccount, got %q", r.Type)
+	if r.Type != "application.database" {
+		t.Errorf("expected type application.database, got %q", r.Type)
 	}
 	if r.Properties["kind"] != "GlobalDocumentDB" {
 		t.Errorf("expected kind=GlobalDocumentDB")
@@ -2099,8 +2100,8 @@ func TestTransformRedisCaches(t *testing.T) {
 		t.Fatalf("expected 1 resource, got %d", len(resources))
 	}
 	r := resources[0]
-	if r.Type != "osiris.azure.redis" {
-		t.Errorf("expected type osiris.azure.redis, got %q", r.Type)
+	if r.Type != "application.cache" {
+		t.Errorf("expected type application.cache, got %q", r.Type)
 	}
 	if r.Properties["sku"] != "Premium" {
 		t.Errorf("expected sku=Premium")
@@ -2250,8 +2251,8 @@ func TestTransformAKSClusters(t *testing.T) {
 		t.Fatalf("expected 1 resource, got %d", len(resources))
 	}
 	r := resources[0]
-	if r.Type != "osiris.azure.aks.cluster" {
-		t.Errorf("expected type osiris.azure.aks.cluster, got %q", r.Type)
+	if r.Type != "compute.cluster" {
+		t.Errorf("expected type compute.cluster, got %q", r.Type)
 	}
 	if r.Properties["kubernetes_version"] != "1.29.0" {
 		t.Errorf("expected kubernetes_version=1.29.0")
@@ -2453,8 +2454,8 @@ func TestTransformContainerGroups(t *testing.T) {
 		t.Fatalf("expected 1 resource, got %d", len(resources))
 	}
 	r := resources[0]
-	if r.Type != "osiris.azure.containergroup" {
-		t.Errorf("expected type osiris.azure.containergroup, got %q", r.Type)
+	if r.Type != "compute.container" {
+		t.Errorf("expected type compute.container, got %q", r.Type)
 	}
 	if r.Properties["os_type"] != "Linux" {
 		t.Errorf("expected os_type=Linux")
@@ -2505,8 +2506,8 @@ func TestTransformServiceBusNamespaces(t *testing.T) {
 		t.Fatalf("expected 1 resource, got %d", len(resources))
 	}
 	r := resources[0]
-	if r.Type != "osiris.azure.servicebus.namespace" {
-		t.Errorf("expected type osiris.azure.servicebus.namespace, got %q", r.Type)
+	if r.Type != "application.queue" {
+		t.Errorf("expected type application.queue, got %q", r.Type)
 	}
 	if r.Properties["sku_name"] != "Premium" {
 		t.Errorf("expected sku_name=Premium")

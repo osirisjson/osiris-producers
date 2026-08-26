@@ -1,9 +1,10 @@
-// transform_automation.go - H1 resource transforms (Logic workflows, Data Factory,
-// Synapse, Communication Services, Automation Accounts, Azure Arc machines).
+// transform_automation.go - H1 resource transforms (Logic workflows,
+// Data Factory, Synapse, Communication Services, Automation Accounts,
+// Azure Arc machines).
 //
 // For an introduction to OSIRIS JSON Producer for Microsoft Azure see:
-// [OSIRIS-JSON-AZURE]: https://osirisjson.org/en/docs/producers/hyperscalers/microsoft-azure
-// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/docs/spec/v10/00-preface
+// [OSIRIS-JSON-AZURE]: https://docs.osirisjson.org/osiris-producers/hyperscalers/microsoft-azure/
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 
 package azure
 
@@ -14,19 +15,22 @@ import (
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
-// TransformVMSSes converts Microsoft.Compute/virtualMachineScaleSets into OSIRIS JSON
-// resources of type osiris.azure.vmss.
+// TransformVMSSes converts Microsoft.Compute/virtualMachineScaleSets
+// into OSIRIS JSON resources of the standard type compute.cluster
+// (OSIRIS-JSON-v1.0 section 7.3.4 lists "auto-scaling groups, when
+// modeled as managed compute pools" as a compute.cluster use case,
+// which a VMSS is).
 func TransformVMSSes(vmsses []VMSS, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(vmsses))
 
 	for _, v := range vmsses {
-		id := resourceID("osiris.azure.vmss", v.ID)
+		id := resourceID("compute.cluster", v.ID)
 		idMap[v.ID] = id
 
 		prov := azureProvider(v.ID, "Microsoft.Compute/virtualMachineScaleSets", v.Location, sub)
 
-		r, err := sdk.NewResource(id, "osiris.azure.vmss", prov)
+		r, err := sdk.NewResource(id, "compute.cluster", prov)
 		if err != nil {
 			continue
 		}

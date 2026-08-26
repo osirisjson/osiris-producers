@@ -1,22 +1,22 @@
-// config.go - Configuration types for the Microsoft Azure OSIRIS JSON producer.
-// Defines subscription-scoped targeting and runtime settings for Azure
-// resource collection via the Azure CLI.
+// config.go - Configuration types for the Microsoft Azure OSIRIS JSON
+// producer. Defines subscription-scoped targeting and runtime
+// settings for Azure resource collection via the Azure CLI.
 //
-// Output hierarchy follows a tenant-scoped layout designed for multi-tenant
-// and multi-subscription enterprise environments:
+// Output hierarchy follows a tenant-scoped layout designed for
+// multi-tenant and multi-subscription enterprise environments:
 //
 //	<output-dir>/
 //	  <TenantID>/
 //	    <timestamp>/
 //	      <SubscriptionName>.json
 //
-// This structure ensures that each OSIRIS JSON document is a self-contained
-// subscription snapshot, while the directory tree groups them by tenant
-// and point-in-time for easy correlation by consumers.
+// This structure ensures that each OSIRIS JSON document is a
+// self-contained subscription snapshot, while the directory tree groups
+// them by tenant and point-in-time for easy correlation by consumers.
 //
 // For an introduction to OSIRIS JSON Producer for Microsoft Azure see:
-// [OSIRIS-JSON-AZURE]: https://osirisjson.org/en/docs/producers/hyperscalers/microsoft-azure
-// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/docs/spec/v10/00-preface
+// [OSIRIS-JSON-AZURE]: https://docs.osirisjson.org/osiris-producers/hyperscalers/microsoft-azure/
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 
 package azure
 
@@ -43,7 +43,7 @@ type SubscriptionTarget struct {
 	// Region filters collection to a specific Azure region (optional; empty = all regions).
 	Region string
 
-	// Notes is free-text operator notes (ignored by producer).
+	// Notes is free-text user notes (ignored by producer).
 	Notes string
 }
 

@@ -1,8 +1,9 @@
-// transform_containers.go - Container resource and connection transforms (AKS, Container App, Container Group).
+// transform_containers.go - Container resource and connection
+// transforms (AKS, Container App, Container Group).
 //
 // For an introduction to OSIRIS JSON Producer for Microsoft Azure see:
-// [OSIRIS-JSON-AZURE]: https://osirisjson.org/en/docs/producers/hyperscalers/microsoft-azure
-// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/docs/spec/v10/00-preface
+// [OSIRIS-JSON-AZURE]: https://docs.osirisjson.org/osiris-producers/hyperscalers/microsoft-azure/
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 
 package azure
 
@@ -13,20 +14,22 @@ import (
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
-// TransformAKSClusters converts Microsoft.ContainerService/managedClusters into
-// OSIRIS JSON resources of type osiris.azure.aks.cluster. Policy-like fields
-// (admission configs, audit settings, identity profiles) are omitted per the topology-vs-IaC rule.
+// TransformAKSClusters converts Microsoft.ContainerService/managedClusters
+// into OSIRIS JSON resources of the standard type compute.cluster
+// (OSIRIS-JSON-v1.0 section 7.3.4 maps an Azure AKS Cluster directly to
+// compute.cluster). Policy-like fields (admission configs, audit
+// settings, identity profiles) are omitted per the topology-vs-IaC rule.
 func TransformAKSClusters(clusters []AKSCluster, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(clusters))
 
 	for _, c := range clusters {
-		id := resourceID("osiris.azure.aks.cluster", c.ID)
+		id := resourceID("compute.cluster", c.ID)
 		idMap[c.ID] = id
 
 		prov := azureProvider(c.ID, "Microsoft.ContainerService/managedClusters", c.Location, sub)
 
-		r, err := sdk.NewResource(id, "osiris.azure.aks.cluster", prov)
+		r, err := sdk.NewResource(id, "compute.cluster", prov)
 		if err != nil {
 			continue
 		}
@@ -303,19 +306,22 @@ func TransformContainerApps(apps []ContainerApp, sub SubscriptionInfo) ([]sdk.Re
 }
 
 // TransformContainerGroups converts Microsoft.ContainerInstance/containerGroups
-// (ACI) into OSIRIS JSON resources of type osiris.azure.containergroup.
-// Container-level config (images, env vars, commands) is intentionally omitted as topology models the group, not the workload.
+// (ACI) into OSIRIS JSON resources of the standard type
+// compute.container (OSIRIS-JSON-v1.0 section 7.3.3 maps Azure ACI
+// Container Instances directly to compute.container).
+// Container-level config (images, env vars, commands) is intentionally
+// omitted as topology models the group, not the workload.
 func TransformContainerGroups(groups []ContainerGroup, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(groups))
 
 	for _, g := range groups {
-		id := resourceID("osiris.azure.containergroup", g.ID)
+		id := resourceID("compute.container", g.ID)
 		idMap[g.ID] = id
 
 		prov := azureProvider(g.ID, "Microsoft.ContainerInstance/containerGroups", g.Location, sub)
 
-		r, err := sdk.NewResource(id, "osiris.azure.containergroup", prov)
+		r, err := sdk.NewResource(id, "compute.container", prov)
 		if err != nil {
 			continue
 		}

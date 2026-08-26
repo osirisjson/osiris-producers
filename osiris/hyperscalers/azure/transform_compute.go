@@ -1,8 +1,8 @@
 // transform_compute.go - Compute resource and connection transforms (VM, Disk, Snapshot).
 //
 // For an introduction to OSIRIS JSON Producer for Microsoft Azure see:
-// [OSIRIS-JSON-AZURE]: https://osirisjson.org/en/docs/producers/hyperscalers/microsoft-azure
-// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/docs/spec/v10/00-preface
+// [OSIRIS-JSON-AZURE]: https://docs.osirisjson.org/osiris-producers/hyperscalers/microsoft-azure/
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 
 package azure
 
@@ -13,15 +13,17 @@ import (
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
-// TransformDisks converts Azure managed disks into OSIRIS JSON resources of
-// type osiris.azure.disk. Returns resources and ARM ID -> resource ID map so
-// snapshots can reference the source disk.
+// TransformDisks converts Azure managed disks into OSIRIS JSON
+// resources of the standard type storage.volume (OSIRIS-JSON-v1.0
+// section 7.7.3 maps Microsoft.Compute/disks directly to storage.volume).
+// Returns resources and ARM ID -> resource ID map so snapshots can
+// reference the source disk.
 func TransformDisks(disks []Disk, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(disks))
 
 	for _, d := range disks {
-		id := resourceID("osiris.azure.disk", d.ID)
+		id := resourceID("storage.volume", d.ID)
 		idMap[d.ID] = id
 
 		prov := azureProvider(d.ID, "Microsoft.Compute/disks", d.Location, sub)
@@ -29,7 +31,7 @@ func TransformDisks(disks []Disk, sub SubscriptionInfo) ([]sdk.Resource, map[str
 			prov.Zone = strings.Join(d.Zones, ",")
 		}
 
-		r, err := sdk.NewResource(id, "osiris.azure.disk", prov)
+		r, err := sdk.NewResource(id, "storage.volume", prov)
 		if err != nil {
 			continue
 		}
@@ -76,19 +78,24 @@ func TransformDisks(disks []Disk, sub SubscriptionInfo) ([]sdk.Resource, map[str
 	return resources, idMap
 }
 
-// TransformSnapshots converts Azure disk snapshots into OSIRIS JSON resources
-// of type osiris.azure.snapshot.
+// TransformSnapshots converts Azure disk snapshots into OSIRIS JSON
+// resources of the standard type compute.vm.snapshot the only
+// point-in-time-snapshot type OSIRIS-JSON-v1.0 defines (section 7.3.2
+// "Related types"). An Azure snapshot is technically a disk snapshot
+// rather than a full VM snapshot, but the spec has still no
+// storage.volume-level snapshot type, so this is the closest
+// standard type available.
 func TransformSnapshots(snaps []Snapshot, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(snaps))
 
 	for _, s := range snaps {
-		id := resourceID("osiris.azure.snapshot", s.ID)
+		id := resourceID("compute.vm.snapshot", s.ID)
 		idMap[s.ID] = id
 
 		prov := azureProvider(s.ID, "Microsoft.Compute/snapshots", s.Location, sub)
 
-		r, err := sdk.NewResource(id, "osiris.azure.snapshot", prov)
+		r, err := sdk.NewResource(id, "compute.vm.snapshot", prov)
 		if err != nil {
 			continue
 		}
