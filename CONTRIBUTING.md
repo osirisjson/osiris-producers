@@ -40,7 +40,7 @@ This project is currently maintained by a single lead maintainer. Contributors w
 
 ## Code of Conduct
 Participation in the OSIRIS community is governed by the Code of Conduct.  
-[Read the Code of Conduct](https://github.com/osirisjson/osiris/tree/main/CODE_OF_CONDUCT.md)
+[Read the Code of Conduct](https://osirisjson.org/en/commitments/codeofconduct)
 
 ---
 
