@@ -210,7 +210,7 @@ func TestResolveForHost_CIDRDoesNotMatchOutsideRange(t *testing.T) {
 			{Hosts: "192.0.2.0/24", CredentialEntry: CredentialEntry{Username: "dc1-admin", Password: "dc1-pass"}},
 		},
 	}
-	u, p := cf.ResolveForHost("192.0.2.1")
+	u, p := cf.ResolveForHost("198.51.100.1")
 	if u != "admin" || p != "default-pass" {
 		t.Errorf("ResolveForHost(outside CIDR) = %q/%q, want fallback to default admin/default-pass", u, p)
 	}
@@ -248,7 +248,7 @@ func TestResolveForHost_NoMatchNoDefaultIsEmpty(t *testing.T) {
 			{Hosts: "192.0.2.0/24", CredentialEntry: CredentialEntry{Username: "dc1-admin", Password: "dc1-pass"}},
 		},
 	}
-	u, p := cf.ResolveForHost("192.0.2.1")
+	u, p := cf.ResolveForHost("198.51.100.1")
 	if u != "" || p != "" {
 		t.Errorf("no match and no default should resolve to empty, got %q/%q", u, p)
 	}
@@ -266,7 +266,7 @@ func TestResolveForHost_RulesIgnoreTopLevelFlatFields(t *testing.T) {
 			{Hosts: "192.0.2.0/24", CredentialEntry: CredentialEntry{Username: "dc1-admin", Password: "dc1-pass"}},
 		},
 	}
-	u, p := cf.ResolveForHost("192.0.2.1")
+	u, p := cf.ResolveForHost("198.51.100.1")
 	if u != "" || p != "" {
 		t.Errorf("top-level flat fields must be ignored when Rules is set; got %q/%q, want empty", u, p)
 	}
@@ -286,7 +286,7 @@ func TestLoadCredentialFile_RulesShapeJSON(t *testing.T) {
   "default": {"username": "admin", "password": "default-pass"},
   "rules": [
     {"hosts": "192.0.2.0/24", "username": "dc1-admin", "password": "dc1-pass"},
-    {"hosts": "192.0.2.10,192.0.2.11,192.0.2.12", "username": "dc2-admin", "password": "dc2-pass"},
+    {"hosts": "198.51.100.10,198.51.100.11,198.51.100.12", "username": "dc2-admin", "password": "dc2-pass"},
     {"hosts": "switch-edge-01.lab.local", "username": "edge-admin", "password": "edge-pass"}
   ]
 }`
@@ -303,9 +303,9 @@ func TestLoadCredentialFile_RulesShapeJSON(t *testing.T) {
 		wantPass string
 	}{
 		{"192.0.2.42", "dc1-admin", "dc1-pass"},
-		{"192.0.2.11", "dc2-admin", "dc2-pass"},
+		{"198.51.100.11", "dc2-admin", "dc2-pass"},
 		{"switch-edge-01.lab.local", "edge-admin", "edge-pass"},
-		{"192.0.2.9", "admin", "default-pass"},
+		{"203.0.113.9", "admin", "default-pass"},
 	}
 	for _, tt := range tests {
 		u, p := cf.ResolveForHost(tt.host)
