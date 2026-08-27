@@ -1,8 +1,10 @@
-// Package sdk defines the constants, Producer interface, execution context and configuration.
-// Defines the contract every OSIRIS JSON producer must implement (Collect) and the
-// runtime context (Config, Logger, Clock) passed to producers at execution time.
+// Package sdk defines the constants, Producer interface, execution
+// context and configuration.
+// Defines the contract every OSIRIS JSON producer must implement
+// (Collect) and the runtime context (Config, Logger, Clock) passed to
+// producers at execution time.
 //
-// For an introduction to OSIRIS JSON Producer Development Guidelines see:
+// For introduction to OSIRIS JSON Producer Development Guidelines see:
 // "[OSIRIS-PRODUCER-GUIDELINES]."
 //
 // [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/getting-started/osiris-producer-guidelines
@@ -16,10 +18,12 @@ import (
 	"time"
 )
 
-// SpecVersion is the OSIRIS JSON specification version targeted by this SDK.
+// SpecVersion is the OSIRIS JSON specification version
+// targeted by this SDK.
 const SpecVersion = "1.0.0"
 
-// OSIRIS JSON Core SchemaURI is the canonical JSON Schema URI for OSIRIS v1.0.
+// OSIRIS JSON Core SchemaURI is the canonical JSON Schema
+// URI for OSIRIS v1.0.
 const SchemaURI = "https://osirisjson.org/schema/v1.0/osiris.schema.json"
 
 // SafeFailureMode defines how the producer handles detected secrets.
@@ -29,9 +33,11 @@ const (
 	Off          = "off"
 )
 
-// OSIRIS JSON Producer is the contract every vendor backend MUST satisfy.
+// OSIRIS JSON Producer is the contract every vendor
+// backend MUST satisfy.
 type Producer interface {
-	// Collect discovers vendor inventory and returns an assembled OSIRIS document.
+	// Collect discovers vendor inventory and returns an assembled
+	// OSIRIS document.
 	// Partial failures SHOULD be logged and skipped (non-fatal).
 	Collect(ctx *Context) (*Document, error)
 }
@@ -44,20 +50,30 @@ type Context struct {
 }
 
 // ProducerConfig carries common configuration for all producers.
-// Vendor-specific fields are defined by each producer as an embedded struct.
+// Vendor-specific fields are defined by each producer as an
+// embedded struct.
 type ProducerConfig struct {
 	OutputPath      string `json:"output_path,omitempty"`
 	ProfileHint     string `json:"profile_hint,omitempty"`
 	DetailLevel     string `json:"detail_level,omitempty"`
 	SafeFailureMode string `json:"safe_failure_mode,omitempty"`
-	// Purpose shapes the emitted document per OSIRIS JSON specification chapter 13.1.3.
-	// Valid values: "documentation" (minimal, default) or "audit" (full detail).
+	// Purpose shapes the emitted document per OSIRIS JSON specification
+	// chapter 13.1.3. Valid values: "documentation" (minimal, default)
+	// or "audit" (full detail).
 	// See pkg/osirismeta for parsing, defaults and projection helpers.
 	Purpose string `json:"purpose,omitempty"`
+	// IncludeRawBody requests that a producer attach each collected
+	// command/endpoint's full, unmodified source response under a
+	// vendor extension, as a lossless fallback for fields not yet
+	// OSIRIS modeled fields. Only meaningful when Purpose is "audit" a
+	// producer MUST NOT honor it otherwise. Purely additive/optional;
+	// producers that do not support it simply ignore it.
+	IncludeRawBody bool `json:"include_raw_body,omitempty"`
 }
 
 // NewContext creates a Context with sensible defaults.
-// Logger defaults to slog writing to stderr. Clock defaults to time.Now.
+// Logger defaults to slog writing to stderr.
+// Clock defaults to time.Now.
 func NewContext(cfg *ProducerConfig) *Context {
 	if cfg == nil {
 		cfg = &ProducerConfig{}
@@ -72,8 +88,8 @@ func NewContext(cfg *ProducerConfig) *Context {
 	}
 }
 
-// EnvOrDefault returns the value of the environment variable named by key,
-// or fallback if the variable is not set or is empty.
+// EnvOrDefault returns the value of the environment variable named by
+// key, or fallback if the variable is not set or is empty.
 func EnvOrDefault(key, fallback string) string {
 	if v := os.Getenv(key); v != "" {
 		return v
