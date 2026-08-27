@@ -28,9 +28,9 @@ import (
 // matching the producer that generated the file, is clearer.
 // All template addresses are RFC 5737 compliant.
 var csvExampleRows = map[string]string{
-	"apic":  "DC-01,F1,R101,RACK-A,apic-01,192.0.2.1,",
-	"nxos":  "DC-01,F1,R101,RACK-A,nxos-01,192.0.2.10,",
-	"iosxe": "DC-01,F1,R102,RACK-B,iosxe-01,192.0.2.20,",
+	"apic":  "MXP,F1,R101,RACK-A,apic-01,192.0.2.1,",
+	"nxos":  "MXP,F1,R101,RACK-A,nxos-01,192.0.2.10,",
+	"iosxe": "MXP,F1,R102,RACK-B,iosxe-01,192.0.2.20,",
 }
 
 // CSVTemplate returns a CSV template string for batch collection of
@@ -67,7 +67,7 @@ func CSVTemplate(producerName string) string {
 	if !ok {
 		// Defensive fallback for a producer name not in csvExampleRows
 		// (none exist today - apic/iosxe/nxos are the only callers).
-		row = fmt.Sprintf("DC-01,F1,R101,RACK-A,%[1]s-01,192.0.2.1,", producerName)
+		row = fmt.Sprintf("MXP,F1,R101,RACK-A,%[1]s-01,192.0.2.1,", producerName)
 	}
 	return fmt.Sprintf("datacenter,floor,room,rack,hostname,management_ip,port\n%s\n", row)
 }
