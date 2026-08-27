@@ -14,6 +14,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"go.osirisjson.org/producers/osiris/network/cisco/run"
@@ -29,7 +30,7 @@ func fixtureBodies() map[string]map[string]any {
 		"show version": {
 			"chassis_id":     "Nexus9000 C9508",
 			"proc_board_id":  "TST0000NX01",
-			"sys_ver_str":    "10.3(4a)",
+			"nxos_ver_str":   "10.3(4a)",
 			"host_name":      "LAB-SW01",
 			"bios_ver_str":   "08.42",
 			"rr_reason":      "Reset by CLI",
@@ -38,6 +39,7 @@ func fixtureBodies() map[string]map[string]any {
 			"kern_uptm_mins": "30",
 			"kern_uptm_secs": "15",
 			"memory":         float64(65536000),
+			"mem_type":       "kB",
 		},
 		"show inventory": {
 			"TABLE_inv": map[string]any{
@@ -139,21 +141,96 @@ func fixtureBodies() map[string]map[string]any {
 				},
 			},
 		},
-		"show system resources": {
-			"cpu_state_idle":    "95.50",
-			"memory_usage_used": "8000000",
-			"memory_usage_free": "4000000",
-			"load_avg_1min":     "0.25",
+		"show module": {
+			"TABLE_modinfo": map[string]any{
+				"ROW_modinfo": map[string]any{
+					"modinf": "1", "model": "N9K-C93180YC-FX", "modtype": "48x10/25G/32G + 6x40/100G Ethernet/FC Module", "ports": "54", "status": "active *",
+				},
+			},
+			"TABLE_moddiaginfo": map[string]any{
+				"ROW_moddiaginfo": map[string]any{
+					"mod": "1", "diagstatus": "Pass",
+				},
+			},
+			"TABLE_modwwninfo": map[string]any{
+				"ROW_modwwninfo": map[string]any{
+					"modwwn": "1", "hw": "1.2", "sw": "10.3(6)", "slottype": "NA",
+				},
+			},
+		},
+		"show interface transceiver": {
+			"TABLE_interface": map[string]any{
+				"ROW_interface": []any{
+					map[string]any{
+						"interface": "Ethernet1/1", "sfp": "present", "name": "CISCO-ACCELINK",
+						"cisco_product_id": "SFP-10G-SR", "partnum": "RTXM228-551-C98", "serialnum": "TST0000SFP01", "type": "10Gbase-SR",
+					},
+					map[string]any{"interface": "Ethernet1/2", "sfp": "not present"},
+				},
+			},
 		},
 		"show environment": {
-			"TABLE_psinfo": map[string]any{
-				"ROW_psinfo": map[string]any{
-					"psnum": "1", "psmodel": "NXA-PAC-1100W", "ps_status": "ok", "actual_out": "350 W",
+			"powersup": map[string]any{
+				"TABLE_psinfo": map[string]any{
+					"ROW_psinfo": map[string]any{
+						"psnum": "1", "psmodel": "NXA-PAC-1100W", "ps_status": "ok", "actual_out": "350 W", "tot_capa": "1100 W",
+					},
+				},
+			},
+			"fandetails": map[string]any{
+				"TABLE_faninfo": map[string]any{
+					"ROW_faninfo": map[string]any{
+						"fanname": "Fan1(sys_fan1)", "fanmodel": "NXA-FAN-30CFM-F", "fanstatus": "Ok", "fandir": "back-to-front",
+					},
 				},
 			},
 			"TABLE_tempinfo": map[string]any{
 				"ROW_tempinfo": map[string]any{
-					"tempmod": "1", "sensor": "CPU", "curtemp": "42", "alarmstatus": "Ok",
+					"tempmod": "1", "sensor": "CPU", "curtemp": "42", "alarmstatus": "Ok", "majthres": "90", "minthres": "80",
+				},
+			},
+		},
+		"show aaa accounting": {
+			"TABLE_acctMethods": map[string]any{
+				"ROW_acctMethods": map[string]any{
+					"service": "default", "methods": "group tacacs+",
+				},
+			},
+		},
+		"show aaa authentication": {
+			"TABLE_AuthenMethods": map[string]any{
+				"ROW_AuthenMethods": []any{
+					map[string]any{"service": "default", "method": "group tacacs+"},
+					map[string]any{"service": "console", "method": "local"},
+				},
+			},
+		},
+		"show aaa groups": {
+			"TABLE_groups": map[string]any{
+				"ROW_groups": []any{
+					map[string]any{"group": "radius"},
+					map[string]any{"group": "tacacs+"},
+				},
+			},
+		},
+		"show radius-server": {
+			"global_deadtime":     "0",
+			"global_secure_mode":  "none",
+			"global_source_intf":  "any available",
+			"global_timeout":      "5",
+			"retransmissionCount": "1",
+			"server_count":        "0",
+		},
+		"show tacacs-server": {
+			"global_deadtime":     "0",
+			"global_source_intf":  "mgmt0",
+			"global_testPassword": "SECRET-NEVER-EMIT",
+			"global_testUsername": "test",
+			"global_timeout":      "5",
+			"server_count":        "1",
+			"TABLE_server": map[string]any{
+				"ROW_server": map[string]any{
+					"port": "49", "secretKey": "SECRET-NEVER-EMIT", "server_ip": "198.51.100.10", "timeout": "30",
 				},
 			},
 		},
@@ -299,15 +376,15 @@ func trimSpace(s string) string {
 	return s[i:j]
 }
 
-func newTestProducer(t *testing.T, ts *httptest.Server, detailLevel string) (*Producer, *sdk.Context) {
+func newTestProducer(t *testing.T, ts *httptest.Server, purpose string) (*Producer, *sdk.Context) {
 	t.Helper()
 	ctx := testharness.NewTestContext(t, testharness.WithConfig(&sdk.ProducerConfig{
-		DetailLevel:     detailLevel,
+		Purpose:         purpose,
 		SafeFailureMode: sdk.FailClosed,
 	}))
 	return &Producer{
 		target: run.TargetConfig{Host: "192.0.2.1", Hostname: "LAB-SW01", Username: "admin", Password: "test"},
-		cfg:    &run.RunConfig{DetailLevel: detailLevel},
+		cfg:    &Config{},
 		client: &Client{
 			baseURL:    ts.URL,
 			httpClient: ts.Client(),
@@ -322,7 +399,7 @@ func TestCollect_Minimal(t *testing.T) {
 	ts := fixtureServer(t)
 	defer ts.Close()
 
-	producer, ctx := newTestProducer(t, ts, "minimal")
+	producer, ctx := newTestProducer(t, ts, "")
 	doc, err := producer.Collect(ctx)
 	if err != nil {
 		t.Fatalf("Collect failed: %v", err)
@@ -334,29 +411,42 @@ func TestCollect_Minimal(t *testing.T) {
 	if doc.Metadata.Generator.Name != generatorName {
 		t.Errorf("generator: %s", doc.Metadata.Generator.Name)
 	}
+	if doc.Metadata.Generator.URL != generatorURL {
+		t.Errorf("generator url = %q, want %q", doc.Metadata.Generator.URL, generatorURL)
+	}
+	if doc.Metadata.Scope.Name != "LAB-SW01" {
+		t.Errorf("scope name = %q, want %q (device hostname)", doc.Metadata.Scope.Name, "LAB-SW01")
+	}
 
-	// Resources: 1 device + 4 interfaces + 1 LLDP stub = 6.
-	if len(doc.Topology.Resources) != 6 {
-		t.Errorf("expected 6 resources, got %d", len(doc.Topology.Resources))
+	// Resources: 1 device + 4 interfaces + 2 network.vlan + 1 LLDP stub = 8.
+	if len(doc.Topology.Resources) != 8 {
+		t.Errorf("expected 8 resources, got %d", len(doc.Topology.Resources))
 		for _, r := range doc.Topology.Resources {
 			t.Logf("  resource: %s (%s) name=%s", r.ID, r.Type, r.Name)
 		}
 	}
 
 	typeCounts := countTypes(doc.Topology.Resources)
-	assertCount(t, typeCounts, "osiris.cisco.switch.spine", 1)
-	assertCount(t, typeCounts, "network.interface", 4) // 3 local + 1 LLDP stub
-	assertCount(t, typeCounts, "osiris.cisco.interface.lag", 1)
+	assertCount(t, typeCounts, "network.switch", 1)
+	assertCount(t, typeCounts, "network.switch.port", 2)   // Ethernet1/1, Ethernet1/2
+	assertCount(t, typeCounts, "network.interface", 2)     // loopback0 + LLDP stub
+	assertCount(t, typeCounts, "network.interface.lag", 1) // port-channel10
+	assertCount(t, typeCounts, "network.vlan", 2)          // VLAN 100, 200
 
-	// Connections: 1 LLDP link + 2 port-channel "contains"
-	// (Eth1/1, Eth1/2 -> Po10).
-	if len(doc.Topology.Connections) != 3 {
-		t.Errorf("expected 3 connections, got %d", len(doc.Topology.Connections))
+	// Connections: 1 LLDP link + 2 port-channel "contains" (Eth1/1,
+	// Eth1/2 -> Po10) + 2 switch contains.physical (the 2 Ethernet
+	// ports) + 2 switch contains.logical (port-channel10, loopback0)
+	// + 2 network.l2 VLAN membership (from "show vlan brief" port list).
+	if len(doc.Topology.Connections) != 9 {
+		t.Errorf("expected 9 connections, got %d", len(doc.Topology.Connections))
+		for _, c := range doc.Topology.Connections {
+			t.Logf("  connection: %s %s -> %s", c.Type, c.Source, c.Target)
+		}
 	}
 
-	// Groups: 2 VLANs + 2 VRFs + 1 vPC = 5.
-	if len(doc.Topology.Groups) != 5 {
-		t.Errorf("expected 5 groups, got %d", len(doc.Topology.Groups))
+	// Groups: 2 VRFs + 1 vPC = 3 (VLANs are resources now, not groups).
+	if len(doc.Topology.Groups) != 3 {
+		t.Errorf("expected 3 groups, got %d", len(doc.Topology.Groups))
 		for _, g := range doc.Topology.Groups {
 			t.Logf("  group: %s (%s) name=%s members=%d", g.ID, g.Type, g.Name, len(g.Members))
 		}
@@ -372,15 +462,21 @@ func TestCollect_Detailed(t *testing.T) {
 	ts := fixtureServer(t)
 	defer ts.Close()
 
-	producer, ctx := newTestProducer(t, ts, "detailed")
+	producer, ctx := newTestProducer(t, ts, "audit")
 	doc, err := producer.Collect(ctx)
 	if err != nil {
 		t.Fatalf("Collect failed: %v", err)
 	}
 
-	// Same resource count as minimal (detail enriches, doesn't add).
-	if len(doc.Topology.Resources) != 6 {
-		t.Errorf("expected 6 resources, got %d", len(doc.Topology.Resources))
+	if doc.Metadata.Scope.Purpose != "audit" {
+		t.Errorf("scope purpose = %q, want %q", doc.Metadata.Scope.Purpose, "audit")
+	}
+
+	// One more resource than minimal (8): the osiris.cisco.aaa posture
+	// resource (detail enriches every other resource, but AAA has no
+	// equivalent to enrich in minimal mode it's whole-resource-new).
+	if len(doc.Topology.Resources) != 9 {
+		t.Errorf("expected 9 resources, got %d", len(doc.Topology.Resources))
 	}
 
 	// Verify interface enrichment: Ethernet1/1 should have mtu from detailed query.
@@ -401,10 +497,10 @@ func TestCollect_Detailed(t *testing.T) {
 		t.Errorf("Ethernet1/1 tx_bytes: %v", eth1.Properties["tx_bytes"])
 	}
 
-	// Verify device has system resources extension.
+	// Locate the device resource for the extension assertions below.
 	var device *sdk.Resource
 	for i, r := range doc.Topology.Resources {
-		if r.Type == "osiris.cisco.switch.spine" {
+		if r.Type == "network.switch" {
 			device = &doc.Topology.Resources[i]
 			break
 		}
@@ -413,11 +509,14 @@ func TestCollect_Detailed(t *testing.T) {
 		t.Fatal("missing device resource")
 	}
 	cisco := device.Extensions[extensionNamespace].(map[string]any)
-	if cisco["cpu_idle"] != 95.50 {
-		t.Errorf("cpu_idle: %v", cisco["cpu_idle"])
-	}
-	if cisco["load_avg_1min"] != 0.25 {
-		t.Errorf("load_avg_1min: %v", cisco["load_avg_1min"])
+
+	// "show system resources" is not collected: its cpu_idle/load_avg/
+	// memory_used/free fields are volatile telemetry excluded by
+	// OSIRIS-JSON-v1.0 13.1.3 even at audit purpose.
+	for _, k := range []string{"cpu_idle", "load_avg_1min", "memory_used", "memory_free"} {
+		if _, ok := cisco[k]; ok {
+			t.Errorf("volatile telemetry key %q must not be emitted", k)
+		}
 	}
 
 	// Verify environment extensions.
@@ -425,13 +524,83 @@ func TestCollect_Detailed(t *testing.T) {
 	if !ok || len(psus) != 1 {
 		t.Errorf("expected 1 PSU in extensions, got %v", cisco["power_supplies"])
 	}
+	if psus[0]["capacity"] != "1100 W" {
+		t.Errorf("psu capacity: %v", psus[0]["capacity"])
+	}
+	if _, ok := psus[0]["actual_output"]; ok {
+		t.Errorf("psu actual_output is volatile telemetry, must not appear: %v", psus[0]["actual_output"])
+	}
+	fans, ok := cisco["fans"].([]map[string]any)
+	if !ok || len(fans) != 1 || fans[0]["status"] != "Ok" {
+		t.Errorf("expected 1 fan in extensions, got %v", cisco["fans"])
+	}
+	temps, ok := cisco["temperature"].([]map[string]any)
+	if !ok || len(temps) != 1 || temps[0]["major_threshold_c"] != "90" {
+		t.Errorf("expected 1 temp sensor with thresholds, got %v", cisco["temperature"])
+	}
+
+	// Inventory/transceiver serial numbers are audit-only:
+	// present here at audit purpose.
+	inv, ok := cisco["inventory"].([]map[string]any)
+	if !ok || inv[0]["serial"] != "TST0000NX01" {
+		t.Errorf("expected chassis serial at audit purpose, got %v", cisco["inventory"])
+	}
+	var neighborConn *sdk.Connection
+	for i, c := range doc.Topology.Connections {
+		if c.Type == "physical.ethernet" {
+			neighborConn = &doc.Topology.Connections[i]
+			break
+		}
+	}
+	if neighborConn == nil {
+		t.Fatal("missing physical.ethernet connection")
+	}
+	xcvr, ok := neighborConn.Properties["source_transceiver"].(map[string]any)
+	if !ok || xcvr["serial_number"] != "TST0000SFP01" {
+		t.Errorf("expected transceiver serial_number at audit purpose, got %v", neighborConn.Properties["source_transceiver"])
+	}
+
+	// Verify the AAA posture resource and its containment connection.
+	var aaa *sdk.Resource
+	for i, r := range doc.Topology.Resources {
+		if r.Type == "osiris.cisco.aaa" {
+			aaa = &doc.Topology.Resources[i]
+			break
+		}
+	}
+	if aaa == nil {
+		t.Fatal("missing osiris.cisco.aaa resource")
+	}
+	if servers, ok := aaa.Properties["tacacs_servers"].([]map[string]any); !ok || len(servers) != 1 {
+		t.Errorf("tacacs_servers: %v", aaa.Properties["tacacs_servers"])
+	}
+	var containment *sdk.Connection
+	for i, c := range doc.Topology.Connections {
+		if c.Type == "contains" && c.Target == aaa.ID {
+			containment = &doc.Topology.Connections[i]
+			break
+		}
+	}
+	if containment == nil {
+		t.Error("missing switch -> AAA contains connection")
+	}
+
+	// Canary: the whole document, marshaled, must never carry the
+	// TACACS secretKey/global_testPassword value fixtureBodies.
+	docBytes, err := json.Marshal(doc)
+	if err != nil {
+		t.Fatalf("marshal document failed: %v", err)
+	}
+	if strings.Contains(string(docBytes), "SECRET-NEVER-EMIT") {
+		t.Fatal("TACACS secret leaked into the emitted document")
+	}
 }
 
 func TestCollect_Deterministic(t *testing.T) {
 	ts := fixtureServer(t)
 	defer ts.Close()
 
-	producer, ctx := newTestProducer(t, ts, "minimal")
+	producer, ctx := newTestProducer(t, ts, "")
 	testharness.AssertDeterministic(t, producer, ctx)
 }
 
@@ -439,7 +608,7 @@ func TestCollect_DeviceExtensions(t *testing.T) {
 	ts := fixtureServer(t)
 	defer ts.Close()
 
-	producer, ctx := newTestProducer(t, ts, "minimal")
+	producer, ctx := newTestProducer(t, ts, "")
 	doc, err := producer.Collect(ctx)
 	if err != nil {
 		t.Fatalf("Collect failed: %v", err)
@@ -447,7 +616,7 @@ func TestCollect_DeviceExtensions(t *testing.T) {
 
 	var device *sdk.Resource
 	for i, r := range doc.Topology.Resources {
-		if r.Type == "osiris.cisco.switch.spine" {
+		if r.Type == "network.switch" {
 			device = &doc.Topology.Resources[i]
 			break
 		}
@@ -464,13 +633,27 @@ func TestCollect_DeviceExtensions(t *testing.T) {
 		t.Fatal("device should have osiris.cisco extension")
 	}
 
-	// Verify inventory.
+	// Verify inventory. Serial numbers are audit-only:
+	// absent here at documentation purpose.
 	inv, ok := cisco["inventory"].([]map[string]any)
 	if !ok || len(inv) != 2 {
 		t.Fatalf("expected 2 inventory items, got %v", cisco["inventory"])
 	}
 	if inv[0]["name"] != "Chassis" {
 		t.Errorf("inventory[0].name: %v", inv[0]["name"])
+	}
+	if _, ok := inv[0]["serial"]; ok {
+		t.Errorf("inventory serial must not appear at documentation purpose: %v", inv[0]["serial"])
+	}
+
+	// Verify module status (not audit-gated operational status/version,
+	// not a security posture item).
+	modules, ok := cisco["modules"].([]map[string]any)
+	if !ok || len(modules) != 1 {
+		t.Fatalf("expected 1 module, got %v", cisco["modules"])
+	}
+	if modules[0]["status"] != "active *" || modules[0]["diag_status"] != "Pass" || modules[0]["sw_version"] != "10.3(6)" {
+		t.Errorf("module fields: %v", modules[0])
 	}
 
 	// Verify device-level extensions.
@@ -486,7 +669,7 @@ func TestCollect_LLDPConnections(t *testing.T) {
 	ts := fixtureServer(t)
 	defer ts.Close()
 
-	producer, ctx := newTestProducer(t, ts, "minimal")
+	producer, ctx := newTestProducer(t, ts, "")
 	doc, err := producer.Collect(ctx)
 	if err != nil {
 		t.Fatalf("Collect failed: %v", err)
@@ -504,6 +687,23 @@ func TestCollect_LLDPConnections(t *testing.T) {
 	}
 	if conn.Status != "active" {
 		t.Errorf("connection status: %s", conn.Status)
+	}
+
+	// Verify source_transceiver: Ethernet1/1 has a real SFP
+	// present in the fixture, and this is its LLDP-discovered neighbor
+	// connection. serial_number must not appear at documentation purpose.
+	xcvr, ok := conn.Properties["source_transceiver"].(map[string]any)
+	if !ok {
+		t.Fatalf("missing source_transceiver on Ethernet1/1's connection: %v", conn.Properties)
+	}
+	if xcvr["model"] != "SFP-10G-SR" || xcvr["vendor"] != "CISCO-ACCELINK" {
+		t.Errorf("source_transceiver fields: %v", xcvr)
+	}
+	if _, ok := xcvr["serial_number"]; ok {
+		t.Errorf("source_transceiver.serial_number must not appear at documentation purpose: %v", xcvr["serial_number"])
+	}
+	if _, ok := conn.Properties["target_transceiver"]; ok {
+		t.Errorf("target_transceiver must never be populated: %v", conn.Properties["target_transceiver"])
 	}
 
 	// Verify source and target reference existing resources.
@@ -538,26 +738,52 @@ func TestCollect_VLANMembership(t *testing.T) {
 	ts := fixtureServer(t)
 	defer ts.Close()
 
-	producer, ctx := newTestProducer(t, ts, "minimal")
+	producer, ctx := newTestProducer(t, ts, "")
 	doc, err := producer.Collect(ctx)
 	if err != nil {
 		t.Fatalf("Collect failed: %v", err)
 	}
 
-	vlan100 := findGroup(doc.Topology.Groups, "VLAN 100")
-	if vlan100 == nil {
-		t.Fatal("missing VLAN 100 group")
-	}
-	if len(vlan100.Members) != 1 {
-		t.Errorf("VLAN 100: expected 1 member (Ethernet1/1), got %d: %v", len(vlan100.Members), vlan100.Members)
+	// VLANs are network.vlan resources (7.5.1); membership is a set of
+	// network.l2 connections from the port to the VLAN resource.
+	resByID := map[string]*sdk.Resource{}
+	for i := range doc.Topology.Resources {
+		r := &doc.Topology.Resources[i]
+		resByID[r.ID] = r
 	}
 
-	vlan200 := findGroup(doc.Topology.Groups, "VLAN 200")
-	if vlan200 == nil {
-		t.Fatal("missing VLAN 200 group")
+	// Expect Ethernet1/1 -> VLAN 100 and Ethernet1/2 -> VLAN 200
+	// (matched by the target resource's vlan_id property).
+	want := map[string]int{"Ethernet1/1": 100, "Ethernet1/2": 200}
+	got := map[string]int{}
+	for _, c := range doc.Topology.Connections {
+		if c.Type != "network.l2" {
+			continue
+		}
+		src, dst := resByID[c.Source], resByID[c.Target]
+		if src == nil || dst == nil || dst.Type != "network.vlan" {
+			t.Errorf("network.l2 connection has a bad endpoint: %s -> %s", c.Source, c.Target)
+			continue
+		}
+		if id, ok := dst.Properties["vlan_id"].(int); ok {
+			got[src.Name] = id
+		}
 	}
-	if len(vlan200.Members) != 1 {
-		t.Errorf("VLAN 200: expected 1 member (Ethernet1/2), got %d: %v", len(vlan200.Members), vlan200.Members)
+	for port, vlan := range want {
+		if got[port] != vlan {
+			t.Errorf("expected network.l2 %s -> VLAN %d, got %d", port, vlan, got[port])
+		}
+	}
+
+	// The VLAN 100 resource itself is present and correctly shaped.
+	var v100 *sdk.Resource
+	for i := range doc.Topology.Resources {
+		if doc.Topology.Resources[i].Type == "network.vlan" && doc.Topology.Resources[i].Properties["vlan_id"] == 100 {
+			v100 = &doc.Topology.Resources[i]
+		}
+	}
+	if v100 == nil {
+		t.Fatal("missing VLAN 100 network.vlan resource")
 	}
 }
 
@@ -565,7 +791,7 @@ func TestCollect_VRFMembership(t *testing.T) {
 	ts := fixtureServer(t)
 	defer ts.Close()
 
-	producer, ctx := newTestProducer(t, ts, "minimal")
+	producer, ctx := newTestProducer(t, ts, "")
 	doc, err := producer.Collect(ctx)
 	if err != nil {
 		t.Fatalf("Collect failed: %v", err)
@@ -599,31 +825,35 @@ func TestCollect_LLDPFailureDoesNotEraseVPCOrPortChannel(t *testing.T) {
 	ts := fixtureServerWithFailingCommand(t, "show lldp neighbors detail")
 	defer ts.Close()
 
-	producer, ctx := newTestProducer(t, ts, "minimal")
+	producer, ctx := newTestProducer(t, ts, "")
 	doc, err := producer.Collect(ctx)
 	if err != nil {
 		t.Fatalf("Collect should not fail when only LLDP is unavailable: %v", err)
 	}
 
 	// No LLDP connection or stub LLDP genuinely failed. The 2
-	// port-channel "contains" connections (Eth1/1, Eth1/2 -> Po10) must
-	// still be present they come from an unrelated ShowMulti batch
-	// entirely, but also prove that a failure inside batch 2 (LLDP)
-	// does not erase port-channel data fetched in the very same batch.
+	// port-channel "contains" connections (Eth1/1, Eth1/2 -> Po10) and
+	// the 4 switch containment connections (2 contains.physical + 2
+	// contains.logical) must still be present they come from unrelated
+	// ShowMulti batches / interface data entirely, but also prove that
+	// a failure inside batch 2 (LLDP) does not erase port-channel data
+	// fetched in the very same batch.
 	for _, c := range doc.Topology.Connections {
 		if c.Type == "physical.ethernet" {
 			t.Errorf("unexpected physical.ethernet (LLDP) connection: LLDP failed, should have produced none")
 		}
 	}
-	if len(doc.Topology.Connections) != 2 {
-		t.Errorf("expected 2 connections (port-channel contains only), got %d", len(doc.Topology.Connections))
+	// 2 port-channel contains + 4 switch containment + 2 network.l2
+	// VLAN membership = 8.
+	if len(doc.Topology.Connections) != 8 {
+		t.Errorf("expected 8 connections (port-channel contains + switch containment + VLAN l2), got %d", len(doc.Topology.Connections))
 	}
 
 	// vPC group must still be present it succeeded in the same batch
 	// as the failed LLDP command.
 	vpcFound := false
 	for _, g := range doc.Topology.Groups {
-		if g.Type == "network.vpc" {
+		if g.Type == "osiris.cisco.vpc" {
 			vpcFound = true
 			break
 		}
@@ -632,10 +862,20 @@ func TestCollect_LLDPFailureDoesNotEraseVPCOrPortChannel(t *testing.T) {
 		t.Error("vPC group missing - LLDP's failure incorrectly erased sibling batch data")
 	}
 
-	// VLAN/VRF groups (from the unrelated batch1 call) must also be
-	// completely unaffected.
-	if len(doc.Topology.Groups) != 5 {
-		t.Errorf("expected 5 groups (2 VLAN + 2 VRF + 1 vPC), got %d", len(doc.Topology.Groups))
+	// VRF groups + vPC (from the unrelated batch1 call) must also be
+	// completely unaffected. VLANs are resources now, not groups.
+	if len(doc.Topology.Groups) != 3 {
+		t.Errorf("expected 3 groups (2 VRF + 1 vPC), got %d", len(doc.Topology.Groups))
+	}
+	// The 2 network.vlan resources also survive LLDP's failure.
+	vlanCount := 0
+	for _, r := range doc.Topology.Resources {
+		if r.Type == "network.vlan" {
+			vlanCount++
+		}
+	}
+	if vlanCount != 2 {
+		t.Errorf("expected 2 network.vlan resources, got %d", vlanCount)
 	}
 }
 
@@ -647,7 +887,7 @@ func TestCollect_PortChannelMembership(t *testing.T) {
 	ts := fixtureServer(t)
 	defer ts.Close()
 
-	producer, ctx := newTestProducer(t, ts, "minimal")
+	producer, ctx := newTestProducer(t, ts, "")
 	doc, err := producer.Collect(ctx)
 	if err != nil {
 		t.Fatalf("Collect failed: %v", err)
@@ -706,6 +946,412 @@ func TestCollect_PortChannelMembership(t *testing.T) {
 	}
 }
 
+func TestCollect_PortChannelIdentityStableAcrossTargetAliasChange(t *testing.T) {
+	// A port-channel/LAG resource goes through the same
+	// TransformInterfaces code path as any other interface, so its
+	// identity is stable across a target alias change for the same
+	// reason a physical port's is: the canonical key is the device's
+	// own reported chassis serial, not the target host/hostname used
+	// to reach it.
+	runWithTarget := func(host, hostname string) *sdk.Document {
+		ts := fixtureServer(t)
+		defer ts.Close()
+		ctx := testharness.NewTestContext(t, testharness.WithConfig(&sdk.ProducerConfig{
+			SafeFailureMode: sdk.FailClosed,
+		}))
+		producer := &Producer{
+			target: run.TargetConfig{Host: host, Hostname: hostname, Username: "admin", Password: "test"},
+			cfg:    &Config{},
+			client: &Client{baseURL: ts.URL, httpClient: ts.Client(), username: "admin", password: "test", logger: ctx.Logger},
+		}
+		doc, err := producer.Collect(ctx)
+		if err != nil {
+			t.Fatalf("Collect failed: %v", err)
+		}
+		return doc
+	}
+
+	idFor := func(doc *sdk.Document, name string) string {
+		for _, r := range doc.Topology.Resources {
+			if r.Name == name {
+				return r.ID
+			}
+		}
+		t.Fatalf("missing resource named %q", name)
+		return ""
+	}
+
+	docA := runWithTarget("192.0.2.1", "old-alias")
+	docB := runWithTarget("192.0.2.99", "new-alias")
+
+	if idFor(docA, "port-channel10") != idFor(docB, "port-channel10") {
+		t.Error("port-channel10 resource ID changed across a target alias change")
+	}
+	if idFor(docA, "LAB-SW01") != idFor(docB, "LAB-SW01") {
+		t.Error("switch resource ID changed across a target alias change")
+	}
+}
+
+func TestCollect_P1NeighborAndSessionFeatures(t *testing.T) {
+	// End-to-end coverage for merged LLDP/CDP neighbor discovery, vPC
+	// keepalive, interface IP, OSPF/BGP neighbors, and switchport
+	// native VLAN, through a real Collect() call on top of the base
+	// fixtureBodies() set: CDP-only neighbor (mgmt0, no LLDP),
+	// interface IP (bare, no prefix), vPC keepalive, OSPF neighbor,
+	// BGP neighbor, and switchport native VLAN.
+	fixtures := fixtureBodies()
+	fixtures["show cdp neighbors detail"] = map[string]any{
+		// Ethernet1/2 (already a known interface from the base fixture,
+		// but with no LLDP neighbor of its own) a CDP-only
+		// observation on an existing port, not requiring a new
+		// interface resource this test doesn't otherwise set up.
+		"TABLE_cdp_neighbor_detail_info": map[string]any{
+			"ROW_cdp_neighbor_detail_info": map[string]any{
+				"intf_id": "Ethernet1/2", "sysname": "REMOTE-MGMT01", "port_id": "Ethernet1/18", "v4mgmtaddr": "198.51.100.9",
+			},
+		},
+	}
+	fixtures["show vpc peer-keepalive"] = map[string]any{
+		"vpc-peer-keepalive-status": "peer is alive",
+		"vpc-dest":                  "198.51.100.5",
+		"vpc-keepalive-vrf":         "management",
+	}
+	fixtures["show ip interface brief vrf all"] = map[string]any{
+		"TABLE_intf": map[string]any{
+			"ROW_intf": map[string]any{
+				"intf-name": "Ethernet1/1", "prefix": "203.0.113.1", "vrf-name-out": "default",
+			},
+		},
+	}
+	fixtures["show ip ospf neighbor vrf all"] = map[string]any{
+		"TABLE_ctx": map[string]any{
+			"ROW_ctx": map[string]any{
+				"cname": "default",
+				"TABLE_nbr": map[string]any{
+					"ROW_nbr": map[string]any{
+						"rid": "203.0.113.2", "state": "FULL", "drstate": "DR", "addr": "203.0.113.2", "intf": "Ethernet1/1",
+					},
+				},
+			},
+		},
+	}
+	fixtures["show bgp all summary"] = map[string]any{
+		"TABLE_vrf": map[string]any{
+			"ROW_vrf": map[string]any{
+				"vrf-name-out": "default",
+				"TABLE_af": map[string]any{
+					"ROW_af": map[string]any{
+						"TABLE_saf": map[string]any{
+							"ROW_saf": map[string]any{
+								"TABLE_neighbor": map[string]any{
+									"ROW_neighbor": map[string]any{
+										"neighborid": "203.0.113.3", "neighboras": "65000", "state": "Established", "prefixreceived": "5",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	fixtures["show interface switchport"] = map[string]any{
+		"TABLE_interface": map[string]any{
+			"ROW_interface": map[string]any{
+				"interface": "Ethernet1/1", "native_vlan": "100", "trunk_vlans": "100,200-201",
+			},
+		},
+	}
+
+	outputFor := func(cmd string) map[string]any {
+		fixture := fixtures[cmd]
+		if fixture == nil {
+			fixture = map[string]any{}
+		}
+		bodyBytes, _ := json.Marshal(fixture)
+		return map[string]any{"code": "200", "msg": "Success", "body": json.RawMessage(bodyBytes)}
+	}
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		body, _ := io.ReadAll(r.Body)
+		var req struct {
+			InsAPI struct {
+				Input string `json:"input"`
+			} `json:"ins_api"`
+		}
+		json.Unmarshal(body, &req)
+		commands := splitCommands(req.InsAPI.Input)
+		if len(commands) == 1 {
+			json.NewEncoder(w).Encode(map[string]any{"ins_api": map[string]any{"outputs": map[string]any{"output": outputFor(commands[0])}}})
+			return
+		}
+		var outputs []map[string]any
+		for _, cmd := range commands {
+			outputs = append(outputs, outputFor(cmd))
+		}
+		json.NewEncoder(w).Encode(map[string]any{"ins_api": map[string]any{"outputs": map[string]any{"output": outputs}}})
+	}))
+	defer ts.Close()
+
+	producer, ctx := newTestProducer(t, ts, "audit") // audit: exercises OSPF/BGP (NXOS-P1-10)
+	doc, err := producer.Collect(ctx)
+	if err != nil {
+		t.Fatalf("Collect failed: %v", err)
+	}
+
+	// CDP-only neighbor on mgmt0.
+	var cdpStub *sdk.Resource
+	for i, r := range doc.Topology.Resources {
+		if r.Name == "REMOTE-MGMT01:Ethernet1/18" {
+			cdpStub = &doc.Topology.Resources[i]
+		}
+	}
+	if cdpStub == nil {
+		t.Error("missing CDP-discovered neighbor stub")
+	} else if cdpStub.Provider.Name != unknownProviderName {
+		t.Errorf("CDP stub provider = %s, want %s", cdpStub.Provider.Name, unknownProviderName)
+	}
+
+	// Interface IP + switchport native VLAN, both on Ethernet1/1.
+	var eth1 *sdk.Resource
+	for i, r := range doc.Topology.Resources {
+		if r.Name == "Ethernet1/1" {
+			eth1 = &doc.Topology.Resources[i]
+		}
+	}
+	if eth1 == nil {
+		t.Fatal("missing Ethernet1/1 resource")
+	}
+	if eth1.Properties["ip_address"] != "203.0.113.1" {
+		t.Errorf("ip_address: %v", eth1.Properties["ip_address"])
+	}
+	if eth1.Properties["native_vlan"] != 100 {
+		t.Errorf("native_vlan: %v", eth1.Properties["native_vlan"])
+	}
+
+	// Trunk VLAN membership: Ethernet1/1's trunk_vlans ("100,200-201")
+	// should produce a network.l2 connection from it to the VLAN 100
+	// and VLAN 200 resources (both exist in the base fixture); VLAN 201
+	// has no resource and is silently skipped.
+	vlanResVID := map[string]int{}
+	for _, r := range doc.Topology.Resources {
+		if r.Type == "network.vlan" {
+			if id, ok := r.Properties["vlan_id"].(int); ok {
+				vlanResVID[r.ID] = id
+			}
+		}
+	}
+	l2Targets := map[int]bool{}
+	for _, c := range doc.Topology.Connections {
+		if c.Type == "network.l2" && c.Source == eth1.ID {
+			l2Targets[vlanResVID[c.Target]] = true
+		}
+	}
+	if !l2Targets[100] {
+		t.Error("Ethernet1/1 should have a network.l2 connection to VLAN 100 via trunk_vlans")
+	}
+	if !l2Targets[200] {
+		t.Error("Ethernet1/1 should have a network.l2 connection to VLAN 200 via trunk_vlans")
+	}
+
+	// vPC keepalive, OSPF neighbor, BGP neighbor connections.
+	var haveKeepalive, haveOSPF, haveBGP bool
+	for _, c := range doc.Topology.Connections {
+		switch {
+		case c.Type == "network" && func() bool {
+			cisco, _ := c.Extensions[extensionNamespace].(map[string]any)
+			return cisco["role"] == "vpc_keepalive"
+		}():
+			haveKeepalive = true
+		case c.Type == "network.ospf":
+			haveOSPF = true
+		case c.Type == "network.bgp":
+			haveBGP = true
+		}
+	}
+	if !haveKeepalive {
+		t.Error("missing vPC keepalive connection")
+	}
+	if !haveOSPF {
+		t.Error("missing OSPF neighbor connection")
+	}
+	if !haveBGP {
+		t.Error("missing BGP neighbor connection")
+	}
+}
+
+// TestCollect_DocumentationPurposeOmitsAuditTierData confirms
+// "documentation" purpose (the default) never issues, let alone emits,
+// any of the audit-tier commands/resources this producer gates behind
+// --purpose audit: OSPF/BGP neighbor connections, the osiris.cisco.aaa
+// resource, and the system-resources/environment device extensions.
+func TestCollect_DocumentationPurposeOmitsAuditTierData(t *testing.T) {
+	ts := fixtureServer(t)
+	defer ts.Close()
+
+	producer, ctx := newTestProducer(t, ts, "")
+	doc, err := producer.Collect(ctx)
+	if err != nil {
+		t.Fatalf("Collect failed: %v", err)
+	}
+
+	for _, r := range doc.Topology.Resources {
+		if r.Type == "osiris.cisco.aaa" {
+			t.Error("osiris.cisco.aaa resource must not appear at documentation purpose")
+		}
+	}
+	for _, c := range doc.Topology.Connections {
+		if c.Type == "network.ospf" || c.Type == "network.bgp" {
+			t.Errorf("audit-tier connection %s must not appear at documentation purpose", c.Type)
+		}
+	}
+	for _, r := range doc.Topology.Resources {
+		if r.Type != "network.switch" {
+			continue
+		}
+		cisco, _ := r.Extensions[extensionNamespace].(map[string]any)
+		if _, ok := cisco["power_supplies"]; ok {
+			t.Error("environment extension must not appear at documentation purpose")
+		}
+	}
+	for _, entry := range coverageEntries(t, doc) {
+		cmd, _ := entry["command"].(string)
+		if cmd == "show ip ospf neighbor vrf all" || cmd == "show bgp all summary" || cmd == "show aaa accounting" {
+			t.Errorf("audit-tier command %q must not even be issued at documentation purpose", cmd)
+		}
+	}
+}
+
+// TestCollect_IncludeRawBody confirms --include-raw-body only takes
+// effect at audit purpose (matching sdk.ProducerConfig.IncludeRawBody's
+// documented contract) and, when it does, attaches real command bodies
+// under extensions.osiris.cisco.raw_commands.
+func TestCollect_IncludeRawBody(t *testing.T) {
+	ts := fixtureServer(t)
+	defer ts.Close()
+
+	cases := []struct {
+		name           string
+		purpose        string
+		includeRawBody bool
+		wantRaw        bool
+	}{
+		{"audit + include-raw-body", "audit", true, true},
+		{"audit without include-raw-body", "audit", false, false},
+		{"documentation + include-raw-body ignored", "", true, false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := testharness.NewTestContext(t, testharness.WithConfig(&sdk.ProducerConfig{
+				Purpose:         tc.purpose,
+				IncludeRawBody:  tc.includeRawBody,
+				SafeFailureMode: sdk.FailClosed,
+			}))
+			producer := &Producer{
+				target: run.TargetConfig{Host: "192.0.2.1", Hostname: "LAB-SW01", Username: "admin", Password: "test"},
+				cfg:    &Config{},
+				client: &Client{baseURL: ts.URL, httpClient: ts.Client(), username: "admin", password: "test", logger: ctx.Logger},
+			}
+			doc, err := producer.Collect(ctx)
+			if err != nil {
+				t.Fatalf("Collect failed: %v", err)
+			}
+
+			var device *sdk.Resource
+			for i, r := range doc.Topology.Resources {
+				if r.Type == "network.switch" {
+					device = &doc.Topology.Resources[i]
+					break
+				}
+			}
+			if device == nil {
+				t.Fatal("missing device resource")
+			}
+			cisco, _ := device.Extensions[extensionNamespace].(map[string]any)
+			raw, ok := cisco["raw_commands"].(map[string]json.RawMessage)
+
+			if tc.wantRaw {
+				if !ok || len(raw) == 0 {
+					t.Fatalf("expected raw_commands to be populated, got %v", cisco["raw_commands"])
+				}
+				if _, ok := raw["show version"]; !ok {
+					t.Error(`raw_commands missing "show version"`)
+				}
+				// Sensitive keys in a raw body (the fixture plants
+				// TACACS secretKey / global_testPassword = "SECRET-NEVER-EMIT")
+				// must be redacted, never attached verbatim.
+				tb, ok := raw["show tacacs-server"]
+				if !ok {
+					t.Fatal(`raw_commands missing "show tacacs-server"`)
+				}
+				if strings.Contains(string(tb), "SECRET-NEVER-EMIT") {
+					t.Errorf("raw show tacacs-server body leaked a secret value: %s", tb)
+				}
+				if !strings.Contains(string(tb), redactRawBodyMarker) {
+					t.Errorf("raw show tacacs-server body should carry the redaction marker: %s", tb)
+				}
+				// Document-wide canary.
+				full, mErr := sdk.MarshalDocument(doc)
+				if mErr != nil {
+					t.Fatalf("MarshalDocument: %v", mErr)
+				}
+				if strings.Contains(string(full), "SECRET-NEVER-EMIT") {
+					t.Error("marshaled document leaked a secret from a raw command body")
+				}
+			} else if ok && len(raw) > 0 {
+				t.Errorf("raw_commands should be absent/empty, got %v", raw)
+			}
+		})
+	}
+}
+
+func TestRedactRawBody(t *testing.T) {
+	in := `{
+	  "global_testPassword": "test",
+	  "global_testUsername": "svc-tacacs",
+	  "TABLE_server": {"ROW_server": [
+	    {"server_ip": "198.51.100.10", "secretKey": "topsecret", "port": "49"}
+	  ]},
+	  "note": "-----BEGIN OPENSSH PRIVATE KEY-----AAAA",
+	  "plain": "nothing here"
+	}`
+	out, ok := redactRawBody(json.RawMessage(in))
+	if !ok {
+		t.Fatal("redactRawBody returned ok=false for valid JSON")
+	}
+	s := string(out)
+	for _, leaked := range []string{"test", "topsecret", "BEGIN OPENSSH PRIVATE KEY"} {
+		if strings.Contains(s, leaked) {
+			t.Errorf("redacted body still contains %q: %s", leaked, s)
+		}
+	}
+	// Non-sensitive fields survive.
+	for _, kept := range []string{"svc-tacacs", "198.51.100.10", "nothing here", `"port":"49"`} {
+		if !strings.Contains(strings.ReplaceAll(s, " ", ""), strings.ReplaceAll(kept, " ", "")) {
+			t.Errorf("redacted body dropped a non-sensitive value %q: %s", kept, s)
+		}
+	}
+	if _, ok := redactRawBody(json.RawMessage(`not json`)); ok {
+		t.Error("redactRawBody should return ok=false for unparseable input")
+	}
+}
+
+// coverageEntries returns the device resource's own coverage array
+// (see recordCoverage in nxos.go), or nil if absent.
+func coverageEntries(t *testing.T, doc *sdk.Document) []map[string]any {
+	t.Helper()
+	for _, r := range doc.Topology.Resources {
+		if r.Type != "network.switch" {
+			continue
+		}
+		cisco, _ := r.Extensions[extensionNamespace].(map[string]any)
+		cov, _ := cisco["coverage"].([]map[string]any)
+		return cov
+	}
+	return nil
+}
+
 func TestCollect_ReusesLoginVersionData(t *testing.T) {
 	// Login already fetches "show version" once to validate
 	// credentials; Collect must reuse that body rather than fetching it
@@ -718,7 +1364,6 @@ func TestCollect_ReusesLoginVersionData(t *testing.T) {
 	defer ts.Close()
 
 	ctx := testharness.NewTestContext(t, testharness.WithConfig(&sdk.ProducerConfig{
-		DetailLevel:     "minimal",
 		SafeFailureMode: sdk.FailClosed,
 	}))
 	client := &Client{
@@ -732,7 +1377,7 @@ func TestCollect_ReusesLoginVersionData(t *testing.T) {
 
 	producer := &Producer{
 		target: run.TargetConfig{Host: "192.0.2.1", Hostname: "LAB-SW01", Username: "admin", Password: "test"},
-		cfg:    &run.RunConfig{DetailLevel: "minimal"},
+		cfg:    &Config{},
 		client: client,
 	}
 	doc, err := producer.Collect(ctx)
@@ -748,7 +1393,7 @@ func TestCollect_ReusesLoginVersionData(t *testing.T) {
 	// Login-cached version data - not silently empty.
 	var device *sdk.Resource
 	for i, r := range doc.Topology.Resources {
-		if r.Type == "osiris.cisco.switch.spine" {
+		if r.Type == "network.switch" {
 			device = &doc.Topology.Resources[i]
 			break
 		}
@@ -768,7 +1413,7 @@ func TestCollect_CoverageReportsSucceededAndFailed(t *testing.T) {
 	ts := fixtureServerWithFailingCommand(t, "show lldp neighbors detail")
 	defer ts.Close()
 
-	producer, ctx := newTestProducer(t, ts, "minimal")
+	producer, ctx := newTestProducer(t, ts, "")
 	doc, err := producer.Collect(ctx)
 	if err != nil {
 		t.Fatalf("Collect failed: %v", err)
@@ -776,7 +1421,7 @@ func TestCollect_CoverageReportsSucceededAndFailed(t *testing.T) {
 
 	var device *sdk.Resource
 	for i, r := range doc.Topology.Resources {
-		if r.Type == "osiris.cisco.switch.spine" {
+		if r.Type == "network.switch" {
 			device = &doc.Topology.Resources[i]
 			break
 		}
@@ -886,7 +1531,7 @@ func TestCollect_CoverageMarksWholeBatchUnavailableOnTransportFailure(t *testing
 	}))
 	defer ts.Close()
 
-	producer, ctx := newTestProducer(t, ts, "minimal")
+	producer, ctx := newTestProducer(t, ts, "")
 	doc, err := producer.Collect(ctx)
 	if err != nil {
 		t.Fatalf("Collect should tolerate a batch 2 transport failure: %v", err)
@@ -894,7 +1539,7 @@ func TestCollect_CoverageMarksWholeBatchUnavailableOnTransportFailure(t *testing
 
 	var device *sdk.Resource
 	for i, r := range doc.Topology.Resources {
-		if r.Type == "osiris.cisco.switch.spine" {
+		if r.Type == "network.switch" {
 			device = &doc.Topology.Resources[i]
 			break
 		}
@@ -925,14 +1570,6 @@ func TestCollect_CoverageMarksWholeBatchUnavailableOnTransportFailure(t *testing
 	}
 }
 
-func TestNewFactory(t *testing.T) {
-	factory := NewFactory()
-	p := factory(run.TargetConfig{Host: "192.0.2.1"}, &run.RunConfig{})
-	if _, ok := p.(*Producer); !ok {
-		t.Error("factory should return *Producer")
-	}
-}
-
 // Test helpers.
 
 func countTypes(resources []sdk.Resource) map[string]int {
@@ -957,4 +1594,13 @@ func findGroup(groups []sdk.Group, name string) *sdk.Group {
 		}
 	}
 	return nil
+}
+
+func contains(members []string, id string) bool {
+	for _, m := range members {
+		if m == id {
+			return true
+		}
+	}
+	return false
 }
