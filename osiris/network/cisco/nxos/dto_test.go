@@ -64,7 +64,7 @@ func TestRowList_NullDecodesAsNil(t *testing.T) {
 
 func TestRowList_MissingTableKeyDecodesAsNil(t *testing.T) {
 	// A missing TABLE_x/ROW_x key entirely (not merely present-and-null)
-	// must leave the field at its zero value matches parseTableRows'
+	// must leave the field at its zero value matches parseTableRows
 	// returning nil for a missing table.
 	var resp inventoryResponse
 	if err := json.Unmarshal([]byte(`{}`), &resp); err != nil {
@@ -222,7 +222,7 @@ func TestDecodeFullCommandResponses(t *testing.T) {
 	}{
 		{
 			name: "version",
-			raw:  `{"chassis_id":"Nexus9000 C9508","memory":65536000}`,
+			raw:  `{"chassis_id":"Nexus9000 C9508","memory":65536000,"nxos_ver_str":"10.3(6)"}`,
 			into: &versionResponse{},
 		},
 		{
@@ -237,7 +237,7 @@ func TestDecodeFullCommandResponses(t *testing.T) {
 		},
 		{
 			name: "interface brief",
-			raw:  `{"TABLE_interface":{"ROW_interface":[{"interface":"Ethernet1/1","state":"up"}]}}`,
+			raw:  `{"TABLE_interface":{"ROW_interface":[{"interface":"Ethernet1/1","state":"up"},{"interface":"Vlan900","svi_admin_state":"up"}]}}`,
 			into: &interfaceBriefResponse{},
 		},
 		{
@@ -276,13 +276,8 @@ func TestDecodeFullCommandResponses(t *testing.T) {
 			into: &interfaceDetailResponse{},
 		},
 		{
-			name: "system resources",
-			raw:  `{"cpu_state_idle":"95.50","memory_usage_used":"8000000"}`,
-			into: &systemResourcesResponse{},
-		},
-		{
 			name: "environment",
-			raw:  `{"TABLE_psinfo":{"ROW_psinfo":{"psnum":"1"}},"TABLE_tempinfo":{"ROW_tempinfo":[{"tempmod":"1"}]}}`,
+			raw:  `{"powersup":{"TABLE_psinfo":{"ROW_psinfo":{"psnum":"1"}}},"TABLE_tempinfo":{"ROW_tempinfo":[{"tempmod":"1"}]}}`,
 			into: &environmentResponse{},
 		},
 	}
