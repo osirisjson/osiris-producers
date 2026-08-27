@@ -24,7 +24,7 @@ Please:
 - Give constructive feedback; focus on the work, not the person
 - Be mindful of tone-text is easy to misread specially when conversation involve different races, ethnicities, nationalities and cultures
 - Respect differing viewpoints and lived experiences
-- Follow project guidelines (including [CONTRIBUTING](https://github.com/osirisjson/osiris/tree/main/CONTRIBUTING.md))
+- Follow project guidelines (including [CONTRIBUTING](https://docs.osirisjson.org/community/contributing/))
 
 ## Unacceptable behavior
 Examples include:
