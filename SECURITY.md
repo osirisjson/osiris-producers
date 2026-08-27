@@ -19,12 +19,14 @@ Older versions should be upgraded rather than patched.
 Use one of the following private channels:
 
 1. **GitHub private security advisory (preferred)**
-   Navigate to the repository on GitHub and open a [private security advisory](https://github.com/osirisjson/osiris/security/advisories/new).
+   Navigate to the repository on GitHub and open a [private security advisory](https://github.com/osirisjson/osiris-producers/security/advisories/new).
    This keeps the report confidential until a fix is published.
 
 2. **Email**
    Send a report to [tiazanella@osirisjson.org](mailto:tiazanella@osirisjson.org).
-   Encrypt sensitive reports with the maintainer's public key if available.
+   Encrypt sensitive reports with the maintainer's GPG public key fetching the full key from a keyserver:
+   
+   `gpg --keyserver hkps://keys.openpgp.org --recv-keys 29B75E5B135F6B87`
 
 
 ### What to include
