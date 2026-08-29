@@ -1308,7 +1308,7 @@ func TestCollect_IncludeRawBody(t *testing.T) {
 
 func TestRedactRawBody(t *testing.T) {
 	in := `{
-	  "global_testPassword": "test",
+	  "global_testPassword": "SECRET-NEVER-EMIT",
 	  "global_testUsername": "svc-tacacs",
 	  "TABLE_server": {"ROW_server": [
 	    {"server_ip": "198.51.100.10", "secretKey": "topsecret", "port": "49"}
@@ -1321,7 +1321,7 @@ func TestRedactRawBody(t *testing.T) {
 		t.Fatal("redactRawBody returned ok=false for valid JSON")
 	}
 	s := string(out)
-	for _, leaked := range []string{"test", "topsecret", "BEGIN OPENSSH PRIVATE KEY"} {
+	for _, leaked := range []string{"SECRET-NEVER-EMIT", "topsecret", "BEGIN OPENSSH PRIVATE KEY"} {
 		if strings.Contains(s, leaked) {
 			t.Errorf("redacted body still contains %q: %s", leaked, s)
 		}
