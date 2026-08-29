@@ -22,6 +22,8 @@ the release-level index of which producers shipped under each tag.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-08-29
+
 ### Added
 - `metadata.generator.url` is now emitted
   (`https://docs.osirisjson.org/osiris-producers/network/cisco`), and
@@ -105,14 +107,14 @@ the release-level index of which producers shipped under each tag.
   full prefix/subnet mapping needs `show ip interface`, not
   implemented this pass) and `native_vlan` (trunk mode's untagged
   VLAN, from `show interface switchport`).
-- Trunk ports are now wired as members of every `network.vlan` group
-  (the same groups `show vlan brief`-derived VLANs already produce)
-  named in their `show interface switchport` `trunk_vlans` list
+- Trunk ports now get a `network.l2` connection to every `network.vlan`
+  resource named in their `show interface switchport` `trunk_vlans`
+  list (the same VLAN resources `show vlan brief` already produces)
   NX-OS's own range-compressed format (e.g. `"85,900,906-909"`) is
   expanded to individual VLAN IDs first. A VLAN allowed on the trunk
-  but not itself present in `show vlan brief` has no group to join and
-  is skipped, matching every other group-wiring function's own
-  resolvable-relationships-only policy.
+  but not itself present in `show vlan brief` has no resource to
+  connect to and is skipped, matching every other connection-wiring
+  function's own resolvable-relationships-only policy.
 - The switch resource gains a new `network` connection (role
   `vpc_keepalive`) to an external stub resource when vPC keepalive is
   configured (`show vpc peer-keepalive`) a distinct control-plane
@@ -457,6 +459,10 @@ the release-level index of which producers shipped under each tag.
   a plain `network.interface` (see Changed above).
 
 ### Fixed
+- `--help` and the usage shown on a flag-parse error now render the
+  flag list from the registered flag set itself (the same
+  `registerFlags` `ParseFlags` binds against), matching the
+  `osiris/network/cisco/vmanage` pattern.
 - Device `extensions.osiris.cisco.uptime` was populated from
   `show version`'s `rr_sys_ver` field, which is the NX-OS version
   running at the last reset (part of the `rr_*` reset-reason block),
@@ -626,4 +632,5 @@ changes are listed below with their module-tag context.
   `cisco-nxos-<timestamp>-<hostname>.json`.
 
 [Unreleased]: ../../../../CHANGELOG.md
+[0.2.0]: ../../../../CHANGELOG.md#066---2026-08-29
 [0.1.0]: ../../../../CHANGELOG.md#010---2026-03-21

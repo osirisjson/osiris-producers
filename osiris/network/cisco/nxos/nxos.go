@@ -23,7 +23,6 @@ import (
 	"time"
 
 	"go.osirisjson.org/producers/osiris/network/cisco/run"
-	"go.osirisjson.org/producers/pkg/osirismeta"
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
@@ -718,47 +717,47 @@ func redactValue(v any, keyIsSensitive bool) any {
 }
 
 func printHelp() {
-	fmt.Printf(`osirisjson-producer cisco nxos - Cisco NX-OS OSIRIS JSON producer
+	fmt.Print(`osirisjson-producer cisco nxos - Cisco NX-OS OSIRIS JSON producer
 
 Usage:
   osirisjson-producer cisco nxos [flags]
 
-Flags:
-  -h, --host          	Target host (IP or FQDN, optionally with :port); prompted for interactively when omitted
-  -u, --username      	Username for authentication; prompted for interactively when omitted
-  -P, --port          	Override default port
-  --secrets-file      	JSON file with {host, username, password} (see below); overrides -h/-u when they omit a field
-  -s, --source        	CSV file for batch mode (mutually exclusive with -h/--host)
-  -o, --output        	Output directory for batch mode
-  --include-raw-body  	Attach each collected NX-API command's full, unmodified response under
-                      	extensions["osiris.cisco"] on the device resource (requires --purpose audit;
-                      	a lossless fallback for fields not yet modeled into OSIRIS JSON)
-  --safe-failure-mode 	Secret handling: fail-closed, log-and-redact, off (default: fail-closed)
-  --insecure          	Skip TLS certificate verification
+Modes: single (-h/--host, one switch) or batch (-s/--source, a CSV file
+with columns datacenter,floor,room,rack,hostname,management_ip,port).
+datacenter/floor/room/rack are optional; when present they build the
+batch output directory structure. -h/--host and -s/--source are
+mutually exclusive.
+
+Authentication: there is deliberately no -p/--password flag, CLI flag
+values are visible to any local user (e.g. via ps) and get written to
+shell history.
 
 --secrets-file accepts two shapes, each generated as its own file by
-"nxos template --generate" (see below) so you never have to guess the JSON by hand:
+"nxos template --generate" so you never have to guess the JSON by hand:
   cisco-nxos-secrets.json           a single login: {"host", "username", "password"}
   cisco-nxos-secrets-multihost.json different logins per target in a batch,
                                     matched by exact host/IP or CIDR, with a
                                     "default" fallback for anything unmatched
 The file must be a regular file (not a symlink) readable only by its
-owner (e.g. chmod 0600) a looser file is rejected.
+owner (e.g. chmod 0600); a looser file is rejected.
 
-Batch mode (-s/--source): a CSV file with columns datacenter,floor,room,rack,hostname,management_ip,port
-datacenter/floor/room/rack are optional; when present they build the output
-directory structure: <output>/Datacenter/Floor/Room/Rack/Hostname.json.
+Flags:
+`)
+	fmt.Print(FlagsUsage())
+	fmt.Print(`
+Other commands:
+  template --generate	Write cisco-nxos-template.csv (batch CSV) and both
+                      	--secrets-file skeletons (cisco-nxos-secrets.json,
+                      	cisco-nxos-secrets-multihost.json)
 
-  <name> template --generate	Write cisco-nxos-template.csv and both --secrets-file skeletons
-
-Output:
-  single mode saves to: cisco-nxos-<timestamp>-<hostname>.json (0600 permissions)
-  batch mode saves to:  <output>/Datacenter/Floor/Room/Rack/Hostname.json (0600 permissions)
+Output (0600 permissions):
+  single mode:	cisco-nxos-<timestamp>-<hostname>.json in the current directory
+  batch mode: 	<output>/Datacenter/Floor/Room/Rack/Hostname.json
 
 Examples:
-  osirisjson-producer cisco nxos -h switch.lab:8443 -u username --insecure
-  osirisjson-producer cisco nxos -h 192.0.2.10 -u username --purpose audit
-  osirisjson-producer cisco nxos -s datacenter.csv -o ./output -u username
+  osirisjson-producer cisco nxos -h switch.lab:8443 -u admin --insecure
+  osirisjson-producer cisco nxos -h 192.0.2.10 -u admin --purpose audit
+  osirisjson-producer cisco nxos -s datacenter.csv -o ./output -u admin
   osirisjson-producer cisco nxos template --generate
-`, passwordEnvVar, defaultPort, osirismeta.PurposeHelp())
+`)
 }
