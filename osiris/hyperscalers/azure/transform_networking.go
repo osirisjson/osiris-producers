@@ -1,8 +1,9 @@
 // transform_networking.go - Azure Networking category transforms.
 // Covers resources and connections for the CSV "Networking" category:
 // VNets, Subnets, NICs, NSGs, Route Tables, Public IPs, Load Balancers,
-// Private Endpoints, VNet/NAT Gateways, Firewalls, Application Gateways,
-// DNS Zones, Private DNS Zones, ExpressRoute Circuits, and Application Security Groups.
+// Private Endpoints, VNet/NAT Gateways, Firewalls, Application Gateways
+// DNS Zones, Private DNS Zones, ExpressRoute Circuits,
+// and Application Security Groups.
 //
 // Resource type mapping:
 //
@@ -13,13 +14,14 @@
 //   Microsoft.Network/networkSecurityGroups    -> network.security.group
 //   Microsoft.Network/loadBalancers            -> network.loadbalancer
 //   Microsoft.Network/azureFirewalls           -> network.firewall
+//   Microsoft.Network/privateEndpoints         -> network.endpoint
+//   Microsoft.Network/virtualNetworkGateways   -> network.gateway
+//   Microsoft.Network/natGateways              -> network.gateway
+//   Microsoft.Network/connections              -> network.vpn
 //
 //   Custom types (osiris.azure.* namespace):
 //   Microsoft.Network/routeTables              -> osiris.azure.routetable
 //   Microsoft.Network/publicIPAddresses        -> osiris.azure.publicip
-//   Microsoft.Network/privateEndpoints         -> osiris.azure.privateendpoint
-//   Microsoft.Network/virtualNetworkGateways   -> osiris.azure.gateway.vnet
-//   Microsoft.Network/natGateways              -> osiris.azure.gateway.nat
 //   Microsoft.Network/privateDnsZones          -> osiris.azure.dns.privatezone
 //   Microsoft.Network/dnsZones                 -> osiris.azure.dns.zone
 //   Microsoft.Network/expressRouteCircuits     -> osiris.azure.expressroute
@@ -27,8 +29,8 @@
 //   Microsoft.Network/applicationSecurityGroups -> osiris.azure.asg
 //
 // For an introduction to OSIRIS JSON Producer for Microsoft Azure see:
-// [OSIRIS-JSON-AZURE]: https://osirisjson.org/en/docs/producers/hyperscalers/microsoft-azure
-// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/docs/spec/v10/00-preface
+// [OSIRIS-JSON-AZURE]: https://docs.osirisjson.org/osiris-producers/hyperscalers/microsoft-azure/
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 
 package azure
 
@@ -523,14 +525,17 @@ func TransformLoadBalancers(lbs []LoadBalancer, sub SubscriptionInfo) []sdk.Reso
 	return resources
 }
 
-// TransformPrivateEndpoints converts Azure PrivateEndpoints into OSIRIS JSON resources.
+// TransformPrivateEndpoints converts Azure PrivateEndpoints into
+// OSIRIS JSON resources of the standard type network.endpoint
+// (Appendix C: "Network endpoint (e.g. private endpoint)", naming
+// Azure Private Endpoint directly).
 func TransformPrivateEndpoints(pes []PrivateEndpoint, sub SubscriptionInfo) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, pe := range pes {
-		id := resourceID("osiris.azure.privateendpoint", pe.ID)
+		id := resourceID("network.endpoint", pe.ID)
 		prov := azureProvider(pe.ID, "Microsoft.Network/privateEndpoints", pe.Location, sub)
 
-		r, err := sdk.NewResource(id, "osiris.azure.privateendpoint", prov)
+		r, err := sdk.NewResource(id, "network.endpoint", prov)
 		if err != nil {
 			continue
 		}
@@ -572,7 +577,10 @@ func TransformPrivateEndpoints(pes []PrivateEndpoint, sub SubscriptionInfo) []sd
 	return resources
 }
 
-// TransformVNetGateways converts Azure VNetGateways into OSIRIS JSON resources.
+// TransformVNetGateways converts Azure VNetGateways into OSIRIS JSON
+// resources of the standard type network.gateway (Appendix C: "Network
+// gateway", generic the specific kind (VPN vs ExpressRoute) remains
+// available via properties.gateway_type/vpn_type below).
 // Gateway connections are passed in to embed connection summary in gateway properties.
 func TransformVNetGateways(gws []VNetGateway, gwConns []GatewayConnection, sub SubscriptionInfo) []sdk.Resource {
 	// Build connection lookup: gateway ARM ID -> connections.
@@ -585,10 +593,10 @@ func TransformVNetGateways(gws []VNetGateway, gwConns []GatewayConnection, sub S
 
 	var resources []sdk.Resource
 	for _, gw := range gws {
-		id := resourceID("osiris.azure.gateway.vnet", gw.ID)
+		id := resourceID("network.gateway", gw.ID)
 		prov := azureProvider(gw.ID, "Microsoft.Network/virtualNetworkGateways", gw.Location, sub)
 
-		r, err := sdk.NewResource(id, "osiris.azure.gateway.vnet", prov)
+		r, err := sdk.NewResource(id, "network.gateway", prov)
 		if err != nil {
 			continue
 		}
@@ -634,14 +642,16 @@ func TransformVNetGateways(gws []VNetGateway, gwConns []GatewayConnection, sub S
 	return resources
 }
 
-// TransformNATGateways converts Azure NATGateways into OSIRIS JSON resources.
+// TransformNATGateways converts Azure NATGateways into OSIRIS JSON
+// resources of the standard type network.gateway (Appendix C names
+// "Azure NAT Gateway" directly).
 func TransformNATGateways(gws []NATGateway, sub SubscriptionInfo) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, gw := range gws {
-		id := resourceID("osiris.azure.gateway.nat", gw.ID)
+		id := resourceID("network.gateway", gw.ID)
 		prov := azureProvider(gw.ID, "Microsoft.Network/natGateways", gw.Location, sub)
 
-		r, err := sdk.NewResource(id, "osiris.azure.gateway.nat", prov)
+		r, err := sdk.NewResource(id, "network.gateway", prov)
 		if err != nil {
 			continue
 		}
@@ -953,7 +963,6 @@ func TransformVNetPeerings(peerings []VNetPeering, vnetIDMap map[string]string) 
 				remoteSubID := extractSubscriptionID(p.RemoteVNetID())
 				prov := sdk.Provider{
 					Name:         providerName,
-					Namespace:    "Microsoft.Network",
 					NativeID:     p.RemoteVNetID(),
 					Type:         "Microsoft.Network/virtualNetworks",
 					Subscription: remoteSubID,
@@ -1245,14 +1254,15 @@ func TransformNICToSubnetConnections(nics []NetworkInterface, nicIDMap, subnetID
 	return connections
 }
 
-// TransformPrivateEndpointToSubnetConnections creates connections between private endpoints and subnets.
+// TransformPrivateEndpointToSubnetConnections creates connections
+// between private endpoints and subnets.
 func TransformPrivateEndpointToSubnetConnections(pes []PrivateEndpoint, subnetIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, pe := range pes {
 		if pe.SubnetID() == "" {
 			continue
 		}
-		sourceID := resourceID("osiris.azure.privateendpoint", pe.ID)
+		sourceID := resourceID("network.endpoint", pe.ID)
 		targetID, ok := subnetIDMap[pe.SubnetID()]
 		if !ok {
 			continue
@@ -1277,11 +1287,12 @@ func TransformPrivateEndpointToSubnetConnections(pes []PrivateEndpoint, subnetID
 	return connections
 }
 
-// TransformPrivateEndpointToNICConnections creates connections between private endpoints and their NICs.
+// TransformPrivateEndpointToNICConnections creates connections between
+// private endpoints and their NICs.
 func TransformPrivateEndpointToNICConnections(pes []PrivateEndpoint, nicIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, pe := range pes {
-		sourceID := resourceID("osiris.azure.privateendpoint", pe.ID)
+		sourceID := resourceID("network.endpoint", pe.ID)
 		for _, nicArmID := range pe.NetworkInterfaceIDs() {
 			targetID, ok := nicIDMap[nicArmID]
 			if !ok {
@@ -1308,7 +1319,8 @@ func TransformPrivateEndpointToNICConnections(pes []PrivateEndpoint, nicIDMap ma
 	return connections
 }
 
-// TransformLBFrontendToPublicIPConnections creates connections between load balancer frontends and public IPs.
+// TransformLBFrontendToPublicIPConnections creates connections between
+// load balancer frontends and public IPs.
 func TransformLBFrontendToPublicIPConnections(lbs []LoadBalancer, publicIPIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, lb := range lbs {
@@ -1342,11 +1354,12 @@ func TransformLBFrontendToPublicIPConnections(lbs []LoadBalancer, publicIPIDMap 
 	return connections
 }
 
-// TransformVNetGatewayToSubnetConnections creates connections between VNet gateways and their GatewaySubnet.
+// TransformVNetGatewayToSubnetConnections creates connections between
+// VNet gateways and their GatewaySubnet.
 func TransformVNetGatewayToSubnetConnections(gws []VNetGateway, subnetIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, gw := range gws {
-		sourceID := resourceID("osiris.azure.gateway.vnet", gw.ID)
+		sourceID := resourceID("network.gateway", gw.ID)
 		for _, ip := range gw.IPConfigurations {
 			if ip.SubnetID() == "" {
 				continue
@@ -1376,11 +1389,12 @@ func TransformVNetGatewayToSubnetConnections(gws []VNetGateway, subnetIDMap map[
 	return connections
 }
 
-// TransformVNetGatewayToPublicIPConnections creates connections between VNet gateways and their public IPs.
+// TransformVNetGatewayToPublicIPConnections creates connections between
+// VNet gateways and their public IPs.
 func TransformVNetGatewayToPublicIPConnections(gws []VNetGateway, publicIPIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, gw := range gws {
-		sourceID := resourceID("osiris.azure.gateway.vnet", gw.ID)
+		sourceID := resourceID("network.gateway", gw.ID)
 		for _, ip := range gw.IPConfigurations {
 			if ip.PublicIPAddressID() == "" {
 				continue
@@ -1410,11 +1424,12 @@ func TransformVNetGatewayToPublicIPConnections(gws []VNetGateway, publicIPIDMap 
 	return connections
 }
 
-// TransformNATGatewayToSubnetConnections creates connections between NAT gateways and their subnets.
+// TransformNATGatewayToSubnetConnections creates connections between
+// NAT gateways and their subnets.
 func TransformNATGatewayToSubnetConnections(gws []NATGateway, subnetIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, gw := range gws {
-		sourceID := resourceID("osiris.azure.gateway.nat", gw.ID)
+		sourceID := resourceID("network.gateway", gw.ID)
 		for _, subnetArmID := range gw.SubnetIDs() {
 			targetID, ok := subnetIDMap[subnetArmID]
 			if !ok {
@@ -1441,11 +1456,12 @@ func TransformNATGatewayToSubnetConnections(gws []NATGateway, subnetIDMap map[st
 	return connections
 }
 
-// TransformNATGatewayToPublicIPConnections creates connections between NAT gateways and their public IPs.
+// TransformNATGatewayToPublicIPConnections creates connections between
+// NAT gateways and their public IPs.
 func TransformNATGatewayToPublicIPConnections(gws []NATGateway, publicIPIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, gw := range gws {
-		sourceID := resourceID("osiris.azure.gateway.nat", gw.ID)
+		sourceID := resourceID("network.gateway", gw.ID)
 		for _, pipArmID := range gw.PublicIPAddressIDs() {
 			targetID, ok := publicIPIDMap[pipArmID]
 			if !ok {
@@ -1472,8 +1488,10 @@ func TransformNATGatewayToPublicIPConnections(gws []NATGateway, publicIPIDMap ma
 	return connections
 }
 
-// TransformPrivateDNSToVNetConnections creates connections between private DNS zones and linked VNets.
-// VNets in other subscriptions generate a cross-subscription stub resource (same pattern as peering stubs)
+// TransformPrivateDNSToVNetConnections creates connections between
+// private DNS zones and linked VNets.
+// VNets in other subscriptions generate a cross-subscription stub
+// resource (same pattern as peering stubs)
 // so the connection can reference a valid resource ID.
 // Returns connections and any cross-subscription VNet stubs created.
 func TransformPrivateDNSToVNetConnections(zones []PrivateDNSZone, vnetIDMap map[string]string) ([]sdk.Connection, []sdk.Resource) {
@@ -1497,7 +1515,6 @@ func TransformPrivateDNSToVNetConnections(zones []PrivateDNSZone, vnetIDMap map[
 					remoteSubID := extractSubscriptionID(vnetArmID)
 					prov := sdk.Provider{
 						Name:         providerName,
-						Namespace:    "Microsoft.Network",
 						NativeID:     vnetArmID,
 						Type:         "Microsoft.Network/virtualNetworks",
 						Subscription: remoteSubID,
@@ -1647,11 +1664,12 @@ func BuildPublicIPIDMap(pips []PublicIPAddress) map[string]string {
 	return m
 }
 
-// BuildPrivateEndpointIDMap builds a map of private endpoint ARM ID -> OSIRIS JSON resource ID.
+// BuildPrivateEndpointIDMap builds a map of private endpoint
+// ARM ID -> OSIRIS JSON resource ID.
 func BuildPrivateEndpointIDMap(pes []PrivateEndpoint) map[string]string {
 	m := make(map[string]string, len(pes))
 	for _, pe := range pes {
-		m[pe.ID] = resourceID("osiris.azure.privateendpoint", pe.ID)
+		m[pe.ID] = resourceID("network.endpoint", pe.ID)
 	}
 	return m
 }
@@ -1808,15 +1826,19 @@ func gatewayPeerARMType(armID string) string {
 	return parts[0] + "/" + parts[1]
 }
 
-// gatewayPeerOsirisType maps the peer's ARM type to its OSIRIS JSON type namespace.
+// gatewayPeerOsirisType maps the peer's ARM type to its
+// OSIRIS JSON type.
+// virtualnetworkgateways and localnetworkgateways both resolve to the
+// standard type network.gateway (Appendix C), matching
+// TransformVNetGateways/TransformNATGateways above;
+// expressroutecircuits has still no standard-type equivalent
+// and stays a custom type.
 func gatewayPeerOsirisType(armID string) string {
 	switch strings.ToLower(gatewayPeerARMType(armID)) {
 	case "microsoft.network/expressroutecircuits":
 		return "osiris.azure.expressroute"
-	case "microsoft.network/virtualnetworkgateways":
-		return "osiris.azure.gateway.vnet"
-	case "microsoft.network/localnetworkgateways":
-		return "osiris.azure.gateway.local"
+	case "microsoft.network/virtualnetworkgateways", "microsoft.network/localnetworkgateways":
+		return "network.gateway"
 	default:
 		return ""
 	}
@@ -2066,20 +2088,23 @@ func TransformRouteServerConnections(rs []RouteServer, rsIDMap, subnetIDMap, pip
 	return connections
 }
 
-// TransformGatewayConnectionResources emits Microsoft.Network/connections as first-class
-// OSIRIS JSON resources. The gateway-to-peer topology edges are handled separately by
-// TransformGatewayConnections; this function adds the connection object itself so consumers
-// can inventory VPN/ER connections independently of the routing graph.
+// TransformGatewayConnectionResources emits Microsoft.Network/connections
+// as first-class OSIRIS JSON resources of the standard type network.vpn
+// (Appendix C: "VPN connection", naming Azure VPN directly). The
+// gateway-to-peer topology edges are handled separately by
+// TransformGatewayConnections; this function adds the connection object
+// itself so consumers can inventory VPN/ER connections independently of
+// the routing graph.
 func TransformGatewayConnectionResources(gwConns []GatewayConnection, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(gwConns))
 
 	for _, gc := range gwConns {
-		id := resourceID("osiris.azure.vpnconnection", gc.ID)
+		id := resourceID("network.vpn", gc.ID)
 		idMap[gc.ID] = id
 
 		prov := azureProvider(gc.ID, "Microsoft.Network/connections", gc.Location, sub)
-		r, err := sdk.NewResource(id, "osiris.azure.vpnconnection", prov)
+		r, err := sdk.NewResource(id, "network.vpn", prov)
 		if err != nil {
 			continue
 		}
@@ -2112,11 +2137,12 @@ func TransformGatewayConnectionResources(gwConns []GatewayConnection, sub Subscr
 	return resources, idMap
 }
 
-// BuildGatewayConnectionIDMap builds ARM ID -> OSIRIS JSON resource ID map for gateway connections.
+// BuildGatewayConnectionIDMap builds ARM ID -> OSIRIS JSON resource ID
+// map for gateway connections.
 func BuildGatewayConnectionIDMap(gwConns []GatewayConnection) map[string]string {
 	m := make(map[string]string, len(gwConns))
 	for _, gc := range gwConns {
-		m[gc.ID] = resourceID("osiris.azure.vpnconnection", gc.ID)
+		m[gc.ID] = resourceID("network.vpn", gc.ID)
 	}
 	return m
 }

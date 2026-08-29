@@ -1,8 +1,8 @@
 // transform_web.go - Web/App Service resource and connection transforms (App Service Plan, Web App, Function App).
 //
 // For an introduction to OSIRIS JSON Producer for Microsoft Azure see:
-// [OSIRIS-JSON-AZURE]: https://osirisjson.org/en/docs/producers/hyperscalers/microsoft-azure
-// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/docs/spec/v10/00-preface
+// [OSIRIS-JSON-AZURE]: https://docs.osirisjson.org/osiris-producers/hyperscalers/microsoft-azure/
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 
 package azure
 
@@ -81,11 +81,12 @@ func TransformAppServicePlans(plans []AppServicePlan, sub SubscriptionInfo) ([]s
 	return resources, idMap
 }
 
-// TransformWebApps converts Azure App Service sites (Microsoft.Web/sites) into
-// OSIRIS JSON resources. Kind routing:
+// TransformWebApps converts Azure App Service sites (Microsoft.Web/sites)
+// into OSIRIS JSON resources, both standard types per OSIRIS-JSON-v1.0
+// section 7.7.3. Kind routing:
 //
-//	kind contains "functionapp" -> osiris.azure.functionapp
-//	otherwise                   -> osiris.azure.webapp
+//	kind contains "functionapp" -> compute.function.serverless
+//	otherwise                   -> application.service
 //
 // Returns resources and a map of site ARM ID -> resource ID for connection wiring.
 func TransformWebApps(apps []WebApp, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
@@ -93,9 +94,9 @@ func TransformWebApps(apps []WebApp, sub SubscriptionInfo) ([]sdk.Resource, map[
 	idMap := make(map[string]string, len(apps))
 
 	for _, a := range apps {
-		osirisType := "osiris.azure.webapp"
+		osirisType := "application.service"
 		if a.IsFunctionApp() {
-			osirisType = "osiris.azure.functionapp"
+			osirisType = "compute.function.serverless"
 		}
 		id := resourceID(osirisType, a.ID)
 		idMap[a.ID] = id

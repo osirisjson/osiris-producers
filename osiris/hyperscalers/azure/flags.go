@@ -1,5 +1,5 @@
-// flags.go - CLI flag parsing for the Microsoft Azure OSIRIS JSON producer.
-// Supports three operating modes:
+// flags.go - CLI flag parsing for the Microsoft Azure OSIRIS JSON
+// producer. Supports three operating modes:
 //
 //   - Single mode: --subscription <id> (writes to stdout)
 //   - Multi mode: --subscription sub1,sub2 -o dir (specific subscriptions)
@@ -9,8 +9,8 @@
 // Authentication relies on the Azure CLI login context (az login).
 //
 // For an introduction to OSIRIS JSON Producer for Microsoft Azure see:
-// [OSIRIS-JSON-AZURE]: https://osirisjson.org/en/docs/producers/hyperscalers/microsoft-azure
-// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/docs/spec/v10/00-preface
+// [OSIRIS-JSON-AZURE]: https://docs.osirisjson.org/osiris-producers/hyperscalers/microsoft-azure/
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 
 package azure
 
@@ -180,7 +180,7 @@ func ParseFlags(args []string) (*Config, error) {
 //	tenant_id         - Azure AD / Entra ID tenant UUID (optional)
 //	environment       - Deployment stage: dv, np, pr (optional)
 //	region            - Filter to Azure region (optional; empty = all regions)
-//	notes             - Free-text operator notes (ignored by producer)
+//	notes             - Free-text user notes (ignored by producer)
 //
 // Authentication uses the Azure CLI context (az login).
 // Ensure the logged-in principal has Reader access to all target subscriptions.
