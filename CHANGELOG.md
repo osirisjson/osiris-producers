@@ -33,27 +33,93 @@ producer behavior versions shipped under each module tag.
   [`osiris/network/hpe/arubacentral/CHANGELOG.md`](osiris/network/hpe/arubacentral/CHANGELOG.md)
 
 For changes to the OSIRIS JSON Producer SDK architectural guidelines and
-documentation, see
-[`docs/guidelines/v1.0/CHANGELOG.md`](docs/guidelines/v1.0/CHANGELOG.md).
-For changes to the OSIRIS specification, core documents and core schema
-itself, see the [OSIRIS JSON
-Repository](https://github.com/osirisjson/osiris).
+documentation, see [`docs/guidelines/v1.0/CHANGELOG.md`](docs/guidelines/v1.0/CHANGELOG.md).
+For changes to the OSIRIS JSON specification, core documents and 
+OSIRIS JSON core schema itself, see the [OSIRIS JSON Repository](https://github.com/osirisjson/osiris).
 
 ---
 
 ## [Unreleased]
+
+## [0.6.6] - 2026-08-29
+
+Microsoft Azure schema-conformance fixes (behavior version 0.5.2, merged
+2026-08-26) and the Cisco NX-OS producer's first behavior-version bump
+since its initial release a resource-model, identity, transport and
+CLI overhaul.
+
+| Producer | Behavior version |
+|----------|------------------|
+| Microsoft Azure OSIRIS JSON producer | [0.5.2](osiris/hyperscalers/azure/CHANGELOG.md#052---2026-08-26) |
+| Amazon Web Services OSIRIS JSON producer | 0.1.1 (no change) |
+| Cisco APIC OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco IOS-XE OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco NX-OS OSIRIS JSON producer | [0.2.0](osiris/network/cisco/nxos/CHANGELOG.md#020---2026-08-29) |
+| Cisco vManage OSIRIS JSON producer | 0.1.0 (no change) |
+| HPE Aruba Networking Central OSIRIS JSON producer | 0.1.0 (no change) |
+
+### Highlights (Microsoft Azure 0.5.2)
+- **Removed the invalid `provider.namespace` field** emitted on every
+  resource it was set to the raw ARM namespace (e.g.
+  `"Microsoft.Compute"`), which never matched the `osiris.*` pattern the
+  schema requires there and failed `validate --profile strict`; per spec
+  4.3.5 that field is reserved for `provider.name = "custom"`. The ARM
+  namespace is still available as the prefix of `provider.type`.
+- **`osiris.azure.*` resource types reclassified** to their
+  standard OSIRIS JSON type, per an audit against chapter 7 and Appendix
+  C. **Breaking** to the emitted `type` field on those resources;
+  resource IDs are unaffected (built from the ARM ID, not the type
+  string).
+
+### Highlights (Cisco NX-OS 0.2.0)
+- **Core taxonomy instead of custom types:** the switch is
+  `network.switch` (not `osiris.cisco.switch.leaf`/`.spine`), physical
+  ports are `network.switch.port`, port-channels/loopbacks/SVIs are
+  `network.interface`, and VLANs are `network.vlan` resources with
+  `network.l2` port-membership connections (previously `topology.groups`
+  entries).
+- **Stable, spec-form identity:** resource IDs are
+  `cisco.nxos::<chassis-serial>[/<sub-resource>]`
+  (OSIRIS-JSON-v1.0 2.1.2 namespaced-native-ID), derived from the
+  device's own serial, so renaming a target in inventory no longer
+  changes any ID. `provider.name` and `metadata.scope.providers` become
+  `cisco.nxos`.
+- **`--purpose documentation|audit`** replaces the initial `--detail`
+  flag, matching every other producer. `audit` adds BGP/OSPF neighbor
+  sessions, an `osiris.cisco.aaa` posture resource, and
+  chassis/PSU/fan/transceiver detail; `--include-raw-body` (audit-only)
+  attaches each command's raw response after a secret-redaction pass.
+- **Truthful, isolated collection:** typed NX-API decoding, per-command
+  failure isolation (one failed command no longer erases unrelated
+  domains), a `coverage` extension recording every command's
+  attempted/succeeded/failed status, hardened transport (timeouts,
+  bounded bodies, classified retries), and no inline `-p`/`--password`.
+- **More topology:** merged LLDP + CDP neighbor discovery, switch
+  `contains` connections to its own ports, interface IP / native-VLAN /
+  trunk-VLAN properties, and a single-sourced `--help`.
+
+**Breaking** to every already-emitted NX-OS resource ID, several
+resource types, `provider.name`, and the `--detail` flag. Field names
+for `show vpc brief` / `show vpc peer-keepalive` remain unverified
+against a real switch.
+
+See the [Microsoft Azure 0.5.2 entry](osiris/hyperscalers/azure/CHANGELOG.md#052---2026-08-26)
+and the [Cisco NX-OS 0.2.0 entry](osiris/network/cisco/nxos/CHANGELOG.md#020---2026-08-29)
+for the full list of changes and known limitations.
+
+---
 
 ## [0.6.5] - 2026-08-09
 Cisco Catalyst SD-WAN Manager (vManage) OSIRIS JSON producer.
 
 | Producer | Behavior version |
 |----------|------------------|
-| Cisco vManage OSIRIS JSON producer | [0.1.0](osiris/network/cisco/vmanage/CHANGELOG.md#010---2026-08-09) (initial release) |
 | Amazon Web Services OSIRIS JSON producer | 0.1.1 (no change) |
 | Microsoft Azure OSIRIS JSON producer | 0.5.1 (no change) |
 | Cisco APIC OSIRIS JSON producer | 0.1.0 (no change) |
 | Cisco IOS-XE OSIRIS JSON producer | 0.1.0 (no change) |
 | Cisco NX-OS OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco vManage OSIRIS JSON producer | [0.1.0](osiris/network/cisco/vmanage/CHANGELOG.md#010---2026-08-09) (initial release) |
 | HPE Aruba Networking Central OSIRIS JSON producer | 0.1.0 (no change) |
 
 ### Highlights (Cisco vManage 0.1.0)
@@ -65,7 +131,7 @@ Cisco Catalyst SD-WAN Manager (vManage) OSIRIS JSON producer.
   site-id.
 - **No inline password:** there is deliberately no `-p`/
   `--password` flag. Host/username/password each fall back through
-  flag, then `--token-file`, then an interactive prompt a bare
+  flag, then `--secrets-file`, then an interactive prompt a bare
   `osirisjson-producer cisco vmanage` with no flags works end to end.
 - **`--include-raw-body`:** opt-in lossless fallback for `--purpose
   audit` runs. Each collected endpoint's raw response body is attached
@@ -448,7 +514,8 @@ Initial SDK release. No producers shipped under this tag.
 - Removed empty `common/` stubs (replaced by `pkg/sdk/`).
 - Updated `.gitignore` for Go.
 
-[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.6.5...HEAD
+[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.6.6...HEAD
+[0.6.6]: https://github.com/osirisjson/osiris-producers/compare/v0.6.5...v0.6.6
 [0.6.5]: https://github.com/osirisjson/osiris-producers/compare/v0.6.4...v0.6.5
 [0.6.4]: https://github.com/osirisjson/osiris-producers/compare/v0.6.3...v0.6.4
 [0.6.3]: https://github.com/osirisjson/osiris-producers/compare/v0.6.2...v0.6.3
