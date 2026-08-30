@@ -3,10 +3,9 @@
 // including detail levels, CDP connections, VRF membership and deterministic output.
 // All test data is invented - no real device data.
 //
-// For an introduction to OSIRIS JSON Producer for Cisco see:
-// "[OSIRIS-JSON-CISCO]."
-//
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
+// OSIRIS JSON Producer for Cisco introduction:
+// [OSIRIS-JSON-CISCO]: https://docs.osirisjson.org/osiris-producers/network/cisco
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 
 package iosxe
 
@@ -245,13 +244,17 @@ func wrapRPCReply(data string) string {
 
 func newTestProducer(t *testing.T, detailLevel string) (*Producer, *sdk.Context) {
 	t.Helper()
+	purpose := "documentation"
+	if detailLevel == "detailed" {
+		purpose = "audit"
+	}
 	ctx := testharness.NewTestContext(t, testharness.WithConfig(&sdk.ProducerConfig{
-		DetailLevel:     detailLevel,
+		Purpose:         purpose,
 		SafeFailureMode: sdk.FailClosed,
 	}))
 	return &Producer{
 		target: run.TargetConfig{Host: "10.99.0.1", Hostname: "LAB-RTR01", Username: "admin", Password: "test"},
-		cfg:    &run.RunConfig{DetailLevel: detailLevel},
+		cfg:    &Config{Purpose: purpose},
 		client: &Client{
 			transport: newFixtureTransport(),
 			logger:    ctx.Logger,
@@ -508,14 +511,6 @@ func TestCollect_Subinterfaces(t *testing.T) {
 	}
 	if subIf.Properties["parent_interface"] != "GigabitEthernet0/0/0" {
 		t.Errorf("parent_interface: %v", subIf.Properties["parent_interface"])
-	}
-}
-
-func TestNewFactory(t *testing.T) {
-	factory := NewFactory()
-	p := factory(run.TargetConfig{Host: "10.99.0.1"}, &run.RunConfig{})
-	if _, ok := p.(*Producer); !ok {
-		t.Error("factory should return *Producer")
 	}
 }
 

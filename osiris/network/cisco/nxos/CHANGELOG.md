@@ -632,5 +632,5 @@ changes are listed below with their module-tag context.
   `cisco-nxos-<timestamp>-<hostname>.json`.
 
 [Unreleased]: ../../../../CHANGELOG.md
-[0.2.0]: ../../../../CHANGELOG.md#066---2026-08-29
+[0.2.0]: ../../../../CHANGELOG.md#070---2026-08-29
 [0.1.0]: ../../../../CHANGELOG.md#010---2026-03-21

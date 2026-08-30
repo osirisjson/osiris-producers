@@ -41,21 +41,24 @@ OSIRIS JSON core schema itself, see the [OSIRIS JSON Repository](https://github.
 
 ## [Unreleased]
 
-## [0.6.6] - 2026-08-29
+## [0.7.0] - 2026-08-29
 
-Microsoft Azure schema-conformance fixes (behavior version 0.5.2, merged
-2026-08-26) and the Cisco NX-OS producer's first behavior-version bump
-since its initial release a resource-model, identity, transport and
-CLI overhaul.
+First shipped release of the Cisco Catalyst SD-WAN Manager (vManage)
+OSIRIS JSON producer (behavior version 0.1.0); the Cisco NX-OS
+producer's first behavior-version bump since its initial release a
+resource-model, identity, transport and CLI overhaul (0.2.0); and
+Microsoft Azure schema-conformance fixes (0.5.2). The shared
+`osiris/network/cisco/run` orchestrator is retired (CLI-only change for
+Cisco APIC and IOS-XE, no emitted-document change).
 
 | Producer | Behavior version |
 |----------|------------------|
 | Microsoft Azure OSIRIS JSON producer | [0.5.2](osiris/hyperscalers/azure/CHANGELOG.md#052---2026-08-26) |
 | Amazon Web Services OSIRIS JSON producer | 0.1.1 (no change) |
-| Cisco APIC OSIRIS JSON producer | 0.1.0 (no change) |
-| Cisco IOS-XE OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco APIC OSIRIS JSON producer | 0.1.0 (CLI restructure only, no osiris document output change) |
+| Cisco IOS-XE OSIRIS JSON producer | 0.1.0 (CLI restructure only, no osiris document output change) |
 | Cisco NX-OS OSIRIS JSON producer | [0.2.0](osiris/network/cisco/nxos/CHANGELOG.md#020---2026-08-29) |
-| Cisco vManage OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco vManage OSIRIS JSON producer | [0.1.0](osiris/network/cisco/vmanage/CHANGELOG.md#010---2026-08-09) (initial release) |
 | HPE Aruba Networking Central OSIRIS JSON producer | 0.1.0 (no change) |
 
 ### Highlights (Microsoft Azure 0.5.2)
@@ -103,35 +106,15 @@ resource types, `provider.name`, and the `--detail` flag. Field names
 for `show vpc brief` / `show vpc peer-keepalive` remain unverified
 against a real switch.
 
-See the [Microsoft Azure 0.5.2 entry](osiris/hyperscalers/azure/CHANGELOG.md#052---2026-08-26)
-and the [Cisco NX-OS 0.2.0 entry](osiris/network/cisco/nxos/CHANGELOG.md#020---2026-08-29)
-for the full list of changes and known limitations.
-
----
-
-## [0.6.5] - 2026-08-09
-Cisco Catalyst SD-WAN Manager (vManage) OSIRIS JSON producer.
-
-| Producer | Behavior version |
-|----------|------------------|
-| Amazon Web Services OSIRIS JSON producer | 0.1.1 (no change) |
-| Microsoft Azure OSIRIS JSON producer | 0.5.1 (no change) |
-| Cisco APIC OSIRIS JSON producer | 0.1.0 (no change) |
-| Cisco IOS-XE OSIRIS JSON producer | 0.1.0 (no change) |
-| Cisco NX-OS OSIRIS JSON producer | 0.1.0 (no change) |
-| Cisco vManage OSIRIS JSON producer | [0.1.0](osiris/network/cisco/vmanage/CHANGELOG.md#010---2026-08-09) (initial release) |
-| HPE Aruba Networking Central OSIRIS JSON producer | 0.1.0 (no change) |
-
 ### Highlights (Cisco vManage 0.1.0)
 - **Full WAN edge site topology:** devices (controllers and WAN edges),
   interfaces, SD-WAN tunnels, OMP control-plane peering, and a
   `physical.room` group per site with geo-coordinates.
-- **One document per site:** a single controller login fans out into
-  one OSIRIS JSON document per WAN edge site, grouped by device
-  site-id.
-- **No inline password:** there is deliberately no `-p`/
-  `--password` flag. Host/username/password each fall back through
-  flag, then `--secrets-file`, then an interactive prompt a bare
+- **One document per site:** a single controller login fans out into one
+  OSIRIS JSON document per WAN edge site, grouped by device site-id.
+- **No inline password:** there is deliberately no `-p`/`--password`
+  flag. Host/username/password each fall back through flag, then
+  `--secrets-file`, then an interactive prompt a bare
   `osirisjson-producer cisco vmanage` with no flags works end to end.
 - **`--include-raw-body`:** opt-in lossless fallback for `--purpose
   audit` runs. Each collected endpoint's raw response body is attached
@@ -141,8 +124,19 @@ Cisco Catalyst SD-WAN Manager (vManage) OSIRIS JSON producer.
   one shown as a parse-error fallback are generated from the same flag
   registration, so they can never drift apart.
 
-See the [Cisco vManage 0.1.0 entry](osiris/network/cisco/vmanage/CHANGELOG.md#010---2026-08-09)
-for the full list of resources, properties and known limitations.
+### Cisco APIC / IOS-XE (CLI only, `generatorVersion` stays 0.1.0)
+The shared `osiris/network/cisco/run` orchestrator
+(`ParseFlags`/`RunConfig`/`RunBatch`/`ProducerFactory`) is retired;
+`apic` and `iosxe` each own their `flags.go`/`config.go`/`dispatch.go`
+like `nxos`/`vmanage`. `-p`/`--password` is removed in favour of
+`--secrets-file` + env var + prompt; `--detail` becomes
+`--purpose documentation|audit`; `template --generate` moves under the
+subcommand. **No change to emitted documents.**
+
+See the [Cisco vManage 0.1.0 entry](osiris/network/cisco/vmanage/CHANGELOG.md#010---2026-08-09),
+the [Cisco NX-OS 0.2.0 entry](osiris/network/cisco/nxos/CHANGELOG.md#020---2026-08-29),
+and the [Microsoft Azure 0.5.2 entry](osiris/hyperscalers/azure/CHANGELOG.md#052---2026-08-26)
+for the full list of changes and known limitations.
 
 ---
 
@@ -514,9 +508,8 @@ Initial SDK release. No producers shipped under this tag.
 - Removed empty `common/` stubs (replaced by `pkg/sdk/`).
 - Updated `.gitignore` for Go.
 
-[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.6.6...HEAD
-[0.6.6]: https://github.com/osirisjson/osiris-producers/compare/v0.6.5...v0.6.6
-[0.6.5]: https://github.com/osirisjson/osiris-producers/compare/v0.6.4...v0.6.5
+[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/osirisjson/osiris-producers/compare/v0.6.4...v0.7.0
 [0.6.4]: https://github.com/osirisjson/osiris-producers/compare/v0.6.3...v0.6.4
 [0.6.3]: https://github.com/osirisjson/osiris-producers/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/osirisjson/osiris-producers/compare/v0.6.1...v0.6.2

@@ -2,10 +2,9 @@
 // Verifies end-to-end Collect behavior using a canned fixture server,
 // including detail levels, fault wiring, ACI extensions and deterministic output.
 //
-// For an introduction to OSIRIS JSON Producer for Cisco see:
-// "[OSIRIS-JSON-CISCO]."
-//
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
+// OSIRIS JSON Producer for Cisco introduction:
+// [OSIRIS-JSON-CISCO]: https://docs.osirisjson.org/osiris-producers/network/cisco
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 
 package apic
 
@@ -111,13 +110,17 @@ func apicObj(className string, attrs map[string]any) map[string]any {
 
 func newTestProducer(t *testing.T, ts *httptest.Server, detailLevel string) (*Producer, *sdk.Context) {
 	t.Helper()
+	purpose := "documentation"
+	if detailLevel == "detailed" {
+		purpose = "audit"
+	}
 	ctx := testharness.NewTestContext(t, testharness.WithConfig(&sdk.ProducerConfig{
-		DetailLevel:     detailLevel,
+		Purpose:         purpose,
 		SafeFailureMode: sdk.FailClosed,
 	}))
 	return &Producer{
 		target: run.TargetConfig{Host: "test", Username: "admin", Password: "test"},
-		cfg:    &run.RunConfig{DetailLevel: detailLevel},
+		cfg:    &Config{Purpose: purpose},
 		client: &Client{
 			baseURL:    ts.URL,
 			httpClient: ts.Client(),
@@ -231,14 +234,6 @@ func TestCollect_Deterministic(t *testing.T) {
 
 	producer, ctx := newTestProducer(t, ts, "minimal")
 	testharness.AssertDeterministic(t, producer, ctx)
-}
-
-func TestNewFactory(t *testing.T) {
-	factory := NewFactory()
-	p := factory(run.TargetConfig{Host: "10.0.0.1"}, &run.RunConfig{})
-	if _, ok := p.(*Producer); !ok {
-		t.Error("factory should return *Producer")
-	}
 }
 
 func TestCollect_FaultExtensions(t *testing.T) {

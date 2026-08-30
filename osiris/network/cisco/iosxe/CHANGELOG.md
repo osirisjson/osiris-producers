@@ -14,6 +14,23 @@ See the root [`CHANGELOG.md`](../../../../CHANGELOG.md) for the release-level in
 
 ## [Unreleased]
 
+### Changed
+- CLI only, no change to emitted documents (`generatorVersion` stays
+  `0.1.0`): this producer now owns its own flag parsing, `Config` type,
+  and single/batch runner (`flags.go`/`config.go`/`dispatch.go`),
+  dispatched directly by `osiris/network/cisco/cisco.go` instead of the
+  retired shared `run.ParseFlags`/`RunConfig`/`RunBatch`/`ProducerFactory`
+  orchestrator. The `-p`/`--password` flag is gone (a CLI value leaks via
+  `ps` and shell history); host/username/password resolve through
+  `--secrets-file` (a permission-checked JSON file, flat or per-host/CIDR
+  "rules" shape), then `OSIRISJSON_CISCO_IOSXE_PASSWORD`, then an
+  interactive prompt. `--detail minimal|detailed` is replaced by the
+  standard `--purpose documentation|audit` contract (`audit` selects the
+  same BGP/OSPF/CPU/memory detail `detailed` did); `--include-raw-body`
+  is accepted (audit only). `template --generate` moves under the
+  subcommand (`iosxe template --generate`) and writes both
+  `--secrets-file` shapes.
+
 ---
 
 ## [0.1.0] - 2026-03-21
