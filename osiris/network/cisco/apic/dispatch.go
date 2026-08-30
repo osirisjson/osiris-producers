@@ -8,15 +8,24 @@
 package apic
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"syscall"
 	"time"
 
 	"go.osirisjson.org/producers/osiris/network/cisco/run"
 	"go.osirisjson.org/producers/pkg/sdk"
 )
+
+// defaultTotalTimeout bounds an entire single-target collection as a
+// backstop above the per-request timeout in client.go. A fabric-wide
+// APIC pull is minutes, not tens of minutes; anything longer is a
+// stalled run and should abort.
+const defaultTotalTimeout = 30 * time.Minute
 
 // Run is the CLI entry point for the APIC producer. It receives the
 // arguments after "apic".
@@ -40,10 +49,25 @@ func Run(args []string) error {
 	}
 	cfg.Timestamp = run.FormatTimestamp(time.Now())
 
+	if cfg.InsecureTLS {
+		fmt.Fprintln(os.Stderr, "warning: --insecure: TLS certificate verification is disabled; the APIC's identity is not authenticated")
+	}
+
 	if cfg.Mode == run.ModeBatch {
 		return runBatch(cfg)
 	}
 	return runSingle(cfg)
+}
+
+// rootContext returns a context cancelled on SIGINT/SIGTERM or after
+// defaultTotalTimeout, plus its stop func. Callers must defer stop().
+func rootContext() (context.Context, context.CancelFunc) {
+	ctx, stopSignals := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	ctx, cancelTimeout := context.WithTimeout(ctx, defaultTotalTimeout)
+	return ctx, func() {
+		cancelTimeout()
+		stopSignals()
+	}
 }
 
 // templateExampleHost is the documentation-only address shown in the
@@ -68,7 +92,10 @@ func runSingle(cfg *Config) error {
 	target := cfg.Targets[0]
 	logger := defaultLogger()
 
-	producer := &Producer{target: target, cfg: cfg}
+	reqCtx, stop := rootContext()
+	defer stop()
+
+	producer := &Producer{target: target, cfg: cfg, ctx: reqCtx}
 	ctx := newSDKContext(cfg)
 	ctx.Logger = logger
 
@@ -119,11 +146,7 @@ func runBatch(cfg *Config) error {
 		log := logger.With("target", target.Host, "hostname", target.Hostname)
 		log.Info("collecting")
 
-		producer := &Producer{target: target, cfg: cfg}
-		ctx := newSDKContext(cfg)
-		ctx.Logger = log
-
-		doc, err := producer.Collect(ctx)
+		doc, err := collectOne(cfg, target, log)
 		if err != nil {
 			log.Error("collection failed", "error", err)
 			failed++
@@ -167,6 +190,20 @@ func runBatch(cfg *Config) error {
 		logger.Info("batch completed", "succeeded", succeeded)
 	}
 	return nil
+}
+
+// collectOne runs a single target's collection under its own
+// signal-cancellable, time-bounded context. Isolating it in a function
+// keeps the deferred context stop per iteration rather than piling up
+// for the whole batch.
+func collectOne(cfg *Config, target run.TargetConfig, log *slog.Logger) (*sdk.Document, error) {
+	reqCtx, stop := rootContext()
+	defer stop()
+
+	producer := &Producer{target: target, cfg: cfg, ctx: reqCtx}
+	ctx := newSDKContext(cfg)
+	ctx.Logger = log
+	return producer.Collect(ctx)
 }
 
 func defaultLogger() *slog.Logger {

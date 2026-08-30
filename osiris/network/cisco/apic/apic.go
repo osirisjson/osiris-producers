@@ -1,6 +1,7 @@
 // Package apic implements the Cisco ACI/APIC producer for OSIRIS JSON.
-// Queries the APIC REST API to discover ACI fabric topology and generates
-// an OSIRIS JSON document with resources, groups and connections.
+// Queries the APIC REST API to discover ACI fabric topology and
+// generates an OSIRIS JSON document with resources, groups
+// and connections.
 //
 // OSIRIS JSON Producer for Cisco introduction:
 // [OSIRIS-JSON-CISCO]: https://docs.osirisjson.org/osiris-producers/network/cisco
@@ -8,6 +9,7 @@
 package apic
 
 import (
+	"context"
 	"fmt"
 
 	"go.osirisjson.org/producers/osiris/network/cisco/run"
@@ -22,17 +24,33 @@ const (
 type Producer struct {
 	target run.TargetConfig
 	cfg    *Config
-	client *Client // injectable for testing
+	client *Client         // injectable for testing
+	ctx    context.Context // root context for HTTP; nil -> context.Background
 }
 
-// Collect queries the APIC and builds an OSIRIS document.
+// Collect queries the APIC and builds an OSIRIS JSON document.
 func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
+	reqCtx := p.ctx
+	if reqCtx == nil {
+		reqCtx = context.Background()
+	}
+
 	client := p.client
-	if client == nil {
-		client = NewClient(p.target, p.cfg.InsecureTLS, ctx.Logger)
+	ownClient := client == nil
+	if ownClient {
+		client = NewClient(reqCtx, p.target, p.cfg.InsecureTLS, ctx.Logger)
 		if err := client.Login(p.target.Username, p.target.Password); err != nil {
 			return nil, fmt.Errorf("APIC authentication failed: %w", err)
 		}
+		// Best-effort session cleanup. A logout failure is logged,
+		// never returned: it must not mask the collection result.
+		// Skipped for an injected client, which holds no
+		// real APIC session.
+		defer func() {
+			if err := client.Logout(); err != nil {
+				ctx.Logger.Warn("APIC logout failed", "error", err)
+			}
+		}()
 	}
 
 	ctx.Logger.Info("collecting APIC fabric data", "host", p.target.Host)
@@ -99,7 +117,8 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		return nil, fmt.Errorf("query l3extRsEctx: %w", err)
 	}
 
-	// Faults are always fetched - audit-critical regardless of detail level.
+	// Faults are always fetched audit-critical regardless
+	// of detail level.
 	faultAttrs, err := client.QueryClass("faultInst")
 	if err != nil {
 		return nil, fmt.Errorf("query faultInst: %w", err)
@@ -124,11 +143,13 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	l3outResources, l3outDNToID := TransformL3Outs(l3outAttrs)
 
 	// Wire relationships ("how it relates").
-	// Tenant children: VRFs and EPGs are child groups of their parent tenant.
+	// Tenant children: VRFs and EPGs are child groups of
+	// their parent tenant.
 	WireVRFsToTenants(vrfAttrs, vrfDNToID, tenantDNToID, tenantGroups)
 	WireEPGsToTenants(epgAttrs, epgDNToID, tenantDNToID, tenantGroups)
 
-	// Tenant members: BDs, subnets and L3Outs are resource members of their tenant.
+	// Tenant members: BDs, subnets and L3Outs are resource
+	// members of their tenant.
 	WireBDsToTenants(bdAttrs, bdDNToID, tenantDNToID, tenantGroups)
 	WireSubnetsToTenants(subnetAttrs, tenantDNToID, tenantGroups)
 	WireL3OutsToTenants(l3outAttrs, tenantDNToID, tenantGroups)
