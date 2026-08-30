@@ -1,6 +1,7 @@
-// transform_test.go - Unit tests for APIC-to-OSIRIS data transformation.
-// Covers node, tenant, VRF, bridge domain, subnet, EPG, endpoint, L3Out and
-// fault mapping, plus wiring functions that connect resources to groups.
+// transform_test.go - Unit tests for APIC to OSIRIS data transform.
+// Covers node, tenant, VRF, bridge domain, subnet, EPG, endpoint, L3Out
+// and fault mapping, plus wiring functions that
+// connect resources to groups.
 //
 // OSIRIS JSON Producer for Cisco introduction:
 // [OSIRIS-JSON-CISCO]: https://docs.osirisjson.org/osiris-producers/network/cisco
@@ -16,14 +17,14 @@ import (
 
 func TestTransformNodes(t *testing.T) {
 	nodes := []map[string]any{
-		{"dn": "topology/pod-1/node-1", "name": "APIC1", "role": "controller", "serial": "TST00001", "model": "APIC-SERVER-L3", "version": "5.2(8h)", "address": "10.1.0.1", "id": "1", "fabricSt": "unknown"},
-		{"dn": "topology/pod-1/node-101", "name": "SPINE1", "role": "spine", "serial": "TST00101", "model": "N9K-C9508", "version": "n9000-15.2(8h)", "address": "10.1.1.101", "id": "101", "fabricSt": "active"},
-		{"dn": "topology/pod-1/node-111", "name": "LEAF1", "role": "leaf", "serial": "TST00111", "model": "N9K-C93180YC-FX", "version": "n9000-15.2(8h)", "address": "10.1.1.111", "id": "111", "fabricSt": "active"},
+		{"dn": "topology/pod-1/node-1", "name": "LAB-APIC1", "role": "controller", "serial": "TST00001", "model": "APIC-SERVER-L3", "version": "5.2(8h)", "address": "192.0.2.1", "id": "1", "fabricSt": "unknown"},
+		{"dn": "topology/pod-1/node-101", "name": "LAB-SPINE1", "role": "spine", "serial": "TST00101", "model": "N9K-C9508", "version": "n9000-15.2(8h)", "address": "192.0.2.101", "id": "101", "fabricSt": "active"},
+		{"dn": "topology/pod-1/node-111", "name": "LAB-LEAF1", "role": "leaf", "serial": "TST00111", "model": "N9K-C93180YC-FX", "version": "n9000-15.2(8h)", "address": "192.0.2.111", "id": "111", "fabricSt": "active"},
 	}
 
 	systems := []map[string]any{
-		{"dn": "topology/pod-1/node-1/sys", "oobMgmtAddr": "10.0.0.1", "inbMgmtAddr": "10.2.0.1", "systemUpTime": "100:00:00:00.000", "state": "in-service", "fabricDomain": "TEST_DC"},
-		{"dn": "topology/pod-1/node-101/sys", "oobMgmtAddr": "10.0.0.101", "state": "in-service"},
+		{"dn": "topology/pod-1/node-1/sys", "oobMgmtAddr": "198.51.100.1", "inbMgmtAddr": "198.51.100.201", "systemUpTime": "100:00:00:00.000", "state": "in-service", "fabricDomain": "MXP"},
+		{"dn": "topology/pod-1/node-101/sys", "oobMgmtAddr": "198.51.100.101", "state": "in-service"},
 	}
 
 	firmware := []map[string]any{
@@ -45,8 +46,8 @@ func TestTransformNodes(t *testing.T) {
 	if !ok {
 		t.Fatal("missing controller resource")
 	}
-	if ctrl.Name != "APIC1" {
-		t.Errorf("controller name: expected APIC1, got %s", ctrl.Name)
+	if ctrl.Name != "LAB-APIC1" {
+		t.Errorf("controller name: expected LAB-APIC1, got %s", ctrl.Name)
 	}
 	if ctrl.Provider.NativeID != "topology/pod-1/node-1" {
 		t.Errorf("controller NativeID: %s", ctrl.Provider.NativeID)
@@ -54,10 +55,10 @@ func TestTransformNodes(t *testing.T) {
 	if ctrl.Status != "active" {
 		t.Errorf("controller status: expected active, got %s", ctrl.Status)
 	}
-	if ctrl.Properties["oob_mgmt_addr"] != "10.0.0.1" {
+	if ctrl.Properties["oob_mgmt_addr"] != "198.51.100.1" {
 		t.Errorf("controller oob_mgmt_addr: %v", ctrl.Properties["oob_mgmt_addr"])
 	}
-	if ctrl.Properties["fabric_domain"] != "TEST_DC" {
+	if ctrl.Properties["fabric_domain"] != "MXP" {
 		t.Errorf("controller fabric_domain: %v", ctrl.Properties["fabric_domain"])
 	}
 
@@ -132,7 +133,7 @@ func TestTransformVRFs(t *testing.T) {
 
 func TestTransformBridgeDomains(t *testing.T) {
 	bds := []map[string]any{
-		{"dn": "uni/tn-tn_TestCorp/BD-bd_App_Private", "name": "bd_App_Private", "descr": "App bridge domain", "unicastRoute": "yes", "unkMacUcastAct": "proxy", "arpFlood": "yes", "mac": "00:AA:BB:CC:DD:EE"},
+		{"dn": "uni/tn-tn_TestCorp/BD-bd_App_Private", "name": "bd_App_Private", "descr": "App bridge domain", "unicastRoute": "yes", "unkMacUcastAct": "proxy", "arpFlood": "yes", "mac": "00:00:5E:00:53:DD"},
 	}
 
 	resources, dnToID := TransformBridgeDomains(bds)
@@ -158,7 +159,7 @@ func TestTransformBridgeDomains(t *testing.T) {
 
 func TestTransformSubnets(t *testing.T) {
 	subnets := []map[string]any{
-		{"dn": "uni/tn-tn_TestCorp/BD-bd_App01/subnet-[10.100.0.1/23]", "ip": "10.100.0.1/23", "scope": "public", "preferred": "no"},
+		{"dn": "uni/tn-tn_TestCorp/BD-bd_App01/subnet-[203.0.113.1/23]", "ip": "203.0.113.1/23", "scope": "public", "preferred": "no"},
 	}
 
 	resources := TransformSubnets(subnets)
@@ -166,10 +167,10 @@ func TestTransformSubnets(t *testing.T) {
 	if len(resources) != 1 {
 		t.Fatalf("expected 1 resource, got %d", len(resources))
 	}
-	if resources[0].Name != "10.100.0.1/23" {
+	if resources[0].Name != "203.0.113.1/23" {
 		t.Errorf("name: %s", resources[0].Name)
 	}
-	if resources[0].Properties["ip"] != "10.100.0.1/23" {
+	if resources[0].Properties["ip"] != "203.0.113.1/23" {
 		t.Errorf("ip: %v", resources[0].Properties["ip"])
 	}
 }
@@ -194,7 +195,7 @@ func TestTransformEPGs(t *testing.T) {
 
 func TestTransformEndpoints(t *testing.T) {
 	endpoints := []map[string]any{
-		{"dn": "uni/tn-tn_Lab/ap-appl/epg-epg1/cep-00:11:22:33:44:55", "mac": "00:11:22:33:44:55", "encap": "vlan-914", "fabricPathDn": "topology/pod-2/paths-219/pathep-[eth1/46]"},
+		{"dn": "uni/tn-tn_Lab/ap-appl/epg-epg1/cep-00:00:5E:00:53:CC", "mac": "00:00:5E:00:53:CC", "encap": "vlan-914", "fabricPathDn": "topology/pod-2/paths-219/pathep-[eth1/46]"},
 	}
 
 	resources := TransformEndpoints(endpoints)
@@ -202,7 +203,7 @@ func TestTransformEndpoints(t *testing.T) {
 	if len(resources) != 1 {
 		t.Fatalf("expected 1 resource, got %d", len(resources))
 	}
-	if resources[0].Properties["mac"] != "00:11:22:33:44:55" {
+	if resources[0].Properties["mac"] != "00:00:5e:00:53:cc" {
 		t.Errorf("normalized mac: %v", resources[0].Properties["mac"])
 	}
 }
@@ -230,10 +231,10 @@ func TestTransformL3Outs_SkipsDummies(t *testing.T) {
 
 func TestTransformNodes_ACIExtensions(t *testing.T) {
 	nodes := []map[string]any{
-		{"dn": "topology/pod-1/node-101", "name": "SPINE1", "role": "spine", "serial": "TST00101", "model": "N9K-C9508", "version": "n9000-15.2(8h)", "address": "10.1.1.101", "id": "101", "fabricSt": "active"},
+		{"dn": "topology/pod-1/node-101", "name": "LAB-SPINE1", "role": "spine", "serial": "TST00101", "model": "N9K-C9508", "version": "n9000-15.2(8h)", "address": "192.0.2.101", "id": "101", "fabricSt": "active"},
 	}
 	systems := []map[string]any{
-		{"dn": "topology/pod-1/node-101/sys", "oobMgmtAddr": "10.0.0.101", "state": "in-service", "fabricMAC": "AA:BB:CC:DD:EE:01", "controlPlaneMTU": "9000", "lastRebootTime": "2024-04-13T16:47:52.025+00:00", "fabricId": "1"},
+		{"dn": "topology/pod-1/node-101/sys", "oobMgmtAddr": "198.51.100.101", "state": "in-service", "fabricMAC": "AA:BB:CC:DD:00:01", "controlPlaneMTU": "9000", "lastRebootTime": "2024-04-13T16:47:52.025+00:00", "fabricId": "1"},
 	}
 	firmware := []map[string]any{}
 
@@ -250,7 +251,7 @@ func TestTransformNodes_ACIExtensions(t *testing.T) {
 	if !ok {
 		t.Fatal("expected osiris.cisco extension map")
 	}
-	if cisco["fabric_mac"] != "AA:BB:CC:DD:EE:01" {
+	if cisco["fabric_mac"] != "AA:BB:CC:DD:00:01" {
 		t.Errorf("fabric_mac: %v", cisco["fabric_mac"])
 	}
 	if cisco["control_plane_mtu"] != 9000 {
@@ -266,7 +267,7 @@ func TestTransformNodes_ACIExtensions(t *testing.T) {
 
 func TestTransformNodes_NoExtensionsWithoutTopSystem(t *testing.T) {
 	nodes := []map[string]any{
-		{"dn": "topology/pod-1/node-111", "name": "LEAF1", "role": "leaf", "serial": "TST00111", "model": "N9K-C93180YC-FX", "version": "n9000-15.2(8h)", "address": "10.1.1.111", "id": "111", "fabricSt": "active"},
+		{"dn": "topology/pod-1/node-111", "name": "LAB-LEAF1", "role": "leaf", "serial": "TST00111", "model": "N9K-C93180YC-FX", "version": "n9000-15.2(8h)", "address": "192.0.2.111", "id": "111", "fabricSt": "active"},
 	}
 
 	resources := TransformNodes(nodes, nil, nil)
@@ -527,8 +528,8 @@ func TestWireEPGsToTenants(t *testing.T) {
 
 func TestWireEndpointsToEPGs(t *testing.T) {
 	epAttrs := []map[string]any{
-		{"dn": "uni/tn-tn_Example/ap-app1/epg-epg_WEB/cep-AA:BB:CC:DD:EE:FF"},
-		{"dn": "uni/tn-tn_Example/ap-app1/epg-epg_WEB/cep-11:22:33:44:55:66"},
+		{"dn": "uni/tn-tn_Example/ap-app1/epg-epg_WEB/cep-00:00:5E:00:53:AA"},
+		{"dn": "uni/tn-tn_Example/ap-app1/epg-epg_WEB/cep-00:00:5E:00:53:BB"},
 	}
 	epgDNToID := map[string]string{
 		"uni/tn-tn_Example/ap-app1/epg-epg_WEB": "group-epg-web",
@@ -573,7 +574,7 @@ func TestExtractTenantDN(t *testing.T) {
 	}{
 		{"uni/tn-tn_Example/BD-bd1", "uni/tn-tn_Example"},
 		{"uni/tn-common/ctx-vrf1", "uni/tn-common"},
-		{"uni/tn-tn_TestCorp/BD-bd_App01/subnet-[10.0.0.1/24]", "uni/tn-tn_TestCorp"},
+		{"uni/tn-tn_TestCorp/BD-bd_App01/subnet-[203.0.113.1/24]", "uni/tn-tn_TestCorp"},
 		{"topology/pod-1/node-1", ""},
 	}
 
@@ -590,8 +591,8 @@ func TestExtractEPGDN(t *testing.T) {
 		dn   string
 		want string
 	}{
-		{"uni/tn-tn_Example/ap-app1/epg-epg_WEB/cep-AA:BB:CC:DD:EE:FF", "uni/tn-tn_Example/ap-app1/epg-epg_WEB"},
-		{"uni/tn-tn_Example/ap-app1/epg-epg_DB/cep-11:22:33:44:55:66", "uni/tn-tn_Example/ap-app1/epg-epg_DB"},
+		{"uni/tn-tn_Example/ap-app1/epg-epg_WEB/cep-00:00:5E:00:53:AA", "uni/tn-tn_Example/ap-app1/epg-epg_WEB"},
+		{"uni/tn-tn_Example/ap-app1/epg-epg_DB/cep-00:00:5E:00:53:BB", "uni/tn-tn_Example/ap-app1/epg-epg_DB"},
 		{"uni/tn-tn_Example/ap-app1/epg-epg_WEB", ""}, // no cep segment
 	}
 

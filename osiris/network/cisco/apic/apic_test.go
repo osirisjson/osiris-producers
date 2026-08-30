@@ -1,6 +1,7 @@
 // apic_test.go - Integration tests for the Cisco ACI/APIC producer.
 // Verifies end-to-end Collect behavior using a canned fixture server,
-// including detail levels, fault wiring, ACI extensions and deterministic output.
+// including detail levels, fault wiring, ACI extensions
+// and deterministic output.
 //
 // OSIRIS JSON Producer for Cisco introduction:
 // [OSIRIS-JSON-CISCO]: https://docs.osirisjson.org/osiris-producers/network/cisco
@@ -14,25 +15,34 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"go.osirisjson.org/producers/osiris/network/cisco/run"
 	"go.osirisjson.org/producers/pkg/sdk"
 	"go.osirisjson.org/producers/pkg/testharness"
 )
 
-// fixtureServer creates an httptest.Server that serves canned APIC responses.
+// fixtureServer creates an httptest.Server that serves
+// canned APIC responses.
 func fixtureServer(t *testing.T) *httptest.Server {
+	return fixtureServerWithFailures(t, nil)
+}
+
+// fixtureServerWithFailures is fixtureServer plus a map of
+// class name -> HTTP status the class query should fail with, so a
+// test can exercise the discovery failure policy.
+func fixtureServerWithFailures(t *testing.T, failCodes map[string]int) *httptest.Server {
 	t.Helper()
 
 	fixtures := map[string]any{
 		"fabricNode": []any{
-			apicObj("fabricNode", map[string]any{"dn": "topology/pod-1/node-1", "name": "APIC1", "role": "controller", "serial": "TST00001", "model": "APIC-SERVER-L3", "version": "5.2(8h)", "address": "10.1.0.1", "id": "1", "fabricSt": "unknown"}),
-			apicObj("fabricNode", map[string]any{"dn": "topology/pod-1/node-101", "name": "SPINE1", "role": "spine", "serial": "TST00101", "model": "N9K-C9508", "version": "n9000-15.2(8h)", "address": "10.1.1.101", "id": "101", "fabricSt": "active"}),
-			apicObj("fabricNode", map[string]any{"dn": "topology/pod-1/node-111", "name": "LEAF1", "role": "leaf", "serial": "TST00111", "model": "N9K-C93180YC-FX", "version": "n9000-15.2(8h)", "address": "10.1.1.111", "id": "111", "fabricSt": "active"}),
+			apicObj("fabricNode", map[string]any{"dn": "topology/pod-1/node-1", "name": "LAB-APIC1", "role": "controller", "serial": "TST00001", "model": "APIC-SERVER-L3", "version": "5.2(8h)", "address": "192.0.2.1", "id": "1", "fabricSt": "unknown"}),
+			apicObj("fabricNode", map[string]any{"dn": "topology/pod-1/node-101", "name": "LAB-SPINE1", "role": "spine", "serial": "TST00101", "model": "N9K-C9508", "version": "n9000-15.2(8h)", "address": "192.0.2.101", "id": "101", "fabricSt": "active"}),
+			apicObj("fabricNode", map[string]any{"dn": "topology/pod-1/node-111", "name": "LAB-LEAF1", "role": "leaf", "serial": "TST00111", "model": "N9K-C93180YC-FX", "version": "n9000-15.2(8h)", "address": "192.0.2.111", "id": "111", "fabricSt": "active"}),
 		},
 		"topSystem": []any{
-			apicObj("topSystem", map[string]any{"dn": "topology/pod-1/node-1/sys", "name": "APIC1", "oobMgmtAddr": "10.0.0.1", "inbMgmtAddr": "10.2.0.1", "systemUpTime": "100:00:00:00.000", "state": "in-service", "fabricDomain": "TEST_DC", "role": "controller", "serial": "TST00001", "fabricMAC": "AA:BB:CC:00:00:01", "controlPlaneMTU": "9000", "lastRebootTime": "2024-04-13T16:47:52.025+00:00", "fabricId": "1"}),
-			apicObj("topSystem", map[string]any{"dn": "topology/pod-1/node-101/sys", "name": "SPINE1", "oobMgmtAddr": "10.0.0.101", "state": "in-service", "role": "spine", "fabricMAC": "AA:BB:CC:00:01:01", "controlPlaneMTU": "9000", "fabricId": "1"}),
+			apicObj("topSystem", map[string]any{"dn": "topology/pod-1/node-1/sys", "name": "LAB-APIC1", "oobMgmtAddr": "198.51.100.1", "inbMgmtAddr": "198.51.100.201", "systemUpTime": "100:00:00:00.000", "state": "in-service", "fabricDomain": "MXP", "role": "controller", "serial": "TST00001", "fabricMAC": "AA:BB:CC:DD:00:01", "controlPlaneMTU": "9000", "lastRebootTime": "2024-04-13T16:47:52.025+00:00", "fabricId": "1"}),
+			apicObj("topSystem", map[string]any{"dn": "topology/pod-1/node-101/sys", "name": "LAB-SPINE1", "oobMgmtAddr": "198.51.100.101", "state": "in-service", "role": "spine", "fabricMAC": "AA:BB:CC:DD:00:02", "controlPlaneMTU": "9000", "fabricId": "1"}),
 		},
 		"firmwareRunning": []any{
 			apicObj("firmwareRunning", map[string]any{"dn": "topology/pod-1/node-101/sys/fwstatuscont/running", "version": "n9000-15.2(8h)", "peVer": "5.2(8h)"}),
@@ -46,10 +56,10 @@ func fixtureServer(t *testing.T) *httptest.Server {
 			apicObj("fvCtx", map[string]any{"dn": "uni/tn-tn_Example/ctx-vrf_Prod_1", "name": "vrf_Prod_1", "descr": "Production VRF", "pcEnfPref": "enforced"}),
 		},
 		"fvBD": []any{
-			apicObj("fvBD", map[string]any{"dn": "uni/tn-tn_Example/BD-bd_App", "name": "bd_App", "descr": "Application bridge domain", "unicastRoute": "yes", "unkMacUcastAct": "proxy", "arpFlood": "yes", "mac": "00:AA:BB:CC:DD:EE"}),
+			apicObj("fvBD", map[string]any{"dn": "uni/tn-tn_Example/BD-bd_App", "name": "bd_App", "descr": "Application bridge domain", "unicastRoute": "yes", "unkMacUcastAct": "proxy", "arpFlood": "yes", "mac": "00:00:5E:00:53:DD"}),
 		},
 		"fvSubnet": []any{
-			apicObj("fvSubnet", map[string]any{"dn": "uni/tn-tn_Example/BD-bd_App/subnet-[10.0.0.1/24]", "ip": "10.0.0.1/24", "scope": "public", "preferred": "no"}),
+			apicObj("fvSubnet", map[string]any{"dn": "uni/tn-tn_Example/BD-bd_App/subnet-[203.0.113.1/24]", "ip": "203.0.113.1/24", "scope": "public", "preferred": "no"}),
 		},
 		"fvAEPg": []any{
 			apicObj("fvAEPg", map[string]any{"dn": "uni/tn-tn_Example/ap-app1/epg-epg_WEB", "name": "epg_WEB", "descr": "Web EPG"}),
@@ -59,7 +69,7 @@ func fixtureServer(t *testing.T) *httptest.Server {
 			apicObj("l3extOut", map[string]any{"dn": "uni/tn-tn_Example/out-l3out_Prod_1", "name": "l3out_Prod_1", "descr": "Production L3Out"}),
 		},
 		"fvCEp": []any{
-			apicObj("fvCEp", map[string]any{"dn": "uni/tn-tn_Example/ap-app1/epg-epg_WEB/cep-AA:BB:CC:DD:EE:FF", "mac": "AA:BB:CC:DD:EE:FF", "encap": "vlan-100", "fabricPathDn": "topology/pod-1/paths-111/pathep-[eth1/1]"}),
+			apicObj("fvCEp", map[string]any{"dn": "uni/tn-tn_Example/ap-app1/epg-epg_WEB/cep-00:00:5E:00:53:AA", "mac": "00:00:5E:00:53:AA", "encap": "vlan-100", "fabricPathDn": "topology/pod-1/paths-111/pathep-[eth1/1]"}),
 		},
 		"fvRsCtx": []any{
 			apicObj("fvRsCtx", map[string]any{"dn": "uni/tn-tn_Example/BD-bd_App/rsctx", "tDn": "uni/tn-tn_Example/ctx-vrf_Prod_1", "state": "formed"}),
@@ -92,6 +102,11 @@ func fixtureServer(t *testing.T) *httptest.Server {
 
 		if strings.HasPrefix(r.URL.Path, "/api/class/") {
 			className := strings.TrimSuffix(strings.TrimPrefix(r.URL.Path, "/api/class/"), ".json")
+			if code, fail := failCodes[className]; fail {
+				w.WriteHeader(code)
+				json.NewEncoder(w).Encode(map[string]any{"imdata": []any{}})
+				return
+			}
 			data, ok := fixtures[className]
 			if !ok {
 				data = []any{}
@@ -125,7 +140,9 @@ func newTestProducer(t *testing.T, ts *httptest.Server, detailLevel string) (*Pr
 			baseURL:    ts.URL,
 			httpClient: ts.Client(),
 			token:      "test-token",
+			username:   "admin",
 			logger:     ctx.Logger,
+			retryBase:  time.Millisecond, // keep failure-policy tests fast
 		},
 	}, ctx
 }
@@ -300,7 +317,6 @@ func TestCollect_FaultExtensions(t *testing.T) {
 		t.Errorf("tenant fault code: %s", tenantFaults[0].Code)
 	}
 
-	// LEAF1 (node-111) should have 1 fault (F0532).
 	var leaf *sdk.Resource
 	for i, r := range doc.Topology.Resources {
 		if r.Type == "osiris.cisco.switch.leaf" {
@@ -397,7 +413,7 @@ func TestCollect_ACINodeExtensions(t *testing.T) {
 		t.Fatalf("Collect failed: %v", err)
 	}
 
-	// APIC1 (controller) should have ACI extensions from topSystem.
+	// LAB-APIC1 (controller) should have ACI extensions from topSystem.
 	var ctrl *sdk.Resource
 	for i, r := range doc.Topology.Resources {
 		if r.Type == "osiris.cisco.controller" {
@@ -415,7 +431,7 @@ func TestCollect_ACINodeExtensions(t *testing.T) {
 	if !ok {
 		t.Fatal("controller should have osiris.cisco extension")
 	}
-	if cisco["fabric_mac"] != "AA:BB:CC:00:00:01" {
+	if cisco["fabric_mac"] != "AA:BB:CC:DD:00:01" {
 		t.Errorf("fabric_mac: %v", cisco["fabric_mac"])
 	}
 	if cisco["control_plane_mtu"] != 9000 {
@@ -453,4 +469,136 @@ func findGroup(groups []sdk.Group, name string) *sdk.Group {
 		}
 	}
 	return nil
+}
+
+func coverageOf(t *testing.T, r *sdk.Resource) []map[string]any {
+	t.Helper()
+	if r.Extensions == nil {
+		t.Fatal("resource has no extensions")
+	}
+	cisco, ok := r.Extensions["osiris.cisco"].(map[string]any)
+	if !ok {
+		t.Fatal("resource has no osiris.cisco extension")
+	}
+	cov, ok := cisco["coverage"].([]map[string]any)
+	if !ok {
+		t.Fatalf("resource has no coverage slice: %T", cisco["coverage"])
+	}
+	return cov
+}
+
+func covEntry(cov []map[string]any, op string) map[string]any {
+	for _, e := range cov {
+		if e["operation"] == op {
+			return e
+		}
+	}
+	return nil
+}
+
+func TestCollect_CoverageOnControllers(t *testing.T) {
+	ts := fixtureServer(t)
+	defer ts.Close()
+
+	producer, ctx := newTestProducer(t, ts, "minimal")
+	doc, err := producer.Collect(ctx)
+	if err != nil {
+		t.Fatalf("Collect failed: %v", err)
+	}
+
+	var controllers int
+	for i := range doc.Topology.Resources {
+		r := &doc.Topology.Resources[i]
+		if r.Type != "osiris.cisco.controller" {
+			continue
+		}
+		controllers++
+		cov := coverageOf(t, r)
+
+		fn := covEntry(cov, "fabricNode")
+		if fn == nil || fn["status"] != "succeeded" || fn["count"] != 3 {
+			t.Errorf("fabricNode coverage entry wrong: %v", fn)
+		}
+		// documentation purpose: fvCEp is skipped, not queried.
+		cep := covEntry(cov, "fvCEp")
+		if cep == nil || cep["status"] != "skipped" {
+			t.Errorf("fvCEp should be recorded as skipped: %v", cep)
+		}
+		for _, e := range cov {
+			if e["status"] == "failed" {
+				t.Errorf("clean run should have no failed operations: %v", e)
+			}
+		}
+	}
+	if controllers == 0 {
+		t.Fatal("no controller resource carried a coverage record")
+	}
+
+	if !strings.Contains(doc.Metadata.Scope.Description, "MXP") {
+		t.Errorf("scope.description should name the fabric domain: %q", doc.Metadata.Scope.Description)
+	}
+}
+
+func TestCollect_OptionalDiscoveryFailureDegrades(t *testing.T) {
+	ts := fixtureServerWithFailures(t, map[string]int{"faultInst": http.StatusInternalServerError})
+	defer ts.Close()
+
+	producer, ctx := newTestProducer(t, ts, "minimal")
+	doc, err := producer.Collect(ctx)
+	if err != nil {
+		t.Fatalf("optional-domain failure must not abort the run: %v", err)
+	}
+
+	// Core resources are still there.
+	if len(doc.Topology.Resources) != 6 {
+		t.Errorf("expected 6 resources despite faultInst failure, got %d", len(doc.Topology.Resources))
+	}
+
+	var sawFailed bool
+	for i := range doc.Topology.Resources {
+		if doc.Topology.Resources[i].Type != "osiris.cisco.controller" {
+			continue
+		}
+		e := covEntry(coverageOf(t, &doc.Topology.Resources[i]), "faultInst")
+		if e == nil || e["status"] != "failed" {
+			t.Fatalf("faultInst should be recorded as failed: %v", e)
+		}
+		if e["category"] != "http-5xx" {
+			t.Errorf("faultInst failure category = %v, want http-5xx", e["category"])
+		}
+		sawFailed = true
+	}
+	if !sawFailed {
+		t.Fatal("no controller carried the degraded coverage record")
+	}
+	if !strings.Contains(doc.Metadata.Scope.Description, "faultInst (http-5xx)") {
+		t.Errorf("scope.description should list the gap: %q", doc.Metadata.Scope.Description)
+	}
+}
+
+func TestCollect_StructuralDiscoveryFailureAborts(t *testing.T) {
+	ts := fixtureServerWithFailures(t, map[string]int{"fvBD": http.StatusInternalServerError})
+	defer ts.Close()
+
+	producer, ctx := newTestProducer(t, ts, "minimal")
+	doc, err := producer.Collect(ctx)
+	if err == nil {
+		t.Fatal("a structural-domain failure must abort the document")
+	}
+	if doc != nil {
+		t.Error("no document should be returned on a structural failure")
+	}
+	if !strings.Contains(err.Error(), "fvBD") || !strings.Contains(err.Error(), "structural") {
+		t.Errorf("error should name the class and its criticality: %v", err)
+	}
+}
+
+func TestCollect_EssentialDiscoveryFailureAborts(t *testing.T) {
+	ts := fixtureServerWithFailures(t, map[string]int{"fabricNode": http.StatusInternalServerError})
+	defer ts.Close()
+
+	producer, ctx := newTestProducer(t, ts, "minimal")
+	if _, err := producer.Collect(ctx); err == nil {
+		t.Fatal("fabricNode failure must abort the document")
+	}
 }

@@ -11,6 +11,8 @@ package apic
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -92,11 +94,12 @@ func TestLogin_AuthFailure(t *testing.T) {
 
 func TestLogin_ConnectionError(t *testing.T) {
 	c := &Client{
-		baseURL:    "https://192.0.2.1:8443",
+		baseURL:    "https://192.0.2.1:8443", // RFC 5737, not routable
 		httpClient: &http.Client{},
 		logger:     testLogger(),
 		ctx:        context.Background(),
 		retryBase:  time.Millisecond,
+		reqTimeout: 200 * time.Millisecond, // fail fast instead of the 60s default
 		maxRetries: 1,
 	}
 	err := c.Login("admin", "secret")
@@ -348,7 +351,7 @@ func TestQueryClass_Success(t *testing.T) {
 					"fabricNode": map[string]any{
 						"attributes": map[string]any{
 							"dn":   "topology/pod-1/node-1",
-							"name": "APIC1",
+							"name": "LAB-APIC1",
 							"role": "controller",
 						},
 					},
@@ -357,7 +360,7 @@ func TestQueryClass_Success(t *testing.T) {
 					"fabricNode": map[string]any{
 						"attributes": map[string]any{
 							"dn":   "topology/pod-1/node-101",
-							"name": "SPINE1",
+							"name": "LAB-SPINE1",
 							"role": "spine",
 						},
 					},
@@ -375,8 +378,8 @@ func TestQueryClass_Success(t *testing.T) {
 	if len(results) != 2 {
 		t.Fatalf("expected 2 results, got %d", len(results))
 	}
-	if results[0]["name"] != "APIC1" {
-		t.Errorf("expected name APIC1, got %v", results[0]["name"])
+	if results[0]["name"] != "LAB-APIC1" {
+		t.Errorf("expected name LAB-APIC1, got %v", results[0]["name"])
 	}
 }
 
@@ -439,6 +442,114 @@ func TestQueryClass_HTTPError(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "500") {
 		t.Errorf("error should mention 500: %v", err)
+	}
+}
+
+func serveJSON(t *testing.T, body string) *httptest.Server {
+	t.Helper()
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		io.WriteString(w, body)
+	}))
+}
+
+func TestQueryClass_EmptyEnvelopeIsNotAnError(t *testing.T) {
+	ts := serveJSON(t, `{"totalCount":"0","imdata":[]}`)
+	defer ts.Close()
+
+	res, err := newTestClient(ts).QueryClass("fvBD")
+	if err != nil {
+		t.Fatalf("empty envelope should not error: %v", err)
+	}
+	if len(res) != 0 {
+		t.Errorf("expected 0 results, got %d", len(res))
+	}
+}
+
+func TestQueryClass_MalformedEnvelopeIsAnError(t *testing.T) {
+	ts := serveJSON(t, `{"imdata":[`)
+	defer ts.Close()
+
+	if _, err := newTestClient(ts).QueryClass("fvBD"); err == nil {
+		t.Fatal("truncated envelope must return an error")
+	} else if !strings.Contains(err.Error(), "decode") {
+		t.Errorf("error should name the decode failure: %v", err)
+	}
+}
+
+func TestQueryClass_ErrorEnvelopeIsAnError(t *testing.T) {
+	ts := serveJSON(t, `{"imdata":[{"error":{"attributes":{"code":"400","text":"query is not comprehensible"}}}]}`)
+	defer ts.Close()
+
+	_, err := newTestClient(ts).QueryClass("fvBD")
+	if err == nil {
+		t.Fatal("APIC error envelope must return an error, not an empty result set")
+	}
+	var apiErr *apicAPIError
+	if !errors.As(err, &apiErr) {
+		t.Fatalf("error should unwrap to *apicAPIError: %v", err)
+	}
+	if apiErr.code != "400" {
+		t.Errorf("apicAPIError.code = %q, want 400", apiErr.code)
+	}
+}
+
+func TestQueryClass_SkipsMalformedElement(t *testing.T) {
+	ts := serveJSON(t, `{"totalCount":"2","imdata":[`+
+		`{"fvBD":{"attributes":{"dn":"uni/tn-x/BD-a"}}},`+
+		`42,`+
+		`{"fvBD":{"attributes":{"dn":"uni/tn-x/BD-b"}}}`+
+		`]}`)
+	defer ts.Close()
+
+	res, err := newTestClient(ts).QueryClass("fvBD")
+	if err != nil {
+		t.Fatalf("a bad element should be skipped, not fail the query: %v", err)
+	}
+	if len(res) != 2 {
+		t.Fatalf("expected 2 good objects, got %d", len(res))
+	}
+	if res[0]["dn"] != "uni/tn-x/BD-a" || res[1]["dn"] != "uni/tn-x/BD-b" {
+		t.Errorf("wrong objects extracted: %v", res)
+	}
+}
+
+// TestQueryClass_PaginationCountsMalformedElements proves: a
+// full page that contains a malformed element still counts as a full
+// page, so the pages after it are still fetched.
+func TestQueryClass_PaginationCountsMalformedElements(t *testing.T) {
+	var calls atomic.Int32
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		page := r.URL.Query().Get("page")
+		if page == "0" {
+			var b strings.Builder
+			b.WriteString(`{"imdata":[`)
+			// pageSize entries, the last one malformed.
+			for i := 0; i < pageSize-1; i++ {
+				if i > 0 {
+					b.WriteString(",")
+				}
+				fmt.Fprintf(&b, `{"fvBD":{"attributes":{"dn":"uni/tn-x/BD-%d"}}}`, i)
+			}
+			b.WriteString(`,"broken"]}`)
+			io.WriteString(w, b.String())
+		} else {
+			io.WriteString(w, `{"imdata":[{"fvBD":{"attributes":{"dn":"uni/tn-x/BD-last"}}}]}`)
+		}
+		calls.Add(1)
+	}))
+	defer ts.Close()
+
+	res, err := newTestClient(ts).QueryClass("fvBD")
+	if err != nil {
+		t.Fatalf("QueryClass failed: %v", err)
+	}
+	if calls.Load() != 2 {
+		t.Errorf("expected 2 pages fetched, got %d", calls.Load())
+	}
+	if len(res) != pageSize { // (pageSize-1) good + 1 on the next page
+		t.Errorf("expected %d extracted objects, got %d", pageSize, len(res))
 	}
 }
 
