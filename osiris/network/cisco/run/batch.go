@@ -1,9 +1,9 @@
-// Package run provides CSV parsing and batch orchestration
-// for Cisco OSIRIS JSON Producer.
-// Provides CSV template generation, target parsing with datacenter
-// hierarchy, and a RunBatch function that writes OSIRIS JSON documents
-// to a hierarchical directory structure
-// (Datacenter/Floor/Room/Rack/Hostname.json).
+// Package run provides CSV parsing and template generation for Cisco
+// OSIRIS JSON Producer. Provides CSV template generation and target
+// parsing with datacenter hierarchy - each sub-producer (APIC, NX-OS,
+// IOS-XE) owns its own batch-loop/output-writing logic (see each
+// producer's own dispatch.go) rather than a shared RunBatch
+// orchestrator.
 //
 // OSIRIS JSON Producer for Cisco introduction:
 // [OSIRIS-JSON-CISCO]: https://docs.osirisjson.org/osiris-producers/network/cisco
@@ -14,24 +14,10 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"log/slog"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
-
-	"go.osirisjson.org/producers/pkg/sdk"
 )
-
-// ProducerFactory is a function type that creates a Producer for a
-// given target and run configuration.
-// Each sub-producer (APIC, NX-OS, IOS-XE) registers its own factory
-// that builds the appropriate transport (HTTP or SSH) internally.
-type ProducerFactory func(target TargetConfig, cfg *RunConfig) sdk.Producer
-
-// FactoryRegistry maps producer type names to their factory functions.
-// Used by RunBatch to dispatch to the correct producer per CSV row.
-type FactoryRegistry map[string]ProducerFactory
 
 // csvExampleRows gives CSVTemplate its one example row per producer
 // apic gets an APIC controller, nxos an NX-OS switch, iosxe an
@@ -42,9 +28,9 @@ type FactoryRegistry map[string]ProducerFactory
 // matching the producer that generated the file, is clearer.
 // All template addresses are RFC 5737 compliant.
 var csvExampleRows = map[string]string{
-	"apic":  "DC-01,F1,R101,RACK-A,apic-01,192.0.2.1,",
-	"nxos":  "DC-01,F1,R101,RACK-A,nxos-01,192.0.2.10,",
-	"iosxe": "DC-01,F1,R102,RACK-B,iosxe-01,192.0.2.20,",
+	"apic":  "MXP,F1,R101,RACK-A,apic-01,192.0.2.1,",
+	"nxos":  "MXP,F1,R101,RACK-A,nxos-01,192.0.2.10,",
+	"iosxe": "MXP,F1,R102,RACK-B,iosxe-01,192.0.2.20,",
 }
 
 // CSVTemplate returns a CSV template string for batch collection of
@@ -81,7 +67,7 @@ func CSVTemplate(producerName string) string {
 	if !ok {
 		// Defensive fallback for a producer name not in csvExampleRows
 		// (none exist today - apic/iosxe/nxos are the only callers).
-		row = fmt.Sprintf("DC-01,F1,R101,RACK-A,%[1]s-01,192.0.2.1,", producerName)
+		row = fmt.Sprintf("MXP,F1,R101,RACK-A,%[1]s-01,192.0.2.1,", producerName)
 	}
 	return fmt.Sprintf("datacenter,floor,room,rack,hostname,management_ip,port\n%s\n", row)
 }
@@ -242,94 +228,4 @@ func ParseCSV(path, producerType string) ([]TargetConfig, error) {
 	}
 
 	return targets, nil
-}
-
-// RunBatch executes the batch: for each target in cfg it looks up the
-// producer factory by target type, collects the document, and writes it
-// to the hierarchical output path:
-// OutputDir/Datacenter/Floor/Room/Rack/<file>.json.
-//
-// Failures for individual targets are logged and skipped; the function
-// returns nil if at least one target succeeded,
-// or an error if all targets failed.
-func RunBatch(cfg *RunConfig, factories FactoryRegistry, logger *slog.Logger) error {
-	if err := os.MkdirAll(cfg.OutputDir, 0755); err != nil {
-		return fmt.Errorf("creating output directory: %w", err)
-	}
-
-	var succeeded, failed int
-
-	for _, target := range cfg.Targets {
-		log := logger.With(
-			"target", target.Host,
-			"hostname", target.Hostname,
-			"type", target.Type,
-		)
-
-		factory, ok := factories[target.Type]
-		if !ok {
-			log.Error("unknown producer type", "type", target.Type)
-			failed++
-			continue
-		}
-
-		log.Info("collecting")
-
-		producer := factory(target, cfg)
-		ctx := sdk.NewContext(&sdk.ProducerConfig{
-			DetailLevel:     cfg.DetailLevel,
-			SafeFailureMode: cfg.SafeFailureMode,
-		})
-		ctx.Logger = log
-
-		doc, err := producer.Collect(ctx)
-		if err != nil {
-			log.Error("collection failed", "error", err)
-			failed++
-			continue
-		}
-
-		data, err := sdk.MarshalDocument(doc)
-		if err != nil {
-			log.Error("marshal failed", "error", err)
-			failed++
-			continue
-		}
-
-		outPath, err := OutputPath(cfg.OutputDir, cfg.Timestamp, target)
-		if err != nil {
-			log.Error("invalid output path", "error", err)
-			failed++
-			continue
-		}
-		if err := os.MkdirAll(filepath.Dir(outPath), 0755); err != nil {
-			log.Error("creating output path", "error", err, "path", outPath)
-			failed++
-			continue
-		}
-
-		// 0600: emitted documents are infrastructure inventory snapshot
-		// (hostnames, serials, topology) and should not be world/group
-		// readable by default, only the invoking user.
-		if err := os.WriteFile(outPath, data, 0600); err != nil {
-			log.Error("write failed", "error", err, "path", outPath)
-			failed++
-			continue
-		}
-
-		log.Info("written", "path", outPath)
-		succeeded++
-	}
-
-	if succeeded == 0 {
-		return fmt.Errorf("all %d targets failed", failed)
-	}
-
-	if failed > 0 {
-		logger.Warn("batch completed with failures", "succeeded", succeeded, "failed", failed)
-	} else {
-		logger.Info("batch completed", "succeeded", succeeded)
-	}
-
-	return nil
 }

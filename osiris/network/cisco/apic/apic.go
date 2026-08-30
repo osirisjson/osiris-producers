@@ -2,10 +2,9 @@
 // Queries the APIC REST API to discover ACI fabric topology and generates
 // an OSIRIS JSON document with resources, groups and connections.
 //
-// For an introduction to OSIRIS JSON Producer for Cisco see:
-// "[OSIRIS-JSON-CISCO]."
-//
-// [OSIRIS-JSON-CISCO]: https://osirisjson.org/en/docs/producers/network/cisco
+// OSIRIS JSON Producer for Cisco introduction:
+// [OSIRIS-JSON-CISCO]: https://docs.osirisjson.org/osiris-producers/network/cisco
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 package apic
 
 import (
@@ -20,18 +19,10 @@ const (
 	generatorVersion = "0.1.0"
 )
 
-// Producer implements the APIC sub-producer.
 type Producer struct {
 	target run.TargetConfig
-	cfg    *run.RunConfig
+	cfg    *Config
 	client *Client // injectable for testing
-}
-
-// NewFactory returns a ProducerFactory for the APIC producer.
-func NewFactory() run.ProducerFactory {
-	return func(target run.TargetConfig, cfg *run.RunConfig) sdk.Producer {
-		return &Producer{target: target, cfg: cfg}
-	}
 }
 
 // Collect queries the APIC and builds an OSIRIS document.
@@ -114,9 +105,9 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		return nil, fmt.Errorf("query faultInst: %w", err)
 	}
 
-	// Detailed mode: also fetch endpoints.
+	// Audit purpose: also fetch endpoints.
 	var endpointAttrs []map[string]any
-	if ctx.Config != nil && ctx.Config.DetailLevel == "detailed" {
+	if ctx.Config != nil && ctx.Config.Purpose == "audit" {
 		endpointAttrs, err = client.QueryClass("fvCEp")
 		if err != nil {
 			return nil, fmt.Errorf("query fvCEp: %w", err)

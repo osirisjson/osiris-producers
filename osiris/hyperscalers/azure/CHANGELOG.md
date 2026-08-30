@@ -762,6 +762,7 @@ Initial Microsoft Azure producer release.
   `microsoft-azure-<timestamp>-<SubscriptionName>.json`.
 
 [Unreleased]: ../../../CHANGELOG.md
+[0.5.2]: ../../../CHANGELOG.md#070---2026-08-29
 [0.6.0]: ../../../CHANGELOG.md#060---2026-04-29
 [0.5.0]: ../../../CHANGELOG.md#050---2026-04-29
 [0.4.0]: ../../../CHANGELOG.md#040---2026-04-25

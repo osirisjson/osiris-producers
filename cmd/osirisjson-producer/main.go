@@ -3,22 +3,10 @@ main.go - Core dispatcher for OSIRIS JSON producer binaries.
 
 Discovers and executes vendor-specific producer binaries on $PATH using
 the naming convention osirisjson-producer-<vendor>.
-This is the unified entry point:
-
-	osirisjson-producer cisco apic -h 10.0.0.1 -u admin
-	osirisjson-producer azure --subscription prod
-	osirisjson-producer --help
 
 The dispatcher itself has no vendor dependencies it is a thin routing
 layer. Each vendor binary (e.g. osirisjson-producer-cisco) is
 self-contained and can also be invoked directly.
-
-Exit codes:
-
-	0 - producer completed successfully
-	1 - producer encountered a validation or runtime error (passed
-		through from vendor binary)
-	2 - operational error (unknown vendor, binary not found, etc.)
 */
 package main
 
@@ -60,7 +48,7 @@ var knownVendors = []knownVendor{
 	{"aws", "Amazon Web Services OSIRIS JSON producer", "go.osirisjson.org/producers/cmd/osirisjson-producer-aws"},
 	{"azure", "Microsoft Azure OSIRIS JSON producer", "go.osirisjson.org/producers/cmd/osirisjson-producer-azure"},
 	{"gcp", "[Under development] Google Cloud Platform OSIRIS JSON producer", ""},
-	{"cisco", "Cisco OSIRIS JSON producer (APIC, IOS-XR, NX-OS)", "go.osirisjson.org/producers/cmd/osirisjson-producer-cisco"},
+	{"cisco", "Cisco OSIRIS JSON producer (APIC, IOS-XE, NX-OS, SD-WAN Manager)", "go.osirisjson.org/producers/cmd/osirisjson-producer-cisco"},
 	{"hpe", "HPE OSIRIS JSON producer (Aruba Central)", "go.osirisjson.org/producers/cmd/osirisjson-producer-hpe"},
 }
 
@@ -84,7 +72,8 @@ func main() {
 	vendor := args[0]
 	vendorArgs := args[1:]
 
-	// Check built-in vendors first (populated when built with -tags bundled).
+	// Check built-in vendors first
+	// (populated when built with -tags bundled).
 	if runner, ok := builtinRunners[vendor]; ok {
 		if len(vendorArgs) > 0 {
 			switch vendorArgs[0] {
@@ -104,7 +93,8 @@ func main() {
 	binaryName := "osirisjson-producer-" + vendor
 	binaryPath, err := exec.LookPath(binaryName)
 	if err != nil {
-		// Binary not found - check if it's a known vendor with install instructions.
+		// Binary not found - check if it's a known vendor with
+		// install instructions.
 		if kv := findKnownVendor(vendor); kv != nil {
 			fmt.Fprintf(os.Stderr, "error: vendor %q producer is not installed\n\n", vendor)
 			fmt.Fprintf(os.Stderr, "  %s\n\n", kv.description)
@@ -113,7 +103,7 @@ func main() {
 				fmt.Fprintf(os.Stderr, "  go install %s@latest\n\n", kv.installPkg)
 			} else {
 				fmt.Fprintf(os.Stderr, "Status: not yet available\n")
-				fmt.Fprintf(os.Stderr, "Follow the roadmap: https://osirisjson.org/en/docs/roadmap/01-2026\n\n")
+				fmt.Fprintf(os.Stderr, "Follow the roadmap: https://osirisjson.org/en/commitments/roadmap\n\n")
 			}
 		} else {
 			fmt.Fprintf(os.Stderr, "error: unknown vendor %q and no %q binary found on $PATH\n\n", vendor, binaryName)
@@ -160,26 +150,20 @@ Available vendors:
 `)
 	printVendors(os.Stdout)
 	fmt.Print(`
-Examples:
-  osirisjson-producer cisco apic -h 10.0.0.1 -u admin -p secret
-  osirisjson-producer cisco template --generate apic
-  osirisjson-producer aws --region us-east-1 --profile prod
 
-Install a vendor producer:
+Example to install a single producer:
   go install go.osirisjson.org/producers/cmd/osirisjson-producer-cisco@latest
 
-The producer emits a valid OSIRIS JSON document to stdout.
-Operational diagnostics are written to stderr.
-
 Vendors marked [Under development] are not yet available.
-Follow the roadmap: https://osirisjson.org/en/docs/roadmap/01-2026
+Follow the roadmap: https://osirisjson.org/en/commitments/roadmap
 
-Documentation: https://osirisjson.org/en/docs/getting-started/overview
+Documentation: https://docs.osirisjson.org/
 `)
 }
 
 func printVendors(w *os.File) {
-	// Merge known vendors with any additional vendor binaries found on $PATH.
+	// Merge known vendors with any additional vendor
+	// binaries found on $PATH.
 	vendors := make(map[string]string) // name -> description
 	for _, kv := range knownVendors {
 		vendors[kv.name] = kv.description

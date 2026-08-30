@@ -85,8 +85,8 @@ func TestLogin_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(nxapiResp(map[string]any{
-			"sys_ver_str": "10.3(4a)",
-			"chassis_id":  "Nexus9000 C9508",
+			"nxos_ver_str": "10.3(4a)",
+			"chassis_id":   "Nexus9000 C9508",
 		}))
 	}))
 	defer ts.Close()
@@ -109,8 +109,8 @@ func TestLogin_CachesVersionData(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(nxapiResp(map[string]any{
-			"sys_ver_str": "10.3(4a)",
-			"chassis_id":  "Nexus9000 C9508",
+			"nxos_ver_str": "10.3(4a)",
+			"chassis_id":   "Nexus9000 C9508",
 		}))
 	}))
 	defer ts.Close()
@@ -171,7 +171,7 @@ func TestShow_Success(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(nxapiResp(map[string]any{
-			"sys_ver_str": "10.3(4a)",
+			"nxos_ver_str": "10.3(4a)",
 		}))
 	}))
 	defer ts.Close()
@@ -185,8 +185,8 @@ func TestShow_Success(t *testing.T) {
 	if err := json.Unmarshal(result, &vd); err != nil {
 		t.Fatalf("failed to decode Show result: %v", err)
 	}
-	if vd.SysVerStr != "10.3(4a)" {
-		t.Errorf("unexpected version: %v", vd.SysVerStr)
+	if vd.NXOSVerStr != "10.3(4a)" {
+		t.Errorf("unexpected version: %v", vd.NXOSVerStr)
 	}
 }
 
@@ -239,7 +239,7 @@ func TestShowMulti_Success(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(nxapiMultiResp(
-			map[string]any{"sys_ver_str": "10.3(4a)"},
+			map[string]any{"nxos_ver_str": "10.3(4a)"},
 			map[string]any{"TABLE_inv": map[string]any{}},
 		))
 	}))
@@ -257,15 +257,15 @@ func TestShowMulti_Success(t *testing.T) {
 	if err := json.Unmarshal(results[0].Body, &vd); err != nil {
 		t.Fatalf("failed to decode results[0].Body: %v", err)
 	}
-	if vd.SysVerStr != "10.3(4a)" {
-		t.Errorf("unexpected version: %v", vd.SysVerStr)
+	if vd.NXOSVerStr != "10.3(4a)" {
+		t.Errorf("unexpected version: %v", vd.NXOSVerStr)
 	}
 }
 
 func TestShowMulti_SingleCommand(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(nxapiResp(map[string]any{"sys_ver_str": "10.3(4a)"}))
+		json.NewEncoder(w).Encode(nxapiResp(map[string]any{"nxos_ver_str": "10.3(4a)"}))
 	}))
 	defer ts.Close()
 
@@ -473,7 +473,7 @@ func TestShowMulti_RetriesOn429ThenSucceeds(t *testing.T) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(nxapiResp(map[string]any{"sys_ver_str": "10.3(4a)"}))
+		json.NewEncoder(w).Encode(nxapiResp(map[string]any{"nxos_ver_str": "10.3(4a)"}))
 	}))
 	defer ts.Close()
 
@@ -489,8 +489,8 @@ func TestShowMulti_RetriesOn429ThenSucceeds(t *testing.T) {
 	if err := json.Unmarshal(results[0].Body, &vd); err != nil {
 		t.Fatalf("failed to decode results[0].Body: %v", err)
 	}
-	if vd.SysVerStr != "10.3(4a)" {
-		t.Errorf("unexpected version: %v", vd.SysVerStr)
+	if vd.NXOSVerStr != "10.3(4a)" {
+		t.Errorf("unexpected version: %v", vd.NXOSVerStr)
 	}
 }
 
@@ -503,7 +503,7 @@ func TestShowMulti_RetriesOn503ThenSucceeds(t *testing.T) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(nxapiResp(map[string]any{"sys_ver_str": "10.3(4a)"}))
+		json.NewEncoder(w).Encode(nxapiResp(map[string]any{"nxos_ver_str": "10.3(4a)"}))
 	}))
 	defer ts.Close()
 

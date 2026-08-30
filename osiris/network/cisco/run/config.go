@@ -1,7 +1,13 @@
-// config.go - Target and run configuration
-// for Cisco OSIRIS JSON Producer.
-// Defines the shared data structures that all Cisco sub-producers
-// (APIC, NX-OS, IOS-XE) use for connection targets and runtime settings.
+// config.go - Shared target/path/timestamp helpers for Cisco OSIRIS
+// JSON Producer.
+//
+// Each Cisco sub-producer (APIC, NX-OS, IOS-XE) owns its own CLI flag
+// parsing and runtime Config type (see each producer's own
+// config.go/flags.go) rather than a shared RunConfig/ParseFlags
+// orchestrator this file keeps only the mechanisms genuinely
+// reused as-is across producers: the target/connection shape, run
+// modes, path sanitization/construction, host:port parsing, and
+// timestamp formatting.
 //
 // OSIRIS JSON Producer for Cisco introduction:
 // [OSIRIS-JSON-CISCO]: https://docs.osirisjson.org/osiris-producers/network/cisco
@@ -18,8 +24,8 @@ import (
 	"time"
 )
 
-// Run modes. ParseFlags sets RunConfig.Mode explicitly based on which
-// flag (-h/--host vs. -s/--source) selected it, rather than IsBatch
+// Run modes. Each producer's own ParseFlags sets Mode explicitly based
+// on which flag (-h/--host vs. -s/--source) selected it, rather than
 // inferring batch from len(Targets) > 1 a one-row CSV is still batch
 // input and must honor its requested --output directory, which
 // inference alone would get wrong.
@@ -55,32 +61,10 @@ type TargetConfig struct {
 	Rack       string // rack identifier.
 }
 
-// RunConfig carries runtime settings resolved from flags and CSV.
-type RunConfig struct {
-	Targets         []TargetConfig
-	Mode            string // ModeSingle or ModeBatch; set explicitly by ParseFlags.
-	OutputDir       string // batch only; empty = stdout single mode.
-	DetailLevel     string // "minimal" | "detailed".
-	SafeFailureMode string // "fail-closed" | "log-and-redact" | "off".
-	InsecureTLS     bool   // --insecure: skip TLS verify.
-	Timestamp       string // filesystem-safe UTC timestamp for output filenames.
-}
-
-// FormatTimestamp returns a filesystem-safe UTC timestamp string.
+// FormatTimestamp returns a filesystem-safe UTC timestamp string. The
+// layout uses Go's reference time (Mon Jan 2 15:04:05 MST 2006).
 func FormatTimestamp(t time.Time) string {
-	return t.UTC().Format("2026-01-02T15-04-05Z")
-}
-
-// IsBatch returns true when the run was explicitly started in batch
-// mode (-s/--source), regardless of how many targets that CSV
-// contained. A RunConfig built without going through ParseFlags (e.g.
-// directly in a test) with Mode left unset falls back to the target
-// count for backward compatibility.
-func (c *RunConfig) IsBatch() bool {
-	if c.Mode != "" {
-		return c.Mode == ModeBatch
-	}
-	return len(c.Targets) > 1
+	return t.UTC().Format("2006-01-02T15-04-05Z")
 }
 
 // SanitizePathSegment validates a single path component (a CSV

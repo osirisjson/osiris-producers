@@ -9,9 +9,9 @@
 
 | Pattern example | Meaning |
 |---|---|
-| `specification/` | All files in and below `specification/` |
-| `schema/*` | All files in `schema/`, but not below it |
-| `*/examples/*` | All files in `examples/` under any top-level directory |
+| `osiris/` | All files in and below `osiris/` |
+| `osiris/*` | All files in `osiris/`, but not below it |
+| `*/osiris/*` | All files in `osiris/` under any top-level directory |
 
 
 ## Maintainers List

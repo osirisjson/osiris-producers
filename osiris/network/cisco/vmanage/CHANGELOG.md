@@ -295,4 +295,4 @@ Initial Cisco vManage producer release.
   extra per-device calls did not add new modeled fields.
 
 [Unreleased]: ../../../../CHANGELOG.md
-[0.1.0]: ../../../../CHANGELOG.md#unreleased
+[0.1.0]: ../../../../CHANGELOG.md#070---2026-08-29
