@@ -18,7 +18,7 @@ import (
 
 const (
 	generatorName    = "osirisjson-producer-cisco-apic"
-	generatorVersion = "0.1.0"
+	generatorVersion = "0.2.0"
 )
 
 type Producer struct {
@@ -38,6 +38,7 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	client := p.client
 	ownClient := client == nil
 	if ownClient {
+		ctx.Logger.Info("connecting to APIC", "host", p.target.Host, "user", p.target.Username)
 		client = NewClient(reqCtx, p.target, p.cfg.InsecureTLS, ctx.Logger)
 		if err := client.Login(p.target.Username, p.target.Password); err != nil {
 			return nil, fmt.Errorf("APIC authentication failed: %w", err)
@@ -53,87 +54,62 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		}()
 	}
 
-	ctx.Logger.Info("collecting APIC fabric data", "host", p.target.Host)
-
-	// Query all required classes.
-	nodes, err := client.QueryClass("fabricNode")
-	if err != nil {
-		return nil, fmt.Errorf("query fabricNode: %w", err)
+	audit := ctx.Config != nil && ctx.Config.Purpose == "audit"
+	purpose := "documentation"
+	if audit {
+		purpose = "audit"
 	}
 
-	systems, err := client.QueryClass("topSystem")
-	if err != nil {
-		return nil, fmt.Errorf("query topSystem: %w", err)
-	}
+	plan := discoveryPlan(audit)
+	ctx.Logger.Info("collecting APIC fabric data",
+		"host", p.target.Host, "purpose", purpose, "operations", len(plan))
 
-	firmware, err := client.QueryClass("firmwareRunning")
-	if err != nil {
-		return nil, fmt.Errorf("query firmwareRunning: %w", err)
-	}
-
-	tenantAttrs, err := client.QueryClass("fvTenant")
-	if err != nil {
-		return nil, fmt.Errorf("query fvTenant: %w", err)
-	}
-
-	vrfAttrs, err := client.QueryClass("fvCtx")
-	if err != nil {
-		return nil, fmt.Errorf("query fvCtx: %w", err)
-	}
-
-	bdAttrs, err := client.QueryClass("fvBD")
-	if err != nil {
-		return nil, fmt.Errorf("query fvBD: %w", err)
-	}
-
-	subnetAttrs, err := client.QueryClass("fvSubnet")
-	if err != nil {
-		return nil, fmt.Errorf("query fvSubnet: %w", err)
-	}
-
-	epgAttrs, err := client.QueryClass("fvAEPg")
-	if err != nil {
-		return nil, fmt.Errorf("query fvAEPg: %w", err)
-	}
-
-	l3outAttrs, err := client.QueryClass("l3extOut")
-	if err != nil {
-		return nil, fmt.Errorf("query l3extOut: %w", err)
-	}
-
-	// Relationship classes for connections.
-	bdToCtxAttrs, err := client.QueryClass("fvRsCtx")
-	if err != nil {
-		return nil, fmt.Errorf("query fvRsCtx: %w", err)
-	}
-
-	epgToBdAttrs, err := client.QueryClass("fvRsBd")
-	if err != nil {
-		return nil, fmt.Errorf("query fvRsBd: %w", err)
-	}
-
-	l3outToCtxAttrs, err := client.QueryClass("l3extRsEctx")
-	if err != nil {
-		return nil, fmt.Errorf("query l3extRsEctx: %w", err)
-	}
-
-	// Faults are always fetched audit-critical regardless
-	// of detail level.
-	faultAttrs, err := client.QueryClass("faultInst")
-	if err != nil {
-		return nil, fmt.Errorf("query faultInst: %w", err)
-	}
-
-	// Audit purpose: also fetch endpoints.
-	var endpointAttrs []map[string]any
-	if ctx.Config != nil && ctx.Config.Purpose == "audit" {
-		endpointAttrs, err = client.QueryClass("fvCEp")
-		if err != nil {
-			return nil, fmt.Errorf("query fvCEp: %w", err)
+	// Run the discovery plan. An essential or structural failure aborts
+	// the document; an optional failure is logged, recorded in the
+	// coverage report, and the run continues with a partial document.
+	cov := &coverageRecorder{}
+	raw := make(map[string][]map[string]any)
+	for i, dc := range plan {
+		ctx.Logger.Info("querying APIC class",
+			"step", fmt.Sprintf("%d/%d", i+1, len(plan)), "class", dc.name, "criticality", dc.crit.String())
+		objs, qErr := client.QueryClass(dc.name)
+		if qErr != nil {
+			if dc.crit.aborts() {
+				return nil, fmt.Errorf("APIC discovery %q (%s) failed: %w", dc.name, dc.crit, qErr)
+			}
+			cat := sanitizeFailureCategory(qErr)
+			ctx.Logger.Warn("optional APIC discovery failed; document will be partial",
+				"class", dc.name, "category", cat)
+			cov.failed(dc.name, cat)
+			continue
 		}
+		raw[dc.name] = objs
+		cov.succeeded(dc.name, len(objs))
 	}
+	if !audit {
+		cov.skipped("fvCEp")
+	}
+	covOK, covFailed, covSkipped := cov.tally()
+	ctx.Logger.Info("APIC discovery complete",
+		"succeeded", covOK, "failed", covFailed, "skipped", covSkipped)
+
+	nodes := raw["fabricNode"]
+	systems := raw["topSystem"]
+	firmware := raw["firmwareRunning"]
+	tenantAttrs := raw["fvTenant"]
+	vrfAttrs := raw["fvCtx"]
+	bdAttrs := raw["fvBD"]
+	subnetAttrs := raw["fvSubnet"]
+	epgAttrs := raw["fvAEPg"]
+	l3outAttrs := raw["l3extOut"]
+	bdToCtxAttrs := raw["fvRsCtx"]
+	epgToBdAttrs := raw["fvRsBd"]
+	l3outToCtxAttrs := raw["l3extRsEctx"]
+	faultAttrs := raw["faultInst"]
+	endpointAttrs := raw["fvCEp"] // nil unless --purpose audit
 
 	// Transform APIC data to OSIRIS types.
+	ctx.Logger.Info("transforming ACI objects to OSIRIS resources and groups")
 	nodeResources := TransformNodes(nodes, systems, firmware)
 	tenantGroups, tenantDNToID := TransformTenants(tenantAttrs)
 	vrfGroups, vrfDNToID := TransformVRFs(vrfAttrs)
@@ -143,6 +119,7 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	l3outResources, l3outDNToID := TransformL3Outs(l3outAttrs)
 
 	// Wire relationships ("how it relates").
+	ctx.Logger.Info("wiring tenant, VRF, bridge-domain and EPG relationships")
 	// Tenant children: VRFs and EPGs are child groups of
 	// their parent tenant.
 	WireVRFsToTenants(vrfAttrs, vrfDNToID, tenantDNToID, tenantGroups)
@@ -172,11 +149,31 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	WireFaultsToNodes(nodeResources, faultsByDN)
 	WireFaultsToTenants(tenantGroups, tenantDNToID, faultsByDN)
 
-	// Assemble the document.
+	// Surface the discovery-coverage record on the fabric-identity
+	// resources (the controllers) so a consumer holding only the
+	// document can see which optional domains are absent and why.
+	attachCoverage(nodeResources, cov.asSlice())
+
+	scopePurpose := ""
+	if ctx.Config != nil {
+		scopePurpose = ctx.Config.Purpose
+	}
+
+	// Assemble the document. scope.name is the collection target's
+	// hostname (one OSIRIS document per APIC/fabric).
+	ctx.Logger.Info("assembling OSIRIS JSON document")
+	scopeName := p.target.Hostname
+	if scopeName == "" {
+		scopeName = p.target.Host
+	}
+	coverageSummary := cov.summary(firstFabricDomain(systems))
 	builder := sdk.NewDocumentBuilder(ctx).
 		WithGenerator(generatorName, generatorVersion).
 		WithScope(sdk.Scope{
-			Providers: []string{providerName},
+			Name:        scopeName,
+			Providers:   []string{providerName},
+			Purpose:     scopePurpose,
+			Description: coverageSummary,
 		})
 
 	for _, r := range nodeResources {
@@ -213,10 +210,14 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		return nil, fmt.Errorf("document build failed: %w", err)
 	}
 
+	if covFailed > 0 {
+		ctx.Logger.Warn("APIC document is partial", "coverage", coverageSummary)
+	}
 	ctx.Logger.Info("APIC collection complete",
 		"resources", len(doc.Topology.Resources),
 		"connections", len(doc.Topology.Connections),
 		"groups", len(doc.Topology.Groups),
+		"coverage", coverageSummary,
 	)
 
 	return doc, nil

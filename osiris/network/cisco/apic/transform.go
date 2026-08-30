@@ -18,7 +18,10 @@ import (
 
 const extensionNamespace = "osiris.cisco"
 
-const providerName = "cisco"
+// providerName is the dotted vendor.product identity carried in every
+// resource's provider.name and in metadata.scope.providers.
+// The vendor extension namespace stays "osiris.cisco".
+const providerName = "cisco.apic"
 
 // nodeRoleToType maps APIC fabricNode role values to OSIRIS resource types.
 var nodeRoleToType = map[string]string{

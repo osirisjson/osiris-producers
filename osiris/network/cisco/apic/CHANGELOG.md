@@ -1,7 +1,7 @@
 # Changelog - Cisco APIC OSIRIS JSON producer
 
 All notable behavioral changes to the **`osirisjson-producer-cisco`**
-producer's NX-OS backend are documented in this file.
+producer's APIC (ACI fabric) backend are documented in this file.
 
 The format follows:
 - [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
@@ -22,7 +22,52 @@ the release-level index of which producers shipped under each tag.
 
 ## [Unreleased]
 
+`generatorVersion` moves to `0.2.0`: the first change in this section
+that alters the emitted document (the discovery-coverage record below).
+
+### Added
+- Discovery-coverage record. Every controller resource now carries
+  `extensions["osiris.cisco"]["coverage"]`: one entry per discovery
+  operation with `operation`, `status` (`succeeded` / `failed` /
+  `skipped`), object `count`, and, on failure, a sanitized `category`
+  (for example `http-5xx`, `auth`, `decode-error`) that never contains
+  raw error or response text. `metadata.scope.description` carries a
+  one-line prose summary of the same (fabric domain, succeeded/total
+  ratio, and each operation not represented). `metadata.scope.purpose`
+  is now set from `--purpose`.
+
 ### Changed
+- **Breaking:** `provider.name` on every emitted resource and
+  `metadata.scope.providers` change from `cisco` to `cisco.apic`, the
+  dotted vendor.product identity, matching the NX-OS producer's move to
+  `cisco.nxos`. The vendor extension namespace stays `osiris.cisco`.
+  `metadata.scope.name` is now populated with the collection target's
+  hostname.
+- Discovery now has an explicit per-domain failure policy. Fabric
+  identity (`fabricNode`, `topSystem`) and the tenant object model
+  (`fvTenant`, `fvCtx`, `fvBD`, `fvSubnet`, `fvAEPg`, `l3extOut`) are
+  essential/structural: a query failure aborts the run with no
+  document. Enrichment and relationship classes (`firmwareRunning`,
+  `faultInst`, `fvRsCtx`, `fvRsBd`, `l3extRsEctx`, and `fvCEp` under
+  `--purpose audit`) are optional: a failure is logged, recorded in the
+  coverage record, and the run continues with a partial document.
+  Previously any single class query failure aborted the whole run.
+- APIC responses are decoded through a typed `imdata` envelope. A
+  malformed body or an APIC error envelope which can arrive with
+  HTTP 200 is a classified error, so a failed query is distinguishable
+  from a legitimately empty one. A single malformed object in a page is
+  skipped with a warning instead of failing the page, and pagination
+  advances on source-object count so it can no longer be truncated
+  early by a bad object.
+- Progress logging now narrates each phase to stderr the way others
+  producers do: a `connecting to APIC` line before the
+  login round-trip, a start line per discovery operation (`step=N/M`,
+  class, criticality) paired with its completion count, a discovery
+  summary (`succeeded` / `failed` / `skipped`), `transforming` /
+  `wiring` / `assembling` milestones, and a per-page heartbeat for a
+  large paginated class (`faultInst` on a big fabric is many pages at
+  several seconds each). A partial document logs a `WARN` carrying the
+  coverage summary.
 - Login and logout request bodies are built with `encoding/json` instead
   of string interpolation, so a username or password containing a quote
   or backslash still produces valid JSON.
@@ -55,8 +100,8 @@ the release-level index of which producers shipped under each tag.
 ## [0.1.0] - 2026-03-21
 
 Initial Cisco APIC producer release. The `generatorVersion` constant has
-remained at `0.1.0` through later module tags; in-place behavioral changes
-are listed below with their module-tag context.
+remained at `0.1.0` through later module tags; in-place behavioral
+changes are listed below with their module-tag context.
 
 ### Added
 - Full ACI fabric topology, fault extensions, tenant hierarchy.

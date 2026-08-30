@@ -151,19 +151,17 @@ func (c *Client) Login(username, password string) error {
 
 	// Extract token from response for logging; the cookie jar handles
 	// the session automatically for subsequent requests.
-	var loginResp imDataResponse
-	if err := json.Unmarshal(body, &loginResp); err != nil {
+	var env imdataEnvelope
+	if err := json.Unmarshal(body, &env); err != nil {
 		return fmt.Errorf("APIC login: failed to parse response: %w", err)
 	}
-
-	if len(loginResp.ImData) > 0 {
-		if aaaLogin, ok := loginResp.ImData[0]["aaaLogin"]; ok {
-			if attrs, ok := aaaLogin.(map[string]any); ok {
-				if inner, ok := attrs["attributes"].(map[string]any); ok {
-					if tok, ok := inner["token"].(string); ok {
-						c.token = tok
-					}
-				}
+	if apiErr := env.asError(); apiErr != nil {
+		return fmt.Errorf("APIC login failed: %w", apiErr)
+	}
+	if len(env.ImData) > 0 {
+		if attrs, ok := extractOneAttributes(env.ImData[0]); ok {
+			if tok, _ := attrs["token"].(string); tok != "" {
+				c.token = tok
 			}
 		}
 	}
@@ -204,6 +202,15 @@ func (c *Client) Logout() error {
 
 // QueryClass fetches all objects of a given APIC class, handling
 // pagination. Returns a slice of attribute maps (one per object).
+//
+// The response is decoded through a typed imdata envelope. A transport
+// failure, a body that is not a valid imdata envelope, or an APIC error
+// envelope (which can arrive with HTTP 200) all return an error a
+// caller can therefore distinguish a failed query from a legitimately
+// empty one. Pagination advances on the count of source objects the
+// page carried, not on how many survived attribute extraction, so a
+// single malformed object cannot look like a short final page and
+// truncate the pages after it.
 func (c *Client) QueryClass(class string) ([]map[string]any, error) {
 	var all []map[string]any
 	page := 0
@@ -216,25 +223,37 @@ func (c *Client) QueryClass(class string) ([]map[string]any, error) {
 			return nil, fmt.Errorf("APIC query %s: %w", class, err)
 		}
 
-		var parsed imDataResponse
-		if err := json.Unmarshal(body, &parsed); err != nil {
-			return nil, fmt.Errorf("APIC query %s: failed to parse response: %w", class, err)
+		var env imdataEnvelope
+		if err := json.Unmarshal(body, &env); err != nil {
+			return nil, fmt.Errorf("APIC query %s: decode envelope: %w", class, err)
+		}
+		if apiErr := env.asError(); apiErr != nil {
+			return nil, fmt.Errorf("APIC query %s: %w", class, apiErr)
 		}
 
-		// Pagination advances on how many source objects the page
-		// carried, not on how many attribute maps survived extraction:
-		// a malformed object must not look like a short final page and
-		// truncate the remaining ones.
-		received := len(parsed.ImData)
-		attrs := extractAttributes(parsed.ImData)
-		all = append(all, attrs...)
+		received := len(env.ImData)
+		var extracted int
+		for _, item := range env.ImData {
+			attrs, ok := extractOneAttributes(item)
+			if !ok {
+				c.logger.Warn("APIC object skipped: unexpected shape", "class", class, "page", page)
+				continue
+			}
+			all = append(all, attrs)
+			extracted++
+		}
 
-		c.logger.Debug("APIC query", "class", class, "page", page, "received", received, "extracted", len(attrs))
+		c.logger.Debug("APIC query", "class", class, "page", page, "received", received, "extracted", extracted)
 
 		if received < pageSize {
 			break
 		}
 		page++
+		// Heartbeat for a large paginated class (faultInst on a big
+		// fabric is many pages at several seconds each): without this
+		// the run looks frozen between the "querying" line and the
+		// eventual "query complete".
+		c.logger.Info("APIC query in progress", "class", class, "page", page, "objects_so_far", len(all))
 	}
 
 	c.logger.Info("APIC query complete", "class", class, "total", len(all))
@@ -324,25 +343,74 @@ func (c *Client) attempt(method, url string, reqBody []byte) (body []byte, statu
 	}
 }
 
-// imDataResponse is the common APIC JSON envelope.
-type imDataResponse struct {
-	ImData []map[string]any `json:"imdata"`
+// imdataEnvelope is the common APIC JSON response envelope.
+// Elements are kept as raw messages so one malformed element cannot
+// fail the decode of the whole page
+// (see QueryClass and extractOneAttributes).
+type imdataEnvelope struct {
+	TotalCount string            `json:"totalCount"`
+	ImData     []json.RawMessage `json:"imdata"`
 }
 
-// extractAttributes pulls the attributes map from each imdata entry.
-// APIC responses follow: {"imdata": [{"className": {"attributes": {...}}}]}
-func extractAttributes(imdata []map[string]any) []map[string]any {
-	var result []map[string]any
-	for _, item := range imdata {
-		for _, classObj := range item {
-			if obj, ok := classObj.(map[string]any); ok {
-				if attrs, ok := obj["attributes"].(map[string]any); ok {
-					result = append(result, attrs)
-				}
-			}
+// asError reports an APIC error envelope
+// ({"imdata":[{"error":{"attributes":{"code","text"}}}]}), which the
+// APIC can return with HTTP 200. Returns nil for any normal response.
+func (e imdataEnvelope) asError() *apicAPIError {
+	if len(e.ImData) != 1 {
+		return nil
+	}
+	var obj map[string]json.RawMessage
+	if err := json.Unmarshal(e.ImData[0], &obj); err != nil {
+		return nil
+	}
+	errBody, ok := obj["error"]
+	if !ok {
+		return nil
+	}
+	var wrap struct {
+		Attributes struct {
+			Code string `json:"code"`
+			Text string `json:"text"`
+		} `json:"attributes"`
+	}
+	_ = json.Unmarshal(errBody, &wrap)
+	return &apicAPIError{code: wrap.Attributes.Code, text: truncateText(wrap.Attributes.Text)}
+}
+
+// apicAPIError is an error carried in an APIC imdata error envelope.
+type apicAPIError struct {
+	code string
+	text string
+}
+
+func (e *apicAPIError) Error() string {
+	if e.code == "" {
+		return "APIC error envelope: " + e.text
+	}
+	return fmt.Sprintf("APIC error %s: %s", e.code, e.text)
+}
+
+// extractOneAttributes pulls the attributes map from a single imdata
+// element ({"className":{"attributes":{...}}}). Returns ok=false when
+// the element is not a JSON object or carries no attributes map, so the
+// caller can skip it and keep going.
+func extractOneAttributes(raw json.RawMessage) (map[string]any, bool) {
+	var obj map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &obj); err != nil {
+		return nil, false
+	}
+	for _, classBody := range obj {
+		var inner struct {
+			Attributes map[string]any `json:"attributes"`
+		}
+		if err := json.Unmarshal(classBody, &inner); err != nil {
+			continue
+		}
+		if inner.Attributes != nil {
+			return inner.Attributes, true
 		}
 	}
-	return result
+	return nil, false
 }
 
 // truncateBody returns the first 200 bytes of a response body for error
@@ -352,4 +420,14 @@ func truncateBody(body []byte) string {
 		return string(body[:200]) + "..."
 	}
 	return string(body)
+}
+
+// truncateText bounds an APIC-supplied error string before it goes into
+// a Go error.
+func truncateText(s string) string {
+	const max = 200
+	if len(s) > max {
+		return s[:max] + "..."
+	}
+	return s
 }
