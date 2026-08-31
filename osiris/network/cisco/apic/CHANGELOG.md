@@ -55,11 +55,15 @@ that alters the emitted document (the discovery-coverage record below).
 - **Breaking:** leaf and spine fabric nodes are emitted as the core
   `network.switch` type instead of `osiris.cisco.switch.leaf` /
   `osiris.cisco.switch.spine`; the role is kept in `properties.role`.
-  Cisco APIC controller still stays as
-  `osiris.cisco.controller`. `properties.manufacturer` (`"Cisco"`) is
-  added to every node, and `provider.type` is now the native class
-  (`fabricNode`) rather than the hardware model (still in
-  `properties.model`).
+  `properties.manufacturer` (`"Cisco"`) is added to every node, and
+  `provider.type` is now the native class (`fabricNode`) rather than the
+  hardware model (still in `properties.model`).
+- **Breaking:** the APIC controller node is emitted as a core compute
+  type instead of `osiris.cisco.controller`: `compute.server` for a
+  physical APIC appliance, `compute.vm` for a virtual APIC (vAPIC),
+  distinguished by `topSystem.virtualMode`. `properties.role` stays
+  `controller` and `provider.type` stays `fabricNode`; the discovery
+  coverage record still rides the controller resource.
 - **Breaking:** `provider.site` no longer carries the ACI fabric-state
   string (`active` / `unknown`). Fabric state already drives
   `status`; APIC reports no sourced location for a node, so the field is
@@ -127,6 +131,15 @@ that alters the emitted document (the discovery-coverage record below).
   accepted (audit only). `template --generate` moves under the
   subcommand (`apic template --generate`) and writes both `--secrets-file`
   shapes.
+
+### Fixed
+- Class queries are now ordered by `dn`. APIC does not guarantee a
+  stable row order across separate page requests, so on a fabric with
+  live churn (routine for `fvCEp`) an object could repeat on the next
+  page or be skipped, which produced a duplicate `cisco.apic::<dn>`
+  resource and aborted the document build (or silently dropped
+  endpoints and faults). Each class response is also deduplicated by
+  `dn` as a backstop, with a `WARN` when a repeat is dropped.
 
 ---
 
