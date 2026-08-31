@@ -35,6 +35,9 @@ that alters the emitted document (the discovery-coverage record below).
   one-line prose summary of the same (fabric domain, succeeded/total
   ratio, and each operation not represented). `metadata.scope.purpose`
   is now set from `--purpose`.
+- `fvIp` is queried under `--purpose audit` (optional criticality,
+  recorded in the coverage record; `skipped` otherwise) to populate
+  endpoint `properties.ip_addresses`.
 
 ### Changed
 - **Breaking:** `provider.name` on every emitted resource and
@@ -43,6 +46,36 @@ that alters the emitted document (the discovery-coverage record below).
   `cisco.nxos`. The vendor extension namespace stays `osiris.cisco`.
   `metadata.scope.name` is now populated with the collection target's
   hostname.
+- **Breaking:** every resource `id` changes from the opaque
+  `res-<type>-<hint>-<hash>` form to `cisco.apic::<apic-dn>`, following
+  OSIRIS-JSON-v1.0 section 2.1.2's preferred `<provider>::<native-id>`
+  construction. The APIC distinguished name was already carried in
+  `provider.native_id`; it is now also the ID input, so an object's ID no
+  longer depends on the controller alias it was collected through.
+- **Breaking:** leaf and spine fabric nodes are emitted as the core
+  `network.switch` type instead of `osiris.cisco.switch.leaf` /
+  `osiris.cisco.switch.spine`; the role is kept in `properties.role`.
+  Cisco APIC controller still stays as
+  `osiris.cisco.controller`. `properties.manufacturer` (`"Cisco"`) is
+  added to every node, and `provider.type` is now the native class
+  (`fabricNode`) rather than the hardware model (still in
+  `properties.model`).
+- **Breaking:** `provider.site` no longer carries the ACI fabric-state
+  string (`active` / `unknown`). Fabric state already drives
+  `status`; APIC reports no sourced location for a node, so the field is
+  omitted.
+- **Breaking:** `network.subnet` resources replace `properties.ip` (the
+  raw `<gateway>/<prefix>` pair) with `properties.cidr` (the network
+  prefix) and `properties.gateway_ip` (the host address). The ACI routing
+  scope moves from `properties.scope` to
+  `extensions["osiris.cisco"]["aci_scope"]` and is no longer implied to
+  mean Internet public/private; `preferred` moves to the same extension.
+- **Breaking:** ACI endpoints (`fvCEp`, `--purpose audit`) are emitted as
+  the core `network.interface` type instead of `osiris.cisco.endpoint`.
+  `properties.mac` becomes `properties.mac_address`, and every `fvIp`
+  child address is joined into `properties.ip_addresses` (deduplicated,
+  sorted). The ACI encapsulation and fabric-path attributes move to
+  `extensions["osiris.cisco"]`.
 - Discovery now has an explicit per-domain failure policy. Fabric
   identity (`fabricNode`, `topSystem`) and the tenant object model
   (`fvTenant`, `fvCtx`, `fvBD`, `fvSubnet`, `fvAEPg`, `l3extOut`) are

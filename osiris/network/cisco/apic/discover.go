@@ -66,8 +66,9 @@ type discoveryClass struct {
 	crit criticality
 }
 
-// discoveryPlan returns the ordered class queries for a run. fvCEp
-// (endpoint inventory) is collected only for --purpose audit.
+// discoveryPlan returns the ordered class queries for a run. Endpoint
+// inventory (fvCEp) and its per-endpoint IP addresses (fvIp) are
+// collected only for --purpose audit.
 func discoveryPlan(audit bool) []discoveryClass {
 	plan := []discoveryClass{
 		{"fabricNode", critEssential},
@@ -85,7 +86,10 @@ func discoveryPlan(audit bool) []discoveryClass {
 		{"faultInst", critOptional},
 	}
 	if audit {
-		plan = append(plan, discoveryClass{"fvCEp", critOptional})
+		plan = append(plan,
+			discoveryClass{"fvCEp", critOptional},
+			discoveryClass{"fvIp", critOptional},
+		)
 	}
 	return plan
 }

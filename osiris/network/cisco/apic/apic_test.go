@@ -71,6 +71,9 @@ func fixtureServerWithFailures(t *testing.T, failCodes map[string]int) *httptest
 		"fvCEp": []any{
 			apicObj("fvCEp", map[string]any{"dn": "uni/tn-tn_Example/ap-app1/epg-epg_WEB/cep-00:00:5E:00:53:AA", "mac": "00:00:5E:00:53:AA", "encap": "vlan-100", "fabricPathDn": "topology/pod-1/paths-111/pathep-[eth1/1]"}),
 		},
+		"fvIp": []any{
+			apicObj("fvIp", map[string]any{"dn": "uni/tn-tn_Example/ap-app1/epg-epg_WEB/cep-00:00:5E:00:53:AA/ip-[203.0.113.30]", "addr": "203.0.113.30"}),
+		},
 		"fvRsCtx": []any{
 			apicObj("fvRsCtx", map[string]any{"dn": "uni/tn-tn_Example/BD-bd_App/rsctx", "tDn": "uni/tn-tn_Example/ctx-vrf_Prod_1", "state": "formed"}),
 		},
@@ -174,12 +177,11 @@ func TestCollect_Minimal(t *testing.T) {
 
 	typeCounts := countTypes(doc.Topology.Resources)
 	assertCount(t, typeCounts, "osiris.cisco.controller", 1)
-	assertCount(t, typeCounts, "osiris.cisco.switch.spine", 1)
-	assertCount(t, typeCounts, "osiris.cisco.switch.leaf", 1)
+	assertCount(t, typeCounts, "network.switch", 2) // 1 spine + 1 leaf
 	assertCount(t, typeCounts, "osiris.cisco.domain.bridge", 1)
 	assertCount(t, typeCounts, "network.subnet", 1)
 	assertCount(t, typeCounts, "osiris.cisco.l3out", 1)
-	assertCount(t, typeCounts, "osiris.cisco.endpoint", 0) // minimal = no endpoints
+	assertCount(t, typeCounts, "network.interface", 0) // minimal = no endpoints
 
 	// No connections (ACI relationships are modeled as group membership).
 	if len(doc.Topology.Connections) != 0 {
@@ -233,7 +235,26 @@ func TestCollect_Detailed(t *testing.T) {
 	}
 
 	typeCounts := countTypes(doc.Topology.Resources)
-	assertCount(t, typeCounts, "osiris.cisco.endpoint", 1)
+	assertCount(t, typeCounts, "network.interface", 1)
+
+	// The endpoint carries its fvIp address in ip_addresses and its ACI
+	// encapsulation in the vendor extension.
+	var ep *sdk.Resource
+	for i := range doc.Topology.Resources {
+		if doc.Topology.Resources[i].Type == "network.interface" {
+			ep = &doc.Topology.Resources[i]
+			break
+		}
+	}
+	if ep == nil {
+		t.Fatal("missing network.interface endpoint resource")
+	}
+	if addrs, ok := ep.Properties["ip_addresses"].([]string); !ok || len(addrs) != 1 || addrs[0] != "203.0.113.30" {
+		t.Errorf("endpoint ip_addresses: %v", ep.Properties["ip_addresses"])
+	}
+	if cisco, ok := ep.Extensions[extensionNamespace].(map[string]any); !ok || cisco["encap"] != "vlan-100" {
+		t.Errorf("endpoint encap extension: %v", ep.Extensions)
+	}
 
 	// EPG should have the endpoint + BD as members.
 	epgWEB := findGroup(doc.Topology.Groups, "epg_WEB")
@@ -266,7 +287,7 @@ func TestCollect_FaultExtensions(t *testing.T) {
 	// Find the spine resource (node-101) - should have 1 fault (cleared filtered).
 	var spine *sdk.Resource
 	for i, r := range doc.Topology.Resources {
-		if r.Type == "osiris.cisco.switch.spine" {
+		if r.Type == "network.switch" && r.Properties["role"] == "spine" {
 			spine = &doc.Topology.Resources[i]
 			break
 		}
@@ -319,7 +340,7 @@ func TestCollect_FaultExtensions(t *testing.T) {
 
 	var leaf *sdk.Resource
 	for i, r := range doc.Topology.Resources {
-		if r.Type == "osiris.cisco.switch.leaf" {
+		if r.Type == "network.switch" && r.Properties["role"] == "leaf" {
 			leaf = &doc.Topology.Resources[i]
 			break
 		}

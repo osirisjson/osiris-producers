@@ -34,6 +34,7 @@ func TestDiscoveryPlan_FailurePolicy(t *testing.T) {
 		"l3extRsEctx":     false,
 		"faultInst":       false,
 		"fvCEp":           false,
+		"fvIp":            false,
 	}
 
 	got := map[string]bool{}
@@ -51,20 +52,24 @@ func TestDiscoveryPlan_FailurePolicy(t *testing.T) {
 	}
 }
 
-func TestDiscoveryPlan_FvCEpAuditOnly(t *testing.T) {
+func TestDiscoveryPlan_EndpointClassesAreAuditOnly(t *testing.T) {
+	auditOnly := map[string]bool{"fvCEp": true, "fvIp": true}
+
 	for _, dc := range discoveryPlan(false) {
-		if dc.name == "fvCEp" {
-			t.Fatal("fvCEp must not be in the documentation-purpose plan")
+		if auditOnly[dc.name] {
+			t.Errorf("%s must not be in the documentation-purpose plan", dc.name)
 		}
 	}
-	found := false
+	seen := map[string]bool{}
 	for _, dc := range discoveryPlan(true) {
-		if dc.name == "fvCEp" {
-			found = true
+		if auditOnly[dc.name] {
+			seen[dc.name] = true
 		}
 	}
-	if !found {
-		t.Fatal("fvCEp must be in the audit-purpose plan")
+	for name := range auditOnly {
+		if !seen[name] {
+			t.Errorf("%s must be in the audit-purpose plan", name)
+		}
 	}
 }
 

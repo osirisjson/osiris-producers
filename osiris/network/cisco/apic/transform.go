@@ -9,7 +9,8 @@
 package apic
 
 import (
-	"fmt"
+	"net"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -23,11 +24,13 @@ const extensionNamespace = "osiris.cisco"
 // The vendor extension namespace stays "osiris.cisco".
 const providerName = "cisco.apic"
 
-// nodeRoleToType maps APIC fabricNode role values to OSIRIS resource types.
+// nodeRoleToType maps APIC fabricNode role values to OSIRIS resource
+// types. Leaf and spine are the core network.switch type with the role
+// kept in properties.role;
 var nodeRoleToType = map[string]string{
 	"controller": "osiris.cisco.controller",
-	"spine":      "osiris.cisco.switch.spine",
-	"leaf":       "osiris.cisco.switch.leaf",
+	"spine":      "network.switch",
+	"leaf":       "network.switch",
 }
 
 // TransformNodes converts fabricNode attributes (merged with topSystem and firmware)
@@ -47,14 +50,13 @@ func TransformNodes(nodes, systems, firmware []map[string]any) []sdk.Resource {
 		}
 
 		name := str(n, "name")
-		id := resourceID(resType, dn)
+		id := resourceID(dn)
 
 		prov := sdk.Provider{
 			Name:     providerName,
 			NativeID: dn,
-			Type:     str(n, "model"),
+			Type:     "fabricNode",
 			Version:  str(n, "version"),
-			Site:     str(n, "fabricSt"),
 		}
 
 		r, err := sdk.NewResource(id, resType, prov)
@@ -75,11 +77,13 @@ func TransformNodes(nodes, systems, firmware []map[string]any) []sdk.Resource {
 		}
 
 		props := map[string]any{
-			"serial":  str(n, "serial"),
-			"model":   str(n, "model"),
-			"address": str(n, "address"),
-			"node_id": str(n, "id"),
-			"pod":     extractPod(dn),
+			"manufacturer": "Cisco",
+			"role":         role,
+			"serial":       str(n, "serial"),
+			"model":        str(n, "model"),
+			"address":      str(n, "address"),
+			"node_id":      str(n, "id"),
+			"pod":          extractPod(dn),
 		}
 
 		// Merge topSystem attributes.
@@ -219,7 +223,7 @@ func TransformBridgeDomains(bds []map[string]any) ([]sdk.Resource, map[string]st
 		dn := str(bd, "dn")
 		name := str(bd, "name")
 
-		id := resourceID("osiris.cisco.domain.bridge", dn)
+		id := resourceID(dn)
 		dnToID[dn] = id
 
 		prov := sdk.Provider{
@@ -260,13 +264,19 @@ func TransformBridgeDomains(bds []map[string]any) ([]sdk.Resource, map[string]st
 }
 
 // TransformSubnets converts fvSubnet attributes into OSIRIS resources.
+// fvSubnet.ip is an "<gateway>/<prefix>" pair: it is normalized into
+// properties.cidr (the network prefix) and properties.gateway_ip (the
+// host address). The ACI routing scope (fvSubnet.scope) expresses
+// advertisement behavior, not Internet reachability, so it is kept in
+// the vendor extension and never mapped to a public/private property.
 func TransformSubnets(subnets []map[string]any) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, s := range subnets {
 		dn := str(s, "dn")
 		ip := str(s, "ip")
+		cidr, gateway := subnetCIDR(ip)
 
-		id := resourceID("network.subnet", dn)
+		id := resourceID(dn)
 		prov := sdk.Provider{
 			Name:     providerName,
 			NativeID: dn,
@@ -276,17 +286,29 @@ func TransformSubnets(subnets []map[string]any) []sdk.Resource {
 		if err != nil {
 			continue
 		}
-		r.Name = ip
+		r.Name = cidr
 		r.Status = "active"
 
-		props := map[string]any{
-			"ip":    ip,
-			"scope": str(s, "scope"),
+		props := map[string]any{}
+		if cidr != "" {
+			props["cidr"] = cidr
 		}
-		if v := str(s, "preferred"); v != "" {
-			props["preferred"] = v
+		if gateway != "" {
+			props["gateway_ip"] = gateway
 		}
 		r.Properties = props
+
+		ext := map[string]any{}
+		if v := str(s, "scope"); v != "" {
+			ext["aci_scope"] = v
+		}
+		if v := str(s, "preferred"); v != "" {
+			ext["preferred"] = v
+		}
+		if len(ext) > 0 {
+			r.Extensions = map[string]any{extensionNamespace: ext}
+		}
+
 		resources = append(resources, r)
 	}
 	return resources
@@ -321,20 +343,26 @@ func TransformEPGs(epgs []map[string]any) ([]sdk.Group, map[string]string) {
 	return groups, dnToID
 }
 
-// TransformEndpoints converts fvCEp attributes into OSIRIS resources (detailed mode only).
-func TransformEndpoints(endpoints []map[string]any) []sdk.Resource {
+// TransformEndpoints converts fvCEp attributes into core
+// network.interface resources (audit mode only). Every fvIp child of an
+// endpoint is joined into properties.ip_addresses, deduplicated and
+// sorted. The ACI-specific encapsulation and fabric-path attributes are
+// kept in the vendor extension, not in the core interface properties.
+func TransformEndpoints(endpoints, ips []map[string]any) []sdk.Resource {
+	ipsByEndpoint := indexIPsByEndpoint(ips)
+
 	var resources []sdk.Resource
 	for _, ep := range endpoints {
 		dn := str(ep, "dn")
 		mac := str(ep, "mac")
 
-		id := resourceID("osiris.cisco.endpoint", dn)
+		id := resourceID(dn)
 		prov := sdk.Provider{
 			Name:     providerName,
 			NativeID: dn,
 		}
 
-		r, err := sdk.NewResource(id, "osiris.cisco.endpoint", prov)
+		r, err := sdk.NewResource(id, "network.interface", prov)
 		if err != nil {
 			continue
 		}
@@ -342,13 +370,24 @@ func TransformEndpoints(endpoints []map[string]any) []sdk.Resource {
 		r.Status = "active"
 
 		props := map[string]any{
-			"mac":   sdk.NormalizeMAC(mac),
-			"encap": str(ep, "encap"),
+			"mac_address": sdk.NormalizeMAC(mac),
 		}
-		if v := str(ep, "fabricPathDn"); v != "" {
-			props["fabric_path"] = v
+		if addrs := ipsByEndpoint[dn]; len(addrs) > 0 {
+			props["ip_addresses"] = addrs
 		}
 		r.Properties = props
+
+		ext := map[string]any{}
+		if v := str(ep, "encap"); v != "" {
+			ext["encap"] = v
+		}
+		if v := str(ep, "fabricPathDn"); v != "" {
+			ext["fabric_path"] = v
+		}
+		if len(ext) > 0 {
+			r.Extensions = map[string]any{extensionNamespace: ext}
+		}
+
 		resources = append(resources, r)
 	}
 	return resources
@@ -370,7 +409,7 @@ func TransformL3Outs(l3outs []map[string]any) ([]sdk.Resource, map[string]string
 		}
 		dn := str(l, "dn")
 
-		id := resourceID("osiris.cisco.l3out", dn)
+		id := resourceID(dn)
 		dnToID[dn] = id
 
 		prov := sdk.Provider{
@@ -536,7 +575,7 @@ func WireSubnetsToTenants(subnetAttrs []map[string]any, tenantDNToID map[string]
 	idx := groupIndex(tenantGroups)
 	for _, s := range subnetAttrs {
 		dn := str(s, "dn")
-		subnetID := resourceID("network.subnet", dn)
+		subnetID := resourceID(dn)
 		tenantDN := extractTenantDN(dn)
 		parentID, ok := tenantDNToID[tenantDN]
 		if !ok {
@@ -597,7 +636,7 @@ func WireL3OutsToTenants(l3outAttrs []map[string]any, tenantDNToID map[string]st
 			continue
 		}
 		dn := str(l, "dn")
-		l3outID := resourceID("osiris.cisco.l3out", dn)
+		l3outID := resourceID(dn)
 		tenantDN := extractTenantDN(dn)
 		parentID, ok := tenantDNToID[tenantDN]
 		if !ok {
@@ -616,7 +655,7 @@ func WireEndpointsToEPGs(endpointAttrs []map[string]any, epgDNToID map[string]st
 	idx := groupIndex(epgGroups)
 	for _, ep := range endpointAttrs {
 		dn := str(ep, "dn")
-		epID := resourceID("osiris.cisco.endpoint", dn)
+		epID := resourceID(dn)
 		epgDN := extractEPGDN(dn)
 		parentID, ok := epgDNToID[epgDN]
 		if !ok {
@@ -752,12 +791,59 @@ func str(attrs map[string]any, key string) string {
 	return ""
 }
 
-// resourceID generates a deterministic resource ID from type and APIC DN.
-func resourceID(resType, dn string) string {
-	canonicalKey := fmt.Sprintf("v1|%s|%s", resType, dn)
-	hash := sdk.Hash16(canonicalKey)
-	hint := sdk.DeriveHint(dn, hash)
-	return fmt.Sprintf("res-%s-%s-%s", resType, hint, hash)
+// resourceID builds a resource ID from the object's APIC distinguished
+// name, following OSIRIS-JSON-v1.0 section 2.1.2's preferred
+// "<provider>::<native-id>" construction (the same direct scheme the
+// NX-OS producer uses). An APIC DN is fabric-wide unique and is already
+// carried verbatim in provider.native_id, so no hashing is needed.
+func resourceID(dn string) string {
+	return providerName + "::" + dn
+}
+
+// subnetCIDR normalizes an fvSubnet "ip" value (an "<address>/<prefix>"
+// pair where the address is the gateway, not the network address) into
+// the network prefix and the gateway host address. On a parse failure
+// it returns the raw value as the CIDR and an empty gateway.
+func subnetCIDR(ip string) (cidr, gateway string) {
+	gwIP, ipNet, err := net.ParseCIDR(ip)
+	if err != nil {
+		return ip, ""
+	}
+	return ipNet.String(), gwIP.String()
+}
+
+// indexIPsByEndpoint groups fvIp objects by their parent fvCEp DN and
+// returns the deduplicated, sorted address list per endpoint.
+// An fvIp DN is "<cep-dn>/ip-[<address>]".
+func indexIPsByEndpoint(ips []map[string]any) map[string][]string {
+	sets := make(map[string]map[string]struct{})
+	for _, ip := range ips {
+		dn := str(ip, "dn")
+		addr := str(ip, "addr")
+		if addr == "" {
+			continue
+		}
+		i := strings.LastIndex(dn, "/ip-[")
+		if i < 0 {
+			continue
+		}
+		cepDN := dn[:i]
+		if sets[cepDN] == nil {
+			sets[cepDN] = make(map[string]struct{})
+		}
+		sets[cepDN][addr] = struct{}{}
+	}
+
+	out := make(map[string][]string, len(sets))
+	for cepDN, set := range sets {
+		addrs := make([]string, 0, len(set))
+		for a := range set {
+			addrs = append(addrs, a)
+		}
+		sort.Strings(addrs)
+		out[cepDN] = addrs
+	}
+	return out
 }
 
 // groupIndex builds a map of group ID -> index in slice for efficient mutation.

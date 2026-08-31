@@ -37,23 +37,42 @@ func TestTransformNodes(t *testing.T) {
 		t.Fatalf("expected 3 resources, got %d", len(resources))
 	}
 
-	byType := make(map[string]sdk.Resource)
+	// Leaf and spine share the core network.switch type; index nodes by
+	// role instead so both stay reachable.
+	byRole := make(map[string]sdk.Resource)
 	for _, r := range resources {
-		byType[r.Type] = r
+		if role, _ := r.Properties["role"].(string); role != "" {
+			byRole[role] = r
+		}
 	}
 
-	ctrl, ok := byType["osiris.cisco.controller"]
+	ctrl, ok := byRole["controller"]
 	if !ok {
 		t.Fatal("missing controller resource")
+	}
+	if ctrl.Type != "osiris.cisco.controller" {
+		t.Errorf("controller type: %s", ctrl.Type)
 	}
 	if ctrl.Name != "LAB-APIC1" {
 		t.Errorf("controller name: expected LAB-APIC1, got %s", ctrl.Name)
 	}
+	if ctrl.ID != "cisco.apic::topology/pod-1/node-1" {
+		t.Errorf("controller ID: %s", ctrl.ID)
+	}
 	if ctrl.Provider.NativeID != "topology/pod-1/node-1" {
 		t.Errorf("controller NativeID: %s", ctrl.Provider.NativeID)
 	}
+	if ctrl.Provider.Type != "fabricNode" {
+		t.Errorf("controller provider.type: %s", ctrl.Provider.Type)
+	}
+	if ctrl.Provider.Site != "" {
+		t.Errorf("provider.site must not carry fabric state: %q", ctrl.Provider.Site)
+	}
 	if ctrl.Status != "active" {
 		t.Errorf("controller status: expected active, got %s", ctrl.Status)
+	}
+	if ctrl.Properties["manufacturer"] != "Cisco" {
+		t.Errorf("controller manufacturer: %v", ctrl.Properties["manufacturer"])
 	}
 	if ctrl.Properties["oob_mgmt_addr"] != "198.51.100.1" {
 		t.Errorf("controller oob_mgmt_addr: %v", ctrl.Properties["oob_mgmt_addr"])
@@ -62,9 +81,12 @@ func TestTransformNodes(t *testing.T) {
 		t.Errorf("controller fabric_domain: %v", ctrl.Properties["fabric_domain"])
 	}
 
-	spine, ok := byType["osiris.cisco.switch.spine"]
+	spine, ok := byRole["spine"]
 	if !ok {
 		t.Fatal("missing spine resource")
+	}
+	if spine.Type != "network.switch" {
+		t.Errorf("spine type: expected network.switch, got %s", spine.Type)
 	}
 	if spine.Status != "active" {
 		t.Errorf("spine status: expected active, got %s", spine.Status)
@@ -73,8 +95,12 @@ func TestTransformNodes(t *testing.T) {
 		t.Errorf("spine firmware version: %s", spine.Provider.Version)
 	}
 
-	if _, ok := byType["osiris.cisco.switch.leaf"]; !ok {
+	leaf, ok := byRole["leaf"]
+	if !ok {
 		t.Fatal("missing leaf resource")
+	}
+	if leaf.Type != "network.switch" {
+		t.Errorf("leaf type: expected network.switch, got %s", leaf.Type)
 	}
 }
 
@@ -159,7 +185,7 @@ func TestTransformBridgeDomains(t *testing.T) {
 
 func TestTransformSubnets(t *testing.T) {
 	subnets := []map[string]any{
-		{"dn": "uni/tn-tn_TestCorp/BD-bd_App01/subnet-[203.0.113.1/23]", "ip": "203.0.113.1/23", "scope": "public", "preferred": "no"},
+		{"dn": "uni/tn-tn_TestCorp/BD-bd_App01/subnet-[203.0.113.1/24]", "ip": "203.0.113.1/24", "scope": "public,shared", "preferred": "no"},
 	}
 
 	resources := TransformSubnets(subnets)
@@ -167,11 +193,31 @@ func TestTransformSubnets(t *testing.T) {
 	if len(resources) != 1 {
 		t.Fatalf("expected 1 resource, got %d", len(resources))
 	}
-	if resources[0].Name != "203.0.113.1/23" {
-		t.Errorf("name: %s", resources[0].Name)
+	r := resources[0]
+	if r.ID != "cisco.apic::uni/tn-tn_TestCorp/BD-bd_App01/subnet-[203.0.113.1/24]" {
+		t.Errorf("id: %s", r.ID)
 	}
-	if resources[0].Properties["ip"] != "203.0.113.1/23" {
-		t.Errorf("ip: %v", resources[0].Properties["ip"])
+	if r.Name != "203.0.113.0/24" {
+		t.Errorf("name: %s", r.Name)
+	}
+	if r.Properties["cidr"] != "203.0.113.0/24" {
+		t.Errorf("cidr: %v", r.Properties["cidr"])
+	}
+	if r.Properties["gateway_ip"] != "203.0.113.1" {
+		t.Errorf("gateway_ip: %v", r.Properties["gateway_ip"])
+	}
+	if _, ok := r.Properties["ip"]; ok {
+		t.Errorf("raw ip property should be dropped: %v", r.Properties["ip"])
+	}
+	if _, ok := r.Properties["scope"]; ok {
+		t.Error("ACI scope must not sit in core properties")
+	}
+	cisco, ok := r.Extensions[extensionNamespace].(map[string]any)
+	if !ok {
+		t.Fatal("subnet should carry an osiris.cisco extension")
+	}
+	if cisco["aci_scope"] != "public,shared" {
+		t.Errorf("aci_scope: %v", cisco["aci_scope"])
 	}
 }
 
@@ -197,14 +243,37 @@ func TestTransformEndpoints(t *testing.T) {
 	endpoints := []map[string]any{
 		{"dn": "uni/tn-tn_Lab/ap-appl/epg-epg1/cep-00:00:5E:00:53:CC", "mac": "00:00:5E:00:53:CC", "encap": "vlan-914", "fabricPathDn": "topology/pod-2/paths-219/pathep-[eth1/46]"},
 	}
+	ips := []map[string]any{
+		{"dn": "uni/tn-tn_Lab/ap-appl/epg-epg1/cep-00:00:5E:00:53:CC/ip-[203.0.113.20]", "addr": "203.0.113.20"},
+		{"dn": "uni/tn-tn_Lab/ap-appl/epg-epg1/cep-00:00:5E:00:53:CC/ip-[203.0.113.10]", "addr": "203.0.113.10"},
+		{"dn": "uni/tn-tn_Lab/ap-appl/epg-epg1/cep-00:00:5E:00:53:CC/ip-[203.0.113.10]", "addr": "203.0.113.10"}, // dup
+	}
 
-	resources := TransformEndpoints(endpoints)
+	resources := TransformEndpoints(endpoints, ips)
 
 	if len(resources) != 1 {
 		t.Fatalf("expected 1 resource, got %d", len(resources))
 	}
-	if resources[0].Properties["mac"] != "00:00:5e:00:53:cc" {
-		t.Errorf("normalized mac: %v", resources[0].Properties["mac"])
+	r := resources[0]
+	if r.Type != "network.interface" {
+		t.Errorf("type: expected network.interface, got %s", r.Type)
+	}
+	if r.Properties["mac_address"] != "00:00:5e:00:53:cc" {
+		t.Errorf("normalized mac_address: %v", r.Properties["mac_address"])
+	}
+	addrs, ok := r.Properties["ip_addresses"].([]string)
+	if !ok {
+		t.Fatalf("ip_addresses should be a []string, got %T", r.Properties["ip_addresses"])
+	}
+	if len(addrs) != 2 || addrs[0] != "203.0.113.10" || addrs[1] != "203.0.113.20" {
+		t.Errorf("ip_addresses should be deduplicated and sorted: %v", addrs)
+	}
+	cisco, ok := r.Extensions[extensionNamespace].(map[string]any)
+	if !ok {
+		t.Fatal("endpoint should carry an osiris.cisco extension for encap/fabric_path")
+	}
+	if cisco["encap"] != "vlan-914" {
+		t.Errorf("encap: %v", cisco["encap"])
 	}
 }
 
@@ -641,15 +710,15 @@ func TestMapNodeStatus(t *testing.T) {
 	}
 }
 
-func TestResourceID_Deterministic(t *testing.T) {
-	id1 := resourceID("osiris.cisco.controller", "topology/pod-1/node-1")
-	id2 := resourceID("osiris.cisco.controller", "topology/pod-1/node-1")
-	if id1 != id2 {
-		t.Errorf("resourceID not deterministic: %q != %q", id1, id2)
+func TestResourceID_FromDN(t *testing.T) {
+	id := resourceID("topology/pod-1/node-1")
+	if id != "cisco.apic::topology/pod-1/node-1" {
+		t.Errorf("resourceID = %q, want cisco.apic::topology/pod-1/node-1", id)
 	}
-
-	id3 := resourceID("osiris.cisco.controller", "topology/pod-1/node-2")
-	if id1 == id3 {
-		t.Errorf("different DNs should produce different IDs")
+	if resourceID("topology/pod-1/node-1") != id {
+		t.Error("resourceID is not deterministic for the same DN")
+	}
+	if resourceID("topology/pod-1/node-2") == id {
+		t.Error("different DNs must produce different IDs")
 	}
 }

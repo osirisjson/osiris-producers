@@ -88,6 +88,7 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	}
 	if !audit {
 		cov.skipped("fvCEp")
+		cov.skipped("fvIp")
 	}
 	covOK, covFailed, covSkipped := cov.tally()
 	ctx.Logger.Info("APIC discovery complete",
@@ -106,7 +107,8 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	epgToBdAttrs := raw["fvRsBd"]
 	l3outToCtxAttrs := raw["l3extRsEctx"]
 	faultAttrs := raw["faultInst"]
-	endpointAttrs := raw["fvCEp"] // nil unless --purpose audit
+	endpointAttrs := raw["fvCEp"]  // nil unless --purpose audit
+	endpointIPAttrs := raw["fvIp"] // nil unless --purpose audit
 
 	// Transform APIC data to OSIRIS types.
 	ctx.Logger.Info("transforming ACI objects to OSIRIS resources and groups")
@@ -190,7 +192,7 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	}
 
 	if len(endpointAttrs) > 0 {
-		for _, r := range TransformEndpoints(endpointAttrs) {
+		for _, r := range TransformEndpoints(endpointAttrs, endpointIPAttrs) {
 			builder.AddResource(r)
 		}
 	}
