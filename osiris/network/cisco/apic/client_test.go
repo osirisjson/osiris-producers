@@ -383,6 +383,23 @@ func TestQueryClass_Success(t *testing.T) {
 	}
 }
 
+func TestQueryClass_SendsStableOrder(t *testing.T) {
+	var gotOrderBy string
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotOrderBy = r.URL.Query().Get("order-by")
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"imdata": []any{}})
+	}))
+	defer ts.Close()
+
+	if _, err := newTestClient(ts).QueryClass("fvCEp"); err != nil {
+		t.Fatalf("QueryClass failed: %v", err)
+	}
+	if gotOrderBy != "fvCEp.dn" {
+		t.Errorf("order-by = %q, want %q (pages must be stably ordered to stay disjoint)", gotOrderBy, "fvCEp.dn")
+	}
+}
+
 func TestQueryClass_Pagination(t *testing.T) {
 	callCount := 0
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

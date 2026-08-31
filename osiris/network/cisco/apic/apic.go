@@ -11,6 +11,7 @@ package apic
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"go.osirisjson.org/producers/osiris/network/cisco/run"
 	"go.osirisjson.org/producers/pkg/sdk"
@@ -83,6 +84,7 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 			cov.failed(dc.name, cat)
 			continue
 		}
+		objs = dedupeByDN(objs, dc.name, ctx.Logger)
 		raw[dc.name] = objs
 		cov.succeeded(dc.name, len(objs))
 	}
@@ -223,4 +225,32 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	)
 
 	return doc, nil
+}
+
+// dedupeByDN removes objects whose dn already appeared earlier in the
+// same class response, preserving order. APIC class-query pagination
+// can repeat an object across a page boundary when the managed-object
+// tree changes during the query (see QueryClass); a repeated dn would
+// otherwise produce a duplicate "cisco.apic::<dn>" resource id and fail
+// the document build fail-closed. Objects with no dn are left untouched.
+func dedupeByDN(objs []map[string]any, class string, logger *slog.Logger) []map[string]any {
+	seen := make(map[string]struct{}, len(objs))
+	out := objs[:0]
+	dropped := 0
+	for _, o := range objs {
+		dn := str(o, "dn")
+		if dn != "" {
+			if _, dup := seen[dn]; dup {
+				dropped++
+				continue
+			}
+			seen[dn] = struct{}{}
+		}
+		out = append(out, o)
+	}
+	if dropped > 0 {
+		logger.Warn("APIC class response contained duplicate objects; deduplicated by dn",
+			"class", class, "dropped", dropped)
+	}
+	return out
 }

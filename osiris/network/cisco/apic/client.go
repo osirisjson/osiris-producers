@@ -211,12 +211,21 @@ func (c *Client) Logout() error {
 // page carried, not on how many survived attribute extraction, so a
 // single malformed object cannot look like a short final page and
 // truncate the pages after it.
+//
+// The query is ordered by "dn" (unique on every managed object). APIC
+// does not guarantee a stable row order across separate page requests,
+// so without an explicit sort an object can repeat on the next page (or
+// be skipped) when the managed-object tree changes mid-query, which for
+// a churny class such as fvCEp is routine on a live fabric. A stable
+// order makes the pages disjoint and complete; dedupeByDN in the caller
+// is the backstop.
 func (c *Client) QueryClass(class string) ([]map[string]any, error) {
 	var all []map[string]any
 	page := 0
 
 	for {
-		url := fmt.Sprintf("%s/api/class/%s.json?page=%d&page-size=%d", c.baseURL, class, page, pageSize)
+		url := fmt.Sprintf("%s/api/class/%s.json?page=%d&page-size=%d&order-by=%s.dn",
+			c.baseURL, class, page, pageSize, class)
 
 		body, _, err := c.doRequest(http.MethodGet, url, nil)
 		if err != nil {

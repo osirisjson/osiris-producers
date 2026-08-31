@@ -11,6 +11,8 @@ package apic
 
 import (
 	"encoding/json"
+	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -126,6 +128,32 @@ func apicObj(className string, attrs map[string]any) map[string]any {
 	return map[string]any{className: map[string]any{"attributes": attrs}}
 }
 
+func TestDedupeByDN(t *testing.T) {
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	in := []map[string]any{
+		{"dn": "uni/tn-A/ap-P/epg-E/cep-00:00:5E:00:53:01"},
+		{"dn": "uni/tn-A/ap-P/epg-E/cep-00:00:5E:00:53:02"},
+		{"dn": "uni/tn-A/ap-P/epg-E/cep-00:00:5E:00:53:01"}, // page-boundary repeat
+		{"name": "no-dn-kept"},
+		{"name": "no-dn-kept-2"},
+	}
+	out := dedupeByDN(in, "fvCEp", logger)
+	if len(out) != 4 {
+		t.Fatalf("got %d objects, want 4 (one duplicate dn dropped, both dn-less objects kept)", len(out))
+	}
+	counts := map[string]int{}
+	for _, o := range out {
+		if dn, _ := o["dn"].(string); dn != "" {
+			counts[dn]++
+		}
+	}
+	for dn, n := range counts {
+		if n != 1 {
+			t.Errorf("dn %q appears %d times after dedupe, want 1", dn, n)
+		}
+	}
+}
+
 func newTestProducer(t *testing.T, ts *httptest.Server, detailLevel string) (*Producer, *sdk.Context) {
 	t.Helper()
 	purpose := "documentation"
@@ -176,7 +204,7 @@ func TestCollect_Minimal(t *testing.T) {
 	}
 
 	typeCounts := countTypes(doc.Topology.Resources)
-	assertCount(t, typeCounts, "osiris.cisco.controller", 1)
+	assertCount(t, typeCounts, "compute.server", 1)
 	assertCount(t, typeCounts, "network.switch", 2) // 1 spine + 1 leaf
 	assertCount(t, typeCounts, "osiris.cisco.domain.bridge", 1)
 	assertCount(t, typeCounts, "network.subnet", 1)
@@ -437,7 +465,7 @@ func TestCollect_ACINodeExtensions(t *testing.T) {
 	// LAB-APIC1 (controller) should have ACI extensions from topSystem.
 	var ctrl *sdk.Resource
 	for i, r := range doc.Topology.Resources {
-		if r.Type == "osiris.cisco.controller" {
+		if r.Type == "compute.server" {
 			ctrl = &doc.Topology.Resources[i]
 			break
 		}
@@ -530,7 +558,7 @@ func TestCollect_CoverageOnControllers(t *testing.T) {
 	var controllers int
 	for i := range doc.Topology.Resources {
 		r := &doc.Topology.Resources[i]
-		if r.Type != "osiris.cisco.controller" {
+		if r.Type != "compute.server" {
 			continue
 		}
 		controllers++
@@ -577,7 +605,7 @@ func TestCollect_OptionalDiscoveryFailureDegrades(t *testing.T) {
 
 	var sawFailed bool
 	for i := range doc.Topology.Resources {
-		if doc.Topology.Resources[i].Type != "osiris.cisco.controller" {
+		if doc.Topology.Resources[i].Type != "compute.server" {
 			continue
 		}
 		e := covEntry(coverageOf(t, &doc.Topology.Resources[i]), "faultInst")
