@@ -41,6 +41,68 @@ OSIRIS JSON core schema itself, see the [OSIRIS JSON Repository](https://github.
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-09-01
+
+Cisco APIC producer resource-model, identity, transport,
+partial-coverage and topology-graph overhaul (behavior version 0.2.0,
+its first `generatorVersion` bump since the initial release).
+No other producer changed.
+
+| Producer | Behavior version |
+|----------|------------------|
+| Amazon Web Services OSIRIS JSON producer | 0.1.1 (no change) |
+| Microsoft Azure OSIRIS JSON producer | 0.5.2 (no change) |
+| Cisco APIC OSIRIS JSON producer | [0.2.0](osiris/network/cisco/apic/CHANGELOG.md#020---2026-09-01) |
+| Cisco IOS-XE OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco NX-OS OSIRIS JSON producer | 0.2.0 (no change) |
+| Cisco vManage OSIRIS JSON producer | 0.1.0 (no change) |
+| HPE Aruba Networking Central OSIRIS JSON producer | 0.1.0 (no change) |
+
+### Highlights (Cisco APIC 0.2.0)
+- **Core taxonomy and spec-form identity:** leaf/spine fabric nodes are
+  `network.switch`, the APIC controller is `compute.server` (or
+  `compute.vm` for a vAPIC), ACI endpoints are `network.interface`, and
+  subnets carry `cidr` plus `gateway_ip`. Resource IDs move from an
+  opaque hash to `cisco.apic::<apic-dn>` (OSIRIS-JSON-v1.0 2.1.2
+  namespaced-native-ID), so an object's ID no longer depends on the
+  controller alias it was collected through. `provider.name` and
+  `metadata.scope.providers` become `cisco.apic`.
+- **Physical topology graph (the producer emitted zero connections
+  before):** `l1PhysIf` enriched by `ethpmPhysIf` becomes
+  `network.switch.port` resources wired to their node by `contains`;
+  `fabricLink`, LLDP and CDP are merged into one `physical.ethernet`
+  connection per link with a `discovered_by` provenance list; an
+  off-fabric neighbour gets a minimal `network.switch` stub so the
+  connection resolves.
+- **Truthful, partial-tolerant collection:** typed `imdata` envelope
+  decoding, pagination that advances on source-object count (a malformed
+  object can no longer truncate a page), and a criticality-based
+  discovery plan (fabric-identity and tenant-model failures abort;
+  enrichment failures degrade to a partial document). Every controller
+  resource carries a `coverage` extension, and
+  `metadata.scope.description` carries a one-line prose summary of what
+  was and was not represented.
+- **Hardened transport and credential safety:** per-request and overall
+  timeouts, SIGINT/SIGTERM cancellation, bounded response bodies,
+  classified retry, JSON-built login/logout bodies, `aaaLogout` on exit,
+  and an `--insecure` warning. The inline `-p`/`--password` flag is gone
+  (`--secrets-file` plus env var plus prompt); `--detail` becomes
+  `--purpose documentation|audit` following OSIRIS JSON specification.
+- **`--purpose audit`** adds `fvCEp`/`fvIp` endpoints with joined
+  `ip_addresses`, endpoint-to-port wiring, and `fvRsPathAtt` EPG path
+  attachments as group members. `--help` is single-sourced from the real
+  flag set.
+
+**Breaking** to every already-emitted APIC resource `id`, to
+`provider.name`/`metadata.scope.providers`, and to the `type` of fabric
+nodes, the APIC controller, subnets and endpoints. `--include-raw-body`
+is accepted but inert until a later release.
+
+See the [Cisco APIC 0.2.0 entry](osiris/network/cisco/apic/CHANGELOG.md#020---2026-09-01)
+for the full list of changes and known limitations.
+
+---
+
 ## [0.7.0] - 2026-08-29
 
 First shipped release of the Cisco Catalyst SD-WAN Manager (vManage)
@@ -508,7 +570,8 @@ Initial SDK release. No producers shipped under this tag.
 - Removed empty `common/` stubs (replaced by `pkg/sdk/`).
 - Updated `.gitignore` for Go.
 
-[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/osirisjson/osiris-producers/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/osirisjson/osiris-producers/compare/v0.6.4...v0.7.0
 [0.6.4]: https://github.com/osirisjson/osiris-producers/compare/v0.6.3...v0.6.4
 [0.6.3]: https://github.com/osirisjson/osiris-producers/compare/v0.6.2...v0.6.3
