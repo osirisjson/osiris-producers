@@ -26,6 +26,38 @@ the release-level index of which producers shipped under each tag.
 that alters the emitted document (the discovery-coverage record below).
 
 ### Added
+- Physical fabric topology. `l1PhysIf` (enriched by `ethpmPhysIf`) is
+  emitted as `network.switch.port` resources and `pcAggrIf` as aggregate
+  `network.switch.port` resources (`properties.aggregate = true`); each
+  is tied to its owning fabric node by a `contains` connection, and each
+  port-channel to its member ports (sourced from
+  `ethpmPhysIf.bundleIndex`). In `--purpose documentation` only ports
+  that take part in topology are emitted those carrying a fabric link,
+  an LLDP/CDP neighbour, an EPG path attachment, or a port-channel
+  membership; `--purpose audit` emits every port.
+- Physical adjacency graph. `fabricLink`, `lldpAdjEp` and `cdpAdjEp` are
+  merged into one `physical.ethernet` connection per link between fabric
+  nodes, with `properties.source_port` / `target_port` / `link_state`
+  and `properties.discovered_by` listing which of `fabricLink` / `lldp` 
+  `cdp` observed it. A neighbour that is not an APIC fabric node gets a
+  minimal `network.switch` resource (`id`
+  `cisco.apic::external/<name-or-chassis-id>`, `status` `unknown`,
+  `extensions["osiris.cisco"]["external"] = true`) so the connection
+  resolves; `manufacturer`/`model`/`serial` are set only from a CDP
+  neighbour that reports them, never assumed.
+- Bridge-domain containment. Each `fvBD` now has a `contains` connection
+  to the `network.subnet` resources configured directly under it (the
+  tenant-group membership from `0.1.0` is unchanged).
+- `--purpose audit` also wires each endpoint (`fvCEp`) to the switch
+  port or port-channel it was learned on (a `contains` connection from
+  the port to the `network.interface`), and adds each `fvRsPathAtt`
+  target port/port-channel as a member of its EPG group. vPC
+  (`protpaths`) path targets are recorded but not wired (they span two
+  nodes with no single owning resource).
+- Discovery plan gains `l1PhysIf`, `ethpmPhysIf`, `fabricLink`,
+  `lldpAdjEp`, `cdpAdjEp`, `pcAggrIf` and `fvRsPathAtt`, all optional
+  criticality (a query failure degrades to a document without that slice
+  of the graph and adds a coverage entry).
 - Discovery-coverage record. Every controller resource now carries
   `extensions["osiris.cisco"]["coverage"]`: one entry per discovery
   operation with `operation`, `status` (`succeeded` / `failed` /
@@ -131,6 +163,14 @@ that alters the emitted document (the discovery-coverage record below).
   accepted (audit only). `template --generate` moves under the
   subcommand (`apic template --generate`) and writes both `--secrets-file`
   shapes.
+- CLI only, no change to emitted documents: the `--help` flag list is
+  now rendered from the real flag set (`FlagsUsage` in `flags.go`)
+  instead of a hand-typed block, so it and the usage `flag.Parse` prints
+  on an unrecognized flag are the same aligned, word-wrapped table and
+  can no longer drift (the old block already disagreed with the
+  registered `--include-raw-body` text). `dispatch.go` is folded into
+  `apic.go` (the whole CLI surface now lives beside `Collect`, matching
+  `nxos`/`vmanage`); no symbol or behaviour change.
 
 ### Fixed
 - Class queries are now ordered by `dn`. APIC does not guarantee a

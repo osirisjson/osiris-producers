@@ -52,9 +52,12 @@ type discoveryClass struct {
 	crit criticality
 }
 
-// discoveryPlan returns the ordered class queries for a run. Endpoint
-// inventory (fvCEp) and its per-endpoint IP addresses (fvIp) are
-// collected only for --purpose audit.
+// discoveryPlan returns the ordered class queries for a run. The
+// physical-topology classes (l1PhysIf..fvRsPathAtt) are collected in
+// both purposes: the physical fabric graph is emitted regardless of
+// --purpose, bounded in documentation mode to ports that participate in
+// topology. Endpoint inventory (fvCEp) and its per-endpoint IP
+// addresses (fvIp) are collected only for --purpose audit.
 func discoveryPlan(audit bool) []discoveryClass {
 	plan := []discoveryClass{
 		{"fabricNode", critEssential},
@@ -70,6 +73,17 @@ func discoveryPlan(audit bool) []discoveryClass {
 		{"fvRsBd", critOptional},
 		{"l3extRsEctx", critOptional},
 		{"faultInst", critOptional},
+
+		// Physical + logical fabric topology. All optional: a
+		// failure leaves the document without that slice of the graph
+		// and adds a coverage entry, it never aborts the producer run.
+		{"l1PhysIf", critOptional},    // physical switch ports (config)
+		{"ethpmPhysIf", critOptional}, // port operational state
+		{"fabricLink", critOptional},  // spine/leaf physical links
+		{"lldpAdjEp", critOptional},   // LLDP neighbours
+		{"cdpAdjEp", critOptional},    // CDP neighbours (merge/fallback)
+		{"pcAggrIf", critOptional},    // port-channel aggregate ifaces
+		{"fvRsPathAtt", critOptional}, // EPG -> path attachments
 	}
 	if audit {
 		plan = append(plan,

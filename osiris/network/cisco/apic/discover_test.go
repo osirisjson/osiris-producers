@@ -33,6 +33,13 @@ func TestDiscoveryPlan_FailurePolicy(t *testing.T) {
 		"fvRsBd":          false,
 		"l3extRsEctx":     false,
 		"faultInst":       false,
+		"l1PhysIf":        false,
+		"ethpmPhysIf":     false,
+		"fabricLink":      false,
+		"lldpAdjEp":       false,
+		"cdpAdjEp":        false,
+		"pcAggrIf":        false,
+		"fvRsPathAtt":     false,
 		"fvCEp":           false,
 		"fvIp":            false,
 	}

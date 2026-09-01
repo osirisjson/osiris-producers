@@ -211,9 +211,17 @@ func TestCollect_Minimal(t *testing.T) {
 	assertCount(t, typeCounts, "osiris.cisco.l3out", 1)
 	assertCount(t, typeCounts, "network.interface", 0) // minimal = no endpoints
 
-	// No connections (ACI relationships are modeled as group membership).
-	if len(doc.Topology.Connections) != 0 {
-		t.Errorf("expected 0 connections, got %d", len(doc.Topology.Connections))
+	// The only connection with this minimal fixture
+	// (no physical-topology classes) is the bridge-domain -> subnet
+	// containment edge. Physical links, ports and neighbours are
+	// exercised in transform_topology_test.go and wire_test.go.
+	if len(doc.Topology.Connections) != 1 {
+		t.Fatalf("expected 1 connection (BD contains subnet), got %d", len(doc.Topology.Connections))
+	}
+	if c := doc.Topology.Connections[0]; c.Type != "contains" ||
+		c.Source != resourceID("uni/tn-tn_Example/BD-bd_App") ||
+		c.Target != resourceID("uni/tn-tn_Example/BD-bd_App/subnet-[203.0.113.1/24]") {
+		t.Errorf("unexpected connection: type=%s source=%s target=%s", c.Type, c.Source, c.Target)
 	}
 
 	// Groups: 2 tenants + 1 VRF + 1 EPG = 4.
