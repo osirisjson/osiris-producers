@@ -22,8 +22,14 @@ the release-level index of which producers shipped under each tag.
 
 ## [Unreleased]
 
-`generatorVersion` moves to `0.2.0`: the first change in this section
-that alters the emitted document (the discovery-coverage record below).
+---
+
+## [0.2.0] - 2026-09-01
+
+Resource-model, identity, transport, partial-coverage and topology-graph
+overhaul, plus a CLI restructure. This is the first `generatorVersion`
+bump since the initial release; behavior `0.1.0` shipped unchanged
+through module tags up to `0.7.0`.
 
 ### Added
 - Physical fabric topology. `l1PhysIf` (enriched by `ethpmPhysIf`) is
@@ -207,4 +213,5 @@ changes are listed below with their module-tag context.
   empty falls back to `topSystem.state` field.
 
 [Unreleased]: ../../../../CHANGELOG.md
+[0.2.0]: ../../../../CHANGELOG.md#080---2026-09-01
 [0.1.0]: ../../../../CHANGELOG.md#010---2026-03-21
