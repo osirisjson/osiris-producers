@@ -19,4 +19,5 @@ type Config struct {
 	IncludeRawBody  bool
 	SafeFailureMode string
 	InsecureTLS     bool
+	Transport       string // Transport is auto (NETCONF, falling back to RESTCONF when the NETCONF port is unreachable), netconf, or restconf.
 }

@@ -5,7 +5,8 @@
     "timestamp": "2026-01-15T10:00:00Z",
     "generator": {
       "name": "osirisjson-producer-cisco-iosxe",
-      "version": "0.2.0"
+      "version": "0.2.0",
+      "url": "https://docs.osirisjson.org/osiris-producers/network/cisco"
     },
     "scope": {
       "name": "LAB-SW01",
