@@ -1,6 +1,6 @@
 // client.go - NETCONF over SSH client for the Cisco IOS-XE producer.
-// Implements the NETCONF 1.0 protocol (RFC 4741) over an SSH subsystem,
-// with a Transport interface that enables test injection without real SSH.
+// Implements NETCONF (RFC 6241) over an SSH subsystem (RFC 6242), with
+// a Transport interface that enables test injection without real SSH.
 //
 // OSIRIS JSON Producer for Cisco introduction:
 // [OSIRIS-JSON-CISCO]: https://docs.osirisjson.org/osiris-producers/network/cisco
@@ -11,24 +11,36 @@ package iosxe
 import (
 	"bytes"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
 	"net"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
 	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/knownhosts"
 
 	"go.osirisjson.org/producers/osiris/network/cisco/run"
 )
 
 const (
-	defaultPort   = 830
-	sshTimeout    = 30 * time.Second
-	netconfDelim  = "]]>]]>"
-	maxReplyBytes = 10 * 1024 * 1024 // 10 MiB safety limit
+	defaultPort = 830
+	dialTimeout = 15 * time.Second // TCP connect budget.
+	sshTimeout  = 30 * time.Second // SSH handshake, each RPC, and close-session budget.
 )
+
+// clientHello is the <hello> this client sends. It advertises both base
+// versions so the server may select chunked framing.
+const clientHello = xml.Header + `<hello xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <capabilities>
+    <capability>` + capBase10 + `</capability>
+    <capability>` + capBase11 + `</capability>
+  </capabilities>
+</hello>`
 
 // Transport abstracts the NETCONF message exchange, enabling mock injection for tests.
 type Transport interface {
@@ -48,6 +60,9 @@ type Client struct {
 
 // NewClient creates a NETCONF client targeting the given address.
 // It does not connect; call Connect to establish the SSH session.
+// When insecure is true, SSH host-key verification is skipped (the
+// --insecure flag); otherwise the server key is checked against user
+// ~/.ssh/known_hosts.
 func NewClient(target run.TargetConfig, insecure bool, logger *slog.Logger) *Client {
 	addr := run.ResolveAddr(target, defaultPort)
 	return &Client{
@@ -58,21 +73,37 @@ func NewClient(target run.TargetConfig, insecure bool, logger *slog.Logger) *Cli
 }
 
 // Connect establishes an SSH connection, requests the netconf subsystem,
-// and exchanges NETCONF <hello> capabilities.
+// and exchanges NETCONF <hello> capabilities. The TCP dial and SSH
+// handshake are each bounded by their own deadline.
 func (c *Client) Connect(username, password string) error {
+	hostKey, err := c.hostKeyCallback()
+	if err != nil {
+		return err
+	}
+
 	config := &ssh.ClientConfig{
 		User: username,
 		Auth: []ssh.AuthMethod{
 			ssh.Password(password),
 		},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-		Timeout:         sshTimeout,
+		HostKeyCallback: hostKey,
 	}
 
-	conn, err := ssh.Dial("tcp", c.addr, config)
+	netConn, err := net.DialTimeout("tcp", c.addr, dialTimeout)
 	if err != nil {
 		return fmt.Errorf("NETCONF SSH dial failed (%s): %w", c.addr, err)
 	}
+
+	// Bound the SSH handshake (including the host-key callback) with a
+	// deadline on the raw connection, then clear it for steady state.
+	_ = netConn.SetDeadline(time.Now().Add(sshTimeout))
+	sshConn, chans, reqs, err := ssh.NewClientConn(netConn, c.addr, config)
+	if err != nil {
+		netConn.Close()
+		return c.wrapHandshakeErr(err)
+	}
+	_ = netConn.SetDeadline(time.Time{})
+	conn := ssh.NewClient(sshConn, chans, reqs)
 
 	session, err := conn.NewSession()
 	if err != nil {
@@ -104,48 +135,119 @@ func (c *Client) Connect(username, password string) error {
 		conn:    conn,
 		session: session,
 		stdin:   stdin,
-		stdout:  stdout,
+		framer:  newFramer(stdout, stdin),
+		netConn: netConn,
 	}
 
-	// Read server hello.
-	serverHello, err := t.readMessage()
+	// Exchange <hello> messages, bounded by the handshake deadline.
+	_ = netConn.SetDeadline(time.Now().Add(sshTimeout))
+	hello, err := exchangeHello(t.framer)
+	_ = netConn.SetDeadline(time.Time{})
 	if err != nil {
 		t.Close()
-		return fmt.Errorf("NETCONF hello read failed: %w", err)
+		return err
 	}
 
-	// Parse server capabilities (informational).
-	var hello struct {
-		SessionID    int      `xml:"session-id"`
-		Capabilities []string `xml:"capabilities>capability"`
+	base := "1.0"
+	if t.framer.chunked {
+		base = "1.1"
 	}
-
-	// Strip the delimiter for parsing.
-	helloXML := bytes.TrimSuffix(serverHello, []byte(netconfDelim))
-	if err := xml.Unmarshal(bytes.TrimSpace(helloXML), &hello); err != nil {
-		c.logger.Warn("NETCONF hello parse failed (continuing)", "err", err)
-	} else {
-		c.logger.Info("NETCONF session established",
-			"addr", c.addr,
-			"session_id", hello.SessionID,
-			"capabilities", len(hello.Capabilities),
-		)
-	}
-
-	// Send client hello.
-	clientHello := []byte(xml.Header + `<hello xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
-  <capabilities>
-    <capability>urn:ietf:params:netconf:base:1.0</capability>
-  </capabilities>
-</hello>` + netconfDelim)
-
-	if err := t.writeMessage(clientHello); err != nil {
-		t.Close()
-		return fmt.Errorf("NETCONF client hello failed: %w", err)
-	}
+	c.logger.Info("NETCONF session established",
+		"addr", c.addr,
+		"session_id", hello.SessionID,
+		"capabilities", len(hello.Capabilities),
+		"netconf_base", base,
+	)
 
 	c.transport = t
 	return nil
+}
+
+// serverHello is the decoded server <hello> message.
+type serverHello struct {
+	SessionID    int      `xml:"session-id"`
+	Capabilities []string `xml:"capabilities>capability"`
+}
+
+// exchangeHello reads the server <hello>, sends the client <hello>, and
+// switches f to chunked framing when both peers support base:1.1. Both
+// hellos always use end-of-message framing (RFC 6242 section 4.1). A
+// server hello that cannot be decoded is fatal, because the framing for
+// the rest of the session depends on its capability list.
+func exchangeHello(f *framer) (*serverHello, error) {
+	raw, err := f.readMessage()
+	if err != nil {
+		return nil, fmt.Errorf("NETCONF hello read failed: %w", err)
+	}
+	var hello serverHello
+	if err := xml.Unmarshal(bytes.TrimSpace(raw), &hello); err != nil {
+		return nil, fmt.Errorf("NETCONF server hello is not valid XML: %w", err)
+	}
+	chunked, err := negotiateFraming(hello.Capabilities)
+	if err != nil {
+		return nil, err
+	}
+	if err := f.writeMessage([]byte(clientHello)); err != nil {
+		return nil, fmt.Errorf("NETCONF client hello failed: %w", err)
+	}
+	f.chunked = chunked
+	return &hello, nil
+}
+
+// hostKeyCallback returns the SSH host-key verification callback. With
+// --insecure it logs a prominent warning and returns a callback that
+// accepts any key. Otherwise it verifies against ~/.ssh/known_hosts and
+// fails if that file is absent, telling the operator how to record the
+// key or bypass the check.
+func (c *Client) hostKeyCallback() (ssh.HostKeyCallback, error) {
+	if c.insecure {
+		c.logger.Warn("SSH host-key verification disabled for NETCONF connection (--insecure)", "host", c.addr)
+		return ssh.InsecureIgnoreHostKey(), nil
+	}
+
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return nil, fmt.Errorf("cannot locate home directory for SSH known_hosts lookup: %w", err)
+	}
+	path := filepath.Join(home, ".ssh", "known_hosts")
+	if _, err := os.Stat(path); err != nil {
+		return nil, fmt.Errorf(
+			"SSH known_hosts file %s is not readable (%v): connect once with ssh(1) to record the host key, or pass --insecure to skip verification",
+			path, err)
+	}
+
+	cb, err := knownhosts.New(path)
+	if err != nil {
+		return nil, fmt.Errorf("parsing SSH known_hosts %s: %w", path, err)
+	}
+	return cb, nil
+}
+
+// wrapHandshakeErr turns a raw SSH handshake failure into an actionable
+// message, distinguishing an unknown host key from a changed one (a
+// possible man-in-the-middle or a legitimately re-keyed device).
+func (c *Client) wrapHandshakeErr(err error) error {
+	var ke *knownhosts.KeyError
+	if errors.As(err, &ke) {
+		if len(ke.Want) > 0 {
+			return fmt.Errorf(
+				"SSH host-key mismatch for %s: the key the server presented does not match ~/.ssh/known_hosts (possible man-in-the-middle, or the device was re-keyed); run `ssh-keygen -R %s` after verifying the new key, then retry",
+				c.addr, hostOnly(c.addr))
+		}
+		return fmt.Errorf(
+			"SSH host-key for %s is not in ~/.ssh/known_hosts: connect once with ssh(1) to record it, or pass --insecure to skip verification",
+			c.addr)
+	}
+	return fmt.Errorf("NETCONF SSH handshake failed (%s): %w", c.addr, err)
+}
+
+// hostOnly strips a trailing :port from an address for display in an
+// ssh-keygen -R hint (that command keys on host, not host:port).
+func hostOnly(addr string) string {
+	if h, _, err := net.SplitHostPort(addr); err == nil {
+		return h
+	}
+	return addr
 }
 
 // Get sends a NETCONF <get> RPC with the given subtree filter and returns
@@ -167,7 +269,7 @@ func (c *Client) Close() error {
 	if c.transport == nil {
 		return nil
 	}
-	// Best-effort close-session.
+	// Best-effort close-session (bounded by the transport's per-Send deadline).
 	closeRPC := c.wrapRPC("<close-session/>")
 	_, _ = c.transport.Send(closeRPC)
 	return c.transport.Close()
@@ -195,14 +297,15 @@ func (c *Client) rpc(operation string) ([]byte, error) {
 	return data, nil
 }
 
-// wrapRPC wraps an operation in the NETCONF <rpc> envelope with auto-incrementing message-id.
+// wrapRPC wraps an operation in the NETCONF <rpc> envelope with an
+// auto-incrementing message-id. Framing is added by the transport.
 func (c *Client) wrapRPC(operation string) []byte {
 	c.mu.Lock()
 	c.msgID++
 	id := c.msgID
 	c.mu.Unlock()
 
-	return []byte(fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?><rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="%d">%s</rpc>%s`, id, operation, netconfDelim))
+	return []byte(fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?><rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="%d">%s</rpc>`, id, operation))
 }
 
 // extractDataContent extracts the inner content of the <data> element from an rpc-reply.
@@ -239,8 +342,7 @@ func parseRPCError(reply []byte) error {
 	var rpcReply struct {
 		Errors []rpcError `xml:"rpc-error"`
 	}
-	clean := bytes.TrimSuffix(reply, []byte(netconfDelim))
-	if err := xml.Unmarshal(bytes.TrimSpace(clean), &rpcReply); err != nil {
+	if err := xml.Unmarshal(bytes.TrimSpace(reply), &rpcReply); err != nil {
 		return fmt.Errorf("NETCONF RPC error (unparseable): %s", truncateBytes(reply, 200))
 	}
 	if len(rpcReply.Errors) == 0 {
@@ -250,71 +352,38 @@ func parseRPCError(reply []byte) error {
 	return fmt.Errorf("NETCONF RPC error [%s/%s]: %s", e.Type, e.Tag, e.Message)
 }
 
-// sshTransport implements Transport over an SSH NETCONF session using NETCONF 1.0 framing.
+// sshTransport implements Transport over an SSH NETCONF session, using
+// the framing negotiated during the <hello> exchange.
 type sshTransport struct {
 	conn    *ssh.Client
 	session *ssh.Session
 	stdin   io.WriteCloser
-	stdout  io.Reader
+	framer  *framer
+	netConn net.Conn // raw connection, used to apply per-exchange deadlines.
 	mu      sync.Mutex
 }
 
+// Send writes one framed RPC and returns the next framed reply with its
+// framing removed. The whole exchange is bounded by sshTimeout.
 func (t *sshTransport) Send(rpc []byte) ([]byte, error) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	if err := t.writeMessage(rpc); err != nil {
+	if t.netConn != nil {
+		_ = t.netConn.SetDeadline(time.Now().Add(sshTimeout))
+		defer t.netConn.SetDeadline(time.Time{})
+	}
+
+	if err := t.framer.writeMessage(rpc); err != nil {
 		return nil, err
 	}
-	reply, err := t.readMessage()
-	if err != nil {
-		return nil, err
-	}
-	// Strip trailing delimiter for caller convenience.
-	return bytes.TrimSuffix(reply, []byte(netconfDelim)), nil
+	return t.framer.readMessage()
 }
 
 func (t *sshTransport) Close() error {
 	t.stdin.Close()
 	t.session.Close()
 	return t.conn.Close()
-}
-
-func (t *sshTransport) writeMessage(msg []byte) error {
-	_, err := t.stdin.Write(msg)
-	return err
-}
-
-// readMessage reads from stdout until the NETCONF 1.0 delimiter ]]>]]> is found.
-func (t *sshTransport) readMessage() ([]byte, error) {
-	var buf bytes.Buffer
-	tmp := make([]byte, 4096)
-	delim := []byte(netconfDelim)
-
-	// Set a read deadline via the underlying connection if possible.
-	if tc, ok := t.conn.Conn.(net.Conn); ok {
-		tc.SetReadDeadline(time.Now().Add(sshTimeout))
-		defer tc.SetReadDeadline(time.Time{})
-	}
-
-	for {
-		n, err := t.stdout.Read(tmp)
-		if n > 0 {
-			buf.Write(tmp[:n])
-			if buf.Len() > maxReplyBytes {
-				return nil, fmt.Errorf("NETCONF reply exceeds %d bytes", maxReplyBytes)
-			}
-			if bytes.Contains(buf.Bytes(), delim) {
-				return buf.Bytes(), nil
-			}
-		}
-		if err != nil {
-			if err == io.EOF && buf.Len() > 0 {
-				return buf.Bytes(), nil
-			}
-			return nil, fmt.Errorf("NETCONF read failed: %w", err)
-		}
-	}
 }
 
 // truncateBytes returns the first n bytes as a string for error messages.

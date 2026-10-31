@@ -54,7 +54,7 @@ func newMockClient(responses map[string]string) *Client {
 	return &Client{
 		transport: &mockTransport{responses: responses},
 		logger:    testLogger(),
-		addr:      "10.99.0.1:830",
+		addr:      "192.0.2.1:830",
 	}
 }
 
@@ -169,9 +169,9 @@ func TestClose_NilTransport(t *testing.T) {
 }
 
 func TestNewClient(t *testing.T) {
-	target := run.TargetConfig{Host: "10.99.0.1", Port: 2830}
+	target := run.TargetConfig{Host: "192.0.2.1", Port: 2830}
 	c := NewClient(target, true, testLogger())
-	if c.addr != "10.99.0.1:2830" {
+	if c.addr != "192.0.2.1:2830" {
 		t.Errorf("unexpected addr: %s", c.addr)
 	}
 	if !c.insecure {
@@ -180,9 +180,9 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestNewClient_DefaultPort(t *testing.T) {
-	target := run.TargetConfig{Host: "10.99.0.1"}
+	target := run.TargetConfig{Host: "192.0.2.1"}
 	c := NewClient(target, false, testLogger())
-	if c.addr != "10.99.0.1:830" {
+	if c.addr != "192.0.2.1:830" {
 		t.Errorf("unexpected addr: %s", c.addr)
 	}
 }
