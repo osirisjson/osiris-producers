@@ -32,6 +32,7 @@ type iosxeFlagValues struct {
 	includeRawBody bool
 	safeFail       string
 	insecure       bool
+	transport      string
 }
 
 // registerFlags binds every IOS-XE CLI flag onto fs and returns their
@@ -44,16 +45,17 @@ func registerFlags(fs *flag.FlagSet) *iosxeFlagValues {
 	fs.StringVar(&v.username, "u", "", "username for authentication; prompted for interactively when omitted")
 	fs.StringVar(&v.username, "username", "", "username for authentication, see -u")
 	fs.StringVar(&v.secretsFile, "secrets-file", "", "JSON file with {host, username, password}; whatever it omits still falls back to its own flag or an interactive prompt")
-	fs.IntVar(&v.port, "P", 0, fmt.Sprintf("override port (default: %d)", defaultPort))
+	fs.IntVar(&v.port, "P", 0, fmt.Sprintf("override port (default: %d for NETCONF, %d for RESTCONF)", defaultPort, defaultRESTCONFPort))
 	fs.IntVar(&v.port, "port", 0, "override port, see -P")
 	fs.StringVar(&v.source, "s", "", "CSV file for batch mode")
 	fs.StringVar(&v.source, "source", "", "CSV file for batch mode, see -s")
 	fs.StringVar(&v.output, "o", "", "output directory for batch mode")
 	fs.StringVar(&v.output, "output", "", "output directory for batch mode, see -o")
 	fs.StringVar(&v.purposeStr, "purpose", "", osirismeta.PurposeHelp())
-	fs.BoolVar(&v.includeRawBody, "include-raw-body", false, "attach each collected command's full, unmodified response body under extensions[\"osiris.cisco\"] on the owning resource (requires --purpose audit; a lossless fallback for fields not yet modeled by this producer)")
+	fs.BoolVar(&v.includeRawBody, "include-raw-body", false, "attach each operational (never configuration) reply, redacted and size-capped, under extensions[\"osiris.cisco\"].raw_replies on the device (requires --purpose audit; a lossless fallback for fields not yet modeled by this producer)")
 	fs.StringVar(&v.safeFail, "safe-failure-mode", "fail-closed", "secret handling: fail-closed, log-and-redact, or off")
-	fs.BoolVar(&v.insecure, "insecure", false, "skip SSH host-key verification")
+	fs.BoolVar(&v.insecure, "insecure", false, "skip SSH host-key verification (NETCONF) or TLS certificate verification (RESTCONF)")
+	fs.StringVar(&v.transport, "transport", transportAuto, "device API: auto (NETCONF, falling back to RESTCONF only when the NETCONF port is unreachable), netconf, or restconf")
 
 	return v
 }
@@ -79,11 +81,24 @@ func ParseFlags(args []string, promptVisible, promptHidden func(string) (string,
 		return nil, err
 	}
 
+	// Raw replies are the least minimized output this producer can
+	// emit, so they require the explicit audit purpose instead of being
+	// silently ignored at documentation purpose.
+	if v.includeRawBody && purpose != osirismeta.PurposeAudit {
+		return nil, fmt.Errorf("--include-raw-body requires --purpose audit")
+	}
+
 	switch v.safeFail {
 	case "fail-closed", "log-and-redact", "off":
 		// valid
 	default:
 		return nil, fmt.Errorf("invalid --safe-failure-mode value %q: must be fail-closed, log-and-redact, or off", v.safeFail)
+	}
+
+	switch v.transport {
+	case transportAuto, transportNETCONF, transportRESTCONF:
+	default:
+		return nil, fmt.Errorf("invalid --transport value %q: must be auto, netconf, or restconf", v.transport)
 	}
 
 	if v.host != "" && v.source != "" {
@@ -107,6 +122,7 @@ func ParseFlags(args []string, promptVisible, promptHidden func(string) (string,
 		IncludeRawBody:  v.includeRawBody,
 		SafeFailureMode: v.safeFail,
 		InsecureTLS:     v.insecure,
+		Transport:       v.transport,
 	}
 
 	if v.source != "" {

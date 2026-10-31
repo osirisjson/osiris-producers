@@ -1,4 +1,4 @@
-// dispatch.go - CLI entry point, batch runner, and --help for the
+// dispatch.go - CLI entry point, batch runner and --help for the
 // Cisco IOS-XE OSIRIS JSON producer.
 //
 // OSIRIS JSON Producer for Cisco introduction:
@@ -92,10 +92,7 @@ func runSingle(cfg *Config) error {
 	}
 	filename := fmt.Sprintf("cisco-iosxe-%s-%s.json", cfg.Timestamp, name)
 
-	// 0600: emitted documents are infrastructure inventory snapshots
-	// (hostnames, serials, topology) and should not be world/group
-	// readable by default, only the invoking user.
-	if err := os.WriteFile(filename, data, 0600); err != nil {
+	if err := writeOwnerOnly(filename, data); err != nil {
 		return fmt.Errorf("failed to write %s: %w", filename, err)
 	}
 	fmt.Fprintf(os.Stderr, "Saved to %s\n", filename)
@@ -109,7 +106,7 @@ func runSingle(cfg *Config) error {
 func runBatch(cfg *Config) error {
 	logger := defaultLogger()
 
-	if err := os.MkdirAll(cfg.OutputDir, 0755); err != nil {
+	if err := os.MkdirAll(cfg.OutputDir, outputDirMode); err != nil {
 		return fmt.Errorf("creating output directory: %w", err)
 	}
 
@@ -143,12 +140,12 @@ func runBatch(cfg *Config) error {
 			failed++
 			continue
 		}
-		if err := os.MkdirAll(filepath.Dir(outPath), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(outPath), outputDirMode); err != nil {
 			log.Error("creating output path", "error", err, "path", outPath)
 			failed++
 			continue
 		}
-		if err := os.WriteFile(outPath, data, 0600); err != nil {
+		if err := writeOwnerOnly(outPath, data); err != nil {
 			log.Error("write failed", "error", err, "path", outPath)
 			failed++
 			continue
@@ -169,6 +166,33 @@ func runBatch(cfg *Config) error {
 	return nil
 }
 
+// Emitted documents are infrastructure inventory snapshots (hostnames,
+// serials, topology and at audit purpose security posture), readable
+// only by the invoking user.
+const (
+	outputFileMode = 0o600
+	outputDirMode  = 0o700
+)
+
+// writeOwnerOnly writes data to path readable and writable by its owner
+// only. The mode is also enforced on a file that already exists, which
+// os.WriteFile leaves unchanged.
+func writeOwnerOnly(path string, data []byte) error {
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, outputFileMode)
+	if err != nil {
+		return err
+	}
+	if err := f.Chmod(outputFileMode); err != nil {
+		f.Close()
+		return err
+	}
+	if _, err := f.Write(data); err != nil {
+		f.Close()
+		return err
+	}
+	return f.Close()
+}
+
 func defaultLogger() *slog.Logger {
 	return slog.New(slog.NewTextHandler(os.Stderr, nil))
 }
@@ -184,24 +208,30 @@ func newSDKContext(cfg *Config) *sdk.Context {
 }
 
 func printHelp() {
-	fmt.Print(`osirisjson-producer cisco iosxe - Cisco IOS-XE device inventory OSIRIS JSON producer
+	fmt.Print(`osirisjson-producer cisco iosxe - OSIRIS JSON producer for Cisco IOS-XE
 
 Usage:
   osirisjson-producer cisco iosxe [flags]
 
 Flags:
-  -h, --host          	Target host (IP or FQDN, optionally with :port); prompted for interactively when omitted
-  -u, --username      	Username for authentication; prompted for interactively when omitted
-  -P, --port          	Override port
-  --secrets-file      	JSON file with {host, username, password} (see below); overrides -h/-u when they omit a field
-  -s, --source        	CSV file for batch mode (mutually exclusive with -h/--host)
-  -o, --output        	Output directory for batch mode
+  -h, --host            Target host (IP or FQDN, optionally with :port); prompted for interactively when omitted
+  -u, --username        Username for authentication; prompted for interactively when omitted
+  -P, --port            Override port (default: 830 for NETCONF, 443 for RESTCONF)
+  --transport           Device authentication: auto (default netconf) or restconf.
+                        Falls back to RESTCONF only when the NETCONF port is unreachable
+                        (never on an authentication or host-key failure); with auto an
+                        explicit --port applies to NETCONF, RESTCONF then uses 443
+  --secrets-file        JSON file with {host, username, password} (see below); overrides -h/-u when they omit a field
+  -s, --source          CSV file for batch mode (mutually exclusive with -h/--host)
+  -o, --output          Output directory for batch mode
 
-  --include-raw-body  	Attach each collected command's full, unmodified response under
-                      	extensions["osiris.cisco"] on the owning resource (requires --purpose audit;
-                      	a lossless fallback for fields not yet modeled)
-  --safe-failure-mode 	Secret handling: fail-closed, log-and-redact, off (default: fail-closed)
-  --insecure          	Skip SSH host-key verification
+  --include-raw-body    Attach each operational reply under extensions["osiris.cisco"].raw_replies
+                        on the device (requires --purpose audit). Configuration replies are never
+                        attached; every reply is redacted and size-capped and withheld replies are
+                        listed in raw_omitted with the reason
+  --safe-failure-mode   Secret handling: fail-closed, log-and-redact, off (default: fail-closed)
+  --insecure            Skip SSH host-key verification (NETCONF) or TLS certificate
+                        verification (RESTCONF)
 
 --secrets-file accepts two shapes, each generated as its own file by
 "iosxe template --generate" (see below) so you never have to guess the
@@ -222,11 +252,13 @@ directory structure: <output>/Datacenter/Floor/Room/Rack/Hostname.json.
 
 Output:
   single mode saves to: cisco-iosxe-<timestamp>-<hostname>.json (0600 permissions)
-  batch mode saves to:  <output>/Datacenter/Floor/Room/Rack/Hostname.json (0600 permissions)
+  batch mode saves to:  <output>/Datacenter/Floor/Room/Rack/Hostname.json (0600 permissions,
+                        directories created 0700)
 
 Examples:
   osirisjson-producer cisco iosxe -h 192.0.2.1 -u username
   osirisjson-producer cisco iosxe -h 192.0.2.1 -u username --purpose audit
+  osirisjson-producer cisco iosxe -h 192.0.2.1 -u username --transport restconf
   osirisjson-producer cisco iosxe -s datacenter.csv -o ./output -u username
   osirisjson-producer cisco iosxe template --generate
 `)
