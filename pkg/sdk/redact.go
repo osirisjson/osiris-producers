@@ -1,24 +1,30 @@
 // redact.go - Secret scanning for OSIRIS documents.
-// Detects sensitive data by key name patterns (password, token, api_key, etc.)
-// and value patterns (AWS keys, GitHub PATs, PEM keys, JWTs, credential URIs).
-// Used by DocumentBuilder to enforce safe failure modes per OSIRIS-ADG-PR-1.0 section 3.1.2.
+// Detects sensitive data by key name patterns (password, token,
+// api_key, etc.) and value patterns (AWS keys, GitHub PATs, PEM keys,
+// JWTs, credential URIs).
+// Used by DocumentBuilder to enforce safe failure modes per
+// OSIRIS-ADG-PR-1.0 section 3.1.2.
 //
-// For an introduction to OSIRIS JSON Producer Development Guidelines see:
+// For introduction to OSIRIS JSON Producer Development Guidelines see:
 // "[OSIRIS-PRODUCER-GUIDELINES]."
 //
 // [OSIRIS-ADG-PR-1.0 section 3.1.2]: https://github.com/osirisjson/osiris/blob/main/docs/guidelines/v1.0/OSIRIS-PRODUCER-GUIDELINES.md#312-detection-patterns
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/getting-started/osiris-producer-guidelines
+// [OSIRIS-PRODUCER-GUIDELINES]: https://github.com/osirisjson/osiris/blob/main/docs/guidelines/v1.0/OSIRIS-PRODUCER-GUIDELINES.md
 
 package sdk
 
 import (
+	"encoding/base64"
 	"fmt"
 	"regexp"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 // SecretFinding reports a detected secret at a specific field path.
-// The finding MUST NOT contain the actual secret value - only the path and rule name.
+// The finding MUST NOT contain the actual secret value, only the path
+// and rule name.
 type SecretFinding struct {
 	Path string // JSON Pointer-style field path (e.g. "topology.resources[2].properties.api_key").
 	Rule string // which rule matched (e.g. "key_name:password", "value_pattern:aws_access_key").
@@ -28,8 +34,8 @@ func (f SecretFinding) String() string {
 	return fmt.Sprintf("secret detected at %s (rule: %s)", f.Path, f.Rule)
 }
 
-// SensitiveKeyPatterns are substrings that, when found in a property key
-// (case-insensitive), indicate the value is likely a secret.
+// SensitiveKeyPatterns are substrings that, when found in a property
+// key (case-insensitive), indicate the value is likely a secret.
 // Per OSIRIS-ADG-PR-1.0 section 3.1.2.
 var SensitiveKeyPatterns = []string{
 	"password",
@@ -43,21 +49,25 @@ var SensitiveKeyPatterns = []string{
 	"auth",
 }
 
-// sensitiveValuePatterns are compiled regexps that match common secret formats.
-// Per OSIRIS-ADG-PR-1.0 section 3.1.2.
+// sensitiveValuePatterns are compiled regexps that match common secret
+// formats. Per OSIRIS-ADG-PR-1.0 section 3.1.2. When confirm is set, a
+// regexp match is reported only if confirm accepts one of the matches
+// submatches, so a pattern that also matches ordinary prose can require
+// the structure a real credential has.
 var sensitiveValuePatterns = []struct {
-	name string
-	re   *regexp.Regexp
+	name    string
+	re      *regexp.Regexp
+	confirm func(submatch []string) bool
 }{
-	{"aws_access_key", regexp.MustCompile(`AKIA[0-9A-Z]{16}`)},
-	{"github_pat", regexp.MustCompile(`ghp_[A-Za-z0-9]{36}`)},
-	{"github_oauth", regexp.MustCompile(`gho_[A-Za-z0-9]{36}`)},
-	{"pem_private_key", regexp.MustCompile(`-----BEGIN [A-Z ]* ?PRIVATE KEY-----`)},
-	{"bearer_token", regexp.MustCompile(`Bearer [A-Za-z0-9\-._~+/]{8,}={0,2}`)},
-	{"basic_auth", regexp.MustCompile(`Basic [A-Za-z0-9+/]{8,}={0,2}`)},
-	{"jwt", regexp.MustCompile(`eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*\.`)},
-	{"slack_token", regexp.MustCompile(`xox[boaprs]-[A-Za-z0-9-]+`)},
-	{"credential_uri", regexp.MustCompile(`://[^/\s]+:[^/\s]+@`)},
+	{"aws_access_key", regexp.MustCompile(`AKIA[0-9A-Z]{16}`), nil},
+	{"github_pat", regexp.MustCompile(`ghp_[A-Za-z0-9]{36}`), nil},
+	{"github_oauth", regexp.MustCompile(`gho_[A-Za-z0-9]{36}`), nil},
+	{"pem_private_key", regexp.MustCompile(`-----BEGIN [A-Z ]* ?PRIVATE KEY-----`), nil},
+	{"bearer_token", regexp.MustCompile(`Bearer [A-Za-z0-9\-._~+/]{8,}={0,2}`), nil},
+	{"basic_auth", regexp.MustCompile(`Basic ([A-Za-z0-9+/]{8,}={0,2})`), isBasicCredential},
+	{"jwt", regexp.MustCompile(`eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*\.`), nil},
+	{"slack_token", regexp.MustCompile(`xox[boaprs]-[A-Za-z0-9-]+`), nil},
+	{"credential_uri", regexp.MustCompile(`://[^/\s]+:[^/\s]+@`), nil},
 }
 
 // IsSensitiveKey returns true if the key name matches a sensitive pattern
@@ -76,11 +86,44 @@ func IsSensitiveKey(key string) bool {
 // Returns the rule name that matched, or "" if no match.
 func ScanValue(value string) string {
 	for _, p := range sensitiveValuePatterns {
-		if p.re.MatchString(value) {
-			return p.name
+		if p.confirm == nil {
+			if p.re.MatchString(value) {
+				return p.name
+			}
+			continue
+		}
+		for _, m := range p.re.FindAllStringSubmatch(value, -1) {
+			if p.confirm(m) {
+				return p.name
+			}
 		}
 	}
 	return ""
+}
+
+// isBasicCredential reports whether the token after "Basic " is an HTTP
+// Basic credential (RFC 7617): base64 that decodes to printable
+// "user-id:password" text. Prose such as a certificate issuer named
+// "Basic Assurance Root CA" matches the pattern but is not base64 of a
+// user-id and password, and is not reported.
+func isBasicCredential(m []string) bool {
+	if len(m) < 2 {
+		return false
+	}
+	token := m[1]
+	decoded, err := base64.StdEncoding.DecodeString(token)
+	if err != nil && !strings.Contains(token, "=") {
+		decoded, err = base64.RawStdEncoding.DecodeString(token)
+	}
+	if err != nil || !utf8.Valid(decoded) || !strings.Contains(string(decoded), ":") {
+		return false
+	}
+	for _, r := range string(decoded) {
+		if !unicode.IsPrint(r) {
+			return false
+		}
+	}
+	return true
 }
 
 // ScanProperties scans a properties or extensions map for secrets.
@@ -148,7 +191,8 @@ func ScanTags(m map[string]string, path string) []SecretFinding {
 	return findings
 }
 
-// ScanResource scans a single resource for secrets in properties, extensions and tags.
+// ScanResource scans a single resource for secrets in properties,
+// extensions and tags.
 func ScanResource(r *Resource, index int) []SecretFinding {
 	prefix := fmt.Sprintf("topology.resources[%d]", index)
 	var findings []SecretFinding
@@ -158,7 +202,8 @@ func ScanResource(r *Resource, index int) []SecretFinding {
 	return findings
 }
 
-// ScanConnection scans a single connection for secrets in properties, extensions and tags.
+// ScanConnection scans a single connection for secrets in properties,
+// extensions and tags.
 func ScanConnection(c *Connection, index int) []SecretFinding {
 	prefix := fmt.Sprintf("topology.connections[%d]", index)
 	var findings []SecretFinding
@@ -168,7 +213,8 @@ func ScanConnection(c *Connection, index int) []SecretFinding {
 	return findings
 }
 
-// ScanGroup scans a single group for secrets in properties, extensions and tags.
+// ScanGroup scans a single group for secrets in properties,
+// extensions and tags.
 func ScanGroup(g *Group, index int) []SecretFinding {
 	prefix := fmt.Sprintf("topology.groups[%d]", index)
 	var findings []SecretFinding
@@ -178,7 +224,7 @@ func ScanGroup(g *Group, index int) []SecretFinding {
 	return findings
 }
 
-// ScanDocument scans an entire OSIRIS document for secrets.
+// ScanDocument scans an entire OSIRIS JSON document for secrets.
 // Returns all findings across resources, connections and groups.
 func ScanDocument(doc *Document) []SecretFinding {
 	var findings []SecretFinding
