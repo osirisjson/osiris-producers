@@ -1,10 +1,9 @@
-// validate_test.go - Tests for schema pattern validators (type formats, status enums,
-// direction values, provider constraints).
+// validate_test.go - Tests for schema pattern validators
+// (type formats, status enums, direction values, provider constraints).
 //
-// For an introduction to OSIRIS JSON Producer Development Guidelines see:
-// "[OSIRIS-PRODUCER-GUIDELINES]."
+// For the OSIRIS JSON Producer SDK reference see [OSIRIS-ADG-PR-SDK-1.0].
 //
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/getting-started/osiris-producer-guidelines
+// [OSIRIS-ADG-PR-SDK-1.0]: https://github.com/osirisjson/osiris-producers/blob/main/docs/guidelines/v1.0/OSIRIS-PRODUCER-SDK.md
 
 package sdk
 

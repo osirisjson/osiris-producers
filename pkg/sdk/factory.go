@@ -1,12 +1,12 @@
-// factory.go - Validating factory functions for OSIRIS document elements.
-// Provides NewResource, NewProvider, NewConnection, NewGroup constructors that
-// enforce schema constraints (type patterns, status enums, direction values)
-// at creation time rather than deferring to Build().
+// factory.go - Validating factory functions for OSIRIS JSON document
+// elements. Provides NewResource, NewProvider, NewConnection, NewGroup
+// constructors that enforce schema constraints (type patterns, status
+// enums, direction values) at creation time rather than
+// deferring to Build().
 //
-// For an introduction to OSIRIS JSON Producer Development Guidelines see:
-// "[OSIRIS-PRODUCER-GUIDELINES]."
+// For the OSIRIS JSON Producer SDK reference see [OSIRIS-ADG-PR-SDK-1.0].
 //
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/getting-started/osiris-producer-guidelines
+// [OSIRIS-ADG-PR-SDK-1.0]: https://github.com/osirisjson/osiris-producers/blob/main/docs/guidelines/v1.0/OSIRIS-PRODUCER-SDK.md
 
 package sdk
 
@@ -17,9 +17,10 @@ import (
 )
 
 // NewResource creates a Resource with the required fields pre-populated.
-// Returns an error if id is empty, resourceType doesn't match the schema pattern, or provider is invalid.
-// Optional fields (Name, Description, Status, Properties, Extensions, Tags)
-// are set directly on the returned struct.
+// Returns an error if id is empty, resourceType doesn't match the
+// schema pattern, or provider is invalid.
+// Optional fields (Name, Description, Status, Properties, Extensions,
+// Tags) are set directly on the returned struct.
 func NewResource(id, resourceType string, provider Provider) (Resource, error) {
 	if err := ValidateID(id, "resource"); err != nil {
 		return Resource{}, err
@@ -46,7 +47,8 @@ func NewProvider(name string) (Provider, error) {
 	return Provider{Name: name}, nil
 }
 
-// NewCustomProvider creates a Provider with name="custom" and the required namespace.
+// NewCustomProvider creates a Provider with name="custom" and the
+// required namespace.
 // The namespace MUST follow the osiris.<identifier> pattern.
 func NewCustomProvider(namespace string) (Provider, error) {
 	if !strings.HasPrefix(namespace, "osiris.") {
@@ -119,7 +121,8 @@ func (c *Connection) SetStatus(status string) error {
 	return nil
 }
 
-// SetDirection sets the direction field on a connection, validating the value.
+// SetDirection sets the direction field on a connection, validating
+// the value.
 func (c *Connection) SetDirection(direction string) error {
 	if err := ValidateDirection(direction); err != nil {
 		return err

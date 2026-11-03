@@ -1,9 +1,9 @@
-// normalize_test.go - Tests for value normalization [RFC 3339] (timestamps, MAC addresses, IP addresses, free-text tokens).
+// normalize_test.go - Tests for value normalization [RFC 3339]
+// (timestamps, MAC addresses, IP addresses, free-text tokens).
 //
-// For an introduction to OSIRIS JSON Producer Development Guidelines see:
-// "[OSIRIS-PRODUCER-GUIDELINES]."
+// For the OSIRIS JSON Producer SDK reference see [OSIRIS-ADG-PR-SDK-1.0].
 //
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/getting-started/osiris-producer-guidelines
+// [OSIRIS-ADG-PR-SDK-1.0]: https://github.com/osirisjson/osiris-producers/blob/main/docs/guidelines/v1.0/OSIRIS-PRODUCER-SDK.md
 // [RFC 3339]: https://datatracker.ietf.org/doc/html/rfc3339
 
 package sdk

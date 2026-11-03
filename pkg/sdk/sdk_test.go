@@ -1,9 +1,9 @@
-// sdk_test.go - Tests for NewContext defaults, EnvOrDefault and safe failure mode configuration.
+// sdk_test.go - Tests for NewContext defaults, EnvOrDefault and safe
+// failure mode configuration.
 //
-// For an introduction to OSIRIS JSON Producer Development Guidelines see:
-// "[OSIRIS-PRODUCER-GUIDELINES]."
+// For the OSIRIS JSON Producer SDK reference see [OSIRIS-ADG-PR-SDK-1.0].
 //
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/getting-started/osiris-producer-guidelines
+// [OSIRIS-ADG-PR-SDK-1.0]: https://github.com/osirisjson/osiris-producers/blob/main/docs/guidelines/v1.0/OSIRIS-PRODUCER-SDK.md
 
 package sdk
 

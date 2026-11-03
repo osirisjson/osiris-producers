@@ -1,13 +1,14 @@
-// redact.go - Secret scanning for OSIRIS documents.
-// Detects sensitive data by key name patterns (password, token, api_key, etc.)
-// and value patterns (AWS keys, GitHub PATs, PEM keys, JWTs, credential URIs).
-// Used by DocumentBuilder to enforce safe failure modes per OSIRIS-ADG-PR-1.0 section 3.1.2.
+// redact.go - Secret scanning for OSIRIS JSON documents.
+// Detects sensitive data by key name patterns (password, token,
+// api_key, etc.) and value patterns (AWS keys, GitHub PATs, PEM keys,
+// JWTs, credential URIs).
+// Used by DocumentBuilder to enforce safe failure modes per
+// [OSIRIS-ADG-PR-1.0 section 3.1.2].
 //
-// For an introduction to OSIRIS JSON Producer Development Guidelines see:
-// "[OSIRIS-PRODUCER-GUIDELINES]."
+// For the OSIRIS JSON Producer SDK reference see [OSIRIS-ADG-PR-SDK-1.0].
 //
 // [OSIRIS-ADG-PR-1.0 section 3.1.2]: https://github.com/osirisjson/osiris/blob/main/docs/guidelines/v1.0/OSIRIS-PRODUCER-GUIDELINES.md#312-detection-patterns
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/getting-started/osiris-producer-guidelines
+// [OSIRIS-ADG-PR-SDK-1.0]: https://github.com/osirisjson/osiris-producers/blob/main/docs/guidelines/v1.0/OSIRIS-PRODUCER-SDK.md
 
 package sdk
 
@@ -18,7 +19,8 @@ import (
 )
 
 // SecretFinding reports a detected secret at a specific field path.
-// The finding MUST NOT contain the actual secret value - only the path and rule name.
+// The finding MUST NOT contain the actual secret value - only the
+// path and rule name.
 type SecretFinding struct {
 	Path string // JSON Pointer-style field path (e.g. "topology.resources[2].properties.api_key").
 	Rule string // which rule matched (e.g. "key_name:password", "value_pattern:aws_access_key").
@@ -28,8 +30,8 @@ func (f SecretFinding) String() string {
 	return fmt.Sprintf("secret detected at %s (rule: %s)", f.Path, f.Rule)
 }
 
-// SensitiveKeyPatterns are substrings that, when found in a property key
-// (case-insensitive), indicate the value is likely a secret.
+// SensitiveKeyPatterns are substrings that, when found in a property
+// key (case-insensitive), indicate the value is likely a secret.
 // Per OSIRIS-ADG-PR-1.0 section 3.1.2.
 var SensitiveKeyPatterns = []string{
 	"password",
@@ -43,8 +45,8 @@ var SensitiveKeyPatterns = []string{
 	"auth",
 }
 
-// sensitiveValuePatterns are compiled regexps that match common secret formats.
-// Per OSIRIS-ADG-PR-1.0 section 3.1.2.
+// sensitiveValuePatterns are compiled regexps that match common secret
+// formats. Per OSIRIS-ADG-PR-1.0 section 3.1.2.
 var sensitiveValuePatterns = []struct {
 	name string
 	re   *regexp.Regexp
@@ -60,8 +62,8 @@ var sensitiveValuePatterns = []struct {
 	{"credential_uri", regexp.MustCompile(`://[^/\s]+:[^/\s]+@`)},
 }
 
-// IsSensitiveKey returns true if the key name matches a sensitive pattern
-// (case-insensitive substring match).
+// IsSensitiveKey returns true if the key name matches a
+// sensitive pattern (case-insensitive substring match).
 func IsSensitiveKey(key string) bool {
 	lower := strings.ToLower(key)
 	for _, pattern := range SensitiveKeyPatterns {
@@ -85,7 +87,8 @@ func ScanValue(value string) string {
 
 // ScanProperties scans a properties or extensions map for secrets.
 // It checks both key names and string values. Returns all findings.
-// The path parameter is the JSON Pointer prefix (e.g. "topology.resources[0].properties").
+// The path parameter is the JSON Pointer prefix
+// (e.g. "topology.resources[0].properties").
 func ScanProperties(m map[string]any, path string) []SecretFinding {
 	if len(m) == 0 {
 		return nil
@@ -148,7 +151,8 @@ func ScanTags(m map[string]string, path string) []SecretFinding {
 	return findings
 }
 
-// ScanResource scans a single resource for secrets in properties, extensions and tags.
+// ScanResource scans a single resource for secrets in properties,
+// extensions and tags.
 func ScanResource(r *Resource, index int) []SecretFinding {
 	prefix := fmt.Sprintf("topology.resources[%d]", index)
 	var findings []SecretFinding
@@ -158,7 +162,8 @@ func ScanResource(r *Resource, index int) []SecretFinding {
 	return findings
 }
 
-// ScanConnection scans a single connection for secrets in properties, extensions and tags.
+// ScanConnection scans a single connection for secrets in properties,
+// extensions and tags.
 func ScanConnection(c *Connection, index int) []SecretFinding {
 	prefix := fmt.Sprintf("topology.connections[%d]", index)
 	var findings []SecretFinding
@@ -168,7 +173,8 @@ func ScanConnection(c *Connection, index int) []SecretFinding {
 	return findings
 }
 
-// ScanGroup scans a single group for secrets in properties, extensions and tags.
+// ScanGroup scans a single group for secrets in properties,
+// extensions and tags.
 func ScanGroup(g *Group, index int) []SecretFinding {
 	prefix := fmt.Sprintf("topology.groups[%d]", index)
 	var findings []SecretFinding
@@ -178,7 +184,7 @@ func ScanGroup(g *Group, index int) []SecretFinding {
 	return findings
 }
 
-// ScanDocument scans an entire OSIRIS document for secrets.
+// ScanDocument scans an entire OSIRIS JSON document for secrets.
 // Returns all findings across resources, connections and groups.
 func ScanDocument(doc *Document) []SecretFinding {
 	var findings []SecretFinding

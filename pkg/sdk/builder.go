@@ -1,12 +1,13 @@
-// builder.go - DocumentBuilder assembles and validates a complete OSIRIS JSON document.
-// Build() enforces invariants: generator metadata, deterministic sorting, duplicate ID
-// detection, reference integrity (connection endpoints, group members/children),
-// extension key validation and secret scanning per the configured safe failure mode.
+// builder.go - DocumentBuilder assembles and validates a complete
+// OSIRIS JSON document.
+// Build() enforces invariants: generator metadata, deterministic
+// sorting, duplicate ID detection, reference integrity (connection
+// endpoints, group members/children), extension key validation and
+// secret scanning per the configured safe failure mode.
 //
-// For an introduction to OSIRIS JSON Producer Development Guidelines see:
-// "[OSIRIS-PRODUCER-GUIDELINES]."
+// For the OSIRIS JSON Producer SDK reference see [OSIRIS-ADG-PR-SDK-1.0].
 //
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/getting-started/osiris-producer-guidelines
+// [OSIRIS-ADG-PR-SDK-1.0]: https://github.com/osirisjson/osiris-producers/blob/main/docs/guidelines/v1.0/OSIRIS-PRODUCER-SDK.md
 
 package sdk
 
@@ -17,8 +18,9 @@ import (
 	"strings"
 )
 
-// DocumentBuilder assembles the top-level OSIRIS document structure.
-// It enforces structural invariants and produces deterministic, diff-friendly output.
+// DocumentBuilder assembles the top-level OSIRIS JSON document
+// structure. It enforces structural invariants and produces
+// deterministic, diff-friendly output.
 type DocumentBuilder struct {
 	ctx           *Context
 	generatorName string
@@ -68,7 +70,8 @@ func (b *DocumentBuilder) AddGroup(g Group) {
 }
 
 /*
-Build assembles the final OSIRIS Document with all invariants enforced.
+Build assembles the final OSIRIS JSON document with all
+invariants enforced.
 
 Invariants:
   - $schema and version are set from SDK constants.
@@ -82,7 +85,8 @@ Invariants:
   - Group members and children are deduplicated and sorted.
   - Redaction metadata is set based on config safe failure mode.
   - Extension keys must match the osiris.* namespace pattern.
-  - Secret scanning is enforced per safe failure mode (unless mode is "off").
+  - Secret scanning is enforced per safe failure mode
+    (unless mode is "off").
 */
 func (b *DocumentBuilder) Build() (*Document, error) {
 	if b.generatorName == "" || b.generatorVer == "" {
@@ -214,8 +218,8 @@ func (b *DocumentBuilder) checkDuplicateIDs() error {
 	return nil
 }
 
-// checkReferenceIntegrity verifies that all connection source/target references
-// and group member/children references point to existing IDs.
+// checkReferenceIntegrity verifies that all connection source/target
+// references and group member/children references point to existing IDs.
 func (b *DocumentBuilder) checkReferenceIntegrity() error {
 	resourceIDs := make(map[string]bool, len(b.resources))
 	for _, r := range b.resources {

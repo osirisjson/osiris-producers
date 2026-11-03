@@ -1,10 +1,10 @@
-// identity_test.go - Tests for hash truncation, component encoding, hint derivation,
-// canonical key generation, connection/group ID building and IDRegistry collision resolution.
+// identity_test.go - Tests for hash truncation, component encoding,
+// hint derivation, canonical key generation, connection/group ID
+// building and IDRegistry collision resolution.
 //
-// For an introduction to OSIRIS JSON Producer Development Guidelines see:
-// "[OSIRIS-PRODUCER-GUIDELINES]."
+// For the OSIRIS JSON Producer SDK reference see [OSIRIS-ADG-PR-SDK-1.0].
 //
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/getting-started/osiris-producer-guidelines
+// [OSIRIS-ADG-PR-SDK-1.0]: https://github.com/osirisjson/osiris-producers/blob/main/docs/guidelines/v1.0/OSIRIS-PRODUCER-SDK.md
 
 package sdk
 
@@ -209,8 +209,8 @@ func TestIDRegistryEmptyKind(t *testing.T) {
 }
 
 func TestIDRegistryCollisionUpgrade(t *testing.T) {
-	// Force a collision at Hash16 by using a buildID that ignores the canonical key
-	// at length 16 but differentiates at length 24.
+	// Force a collision at Hash16 by using a buildID that ignores the
+	// canonical key at length 16 but differentiates at length 24.
 	reg := NewIDRegistry()
 	reg.RegisterKey("test", "key-alpha")
 	reg.RegisterKey("test", "key-beta")
@@ -229,7 +229,8 @@ func TestIDRegistryCollisionUpgrade(t *testing.T) {
 	if len(result) != 2 {
 		t.Fatalf("expected 2 results, got %d", len(result))
 	}
-	// Both keys should have been called at length 16 (collision) then 24 (resolved).
+	// Both keys should have been called at length 16 (collision)
+	// then 24 (resolved).
 	for _, key := range []string{"key-alpha", "key-beta"} {
 		lengths := callLog[key]
 		if len(lengths) < 2 || lengths[0] != 16 || lengths[1] != 24 {
@@ -265,7 +266,8 @@ func TestEncodeComponentRoundTrip(t *testing.T) {
 }
 
 func TestBidirectionalConnectionKeySymmetry(t *testing.T) {
-	// Swapping source and target for bidirectional MUST produce identical canonical keys.
+	// Swapping source and target for bidirectional MUST produce
+	// identical canonical keys.
 	key1 := ConnectionCanonicalKey(ConnectionIDInput{
 		Type:      "network.l2",
 		Direction: "bidirectional",
@@ -301,7 +303,8 @@ func TestBidirectionalConnectionKeySymmetry(t *testing.T) {
 }
 
 func TestGroupIDScopeFieldsSorted(t *testing.T) {
-	// Scope fields should be sorted by encoded key, so order of map doesn't matter.
+	// Scope fields should be sorted by encoded key, so order of map
+	// doesn't matter.
 	id1 := GroupID(GroupIDInput{
 		Type:          "logical.environment",
 		BoundaryToken: "prod",

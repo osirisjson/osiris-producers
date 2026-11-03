@@ -4,10 +4,9 @@
 // (Collect) and the runtime context (Config, Logger, Clock) passed to
 // producers at execution time.
 //
-// For introduction to OSIRIS JSON Producer Development Guidelines see:
-// "[OSIRIS-PRODUCER-GUIDELINES]."
+// For the OSIRIS JSON Producer SDK reference see [OSIRIS-ADG-PR-SDK-1.0].
 //
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/getting-started/osiris-producer-guidelines
+// [OSIRIS-ADG-PR-SDK-1.0]: https://github.com/osirisjson/osiris-producers/blob/main/docs/guidelines/v1.0/OSIRIS-PRODUCER-SDK.md
 //
 // [OSIRIS JSON Schema]: https://osirisjson.org/schema/v1.0/osiris.schema.json
 package sdk
@@ -37,7 +36,7 @@ const (
 // backend MUST satisfy.
 type Producer interface {
 	// Collect discovers vendor inventory and returns an assembled
-	// OSIRIS document.
+	// OSIRIS JSON document.
 	// Partial failures SHOULD be logged and skipped (non-fatal).
 	Collect(ctx *Context) (*Document, error)
 }
@@ -65,9 +64,10 @@ type ProducerConfig struct {
 	// IncludeRawBody requests that a producer attach each collected
 	// command/endpoint's full, unmodified source response under a
 	// vendor extension, as a lossless fallback for fields not yet
-	// OSIRIS modeled fields. Only meaningful when Purpose is "audit" a
-	// producer MUST NOT honor it otherwise. Purely additive/optional;
-	// producers that do not support it simply ignore it.
+	// OSIRIS JSON modeled fields. Only meaningful when Purpose is
+	// "audit" a producer MUST NOT honor it otherwise.
+	// Purely additive/optional; producers that do not support it simply
+	// ignore it.
 	IncludeRawBody bool `json:"include_raw_body,omitempty"`
 }
 

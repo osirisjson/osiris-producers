@@ -1,13 +1,13 @@
-// normalize.go - Value normalization utilities for OSIRIS document properties.
-// Provides deterministic formatting for timestamps [RFC3339 UTC], MAC addresses
-// (colon-separated lowercase), IP addresses (canonical net.IP form) and free-text
-// tokens (lowercase, collapsed whitespace).
+// normalize.go - Value normalization utilities for OSIRIS JSON document
+// properties. Provides deterministic formatting for timestamps
+// [RFC3339 UTC], MAC addresses (colon-separated lowercase), IP
+// addresses (canonical net.IP form) and free-text tokens
+// (lowercase, collapsed whitespace).
 //
-// For an introduction to OSIRIS JSON Producer Development Guidelines see:
-// "[OSIRIS-PRODUCER-GUIDELINES]."
+// For the OSIRIS JSON Producer SDK reference see [OSIRIS-ADG-PR-SDK-1.0].
 //
 // [RFC3339]: https://datatracker.ietf.org/doc/html/rfc3339
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/getting-started/osiris-producer-guidelines
+// [OSIRIS-ADG-PR-SDK-1.0]: https://github.com/osirisjson/osiris-producers/blob/main/docs/guidelines/v1.0/OSIRIS-PRODUCER-SDK.md
 
 package sdk
 
@@ -20,7 +20,8 @@ import (
 
 var whitespaceRe = regexp.MustCompile(`\s+`)
 
-// NormalizeRFC3339UTC returns an RFC3339 string in UTC (e.g. "2026-01-15T10:00:00Z").
+// NormalizeRFC3339UTC returns an RFC3339 string in UTC
+// (e.g. "2026-01-15T10:00:00Z").
 func NormalizeRFC3339UTC(t time.Time) string {
 	return t.UTC().Format(time.RFC3339)
 }
@@ -38,7 +39,8 @@ func NormalizeToken(s string) string {
 	return s
 }
 
-// NormalizeMAC returns a lowercase colon-separated MAC address (e.g. "aa:bb:cc:dd:ee:ff") or "" if the input is invalid.
+// NormalizeMAC returns a lowercase colon-separated MAC address
+// (e.g. "aa:bb:cc:dd:ee:ff") or "" if the input is invalid.
 // Accepts colon, hyphen, or dot-separated formats.
 func NormalizeMAC(s string) string {
 	hw, err := net.ParseMAC(s)

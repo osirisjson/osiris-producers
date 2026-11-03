@@ -1,12 +1,12 @@
-// identity.go - Deterministic ID generation for OSIRIS connections and groups.
-// Implements canonical key serialization, SHA-256 hash truncation, collision-resistant
-// ID registry and human-readable hint derivation per [OSIRIS-ADG-PR-SDK-1.0 chapter 2].
+// identity.go - Deterministic ID generation for OSIRIS JSON connections
+// and groups. Implements canonical key serialization, SHA-256 hash
+// truncation, collision-resistant ID registry and human-readable
+// hint derivation per [OSIRIS-ADG-PR-SDK-1.0 chapter 2].
 //
-// For an introduction to OSIRIS JSON Producer Development Guidelines see:
-// "[OSIRIS-PRODUCER-GUIDELINES]."
+// For the OSIRIS JSON Producer SDK reference see [OSIRIS-ADG-PR-SDK-1.0].
 //
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/getting-started/osiris-producer-guidelines
-// [OSIRIS-ADG-PR-SDK-1.0]: https://github.com/osirisjson/osiris-producers/blob/main/docs/guidelines/v1.0/OSIRIS-PRODUCER-SDK.md#2-developer-utilities
+// [OSIRIS-ADG-PR-SDK-1.0]: https://github.com/osirisjson/osiris-producers/blob/main/docs/guidelines/v1.0/OSIRIS-PRODUCER-SDK.md
+// [OSIRIS-ADG-PR-SDK-1.0 chapter 2]: https://github.com/osirisjson/osiris-producers/blob/main/docs/guidelines/v1.0/OSIRIS-PRODUCER-SDK.md#2-developer-utilities
 
 package sdk
 
@@ -20,7 +20,8 @@ import (
 	"strings"
 )
 
-// ErrIDCollision is returned when hash collision cannot be resolved even at 32 characters.
+// ErrIDCollision is returned when hash collision cannot be resolved
+// even at 32 characters.
 var ErrIDCollision = errors.New("unresolvable ID collision at maximum hash length (32)")
 
 var hintCleanRe = regexp.MustCompile(`[^a-z0-9]+`)
@@ -87,7 +88,8 @@ func DeriveHint(id, hash string) string {
 	return s
 }
 
-// ConnectionIDInput carries the stable parts needed to derive a connection ID.
+// ConnectionIDInput carries the stable parts needed to derive
+// a connection ID.
 type ConnectionIDInput struct {
 	Type       string
 	Direction  string
@@ -129,7 +131,8 @@ func ConnectionCanonicalKey(in ConnectionIDInput) string {
 	return b.String()
 }
 
-// BuildConnectionID formats the final connection ID from a canonical key and hash length.
+// BuildConnectionID formats the final connection ID from a canonical
+// key and hash length.
 // Output format: conn-{type}-{hintA}-to-{hintB}-{hash}.
 func BuildConnectionID(canonicalKey string, hashLen int) string {
 	hash := HashN(canonicalKey, hashLen)
@@ -173,7 +176,8 @@ func GroupCanonicalKey(in GroupIDInput) string {
 	return b.String()
 }
 
-// BuildGroupID formats the final group ID from a canonical key, boundary token and hash length.
+// BuildGroupID formats the final group ID from a canonical key,
+// boundary token and hash length.
 // Output format: group-{type}-{boundaryHint}-{hash}
 func BuildGroupID(in GroupIDInput, hashLen int) string {
 	canonicalKey := GroupCanonicalKey(in)
@@ -267,7 +271,8 @@ func NewIDRegistry() *IDRegistry {
 	}
 }
 
-// RegisterKey records a canonical key for later deterministic resolution.
+// RegisterKey records a canonical key for later
+// deterministic resolution.
 func (r *IDRegistry) RegisterKey(kind string, canonicalKey string) {
 	r.kinds[kind] = append(r.kinds[kind], canonicalKey)
 }
