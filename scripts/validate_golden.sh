@@ -1,16 +1,22 @@
 #!/usr/bin/env bash
-# OSIRIS JSON validate-golden.sh - Validates all golden files against @osirisjson/core via the canonical CLI.
+# OSIRIS JSON validate_golden.sh - Validates all golden files against
+# @osirisjson/core via the canonical CLI.
+#
+# Golden files are named golden_<purpose>.json
+# (e.g. purpose/golden_audit.json); the earlier name golden.json
+# is still discovered.
 #
 # Usage:
-#   ./scripts/validate-golden.sh [--profile strict|default|basic] [pattern]
+#   ./scripts/validate_golden.sh [--profile strict|default|basic] [pattern]
 #
 # Examples:
-#   ./scripts/validate-golden.sh                              # validate all golden files at strict
-#   ./scripts/validate-golden.sh --profile default            # validate at default profile
-#   ./scripts/validate-golden.sh networking/cisco/nxos        # validate only NX-OS golden files
+#   ./scripts/validate_golden.sh                              # validate all golden files at strict
+#   ./scripts/validate_golden.sh --profile default            # validate at default profile
+#   ./scripts/validate_golden.sh networking/cisco/nxos        # validate only NX-OS golden files
 #
 # Requirements:
-#   Node.js (for npx) and @osirisjson/cli (fetched automatically by npx if not installed).
+#   Node.js (for npx) and @osirisjson/cli (fetched automatically by npx
+#   if not installed).
 #
 # Exit codes:
 #   0 - all golden files pass validation
@@ -30,7 +36,7 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     --help|-h)
-      head -20 "$0" | grep '^#' | sed 's/^# \?//'
+      head -23 "$0" | tail -n +2 | grep '^#' | sed 's/^# \?//'
       exit 0
       ;;
     *)
@@ -48,10 +54,10 @@ fi
 
 # Find golden files
 SEARCH_DIR="${PATTERN:-.}"
-GOLDEN_FILES=$(find "$SEARCH_DIR" -name 'golden.json' -type f 2>/dev/null | sort)
+GOLDEN_FILES=$(find "$SEARCH_DIR" -type f \( -name 'golden_*.json' -o -name 'golden.json' \) 2>/dev/null | sort)
 
 if [[ -z "$GOLDEN_FILES" ]]; then
-  echo "error: no golden.json files found in ${SEARCH_DIR}" >&2
+  echo "error: no golden files (golden_<purpose>.json, golden.json) found in ${SEARCH_DIR}" >&2
   exit 2
 fi
 
