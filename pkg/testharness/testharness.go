@@ -1,13 +1,13 @@
-// Package testharness provides test utilities for OSIRIS producers.
+// Package testharness provides test utilities for OSIRIS JSON producers.
 //
-// It implements the golden-file workflow defined in [OSIRIS-ADG-PR-1.0 chapter 4]
-// and provides deterministic test contexts for reproducible producer tests.
+// It implements the golden-file workflow defined in
+// [OSIRIS-ADG-PR-1.0 chapter 4] and provides deterministic test
+// contexts for reproducible producer tests.
 //
-// For an introduction to OSIRIS JSON Producer Development Guidelines see:
-// "[OSIRIS-PRODUCER-GUIDELINES]."
+// For the OSIRIS JSON Producer SDK reference see [OSIRIS-ADG-PR-SDK-1.0].
 //
 // [OSIRIS-ADG-PR-1.0 chapter 4]: https://github.com/osirisjson/osiris/blob/dev/docs/guidelines/v1.0/OSIRIS-PRODUCER-GUIDELINES.md#4-quality-assurance
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/getting-started/osiris-producer-guidelines
+// [OSIRIS-ADG-PR-SDK-1.0]: https://github.com/osirisjson/osiris-producers/blob/main/docs/guidelines/v1.0/OSIRIS-PRODUCER-SDK.md
 
 package testharness
 
@@ -42,7 +42,8 @@ func WithClock(clock func() time.Time) TestOption {
 // FixedTestTime is the canonical fixed time used in test contexts.
 var FixedTestTime = time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC)
 
-// NewTestContext returns a Context with deterministic defaults for testing.
+// NewTestContext returns a Context with deterministic defaults for
+// testing.
 //
 // Defaults:
 //   - Clock: fixed to 2026-01-15T10:00:00Z
@@ -75,7 +76,8 @@ func (w testWriter) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-// LoadFixture reads a test fixture file and fails the test if it cannot be read.
+// LoadFixture reads a test fixture file and fails the test if it
+// cannot be read.
 func LoadFixture(t *testing.T, path string) []byte {
 	t.Helper()
 	data, err := os.ReadFile(path)
@@ -87,7 +89,8 @@ func LoadFixture(t *testing.T, path string) []byte {
 
 // AssertGolden compares the document against a golden file.
 // On mismatch it fails the test with a diff summary.
-// When the OSIRIS_UPDATE_GOLDEN env var is set, it overwrites the golden file instead.
+// When the OSIRIS_UPDATE_GOLDEN env var is set, it overwrites the
+// golden file instead.
 func AssertGolden(t *testing.T, got *sdk.Document, goldenPath string) {
 	t.Helper()
 
@@ -122,9 +125,10 @@ func AssertGolden(t *testing.T, got *sdk.Document, goldenPath string) {
 	}
 }
 
-// AssertDeterministic runs the producer twice with the same context and asserts
-// byte-identical JSON output. This catches non-deterministic ID generation,
-// unstable map iteration, or inconsistent timestamp handling.
+// AssertDeterministic runs the producer twice with the same context
+// and asserts byte-identical JSON output. This catches
+// non-deterministic ID generation, unstable map iteration, or
+// inconsistent timestamp handling.
 func AssertDeterministic(t *testing.T, p sdk.Producer, ctx *sdk.Context) {
 	t.Helper()
 
