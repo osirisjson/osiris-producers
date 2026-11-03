@@ -1,17 +1,18 @@
-// Package sdk provides the Go producer SDK for generating OSIRIS JSON documents.
+// Package sdk provides the Go producer SDK for generating
+// OSIRIS JSON documents.
 //
-// The SDK implements the contracts defined in OSIRIS-ADG-PR-SDK-1.0:
-// typed Go structs mirroring [osiris.schema.json], deterministic ID generation,
-// a document builder, normalization utilities and factory functions.
+// The SDK implements the contracts defined in [OSIRIS-ADG-PR-SDK-1.0]:
+// typed Go structs mirroring [osiris.schema.json], deterministic ID
+// generation, a document builder, normalization utilities and
+// factory functions.
 //
-// The SDK MUST NOT import, embed or link against @osirisjson/core (TypeScript/NPM).
-// Validation is done via the canonical CLI as an external process in CI.
+// The SDK MUST NOT import, embed or link against @osirisjson/core
+// (TypeScript/NPM). Validation is done via the canonical CLI as an
+// external process in CI.
 //
-// For an introduction to OSIRIS JSON Producer Development Guidelines see:
-// "[OSIRIS-PRODUCER-GUIDELINES]."
+// For the OSIRIS JSON Producer SDK reference see [OSIRIS-ADG-PR-SDK-1.0].
 //
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/getting-started/osiris-producer-guidelines
-// [osiris.schema.json]: https://osirisjson.org/schema/v1.0/osiris.schema.json
+// [OSIRIS JSON Schema]: https://osirisjson.org/schema/v1.0/osiris.schema.json
 // [OSIRIS-ADG-PR-SDK-1.0]: https://github.com/osirisjson/osiris-producers/blob/main/docs/guidelines/v1.0/OSIRIS-PRODUCER-SDK.md
 
 package sdk
@@ -32,10 +33,18 @@ type Metadata struct {
 	Redacted        *bool          `json:"redacted,omitempty"`
 	RedactionPolicy string         `json:"redaction_policy,omitempty"`
 	Coverage        *CoverageBlock `json:"coverage,omitempty"`
+
+	// Extensions holds producer-specific metadata, emitted as
+	// additional top-level metadata members (the OSIRIS JSON schema
+	// allows them; they are not OSIRIS JSON v1.0 fields).
+	// Keys MUST be namespaced ("osiris.<ns>"),
+	// e.g. "osiris.azure"; other keys are not emitted.
+	Extensions map[string]any `json:"-"`
 }
 
 // CoverageBlock carries per-document producer telemetry.
-// Schema-compatible via metadata's additionalProperties:true (OSIRIS JSON specification chapter 3 section 3.3.4).
+// Schema-compatible via metadata's additionalProperties:true
+// (OSIRIS JSON specification chapter 3 section 3.3.4).
 type CoverageBlock struct {
 	ServicesAttempted []string        `json:"services_attempted,omitempty"`
 	ServicesSucceeded []string        `json:"services_succeeded,omitempty"`
