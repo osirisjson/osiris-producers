@@ -1,13 +1,14 @@
-// marshal_test.go - Tests for deterministic JSON serialization (2-space indent, trailing newline).
+// marshal_test.go - Tests for deterministic JSON serialization
+// (2-space indent, trailing newline).
 //
-// For an introduction to OSIRIS JSON Producer Development Guidelines see:
-// "[OSIRIS-PRODUCER-GUIDELINES]."
+// For the OSIRIS JSON Producer SDK reference see [OSIRIS-ADG-PR-SDK-1.0].
 //
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/getting-started/osiris-producer-guidelines
+// [OSIRIS-ADG-PR-SDK-1.0]: https://github.com/osirisjson/osiris-producers/blob/main/docs/guidelines/v1.0/OSIRIS-PRODUCER-SDK.md
 
 package sdk
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 )
@@ -78,5 +79,37 @@ func TestMarshalDocumentDeterministic(t *testing.T) {
 
 	if string(data1) != string(data2) {
 		t.Error("MarshalDocument should produce identical output for the same input")
+	}
+}
+
+func TestMetadataExtensions(t *testing.T) {
+	m := Metadata{
+		Timestamp: "2026-01-01T00:00:00Z",
+		Generator: Generator{Name: "test", Version: "0.1.0"},
+		Extensions: map[string]any{
+			"osiris.test": map[string]any{"note": "a & b"},
+			"plain":       "dropped",
+		},
+	}
+	// Encoded the way MarshalDocument does (no HTML escaping).
+	b, err := encodeNoEscape(m)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := `{"timestamp":"2026-01-01T00:00:00Z","generator":{"name":"test","version":"0.1.0"},"osiris.test":{"note":"a & b"}}`
+	if string(b) != want {
+		t.Errorf("got  %s\nwant %s", b, want)
+	}
+	var back Metadata
+	if err := json.Unmarshal(b, &back); err != nil {
+		t.Fatal(err)
+	}
+	if back.Extensions["osiris.test"].(map[string]any)["note"] != "a & b" || back.Generator.Name != "test" {
+		t.Errorf("round trip = %+v", back)
+	}
+	// No extensions: unchanged encoding.
+	m.Extensions = nil
+	if b, _ := json.Marshal(m); strings.Contains(string(b), "osiris") {
+		t.Errorf("unexpected extension output %s", b)
 	}
 }
