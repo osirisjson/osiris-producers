@@ -1,13 +1,12 @@
-// validate.go - Schema pattern validators for OSIRIS element fields.
-// Enforces type patterns (resource, connection, group), provider name/namespace
-// conventions, status/direction enums and ID format constraints as defined
-// in [osiris.schema.json].
+// validate.go - Schema pattern validators for OSIRIS JSON element
+// fields. Enforces type patterns (resource, connection, group),
+// provider name/namespace conventions, status/direction enums and ID
+// format constraints as defined in [osiris.schema.json].
 //
-// For an introduction to OSIRIS JSON Producer Development Guidelines see:
-// "[OSIRIS-PRODUCER-GUIDELINES]."
+// For the OSIRIS JSON Producer SDK reference see [OSIRIS-ADG-PR-SDK-1.0].
 //
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/getting-started/osiris-producer-guidelines
-// [osiris.schema.json]: https://osirisjson.org/schema/v1.0/osiris.schema.json
+// [OSIRIS-ADG-PR-SDK-1.0]: https://github.com/osirisjson/osiris-producers/blob/main/docs/guidelines/v1.0/OSIRIS-PRODUCER-SDK.md
+// [OSIRIS JSON Schema]: https://osirisjson.org/schema/v1.0/osiris.schema.json
 
 package sdk
 
@@ -19,18 +18,21 @@ import (
 
 // Validation patterns from core osiris.schema.json.
 var (
-	// resourceTypeRe matches resource types: at least two dot-separated lowercase segments.
+	// resourceTypeRe matches resource types: at least two dot-separated
+	// lowercase segments.
 	// e.g. "compute.vm", "network.switch.leaf"
 	resourceTypeRe = regexp.MustCompile(`^[a-z0-9]+(?:\.[a-z0-9]+)+$`)
 
-	// connectionTypeRe matches connection types: one or more dot-separated lowercase segments.
+	// connectionTypeRe matches connection types: one or more
+	// dot-separated lowercase segments.
 	// e.g. "network", "network.l2", "dataflow.tcp"
 	connectionTypeRe = regexp.MustCompile(`^[a-z0-9]+(?:\.[a-z0-9]+)*$`)
 
-	// groupTypeRe matches group types: same pattern as connection types.
+	// groupTypeRe matches group types: same pattern as connection type.
 	groupTypeRe = connectionTypeRe
 
-	// providerNameRe matches provider names: lowercase alphanumeric with optional dots.
+	// providerNameRe matches provider names: lowercase alphanumeric
+	// with optional dots.
 	// e.g. "aws", "cisco", "custom"
 	providerNameRe = regexp.MustCompile(`^[a-z0-9]+(?:\.[a-z0-9]+)*$`)
 
@@ -55,7 +57,8 @@ var validDirections = map[string]bool{
 	"reverse":       true,
 }
 
-// ValidateResourceType checks that a resource type matches the schema pattern.
+// ValidateResourceType checks that a resource type matches the
+// schema pattern.
 func ValidateResourceType(t string) error {
 	if !resourceTypeRe.MatchString(t) {
 		return fmt.Errorf("invalid resource type %q: must match pattern %s (e.g. \"compute.vm\", \"network.switch\")",
@@ -64,7 +67,8 @@ func ValidateResourceType(t string) error {
 	return nil
 }
 
-// ValidateConnectionType checks that a connection type matches the schema pattern.
+// ValidateConnectionType checks that a connection type matches
+// the schema pattern.
 func ValidateConnectionType(t string) error {
 	if !connectionTypeRe.MatchString(t) {
 		return fmt.Errorf("invalid connection type %q: must match pattern %s (e.g. \"network\", \"dataflow.tcp\")",
@@ -82,7 +86,8 @@ func ValidateGroupType(t string) error {
 	return nil
 }
 
-// ValidateProviderName checks that a provider name matches the schema pattern.
+// ValidateProviderName checks that a provider name matches the
+// schema pattern.
 func ValidateProviderName(name string) error {
 	if !providerNameRe.MatchString(name) {
 		return fmt.Errorf("invalid provider name %q: must match pattern %s (e.g. \"aws\", \"cisco\", \"custom\")",
@@ -91,7 +96,8 @@ func ValidateProviderName(name string) error {
 	return nil
 }
 
-// ValidateNamespace checks that a custom provider namespace matches the required pattern.
+// ValidateNamespace checks that a custom provider namespace matches
+// the required pattern.
 func ValidateNamespace(ns string) error {
 	if !namespaceRe.MatchString(ns) {
 		return fmt.Errorf("invalid namespace %q: must match pattern %s (e.g. \"osiris.com.acme\")",
@@ -100,8 +106,8 @@ func ValidateNamespace(ns string) error {
 	return nil
 }
 
-// ValidateStatus checks that a status value is one of the allowed enum values.
-// Empty string is allowed (status is optional).
+// ValidateStatus checks that a status value is one of the allowed
+// enum values. Empty string is allowed (status is optional).
 func ValidateStatus(s string) error {
 	if s == "" {
 		return nil

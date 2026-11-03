@@ -1,12 +1,14 @@
-// builder_test.go - Tests for DocumentBuilder invariants: generator requirement, deterministic
-// sorting, duplicate ID detection, reference integrity, extension key validation and secret scanning.
-// These tests exercise the SDK's internal logic (sorting, dedup, ref integrity), not vendor-specific behavior.
-// The provider name "aws" is just a string that happens to pass ValidateProviderName.
+// builder_test.go - Tests for DocumentBuilder invariants: generator
+// requirement, deterministic sorting, duplicate ID detection, reference
+// integrity, extension key validation and secret scanning.
+// These tests exercise the SDK's internal logic (sorting, dedup, ref
+// integrity), not vendor-specific behavior.
+// The provider name "aws" is just a string that happens to pass
+// ValidateProviderName.
 //
-// For an introduction to OSIRIS JSON Producer Development Guidelines see:
-// "[OSIRIS-PRODUCER-GUIDELINES]."
+// For the OSIRIS JSON Producer SDK reference see [OSIRIS-ADG-PR-SDK-1.0].
 //
-// [OSIRIS-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/getting-started/osiris-producer-guidelines
+// [OSIRIS-ADG-PR-SDK-1.0]: https://github.com/osirisjson/osiris-producers/blob/main/docs/guidelines/v1.0/OSIRIS-PRODUCER-SDK.md
 
 package sdk
 
