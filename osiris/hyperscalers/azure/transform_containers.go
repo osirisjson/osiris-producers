@@ -25,7 +25,7 @@ func TransformAKSClusters(clusters []AKSCluster, sub SubscriptionInfo) ([]sdk.Re
 
 	for _, c := range clusters {
 		id := resourceID("compute.cluster", c.ID)
-		idMap[c.ID] = id
+		idMap[armKey(c.ID)] = id
 
 		prov := azureProvider(c.ID, "Microsoft.ContainerService/managedClusters", c.Location, sub)
 
@@ -104,9 +104,6 @@ func TransformAKSClusters(clusters []AKSCluster, sub SubscriptionInfo) ([]sdk.Re
 			if peIDs := collectPEIDs(p.PrivateEndpointConnections); len(peIDs) > 0 {
 				r.Extensions = map[string]any{extensionNamespace: map[string]any{"private_endpoint_connection_ids": peIDs}}
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Succeeded"
 		}
 		r.Properties = props
 
@@ -116,9 +113,10 @@ func TransformAKSClusters(clusters []AKSCluster, sub SubscriptionInfo) ([]sdk.Re
 	return resources, idMap
 }
 
-// TransformAKSAgentPools converts AKS agent pools into OSIRIS JSON resources of
-// type osiris.azure.aks.nodepool. Pools are collected per-cluster so that each
-// carries its ARM ID (needed for cluster -> nodepool contains edges).
+// TransformAKSAgentPools converts AKS agent pools into OSIRIS JSON
+// resources of type osiris.azure.aks.nodepool. Pools are collected
+// per-cluster so that each carries its ARM ID
+// (needed for cluster -> nodepool contains edges).
 func TransformAKSAgentPools(clusters []AKSCluster, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string)
@@ -126,7 +124,7 @@ func TransformAKSAgentPools(clusters []AKSCluster, sub SubscriptionInfo) ([]sdk.
 	for _, c := range clusters {
 		for _, p := range c.AgentPools {
 			id := resourceID("osiris.azure.aks.nodepool", p.ID)
-			idMap[p.ID] = id
+			idMap[armKey(p.ID)] = id
 
 			prov := azureProvider(p.ID, "Microsoft.ContainerService/managedClusters/agentPools", c.Location, sub)
 			if len(p.AvailabilityZones) > 0 {
@@ -191,7 +189,7 @@ func TransformContainerAppEnvironments(envs []ContainerAppEnvironment, sub Subsc
 
 	for _, e := range envs {
 		id := resourceID("osiris.azure.containerapp.environment", e.ID)
-		idMap[e.ID] = id
+		idMap[armKey(e.ID)] = id
 
 		prov := azureProvider(e.ID, "Microsoft.App/managedEnvironments", e.Location, sub)
 
@@ -223,9 +221,6 @@ func TransformContainerAppEnvironments(envs []ContainerAppEnvironment, sub Subsc
 				}
 				props["internal"] = p.VNetConfiguration.Internal
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Succeeded"
 		}
 		r.Properties = props
 
@@ -235,15 +230,17 @@ func TransformContainerAppEnvironments(envs []ContainerAppEnvironment, sub Subsc
 	return resources, idMap
 }
 
-// TransformContainerApps converts Microsoft.App/containerApps into OSIRIS JSON
-// resources of type osiris.azure.containerapp. Ingress secrets and revision history are excluded as per OSIRIS JSON spec chapter 13.
+// TransformContainerApps converts Microsoft.App/containerApps into
+// OSIRIS JSON resources of type osiris.azure.containerapp.
+// Ingress secrets and revision history are excluded as per
+// OSIRIS JSON spec chapter 13.
 func TransformContainerApps(apps []ContainerApp, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(apps))
 
 	for _, a := range apps {
 		id := resourceID("osiris.azure.containerapp", a.ID)
-		idMap[a.ID] = id
+		idMap[armKey(a.ID)] = id
 
 		prov := azureProvider(a.ID, "Microsoft.App/containerApps", a.Location, sub)
 
@@ -293,9 +290,6 @@ func TransformContainerApps(apps []ContainerApp, sub SubscriptionInfo) ([]sdk.Re
 					props["ingress"] = ingress
 				}
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Succeeded"
 		}
 		r.Properties = props
 
@@ -317,7 +311,7 @@ func TransformContainerGroups(groups []ContainerGroup, sub SubscriptionInfo) ([]
 
 	for _, g := range groups {
 		id := resourceID("compute.container", g.ID)
-		idMap[g.ID] = id
+		idMap[armKey(g.ID)] = id
 
 		prov := azureProvider(g.ID, "Microsoft.ContainerInstance/containerGroups", g.Location, sub)
 
@@ -362,9 +356,6 @@ func TransformContainerGroups(groups []ContainerGroup, sub SubscriptionInfo) ([]
 				}
 			}
 			props["container_count"] = len(p.Containers)
-		} else {
-			r.Status = "active"
-			r.State = "Succeeded"
 		}
 		r.Properties = props
 
@@ -374,16 +365,17 @@ func TransformContainerGroups(groups []ContainerGroup, sub SubscriptionInfo) ([]
 	return resources, idMap
 }
 
-// TransformAKSClusterContainsAgentPoolConnections emits `contains` edges from each AKS cluster to its agent pools.
+// TransformAKSClusterContainsAgentPoolConnections emits `contains`
+// edges from each AKS cluster to its agent pools.
 func TransformAKSClusterContainsAgentPoolConnections(clusters []AKSCluster, clusterIDMap, poolIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, c := range clusters {
-		srcID, ok := clusterIDMap[c.ID]
+		srcID, ok := armLookup(clusterIDMap, c.ID)
 		if !ok {
 			continue
 		}
 		for _, p := range c.AgentPools {
-			dstID, ok := poolIDMap[p.ID]
+			dstID, ok := armLookup(poolIDMap, p.ID)
 			if !ok {
 				continue
 			}
@@ -406,8 +398,9 @@ func TransformAKSClusterContainsAgentPoolConnections(clusters []AKSCluster, clus
 	return connections
 }
 
-// TransformAKSNodePoolToSubnetConnections emits `network` edges from each AKS
-// agent pool to its delegated VNet subnet. Pools without a subnet (kubenet + managed VNet) are silently skipped.
+// TransformAKSNodePoolToSubnetConnections emits `network` edges from
+// each AKS agent pool to its delegated VNet subnet.
+// Pools without a subnet (kubenet + managed VNet) are silently skipped.
 func TransformAKSNodePoolToSubnetConnections(clusters []AKSCluster, poolIDMap, subnetIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, c := range clusters {
@@ -415,11 +408,11 @@ func TransformAKSNodePoolToSubnetConnections(clusters []AKSCluster, poolIDMap, s
 			if p.VNetSubnetID == "" {
 				continue
 			}
-			srcID, ok := poolIDMap[p.ID]
+			srcID, ok := armLookup(poolIDMap, p.ID)
 			if !ok {
 				continue
 			}
-			dstID, ok := subnetIDMap[p.VNetSubnetID]
+			dstID, ok := armLookup(subnetIDMap, p.VNetSubnetID)
 			if !ok {
 				continue
 			}
@@ -442,25 +435,9 @@ func TransformAKSNodePoolToSubnetConnections(clusters []AKSCluster, poolIDMap, s
 	return connections
 }
 
-// TransformPEToAKSClusterConnections wires Private Endpoints to AKS clusters
-// via the cluster's properties.privateEndpointConnections (private cluster only).
-func TransformPEToAKSClusterConnections(clusters []AKSCluster, aksIDMap, peIDMap map[string]string) []sdk.Connection {
-	bindings := make([]peBinding, 0, len(clusters))
-	for _, c := range clusters {
-		if c.Properties == nil {
-			continue
-		}
-		bindings = append(bindings, peBinding{
-			TargetArmID: c.ID,
-			Name:        c.Name,
-			Conns:       c.Properties.PrivateEndpointConnections,
-		})
-	}
-	return transformPEBoundConnections(bindings, aksIDMap, peIDMap, "dependency")
-}
-
-// TransformContainerEnvContainsAppConnections emits `contains` edges from each
-// managed environment to the container apps that live inside it.
+// TransformContainerEnvContainsAppConnections emits `contains` edges
+// from each managed environment to the container apps that live
+// inside it.
 func TransformContainerEnvContainsAppConnections(apps []ContainerApp, envIDMap, appIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, a := range apps {
@@ -468,11 +445,11 @@ func TransformContainerEnvContainsAppConnections(apps []ContainerApp, envIDMap, 
 		if envArmID == "" {
 			continue
 		}
-		srcID, ok := envIDMap[envArmID]
+		srcID, ok := armLookup(envIDMap, envArmID)
 		if !ok {
 			continue
 		}
-		dstID, ok := appIDMap[a.ID]
+		dstID, ok := armLookup(appIDMap, a.ID)
 		if !ok {
 			continue
 		}
@@ -494,8 +471,9 @@ func TransformContainerEnvContainsAppConnections(apps []ContainerApp, envIDMap, 
 	return connections
 }
 
-// TransformContainerEnvToSubnetConnections emits `network` edges from each
-// managed environment to its infrastructure subnet. Non-VNet-integrated environments are silently skipped.
+// TransformContainerEnvToSubnetConnections emits `network` edges from
+// each managed environment to its infrastructure subnet.
+// Non-VNet-integrated environments are silently skipped.
 func TransformContainerEnvToSubnetConnections(envs []ContainerAppEnvironment, envIDMap, subnetIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, e := range envs {
@@ -506,11 +484,11 @@ func TransformContainerEnvToSubnetConnections(envs []ContainerAppEnvironment, en
 		if subnetArmID == "" {
 			continue
 		}
-		srcID, ok := envIDMap[e.ID]
+		srcID, ok := armLookup(envIDMap, e.ID)
 		if !ok {
 			continue
 		}
-		dstID, ok := subnetIDMap[subnetArmID]
+		dstID, ok := armLookup(subnetIDMap, subnetArmID)
 		if !ok {
 			continue
 		}
@@ -532,15 +510,16 @@ func TransformContainerEnvToSubnetConnections(envs []ContainerAppEnvironment, en
 	return connections
 }
 
-// TransformContainerGroupToSubnetConnections emits `network` edges from each
-// VNet-integrated ACI container group to each of its subnet references.
+// TransformContainerGroupToSubnetConnections emits `network` edges
+// from each VNet-integrated ACI container group to each of its
+// subnet references.
 func TransformContainerGroupToSubnetConnections(groups []ContainerGroup, cgIDMap, subnetIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, g := range groups {
 		if g.Properties == nil || len(g.Properties.SubnetIDs) == 0 {
 			continue
 		}
-		srcID, ok := cgIDMap[g.ID]
+		srcID, ok := armLookup(cgIDMap, g.ID)
 		if !ok {
 			continue
 		}
@@ -548,7 +527,7 @@ func TransformContainerGroupToSubnetConnections(groups []ContainerGroup, cgIDMap
 			if ref.ID == "" {
 				continue
 			}
-			dstID, ok := subnetIDMap[ref.ID]
+			dstID, ok := armLookup(subnetIDMap, ref.ID)
 			if !ok {
 				continue
 			}

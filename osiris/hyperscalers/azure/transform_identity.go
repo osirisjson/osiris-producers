@@ -11,16 +11,17 @@ import (
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
-// TransformManagedIdentities converts Azure User-Assigned Managed Identities
-// into OSIRIS JSON resources of type osiris.azure.managedidentity. Returns
-// resources and ARM ID -> resource ID map so webapps/VMs can reference them.
+// TransformManagedIdentities converts Azure User-Assigned Managed
+// Identities into OSIRIS JSON resources of type osiris.azure.managedidentity.
+// Returns resources and ARM ID -> resource ID map so webapps/VMs can
+// reference them.
 func TransformManagedIdentities(ids []ManagedIdentity, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(ids))
 
 	for _, mi := range ids {
 		id := resourceID("osiris.azure.managedidentity", mi.ID)
-		idMap[mi.ID] = id
+		idMap[armKey(mi.ID)] = id
 
 		prov := azureProvider(mi.ID, "Microsoft.ManagedIdentity/userAssignedIdentities", mi.Location, sub)
 
@@ -30,9 +31,6 @@ func TransformManagedIdentities(ids []ManagedIdentity, sub SubscriptionInfo) ([]
 		}
 		r.Name = mi.Name
 		miPS := mi.ProvisioningState
-		if miPS == "" {
-			miPS = "Succeeded"
-		}
 		r.Status = mapProvisioningState(miPS)
 		r.State = miPS
 		r.Tags = mi.Tags

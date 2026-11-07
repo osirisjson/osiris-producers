@@ -1,4 +1,5 @@
-// transform_compute.go - Compute resource and connection transforms (VM, Disk, Snapshot).
+// transform_compute.go - Compute resource and connection transforms
+// (VM, Disk, Snapshot).
 //
 // For an introduction to OSIRIS JSON Producer for Microsoft Azure see:
 // [OSIRIS-JSON-AZURE]: https://docs.osirisjson.org/osiris-producers/hyperscalers/microsoft-azure/
@@ -24,7 +25,7 @@ func TransformDisks(disks []Disk, sub SubscriptionInfo) ([]sdk.Resource, map[str
 
 	for _, d := range disks {
 		id := resourceID("storage.volume", d.ID)
-		idMap[d.ID] = id
+		idMap[armKey(d.ID)] = id
 
 		prov := azureProvider(d.ID, "Microsoft.Compute/disks", d.Location, sub)
 		if len(d.Zones) > 0 {
@@ -91,7 +92,7 @@ func TransformSnapshots(snaps []Snapshot, sub SubscriptionInfo) ([]sdk.Resource,
 
 	for _, s := range snaps {
 		id := resourceID("compute.vm.snapshot", s.ID)
-		idMap[s.ID] = id
+		idMap[armKey(s.ID)] = id
 
 		prov := azureProvider(s.ID, "Microsoft.Compute/snapshots", s.Location, sub)
 
@@ -135,7 +136,8 @@ func TransformSnapshots(snaps []Snapshot, sub SubscriptionInfo) ([]sdk.Resource,
 	return resources, idMap
 }
 
-// TransformVMs converts Azure VirtualMachines into OSIRIS JSON resources.
+// TransformVMs converts Azure VirtualMachines into
+// OSIRIS JSON resources.
 func TransformVMs(vms []VirtualMachine, sub SubscriptionInfo) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, vm := range vms {
@@ -157,7 +159,8 @@ func TransformVMs(vms []VirtualMachine, sub SubscriptionInfo) []sdk.Resource {
 		props := map[string]any{
 			"resource_group": vm.ResourceGroup,
 		}
-		// vmSize: prefer top-level (az vm list -d flattens it), fall back to nested hardwareProfile.
+		// vmSize: prefer top-level (az vm list -d flattens it), fall
+		// back to nested hardwareProfile.
 		vmSize := vm.VMSize
 		if vmSize == "" {
 			vmSize = vm.HardwareProfile.VMSize
@@ -220,103 +223,158 @@ func TransformVMs(vms []VirtualMachine, sub SubscriptionInfo) []sdk.Resource {
 	return resources
 }
 
-// TransformSnapshotToDiskConnections wires each snapshot back to the disk
-// (or other snapshot) it was taken from via creationData.sourceResourceId.
-// Uses the "contains" type with direction=reverse so the topology reads
-// "snapshot of disk X" rather than "disk X contains snapshot".
-func TransformSnapshotToDiskConnections(snaps []Snapshot, snapshotIDMap, diskIDMap map[string]string) []sdk.Connection {
+// TransformDiskToSnapshotConnections emits a dataflow from the source
+// of each snapshot to the snapshot (creationData.sourceResourceId): the
+// data was copied from that disk, or from an earlier snapshot, into
+// the snapshot.
+func TransformDiskToSnapshotConnections(snaps []Snapshot, snapshotIDMap, diskIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, s := range snaps {
 		if s.CreationData == nil || s.CreationData.SourceResourceID == "" {
 			continue
 		}
-		sourceID, ok := snapshotIDMap[s.ID]
+		snapshotID, ok := armLookup(snapshotIDMap, s.ID)
 		if !ok {
 			continue
 		}
 		// Source can be a disk OR another snapshot (chained snapshots).
-		targetID, ok := diskIDMap[s.CreationData.SourceResourceID]
+		srcArm := s.CreationData.SourceResourceID
+		sourceID, ok := armLookup(diskIDMap, srcArm)
 		if !ok {
-			targetID, ok = snapshotIDMap[s.CreationData.SourceResourceID]
-			if !ok {
+			if sourceID, ok = armLookup(snapshotIDMap, srcArm); !ok {
 				continue
 			}
 		}
-
-		canonicalKey := sdk.ConnectionCanonicalKey(sdk.ConnectionIDInput{
-			Type:      "contains",
-			Direction: "reverse",
-			Source:    sourceID,
-			Target:    targetID,
-		})
-		connID := sdk.BuildConnectionID(canonicalKey, 16)
-
-		conn, err := sdk.NewConnection(connID, "contains", sourceID, targetID)
-		if err != nil {
-			continue
+		if conn, ok := newEdge(connDataflow, sourceID, snapshotID,
+			fmt.Sprintf("%s -> %s", extractLastSegment(srcArm), s.Name)); ok {
+			connections = append(connections, conn)
 		}
-		conn.Name = fmt.Sprintf("%s -> %s", s.Name, extractLastSegment(s.CreationData.SourceResourceID))
-		_ = conn.SetDirection("reverse")
-		connections = append(connections, conn)
 	}
 	return connections
 }
 
-// TransformDiskToVMConnections wires each managed disk to the VM that has
-// attached it (via managedBy on the disk). Emits as contains/reverse so the
-// topology reads "disk attached to VM".
-func TransformDiskToVMConnections(disks []Disk, diskIDMap, vmIDMap map[string]string) []sdk.Connection {
+// TransformVMToDiskConnections wires each VM to the managed disks
+// attached to it as forward "dependency.storage" connections
+// (VM -> Disk): the VM depends on the disk, which keeps an independent
+// lifecycle and can be detached and reattached (OSIRIS JSON spec
+// chapter 5 section 5.2.3).
+//
+// Evidence, in order of preference:
+//   - VM storageProfile.osDisk.managedDisk.id (role "os")
+//   - VM storageProfile.dataDisks[].managedDisk.id (role "data", with lun)
+//   - Disk managedBy, the reverse view of the same attachment
+//
+// Every source yields the same connection ID for a given VM/disk pair,
+// so an attachment visible from both the VM and the disk is emitted
+// once; the VM storage profile wins because it carries the disk role
+// and LUN.
+func TransformVMToDiskConnections(vms []VirtualMachine, disks []Disk, vmIDMap, diskIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
-	for _, d := range disks {
-		if d.ManagedBy == "" {
-			continue
-		}
-		sourceID, ok := diskIDMap[d.ID]
+	seen := map[string]bool{}
+	add := func(vmArmID, diskArmID string, props map[string]any) {
+		vmID, ok := armLookup(vmIDMap, vmArmID)
 		if !ok {
-			continue
+			return
 		}
-		targetID, ok := vmIDMap[d.ManagedBy]
+		diskID, ok := armLookup(diskIDMap, diskArmID)
 		if !ok {
-			continue
+			return
 		}
-
-		canonicalKey := sdk.ConnectionCanonicalKey(sdk.ConnectionIDInput{
-			Type:      "contains",
-			Direction: "reverse",
-			Source:    sourceID,
-			Target:    targetID,
-		})
-		connID := sdk.BuildConnectionID(canonicalKey, 16)
-
-		conn, err := sdk.NewConnection(connID, "contains", sourceID, targetID)
-		if err != nil {
-			continue
+		conn, ok := newEdge(connDependencyStorage, vmID, diskID,
+			fmt.Sprintf("%s -> %s", extractLastSegment(vmArmID), extractLastSegment(diskArmID)))
+		if !ok || seen[conn.ID] {
+			return
 		}
-		conn.Name = fmt.Sprintf("%s -> %s", d.Name, extractLastSegment(d.ManagedBy))
-		_ = conn.SetDirection("reverse")
+		seen[conn.ID] = true
+		conn.Properties = props
 		connections = append(connections, conn)
+	}
+
+	for _, vm := range vms {
+		if od := vm.StorageProfile.OSDisk.ManagedDisk; od != nil && od.ID != "" {
+			add(vm.ID, od.ID, map[string]any{"disk_role": "os"})
+		}
+		for _, dd := range vm.StorageProfile.DataDisks {
+			if dd.ManagedDisk == nil || dd.ManagedDisk.ID == "" {
+				continue
+			}
+			add(vm.ID, dd.ManagedDisk.ID, map[string]any{"disk_role": "data", "lun": dd.Lun})
+		}
+	}
+	for _, d := range disks {
+		if d.ManagedBy != "" {
+			add(d.ManagedBy, d.ID, nil)
+		}
 	}
 	return connections
 }
 
-// OSIRIS JSON Helpers
-// mapVMPowerState converts Azure VM power state to OSIRIS JSON status.
+// TransformVMToNICConnections wires each VM to its network interfaces
+// as forward "contains" connections (VM -> NIC, source contains target
+// per OSIRIS JSON spec chapter 5 section 5.2.3).
+//
+// Evidence: VM networkProfile.networkInterfaces[].id, and the reverse
+// view NIC virtualMachine.id. Both yield the same connection ID, so an
+// attachment visible from both sides is emitted once.
+// VM and NIC names are never used to correlate the two.
+func TransformVMToNICConnections(vms []VirtualMachine, nics []NetworkInterface, vmIDMap, nicIDMap map[string]string) []sdk.Connection {
+	var connections []sdk.Connection
+	seen := map[string]bool{}
+	add := func(vmArmID, nicArmID string) {
+		vmID, ok := armLookup(vmIDMap, vmArmID)
+		if !ok {
+			return
+		}
+		nicID, ok := armLookup(nicIDMap, nicArmID)
+		if !ok {
+			return
+		}
+		conn, ok := newEdge(connContains, vmID, nicID,
+			fmt.Sprintf("%s -> %s", extractLastSegment(vmArmID), extractLastSegment(nicArmID)))
+		if !ok || seen[conn.ID] {
+			return
+		}
+		seen[conn.ID] = true
+		connections = append(connections, conn)
+	}
+
+	for _, vm := range vms {
+		for _, ref := range vm.NetworkProfile.NetworkInterfaces {
+			if ref.ID != "" {
+				add(vm.ID, ref.ID)
+			}
+		}
+	}
+	for _, n := range nics {
+		if n.VMID() != "" {
+			add(n.VMID(), n.ID)
+		}
+	}
+	return connections
+}
+
 func mapVMPowerState(state string) string {
 	lower := strings.ToLower(state)
 	switch {
+	case lower == "":
+		return ""
 	case strings.Contains(lower, "running"):
 		return "active"
 	case strings.Contains(lower, "deallocat"):
 		return "inactive"
 	case strings.Contains(lower, "stopped"):
 		return "inactive"
+	case strings.Contains(lower, "starting"), strings.Contains(lower, "stopping"):
+		return "degraded"
 	default:
 		return "unknown"
 	}
 }
 
-// mapDiskState converts an Azure managed-disk diskState to an OSIRIS JSON status.
-// ActiveSAS / Attached / ReadyToUpload all mean the disk is serving a client.
+// mapDiskState converts an Azure managed-disk diskState to an
+// OSIRIS JSON status.
+// ActiveSAS / Attached / ReadyToUpload all mean the disk is
+// serving a client.
 func mapDiskState(diskState, provisioningState string) string {
 	switch strings.ToLower(diskState) {
 	case "attached", "activesas", "activeupload", "readytoupload":
@@ -327,12 +385,12 @@ func mapDiskState(diskState, provisioningState string) string {
 	return mapProvisioningState(provisioningState)
 }
 
-// BuildVMIDMap builds a map of VM ARM ID -> OSIRIS JSON resource ID, used for
-// wiring disks -> VM via the disk's managedBy field.
+// BuildVMIDMap builds a map of VM ARM ID -> OSIRIS JSON resource ID,
+// used for VM -> disk, VM -> NIC and SQL VM -> VM relationships.
 func BuildVMIDMap(vms []VirtualMachine) map[string]string {
 	m := make(map[string]string, len(vms))
 	for _, vm := range vms {
-		m[vm.ID] = resourceID("compute.vm", vm.ID)
+		m[armKey(vm.ID)] = resourceID("compute.vm", vm.ID)
 	}
 	return m
 }

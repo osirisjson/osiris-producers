@@ -10,7 +10,6 @@ package azure
 
 import (
 	"fmt"
-	"strings"
 
 	"go.osirisjson.org/producers/pkg/sdk"
 )
@@ -26,7 +25,7 @@ func TransformVMSSes(vmsses []VMSS, sub SubscriptionInfo) ([]sdk.Resource, map[s
 
 	for _, v := range vmsses {
 		id := resourceID("compute.cluster", v.ID)
-		idMap[v.ID] = id
+		idMap[armKey(v.ID)] = id
 
 		prov := azureProvider(v.ID, "Microsoft.Compute/virtualMachineScaleSets", v.Location, sub)
 
@@ -60,9 +59,6 @@ func TransformVMSSes(vmsses []VMSS, sub SubscriptionInfo) ([]sdk.Resource, map[s
 			if p.PlatformFaultDomainCount > 0 {
 				props["fault_domain_count"] = p.PlatformFaultDomainCount
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Succeeded"
 		}
 		r.Properties = props
 
@@ -72,15 +68,15 @@ func TransformVMSSes(vmsses []VMSS, sub SubscriptionInfo) ([]sdk.Resource, map[s
 	return resources, idMap
 }
 
-// TransformLogicWorkflows converts Microsoft.Logic/workflows into OSIRIS JSON
-// resources of type osiris.azure.logic.workflow.
+// TransformLogicWorkflows converts Microsoft.Logic/workflows into
+// OSIRIS JSON resources of type osiris.azure.logic.workflow.
 func TransformLogicWorkflows(workflows []LogicWorkflow, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(workflows))
 
 	for _, w := range workflows {
 		id := resourceID("osiris.azure.logic.workflow", w.ID)
-		idMap[w.ID] = id
+		idMap[armKey(w.ID)] = id
 
 		prov := azureProvider(w.ID, "Microsoft.Logic/workflows", w.Location, sub)
 
@@ -101,9 +97,6 @@ func TransformLogicWorkflows(workflows []LogicWorkflow, sub SubscriptionInfo) ([
 			if p.AccessEndpoint != "" {
 				props["access_endpoint"] = p.AccessEndpoint
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Enabled"
 		}
 		r.Properties = props
 
@@ -122,21 +115,23 @@ func mapLogicWorkflowState(state string) string {
 	case "Suspended":
 		return "inactive"
 	case "Completed", "Deleted":
-		return "terminated"
+		return "retired"
+	case "":
+		return ""
 	default:
-		return "active"
+		return "unknown"
 	}
 }
 
-// TransformDataFactories converts Microsoft.DataFactory/factories into OSIRIS JSON
-// resources of type osiris.azure.datafactory.
+// TransformDataFactories converts Microsoft.DataFactory/factories
+// into OSIRIS JSON resources of type osiris.azure.datafactory.
 func TransformDataFactories(factories []DataFactory, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(factories))
 
 	for _, f := range factories {
 		id := resourceID("osiris.azure.datafactory", f.ID)
-		idMap[f.ID] = id
+		idMap[armKey(f.ID)] = id
 
 		prov := azureProvider(f.ID, "Microsoft.DataFactory/factories", f.Location, sub)
 
@@ -160,9 +155,6 @@ func TransformDataFactories(factories []DataFactory, sub SubscriptionInfo) ([]sd
 			if p.PublicNetworkAccess != "" {
 				props["public_network_access"] = p.PublicNetworkAccess
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Succeeded"
 		}
 		r.Properties = props
 
@@ -172,15 +164,15 @@ func TransformDataFactories(factories []DataFactory, sub SubscriptionInfo) ([]sd
 	return resources, idMap
 }
 
-// TransformSynapseWorkspaces converts Microsoft.Synapse/workspaces into OSIRIS JSON
-// resources of type osiris.azure.synapse.workspace.
+// TransformSynapseWorkspaces converts Microsoft.Synapse/workspaces
+// into OSIRIS JSON resources of type osiris.azure.synapse.workspace.
 func TransformSynapseWorkspaces(workspaces []SynapseWorkspace, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(workspaces))
 
 	for _, w := range workspaces {
 		id := resourceID("osiris.azure.synapse.workspace", w.ID)
-		idMap[w.ID] = id
+		idMap[armKey(w.ID)] = id
 
 		prov := azureProvider(w.ID, "Microsoft.Synapse/workspaces", w.Location, sub)
 
@@ -207,9 +199,6 @@ func TransformSynapseWorkspaces(workspaces []SynapseWorkspace, sub SubscriptionI
 			if len(p.ConnectivityEndpoints) > 0 {
 				props["connectivity_endpoints"] = p.ConnectivityEndpoints
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Succeeded"
 		}
 		r.Properties = props
 
@@ -227,7 +216,7 @@ func TransformCommunicationServices(services []CommunicationService, sub Subscri
 
 	for _, s := range services {
 		id := resourceID("osiris.azure.communicationservice", s.ID)
-		idMap[s.ID] = id
+		idMap[armKey(s.ID)] = id
 
 		prov := azureProvider(s.ID, "Microsoft.Communication/CommunicationServices", s.Location, sub)
 
@@ -251,9 +240,6 @@ func TransformCommunicationServices(services []CommunicationService, sub Subscri
 			if p.HostName != "" {
 				props["host_name"] = p.HostName
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Succeeded"
 		}
 		r.Properties = props
 
@@ -271,7 +257,7 @@ func TransformAutomationAccounts(accounts []AutomationAccount, sub SubscriptionI
 
 	for _, a := range accounts {
 		id := resourceID("osiris.azure.automation.account", a.ID)
-		idMap[a.ID] = id
+		idMap[armKey(a.ID)] = id
 
 		prov := azureProvider(a.ID, "Microsoft.Automation/automationAccounts", a.Location, sub)
 
@@ -295,9 +281,6 @@ func TransformAutomationAccounts(accounts []AutomationAccount, sub SubscriptionI
 			if p.PublicNetworkAccess != nil {
 				props["public_network_access"] = *p.PublicNetworkAccess
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Ok"
 		}
 		r.Properties = props
 
@@ -313,20 +296,23 @@ func mapAutomationState(state string) string {
 		return "active"
 	case "Suspended", "Unavailable":
 		return "inactive"
+	case "":
+		return ""
 	default:
-		return "active"
+		return "unknown"
 	}
 }
 
-// TransformArcMachines converts Microsoft.HybridCompute/machines (Azure Arc-enabled
-// servers) into OSIRIS JSON resources of type osiris.azure.arc.machine.
+// TransformArcMachines converts Microsoft.HybridCompute/machines
+// (Azure Arc-enabled servers) into OSIRIS JSON resources of
+// type osiris.azure.arc.machine.
 func TransformArcMachines(machines []ArcMachine, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(machines))
 
 	for _, m := range machines {
 		id := resourceID("osiris.azure.arc.machine", m.ID)
-		idMap[m.ID] = id
+		idMap[armKey(m.ID)] = id
 
 		prov := azureProvider(m.ID, "Microsoft.HybridCompute/machines", m.Location, sub)
 
@@ -359,9 +345,6 @@ func TransformArcMachines(machines []ArcMachine, sub SubscriptionInfo) ([]sdk.Re
 			if p.FQDN != "" {
 				props["fqdn"] = p.FQDN
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Connected"
 		}
 		r.Properties = props
 
@@ -398,20 +381,22 @@ func mapArcMachineStatus(status string) string {
 		return "active"
 	case "Disconnected", "Expired", "Error":
 		return "inactive"
+	case "":
+		return ""
 	default:
-		return "active"
+		return "unknown"
 	}
 }
 
-// TransformLogicAPIConnections converts Microsoft.Web/connections into OSIRIS JSON
-// resources of type osiris.azure.logic.apiconnection.
+// TransformLogicAPIConnections converts Microsoft.Web/connections
+// into OSIRIS JSON resources of type osiris.azure.logic.apiconnection.
 func TransformLogicAPIConnections(conns []LogicAPIConnection, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(conns))
 
 	for _, c := range conns {
 		id := resourceID("osiris.azure.logic.apiconnection", c.ID)
-		idMap[c.ID] = id
+		idMap[armKey(c.ID)] = id
 
 		prov := azureProvider(c.ID, "Microsoft.Web/connections", c.Location, sub)
 
@@ -443,9 +428,6 @@ func TransformLogicAPIConnections(conns []LogicAPIConnection, sub SubscriptionIn
 			if len(p.Statuses) > 0 && p.Statuses[0].Status != "" {
 				props["connection_status"] = p.Statuses[0].Status
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Succeeded"
 		}
 		r.Properties = props
 
@@ -455,15 +437,15 @@ func TransformLogicAPIConnections(conns []LogicAPIConnection, sub SubscriptionIn
 	return resources, idMap
 }
 
-// TransformEmailServices converts Microsoft.Communication/EmailServices into OSIRIS JSON
-// resources of type osiris.azure.emailservice.
+// TransformEmailServices converts Microsoft.Communication/EmailServices
+// into OSIRIS JSON resources of type osiris.azure.emailservice.
 func TransformEmailServices(services []EmailService, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(services))
 
 	for _, s := range services {
 		id := resourceID("osiris.azure.emailservice", s.ID)
-		idMap[s.ID] = id
+		idMap[armKey(s.ID)] = id
 
 		prov := azureProvider(s.ID, "Microsoft.Communication/EmailServices", s.Location, sub)
 
@@ -483,9 +465,6 @@ func TransformEmailServices(services []EmailService, sub SubscriptionInfo) ([]sd
 			if p.DataLocation != "" {
 				props["data_location"] = p.DataLocation
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Succeeded"
 		}
 		r.Properties = props
 
@@ -495,15 +474,15 @@ func TransformEmailServices(services []EmailService, sub SubscriptionInfo) ([]sd
 	return resources, idMap
 }
 
-// TransformEmailDomains converts Microsoft.Communication/EmailServices/Domains into OSIRIS JSON
-// resources of type osiris.azure.emailservice.domain.
+// TransformEmailDomains converts Microsoft.Communication/EmailServices/Domains
+// into OSIRIS JSON resources of type osiris.azure.emailservice.domain.
 func TransformEmailDomains(domains []EmailDomain, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(domains))
 
 	for _, d := range domains {
 		id := resourceID("osiris.azure.emailservice.domain", d.ID)
-		idMap[d.ID] = id
+		idMap[armKey(d.ID)] = id
 
 		prov := azureProvider(d.ID, "Microsoft.Communication/EmailServices/Domains", d.Location, sub)
 
@@ -529,9 +508,6 @@ func TransformEmailDomains(domains []EmailDomain, sub SubscriptionInfo) ([]sdk.R
 			if p.MailFrom != "" {
 				props["mail_from"] = p.MailFrom
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Succeeded"
 		}
 		r.Properties = props
 
@@ -541,24 +517,19 @@ func TransformEmailDomains(domains []EmailDomain, sub SubscriptionInfo) ([]sdk.R
 	return resources, idMap
 }
 
-// TransformEmailServiceContainsDomainConnections wires each email domain to its
-// parent email service with a contains/forward connection.
+// TransformEmailServiceContainsDomainConnections wires each email
+// domain to its parent email service with a contains/forward connection.
 func TransformEmailServiceContainsDomainConnections(domains []EmailDomain, emailSvcIDMap, emailDomainIDMap map[string]string) []sdk.Connection {
-	svcLower := make(map[string]string, len(emailSvcIDMap))
-	for k, v := range emailSvcIDMap {
-		svcLower[strings.ToLower(k)] = v
-	}
-
 	var connections []sdk.Connection
 	for _, d := range domains {
 		if d.EmailServiceID == "" {
 			continue
 		}
-		domainID, ok := emailDomainIDMap[d.ID]
+		domainID, ok := armLookup(emailDomainIDMap, d.ID)
 		if !ok {
 			continue
 		}
-		svcID, ok := svcLower[strings.ToLower(d.EmailServiceID)]
+		svcID, ok := armLookup(emailSvcIDMap, d.EmailServiceID)
 		if !ok {
 			continue
 		}
@@ -583,20 +554,15 @@ func TransformEmailServiceContainsDomainConnections(domains []EmailDomain, email
 // TransformVMSSToSubnetConnections wires each VMSS to the subnet(s) its
 // network interface configurations reference.
 func TransformVMSSToSubnetConnections(vmsses []VMSS, vmssIDMap, subnetIDMap map[string]string) []sdk.Connection {
-	subnetLower := make(map[string]string, len(subnetIDMap))
-	for k, v := range subnetIDMap {
-		subnetLower[strings.ToLower(k)] = v
-	}
-
 	var connections []sdk.Connection
 	seen := map[string]bool{}
 	for _, v := range vmsses {
-		sourceID, ok := vmssIDMap[v.ID]
+		sourceID, ok := armLookup(vmssIDMap, v.ID)
 		if !ok {
 			continue
 		}
 		for _, subnetArm := range v.VMSSSubnetIDs() {
-			targetID, ok := subnetLower[strings.ToLower(subnetArm)]
+			targetID, ok := armLookup(subnetIDMap, subnetArm)
 			if !ok {
 				continue
 			}

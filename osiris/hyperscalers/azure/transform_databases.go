@@ -25,7 +25,7 @@ func TransformSQLServers(servers []SQLServer, sub SubscriptionInfo) ([]sdk.Resou
 
 	for _, s := range servers {
 		id := resourceID("osiris.azure.sqlserver", s.ID)
-		idMap[s.ID] = id
+		idMap[armKey(s.ID)] = id
 
 		prov := azureProvider(s.ID, "Microsoft.Sql/servers", s.Location, sub)
 
@@ -71,9 +71,6 @@ func TransformSQLServers(servers []SQLServer, sub SubscriptionInfo) ([]sdk.Resou
 			if peIDs := collectPEIDs(p.PrivateEndpointConnections); len(peIDs) > 0 {
 				ext["private_endpoint_connection_ids"] = peIDs
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Succeeded"
 		}
 		props["database_count"] = len(s.Databases)
 		r.Properties = props
@@ -99,7 +96,7 @@ func TransformSQLDatabases(servers []SQLServer, sub SubscriptionInfo) ([]sdk.Res
 	for _, s := range servers {
 		for _, db := range s.Databases {
 			id := resourceID("application.database", db.ID)
-			idMap[db.ID] = id
+			idMap[armKey(db.ID)] = id
 
 			prov := azureProvider(db.ID, "Microsoft.Sql/servers/databases", db.Location, sub)
 
@@ -150,9 +147,6 @@ func TransformSQLDatabases(servers []SQLServer, sub SubscriptionInfo) ([]sdk.Res
 				if p.StorageAccountType != "" {
 					props["storage_account_type"] = p.StorageAccountType
 				}
-			} else {
-				r.Status = "active"
-				r.State = "Succeeded"
 			}
 			r.Properties = props
 
@@ -233,7 +227,7 @@ func transformFlexServers(osirisType, armType string, views []flexServerView, su
 
 	for _, s := range views {
 		id := resourceID(osirisType, s.ID)
-		idMap[s.ID] = id
+		idMap[armKey(s.ID)] = id
 
 		prov := azureProvider(s.ID, armType, s.Location, sub)
 
@@ -310,9 +304,6 @@ func transformFlexServers(osirisType, armType string, views []flexServerView, su
 					props["ha_state"] = h.State
 				}
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Succeeded"
 		}
 		r.Properties = props
 		if len(ext) > 0 {
@@ -336,7 +327,7 @@ func TransformCosmosAccounts(accts []CosmosAccount, sub SubscriptionInfo) ([]sdk
 
 	for _, a := range accts {
 		id := resourceID("application.database", a.ID)
-		idMap[a.ID] = id
+		idMap[armKey(a.ID)] = id
 
 		prov := azureProvider(a.ID, "Microsoft.DocumentDB/databaseAccounts", a.Location, sub)
 
@@ -396,9 +387,6 @@ func TransformCosmosAccounts(accts []CosmosAccount, sub SubscriptionInfo) ([]sdk
 			if peIDs := collectPEIDs(p.PrivateEndpointConnections); len(peIDs) > 0 {
 				ext["private_endpoint_connection_ids"] = peIDs
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Succeeded"
 		}
 		r.Properties = props
 		if len(ext) > 0 {
@@ -471,7 +459,7 @@ func TransformRedisCaches(caches []RedisCache, sub SubscriptionInfo) ([]sdk.Reso
 
 	for _, c := range caches {
 		id := resourceID("application.cache", c.ID)
-		idMap[c.ID] = id
+		idMap[armKey(c.ID)] = id
 
 		prov := azureProvider(c.ID, "Microsoft.Cache/Redis", c.Location, sub)
 		if len(c.Zones) > 0 {
@@ -555,7 +543,8 @@ func TransformRedisCaches(caches []RedisCache, sub SubscriptionInfo) ([]sdk.Reso
 	return resources, idMap
 }
 
-// mapSQLServerState maps SQL server `properties.state` to OSIRIS JSON status.
+// mapSQLServerState maps SQL server `properties.state` to an
+// OSIRIS JSON status enum value; "" when Azure reports no state.
 func mapSQLServerState(state string) string {
 	switch strings.ToLower(state) {
 	case "ready":
@@ -563,29 +552,31 @@ func mapSQLServerState(state string) string {
 	case "disabled":
 		return "inactive"
 	case "":
-		return "active"
+		return ""
 	default:
-		return strings.ToLower(state)
+		return "unknown"
 	}
 }
 
-// mapSQLDatabaseStatus maps SQL database `properties.status` to OSIRIS JSON status.
+// mapSQLDatabaseStatus maps SQL database `properties.status` to an
+// OSIRIS JSON status enum value; "" when Azure reports no status.
 func mapSQLDatabaseStatus(status string) string {
 	switch strings.ToLower(status) {
 	case "online":
 		return "active"
-	case "paused", "pausing", "scaling":
-		return "transitioning"
-	case "offline", "shutdown":
+	case "paused", "pausing", "offline", "shutdown":
 		return "inactive"
+	case "scaling", "resuming", "creating", "copying", "restoring":
+		return "degraded"
 	case "":
-		return "active"
+		return ""
 	default:
-		return strings.ToLower(status)
+		return "unknown"
 	}
 }
 
-// mapFlexServerState maps PG/MySQL flexible server state to OSIRIS JSON status.
+// mapFlexServerState maps PG/MySQL flexible server state to an
+// OSIRIS JSON status enum value; "" when Azure reports no state.
 func mapFlexServerState(state string) string {
 	switch strings.ToLower(state) {
 	case "ready":
@@ -593,25 +584,25 @@ func mapFlexServerState(state string) string {
 	case "stopped", "disabled":
 		return "inactive"
 	case "starting", "stopping", "updating":
-		return "transitioning"
+		return "degraded"
 	case "":
-		return "active"
+		return ""
 	default:
-		return strings.ToLower(state)
+		return "unknown"
 	}
 }
 
-// TransformSQLServerContainsDatabaseConnections wires each SQL Server to its
-// child SQL Databases with a `contains` edge.
+// TransformSQLServerContainsDatabaseConnections wires each SQL Server
+// to its child SQL Databases with a `contains` edge.
 func TransformSQLServerContainsDatabaseConnections(servers []SQLServer, sqlServerIDMap, sqlDatabaseIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, s := range servers {
-		serverID, ok := sqlServerIDMap[s.ID]
+		serverID, ok := armLookup(sqlServerIDMap, s.ID)
 		if !ok {
 			continue
 		}
 		for _, db := range s.Databases {
-			dbID, ok := sqlDatabaseIDMap[db.ID]
+			dbID, ok := armLookup(sqlDatabaseIDMap, db.ID)
 			if !ok {
 				continue
 			}
@@ -634,57 +625,9 @@ func TransformSQLServerContainsDatabaseConnections(servers []SQLServer, sqlServe
 	return connections
 }
 
-// TransformPEToSQLServerConnections wires Private Endpoints to SQL Servers via
-// the server's properties.privateEndpointConnections.
-func TransformPEToSQLServerConnections(servers []SQLServer, sqlIDMap, peIDMap map[string]string) []sdk.Connection {
-	bindings := make([]peBinding, 0, len(servers))
-	for _, s := range servers {
-		if s.Properties == nil {
-			continue
-		}
-		bindings = append(bindings, peBinding{
-			TargetArmID: s.ID,
-			Name:        s.Name,
-			Conns:       s.Properties.PrivateEndpointConnections,
-		})
-	}
-	return transformPEBoundConnections(bindings, sqlIDMap, peIDMap, "dependency.database")
-}
-
-// TransformPEToCosmosAccountConnections wires Private Endpoints to Cosmos DB
-// accounts via the account's properties.privateEndpointConnections.
-func TransformPEToCosmosAccountConnections(accts []CosmosAccount, cosmosIDMap, peIDMap map[string]string) []sdk.Connection {
-	bindings := make([]peBinding, 0, len(accts))
-	for _, a := range accts {
-		if a.Properties == nil {
-			continue
-		}
-		bindings = append(bindings, peBinding{
-			TargetArmID: a.ID,
-			Name:        a.Name,
-			Conns:       a.Properties.PrivateEndpointConnections,
-		})
-	}
-	return transformPEBoundConnections(bindings, cosmosIDMap, peIDMap, "dependency.database")
-}
-
-// TransformPEToRedisConnections wires Private Endpoints to Redis caches.
-// Only Premium tier supports Private Link; Basic/Standard return an empty
-// privateEndpointConnections slice, which the shared helper silently skips.
-func TransformPEToRedisConnections(caches []RedisCache, redisIDMap, peIDMap map[string]string) []sdk.Connection {
-	bindings := make([]peBinding, 0, len(caches))
-	for _, c := range caches {
-		bindings = append(bindings, peBinding{
-			TargetArmID: c.ID,
-			Name:        c.Name,
-			Conns:       c.PrivateEndpointConnections,
-		})
-	}
-	return transformPEBoundConnections(bindings, redisIDMap, peIDMap, "dependency.database")
-}
-
-// TransformFlexServerToSubnetConnections emits `network` edges from each
-// PG / MySQL flexible server to its delegated subnet (VNet-integrated mode).
+// TransformFlexServerToSubnetConnections emits `network` edges from
+// each PG / MySQL flexible server to its delegated subnet
+// (VNet-integrated mode).
 // Public-access servers without a delegated subnet are silently skipped.
 func TransformFlexServerToSubnetConnections(pgs []PostgreSQLServer, mys []MySQLServer, serverIDMap, subnetIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
@@ -692,11 +635,11 @@ func TransformFlexServerToSubnetConnections(pgs []PostgreSQLServer, mys []MySQLS
 		if subnetArmID == "" {
 			return
 		}
-		srcID, ok := serverIDMap[serverArmID]
+		srcID, ok := armLookup(serverIDMap, serverArmID)
 		if !ok {
 			return
 		}
-		dstID, ok := subnetIDMap[subnetArmID]
+		dstID, ok := armLookup(subnetIDMap, subnetArmID)
 		if !ok {
 			return
 		}
@@ -730,15 +673,15 @@ func TransformFlexServerToSubnetConnections(pgs []PostgreSQLServer, mys []MySQLS
 	return connections
 }
 
-// TransformSQLManagedInstances converts Microsoft.Sql/managedInstances into
-// OSIRIS JSON resources of type osiris.azure.sqlmi.
+// TransformSQLManagedInstances converts Microsoft.Sql/managedInstances
+// into OSIRIS JSON resources of type osiris.azure.sqlmi.
 func TransformSQLManagedInstances(instances []SQLManagedInstance, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(instances))
 
 	for _, mi := range instances {
 		id := resourceID("osiris.azure.sqlmi", mi.ID)
-		idMap[mi.ID] = id
+		idMap[armKey(mi.ID)] = id
 
 		prov := azureProvider(mi.ID, "Microsoft.Sql/managedInstances", mi.Location, sub)
 
@@ -796,9 +739,6 @@ func TransformSQLManagedInstances(instances []SQLManagedInstance, sub Subscripti
 			if p.MinimalTLSVersion != "" {
 				ext["min_tls_version"] = p.MinimalTLSVersion
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Ready"
 		}
 		r.Properties = props
 		if len(ext) > 0 {
@@ -818,30 +758,27 @@ func mapSQLMIState(state string) string {
 	case "stopped", "disabled":
 		return "inactive"
 	case "starting", "stopping", "updating", "creating", "deleting", "inaccessible":
-		return "transitioning"
+		return "degraded"
+	case "":
+		return ""
 	default:
-		return "active"
+		return "unknown"
 	}
 }
 
-// TransformSQLMIToSubnetConnections wires each SQL Managed Instance to its
-// delegated subnet.
+// TransformSQLMIToSubnetConnections wires each SQL Managed Instance
+// to its delegated subnet.
 func TransformSQLMIToSubnetConnections(instances []SQLManagedInstance, miIDMap, subnetIDMap map[string]string) []sdk.Connection {
-	subnetLower := make(map[string]string, len(subnetIDMap))
-	for k, v := range subnetIDMap {
-		subnetLower[strings.ToLower(k)] = v
-	}
-
 	var connections []sdk.Connection
 	for _, mi := range instances {
 		if mi.Properties == nil || mi.Properties.SubnetID == "" {
 			continue
 		}
-		sourceID, ok := miIDMap[mi.ID]
+		sourceID, ok := armLookup(miIDMap, mi.ID)
 		if !ok {
 			continue
 		}
-		targetID, ok := subnetLower[strings.ToLower(mi.Properties.SubnetID)]
+		targetID, ok := armLookup(subnetIDMap, mi.Properties.SubnetID)
 		if !ok {
 			continue
 		}
@@ -863,19 +800,20 @@ func TransformSQLMIToSubnetConnections(instances []SQLManagedInstance, miIDMap, 
 	return connections
 }
 
-// TransformRedisToSubnetConnections emits `network` edges from each Premium
-// tier Redis cache to its injected subnet. Basic/Standard caches have no subnet ID and are silently skipped.
+// TransformRedisToSubnetConnections emits `network` edges from each
+// Premium tier Redis cache to its injected subnet.
+// Basic/Standard caches have no subnet ID and are silently skipped.
 func TransformRedisToSubnetConnections(caches []RedisCache, redisIDMap, subnetIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, c := range caches {
 		if c.SubnetID == "" {
 			continue
 		}
-		srcID, ok := redisIDMap[c.ID]
+		srcID, ok := armLookup(redisIDMap, c.ID)
 		if !ok {
 			continue
 		}
-		dstID, ok := subnetIDMap[c.SubnetID]
+		dstID, ok := armLookup(subnetIDMap, c.SubnetID)
 		if !ok {
 			continue
 		}
@@ -909,7 +847,7 @@ func TransformSQLMIDatabases(instances []SQLManagedInstance, sub SubscriptionInf
 	for _, mi := range instances {
 		for _, db := range mi.Databases {
 			id := resourceID("application.database", db.ID)
-			idMap[db.ID] = id
+			idMap[armKey(db.ID)] = id
 
 			prov := azureProvider(db.ID, "Microsoft.Sql/managedInstances/databases", db.Location, sub)
 			r, err := sdk.NewResource(id, "application.database", prov)
@@ -929,27 +867,26 @@ func TransformSQLMIDatabases(instances []SQLManagedInstance, sub SubscriptionInf
 				if p.Collation != "" {
 					props["collation"] = p.Collation
 				}
-			} else {
-				r.Status = "active"
-				r.State = "Online"
 			}
 			r.Properties = props
+			attachArmBody(&r, &db)
 			resources = append(resources, r)
 		}
 	}
 	return resources, idMap
 }
 
-// TransformSQLMIContainsDatabaseConnections wires each MI to its databases.
+// TransformSQLMIContainsDatabaseConnections wires each MI to
+// its databases.
 func TransformSQLMIContainsDatabaseConnections(instances []SQLManagedInstance, miIDMap, dbIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, mi := range instances {
-		srcID, ok := miIDMap[mi.ID]
+		srcID, ok := armLookup(miIDMap, mi.ID)
 		if !ok {
 			continue
 		}
 		for _, db := range mi.Databases {
-			dstID, ok := dbIDMap[db.ID]
+			dstID, ok := armLookup(dbIDMap, db.ID)
 			if !ok {
 				continue
 			}
@@ -967,7 +904,8 @@ func TransformSQLMIContainsDatabaseConnections(instances []SQLManagedInstance, m
 	return conns
 }
 
-// TransformSQLElasticPools converts SQL elastic pools into OSIRIS JSON resources.
+// TransformSQLElasticPools converts SQL elastic pools into
+// OSIRIS JSON resources.
 func TransformSQLElasticPools(servers []SQLServer, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string)
@@ -975,7 +913,7 @@ func TransformSQLElasticPools(servers []SQLServer, sub SubscriptionInfo) ([]sdk.
 	for _, s := range servers {
 		for _, ep := range s.ElasticPools {
 			id := resourceID("osiris.azure.sql.elasticpool", ep.ID)
-			idMap[ep.ID] = id
+			idMap[armKey(ep.ID)] = id
 
 			prov := azureProvider(ep.ID, "Microsoft.Sql/servers/elasticPools", ep.Location, sub)
 			r, err := sdk.NewResource(id, "osiris.azure.sql.elasticpool", prov)
@@ -1009,27 +947,26 @@ func TransformSQLElasticPools(servers []SQLServer, sub SubscriptionInfo) ([]sdk.
 				if p.ZoneRedundant {
 					props["zone_redundant"] = true
 				}
-			} else {
-				r.Status = "active"
-				r.State = "Ready"
 			}
 			r.Properties = props
+			attachArmBody(&r, &ep)
 			resources = append(resources, r)
 		}
 	}
 	return resources, idMap
 }
 
-// TransformSQLServerContainsElasticPoolConnections wires each SQL server to its elastic pools.
+// TransformSQLServerContainsElasticPoolConnections wires each SQL
+// server to its elastic pools.
 func TransformSQLServerContainsElasticPoolConnections(servers []SQLServer, serverIDMap, poolIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, s := range servers {
-		srcID, ok := serverIDMap[s.ID]
+		srcID, ok := armLookup(serverIDMap, s.ID)
 		if !ok {
 			continue
 		}
 		for _, ep := range s.ElasticPools {
-			dstID, ok := poolIDMap[ep.ID]
+			dstID, ok := armLookup(poolIDMap, ep.ID)
 			if !ok {
 				continue
 			}
@@ -1047,14 +984,15 @@ func TransformSQLServerContainsElasticPoolConnections(servers []SQLServer, serve
 	return conns
 }
 
-// TransformSQLVMs converts SQL Server on Azure VMs into OSIRIS JSON resources.
+// TransformSQLVMs converts SQL Server on Azure VMs into
+// OSIRIS JSON resources.
 func TransformSQLVMs(vms []SQLVirtualMachine, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(vms))
 
 	for _, v := range vms {
 		id := resourceID("osiris.azure.sqlvm", v.ID)
-		idMap[v.ID] = id
+		idMap[armKey(v.ID)] = id
 
 		prov := azureProvider(v.ID, "Microsoft.SqlVirtualMachine/SqlVirtualMachines", v.Location, sub)
 		r, err := sdk.NewResource(id, "osiris.azure.sqlvm", prov)
@@ -1080,33 +1018,27 @@ func TransformSQLVMs(vms []SQLVirtualMachine, sub SubscriptionInfo) ([]sdk.Resou
 			if p.VirtualMachineID != "" {
 				props["vm_id"] = p.VirtualMachineID
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Succeeded"
 		}
 		r.Properties = props
+		attachArmBody(&r, &v)
 		resources = append(resources, r)
 	}
 	return resources, idMap
 }
 
-// TransformSQLVMToVMConnections wires each SQL VM to its underlying Azure VM.
+// TransformSQLVMToVMConnections wires each SQL VM to
+// its underlying Azure VM.
 func TransformSQLVMToVMConnections(sqlVMs []SQLVirtualMachine, sqlVMIDMap, vmIDMap map[string]string) []sdk.Connection {
-	vmLower := make(map[string]string, len(vmIDMap))
-	for k, v := range vmIDMap {
-		vmLower[strings.ToLower(k)] = v
-	}
-
 	var conns []sdk.Connection
 	for _, v := range sqlVMs {
 		if v.Properties == nil || v.Properties.VirtualMachineID == "" {
 			continue
 		}
-		srcID, ok := sqlVMIDMap[v.ID]
+		srcID, ok := armLookup(sqlVMIDMap, v.ID)
 		if !ok {
 			continue
 		}
-		dstID, ok := vmLower[strings.ToLower(v.Properties.VirtualMachineID)]
+		dstID, ok := armLookup(vmIDMap, v.Properties.VirtualMachineID)
 		if !ok {
 			continue
 		}
@@ -1121,4 +1053,116 @@ func TransformSQLVMToVMConnections(sqlVMs []SQLVirtualMachine, sqlVMIDMap, vmIDM
 		conns = append(conns, conn)
 	}
 	return conns
+}
+
+// TransformSQLFailoverGroups converts the failover groups of each SQL
+// server into osiris.azure.sql.failovergroup resources. Each server of
+// a group lists its own copy (its own ARM ID), so a group spanning two
+// exported servers yields two resources. state is the ARM replication
+// state; status is not derived from it.
+func TransformSQLFailoverGroups(servers []SQLServer, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
+	var resources []sdk.Resource
+	idMap := make(map[string]string)
+	for _, s := range servers {
+		for _, fg := range s.FailoverGroups {
+			id := resourceID("osiris.azure.sql.failovergroup", fg.ID)
+			idMap[armKey(fg.ID)] = id
+			prov := azureProvider(fg.ID, "Microsoft.Sql/servers/failoverGroups", fg.Location, sub)
+			r, err := sdk.NewResource(id, "osiris.azure.sql.failovergroup", prov)
+			if err != nil {
+				continue
+			}
+			r.Name = fg.Name
+			r.Tags = fg.Tags
+			props := map[string]any{
+				"resource_group": fg.ResourceGroup,
+				"server_id":      s.ID,
+			}
+			if p := fg.Properties; p != nil {
+				r.State = p.ReplicationState
+				if p.ReplicationRole != "" {
+					props["replication_role"] = p.ReplicationRole
+				}
+				if len(p.Databases) > 0 {
+					props["database_count"] = len(p.Databases)
+				}
+				var partners []string
+				for _, ps := range p.PartnerServers {
+					if ps.ID != "" {
+						partners = append(partners, ps.ID)
+					}
+				}
+				if len(partners) > 0 {
+					props["partner_server_ids"] = partners
+				}
+				if rw := p.ReadWriteEndpoint; rw != nil {
+					if rw.FailoverPolicy != "" {
+						props["failover_policy"] = rw.FailoverPolicy
+					}
+					if rw.FailoverWithDataLossGracePeriodMinutes > 0 {
+						props["grace_period_minutes"] = rw.FailoverWithDataLossGracePeriodMinutes
+					}
+				}
+			}
+			r.Properties = props
+			attachArmBody(&r, &fg)
+			resources = append(resources, r)
+		}
+	}
+	return resources, idMap
+}
+
+// TransformSQLFailoverGroupConnections emits, for each failover group:
+//   - SQL server -> failover group `contains` (ARM parent);
+//   - failover group -> member database `contains` (databases[]);
+//   - primary server -> secondary server `dataflow` (geo-replication),
+//     from the group's replicationRole and its partnerServers roles.
+//
+// The same replication seen from both servers yields one connection ID.
+func TransformSQLFailoverGroupConnections(servers []SQLServer, serverIDMap, fgIDMap, dbIDMap map[string]string) []sdk.Connection {
+	var connections []sdk.Connection
+	add := func(connType, src, dst, name string, props map[string]any) {
+		if conn, ok := newEdge(connType, src, dst, name); ok {
+			conn.Properties = props
+			connections = append(connections, conn)
+		}
+	}
+	for _, s := range servers {
+		serverID, serverOK := armLookup(serverIDMap, s.ID)
+		for _, fg := range s.FailoverGroups {
+			fgID, ok := armLookup(fgIDMap, fg.ID)
+			if !ok {
+				continue
+			}
+			if serverOK {
+				add(connContains, serverID, fgID, fmt.Sprintf("%s contains %s", s.Name, fg.Name), nil)
+			}
+			p := fg.Properties
+			if p == nil {
+				continue
+			}
+			for _, dbArmID := range p.Databases {
+				if dbID, ok := armLookup(dbIDMap, dbArmID); ok {
+					add(connContains, fgID, dbID, fmt.Sprintf("%s contains %s", fg.Name, extractLastSegment(dbArmID)), nil)
+				}
+			}
+			if !serverOK {
+				continue
+			}
+			for _, ps := range p.PartnerServers {
+				partnerID, ok := armLookup(serverIDMap, ps.ID)
+				if !ok {
+					continue
+				}
+				props := map[string]any{"failover_group": fg.Name}
+				switch {
+				case strings.EqualFold(p.ReplicationRole, "Primary") && strings.EqualFold(ps.ReplicationRole, "Secondary"):
+					add(connDataflow, serverID, partnerID, fmt.Sprintf("%s -> %s", s.Name, extractLastSegment(ps.ID)), props)
+				case strings.EqualFold(p.ReplicationRole, "Secondary") && strings.EqualFold(ps.ReplicationRole, "Primary"):
+					add(connDataflow, partnerID, serverID, fmt.Sprintf("%s -> %s", extractLastSegment(ps.ID), s.Name), props)
+				}
+			}
+		}
+	}
+	return connections
 }

@@ -54,7 +54,7 @@ func ParseFlags(args []string) (*Config, error) {
 	fs.StringVar(&output, "output", "", "output directory")
 	fs.StringVar(&safeFail, "safe-failure-mode", "fail-closed", "secret handling: fail-closed, log-and-redact, or off")
 	fs.StringVar(&purposeStr, "purpose", "", "OSIRIS JSON spec chapter 13.1.3 output grade: documentation (default) or audit")
-	fs.BoolVar(&includeRawBody, "include-raw-body", false, "attach full ARM JSON body under extensions[\"osiris.azure.arm\"].body (audit mode only; lossless fallback for still unmodelled fields)")
+	fs.BoolVar(&includeRawBody, "include-raw-body", false, "attach the full ARM object returned by az, secrets redacted, under extensions[\"osiris.azure.arm\"].body (audit mode only; carries fields still not mapped to OSIRIS JSON)")
 
 	if err := fs.Parse(args); err != nil {
 		return nil, err

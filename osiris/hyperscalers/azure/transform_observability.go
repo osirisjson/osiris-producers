@@ -9,26 +9,25 @@ package azure
 
 import (
 	"fmt"
-	"strings"
 
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
-// TransformApplicationInsights converts Microsoft.Insights/components into
-// OSIRIS JSON resources of type osiris.azure.applicationinsights.
-// Returns resources and ARM ID -> resource ID map so WebApps can be wired to their
-// bound App Insights component and workspace-based AI can be linked to its
-// Log Analytics workspace.
+// TransformApplicationInsights converts Microsoft.Insights/components
+// into OSIRIS JSON resources of type osiris.azure.applicationinsights.
+// Returns resources and ARM ID -> resource ID map so WebApps can be
+// wired to their bound App Insights component and workspace-based AI
+// can be linked to its Log Analytics workspace.
 //
 // Secret fields (InstrumentationKey, ConnectionString, AppID) are never
-// emitted - they carry authentication material and add no topology value.
+// emitted they carry authentication material and add no topology value.
 func TransformApplicationInsights(comps []ApplicationInsights, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(comps))
 
 	for _, c := range comps {
 		id := resourceID("osiris.azure.applicationinsights", c.ID)
-		idMap[c.ID] = id
+		idMap[armKey(c.ID)] = id
 
 		prov := azureProvider(c.ID, "Microsoft.Insights/components", c.Location, sub)
 
@@ -73,9 +72,6 @@ func TransformApplicationInsights(comps []ApplicationInsights, sub SubscriptionI
 			if p.DisableLocalAuth {
 				props["entra_only"] = true
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Succeeded"
 		}
 		r.Properties = props
 
@@ -91,20 +87,21 @@ func TransformApplicationInsights(comps []ApplicationInsights, sub SubscriptionI
 
 // TransformLogAnalyticsWorkspaces converts Microsoft.OperationalInsights/
 // workspaces into OSIRIS JSON resources of type osiris.azure.loganalytics.
-// Returns resources and ARM ID -> resource ID map so App Insights, VMs, AKS
-// and other diagnostic-setting sources can be wired to their destination
-// workspace.
+// Returns resources and ARM ID -> resource ID map so App Insights,
+// VMs, AKS and other diagnostic-setting sources can be wired to their
+// destination workspace.
 //
-// Shared keys (primary/secondary) are never emitted - they are auth material.
-// The customer_id (workspace UUID) is not a secret; it is the query-scope ID
-// used in KQL and appears in monitoring tooling, so it is kept under audit.
+// Shared keys (primary/secondary) are never emitted - they are auth
+// material. The customer_id (workspace UUID) is not a secret; it is
+// the query-scope ID used in KQL and appears in monitoring tooling,
+// so it is kept under audit.
 func TransformLogAnalyticsWorkspaces(wss []LogAnalyticsWorkspace, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(wss))
 
 	for _, w := range wss {
 		id := resourceID("osiris.azure.loganalytics", w.ID)
-		idMap[w.ID] = id
+		idMap[armKey(w.ID)] = id
 
 		prov := azureProvider(w.ID, "Microsoft.OperationalInsights/workspaces", w.Location, sub)
 
@@ -151,8 +148,9 @@ func TransformLogAnalyticsWorkspaces(wss []LogAnalyticsWorkspace, sub Subscripti
 }
 
 // TransformAppInsightsToWorkspaceConnections wires workspace-based App
-// Insights components to their backing Log Analytics workspace via a
-// "network" connection (diagnostic-data flow). Classic App Insights (without a workspace binding) is skipped.
+// Insights components to their backing Log Analytics workspace with a
+// dataflow connection: telemetry is written into the workspace.
+// Classic App Insights (without a workspace binding) is skipped.
 func TransformAppInsightsToWorkspaceConnections(comps []ApplicationInsights, aiIDMap, laIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, c := range comps {
@@ -160,24 +158,24 @@ func TransformAppInsightsToWorkspaceConnections(comps []ApplicationInsights, aiI
 		if wsArm == "" {
 			continue
 		}
-		sourceID, ok := aiIDMap[c.ID]
+		sourceID, ok := armLookup(aiIDMap, c.ID)
 		if !ok {
 			continue
 		}
-		targetID, ok := laIDMap[wsArm]
+		targetID, ok := armLookup(laIDMap, wsArm)
 		if !ok {
 			continue
 		}
 
 		canonicalKey := sdk.ConnectionCanonicalKey(sdk.ConnectionIDInput{
-			Type:      "network",
+			Type:      connDataflow,
 			Direction: "forward",
 			Source:    sourceID,
 			Target:    targetID,
 		})
 		connID := sdk.BuildConnectionID(canonicalKey, 16)
 
-		conn, err := sdk.NewConnection(connID, "network", sourceID, targetID)
+		conn, err := sdk.NewConnection(connID, connDataflow, sourceID, targetID)
 		if err != nil {
 			continue
 		}
@@ -188,14 +186,15 @@ func TransformAppInsightsToWorkspaceConnections(comps []ApplicationInsights, aiI
 	return connections
 }
 
-// TransformMetricAlerts converts Azure Monitor metric alert rules into OSIRIS JSON resources.
+// TransformMetricAlerts converts Azure Monitor metric alert rules
+// into OSIRIS JSON resources.
 func TransformMetricAlerts(alerts []MetricAlert, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(alerts))
 
 	for _, a := range alerts {
 		id := resourceID("osiris.azure.monitor.metricalert", a.ID)
-		idMap[a.ID] = id
+		idMap[armKey(a.ID)] = id
 
 		prov := azureProvider(a.ID, "Microsoft.Insights/metricAlerts", a.Location, sub)
 
@@ -279,14 +278,15 @@ func TransformMetricAlerts(alerts []MetricAlert, sub SubscriptionInfo) ([]sdk.Re
 	return resources, idMap
 }
 
-// TransformActionGroups converts Azure Monitor action groups into OSIRIS JSON resources.
+// TransformActionGroups converts Azure Monitor action groups
+// into OSIRIS JSON resources.
 func TransformActionGroups(groups []ActionGroup, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(groups))
 
 	for _, g := range groups {
 		id := resourceID("osiris.azure.monitor.actiongroup", g.ID)
-		idMap[g.ID] = id
+		idMap[armKey(g.ID)] = id
 
 		prov := azureProvider(g.ID, "Microsoft.Insights/actionGroups", g.Location, sub)
 
@@ -355,20 +355,15 @@ func TransformActionGroups(groups []ActionGroup, sub SubscriptionInfo) ([]sdk.Re
 	return resources, idMap
 }
 
-// TransformMetricAlertToActionGroupConnections creates dependency connections
-// from each metric alert to its configured action groups.
-// ARM stores action group IDs case-insensitively; both sides are normalised to
-// lowercase before lookup so GUID casing mismatches between API surfaces do not
-// silently drop edges.
+// TransformMetricAlertToActionGroupConnections creates dependency
+// connections from each metric alert to its configured action groups.
+// ARM stores action group IDs case-insensitively; both sides are
+// normalised to lowercase before lookup so GUID casing mismatches
+// between API surfaces do not silently drop edges.
 func TransformMetricAlertToActionGroupConnections(alerts []MetricAlert, alertIDMap, agIDMap map[string]string) []sdk.Connection {
-	agLower := make(map[string]string, len(agIDMap))
-	for k, v := range agIDMap {
-		agLower[strings.ToLower(k)] = v
-	}
-
 	var connections []sdk.Connection
 	for _, a := range alerts {
-		sourceID, ok := alertIDMap[a.ID]
+		sourceID, ok := armLookup(alertIDMap, a.ID)
 		if !ok {
 			continue
 		}
@@ -376,7 +371,7 @@ func TransformMetricAlertToActionGroupConnections(alerts []MetricAlert, alertIDM
 			if ac.ActionGroupID == "" {
 				continue
 			}
-			targetID, ok := agLower[strings.ToLower(ac.ActionGroupID)]
+			targetID, ok := armLookup(agIDMap, ac.ActionGroupID)
 			if !ok {
 				continue
 			}
@@ -399,16 +394,17 @@ func TransformMetricAlertToActionGroupConnections(alerts []MetricAlert, alertIDM
 	return connections
 }
 
-// TransformDataCollectionRules converts Microsoft.Insights/dataCollectionRules into
-// OSIRIS JSON resources of type osiris.azure.monitor.datacollectionrule. Returns
-// resources and ARM ID -> resource ID map for wiring DCRs to their workspace destinations.
+// TransformDataCollectionRules converts Microsoft.Insights/dataCollectionRules
+// into OSIRIS JSON resources of type osiris.azure.monitor.datacollectionrule.
+// Returns resources and ARM ID -> resource ID map for wiring DCRs to
+// their workspace destinations.
 func TransformDataCollectionRules(rules []DataCollectionRule, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(rules))
 
 	for _, d := range rules {
 		id := resourceID("osiris.azure.monitor.datacollectionrule", d.ID)
-		idMap[d.ID] = id
+		idMap[armKey(d.ID)] = id
 
 		prov := azureProvider(d.ID, "Microsoft.Insights/dataCollectionRules", d.Location, sub)
 
@@ -450,9 +446,6 @@ func TransformDataCollectionRules(rules []DataCollectionRule, sub SubscriptionIn
 					props["log_analytics_workspace_ids"] = wsIDs
 				}
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Succeeded"
 		}
 		r.Properties = props
 
@@ -470,7 +463,7 @@ func TransformDataCollectionEndpoints(endpoints []DataCollectionEndpoint, sub Su
 
 	for _, e := range endpoints {
 		id := resourceID("osiris.azure.monitor.datacollectionendpoint", e.ID)
-		idMap[e.ID] = id
+		idMap[armKey(e.ID)] = id
 
 		prov := azureProvider(e.ID, "Microsoft.Insights/dataCollectionEndpoints", e.Location, sub)
 
@@ -490,9 +483,6 @@ func TransformDataCollectionEndpoints(endpoints []DataCollectionEndpoint, sub Su
 			if p.NetworkAcls != nil && p.NetworkAcls.PublicNetworkAccess != "" {
 				props["public_network_access"] = p.NetworkAcls.PublicNetworkAccess
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Succeeded"
 		}
 		r.Properties = props
 
@@ -502,16 +492,17 @@ func TransformDataCollectionEndpoints(endpoints []DataCollectionEndpoint, sub Su
 	return resources, idMap
 }
 
-// TransformAutoscaleSettings converts Microsoft.Insights/autoscalesettings into
-// OSIRIS JSON resources of type osiris.azure.monitor.autoscale. Returns resources
-// and ARM ID -> resource ID map for wiring autoscale -> target resource edges.
+// TransformAutoscaleSettings converts Microsoft.Insights/autoscalesettings
+// into OSIRIS JSON resources of type osiris.azure.monitor.autoscale.
+// Returns resources and ARM ID -> resource ID map for wiring
+// autoscale -> target resource edges.
 func TransformAutoscaleSettings(settings []AutoscaleSetting, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(settings))
 
 	for _, a := range settings {
 		id := resourceID("osiris.azure.monitor.autoscale", a.ID)
-		idMap[a.ID] = id
+		idMap[armKey(a.ID)] = id
 
 		prov := azureProvider(a.ID, "Microsoft.Insights/autoscalesettings", a.Location, sub)
 
@@ -557,9 +548,6 @@ func TransformAutoscaleSettings(settings []AutoscaleSetting, sub SubscriptionInf
 				}
 				props["profiles"] = pviews
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Enabled"
 		}
 		r.Properties = props
 
@@ -569,23 +557,18 @@ func TransformAutoscaleSettings(settings []AutoscaleSetting, sub SubscriptionInf
 	return resources, idMap
 }
 
-// TransformDCRToWorkspaceConnections wires each Data Collection Rule to its
-// Log Analytics workspace destination(s) via a "dependency" edge.
+// TransformDCRToWorkspaceConnections wires each Data Collection Rule
+// to its Log Analytics workspace destination(s) via a "dependency" edge.
 func TransformDCRToWorkspaceConnections(rules []DataCollectionRule, dcrIDMap, laIDMap map[string]string) []sdk.Connection {
-	laLower := make(map[string]string, len(laIDMap))
-	for k, v := range laIDMap {
-		laLower[strings.ToLower(k)] = v
-	}
-
 	var connections []sdk.Connection
 	seen := map[string]bool{}
 	for _, d := range rules {
-		sourceID, ok := dcrIDMap[d.ID]
+		sourceID, ok := armLookup(dcrIDMap, d.ID)
 		if !ok {
 			continue
 		}
 		for _, wsArm := range d.WorkspaceResourceIDs() {
-			targetID, ok := laLower[strings.ToLower(wsArm)]
+			targetID, ok := armLookup(laIDMap, wsArm)
 			if !ok {
 				continue
 			}
@@ -614,24 +597,19 @@ func TransformDCRToWorkspaceConnections(rules []DataCollectionRule, dcrIDMap, la
 	return connections
 }
 
-// TransformAutoscaleToTargetConnections wires each autoscale setting to the
-// resource it governs via a "dependency" edge.
+// TransformAutoscaleToTargetConnections wires each autoscale setting
+// to the resource it governs via a "dependency" edge.
 func TransformAutoscaleToTargetConnections(settings []AutoscaleSetting, autoscaleIDMap, scopeIDMap map[string]string) []sdk.Connection {
-	scopeLower := make(map[string]string, len(scopeIDMap))
-	for k, v := range scopeIDMap {
-		scopeLower[strings.ToLower(k)] = v
-	}
-
 	var connections []sdk.Connection
 	for _, a := range settings {
 		if a.Properties == nil || a.Properties.TargetResourceURI == "" {
 			continue
 		}
-		sourceID, ok := autoscaleIDMap[a.ID]
+		sourceID, ok := armLookup(autoscaleIDMap, a.ID)
 		if !ok {
 			continue
 		}
-		targetID, ok := scopeLower[strings.ToLower(a.Properties.TargetResourceURI)]
+		targetID, ok := armLookup(scopeIDMap, a.Properties.TargetResourceURI)
 		if !ok {
 			continue
 		}
@@ -653,25 +631,20 @@ func TransformAutoscaleToTargetConnections(settings []AutoscaleSetting, autoscal
 	return connections
 }
 
-// TransformMetricAlertToScopeConnections creates dependency connections from
-// each metric alert to the resource(s) it monitors (its scopes array).
-// scopeIDMap must be pre-built from all available OSIRIS JSON resources ID maps so
-// any resource type can be resolved. ARM ID casing is normalised to lowercase
-// on both sides before lookup.
+// TransformMetricAlertToScopeConnections creates dependency connections
+// from each metric alert to the resource(s) it monitors (its scopes
+// array). scopeIDMap must be pre-built from all available OSIRIS JSON
+// resources ID maps so any resource type can be resolved. ARM ID
+// casing is normalised to lowercase on both sides before lookup.
 func TransformMetricAlertToScopeConnections(alerts []MetricAlert, alertIDMap, scopeIDMap map[string]string) []sdk.Connection {
-	scopeLower := make(map[string]string, len(scopeIDMap))
-	for k, v := range scopeIDMap {
-		scopeLower[strings.ToLower(k)] = v
-	}
-
 	var connections []sdk.Connection
 	for _, a := range alerts {
-		sourceID, ok := alertIDMap[a.ID]
+		sourceID, ok := armLookup(alertIDMap, a.ID)
 		if !ok {
 			continue
 		}
 		for _, scope := range a.Scopes {
-			targetID, ok := scopeLower[strings.ToLower(scope)]
+			targetID, ok := armLookup(scopeIDMap, scope)
 			if !ok {
 				continue
 			}

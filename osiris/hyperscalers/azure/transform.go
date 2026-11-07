@@ -19,7 +19,7 @@
 //
 // This file retains only truly cross-domain shared code:
 //   - Shared primitives: resourceID, azureProvider, normalizeAzureLocation, extractResourceGroup
-//   - PE connection helpers: peBinding, collectPEBindings, transformPEBoundConnections, collectPEIDs
+//   - Private Endpoint helper: collectPEIDs
 //   - State helpers: mapProvisioningState
 //   - ID utilities: extractLastSegment, BuildAllResourceIDMap
 //
@@ -31,9 +31,7 @@ package azure
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
-	"time"
 
 	"go.osirisjson.org/producers/pkg/sdk"
 )
@@ -43,10 +41,13 @@ const (
 	providerName       = "azure"
 )
 
-// resourceID generates a deterministic resource ID from an Azure ARM resource ID.
-// Per OSIRIS JSON Producer Guidelines section 2.2.1, hyperscaler resource IDs use the
-// pattern: provider::native-id (e.g. azure::/subscriptions/sub-123/.../vm01).
-// The ARM resource ID is the stable native identifier for all Azure resources.
+// resourceID generates a deterministic resource ID from an Azure ARM
+// resource ID.
+// Per OSIRIS JSON Producer Guidelines section 2.2.1, hyperscaler
+// resource IDs use the pattern: provider::native-id
+// (e.g. azure::/subscriptions/sub-123/.../vm01).
+// The ARM resource ID is the stable native identifier for all
+// Azure resources.
 func resourceID(_ string, armID string) string {
 	return "azure::" + armID
 }
@@ -60,27 +61,39 @@ func resourceID(_ string, armID string) string {
 // provider.name = "custom" the ARM provider namespace
 // (e.g. "Microsoft.Network") is already fully present as the prefix of
 // Type below, so there is no separate value to carry.
+//
+// provider.account is the owning subscription, read from the resource
+// own ARM ID (never assumed to be the exported subscription) and
+// written in canonical lower case, since ARM IDs may spell the same
+// GUID in either case. provider.tenant is set only when that owner is
+// the exported subscription, whose tenant is known otherwise it is
+// left empty rather than guessed.
 func azureProvider(armID, nativeType, location string, sub SubscriptionInfo) sdk.Provider {
+	owner := canonicalSubscriptionID(extractSubscriptionID(armID))
+	tenant := ""
+	if owner != "" && strings.EqualFold(owner, sub.SubscriptionID) {
+		tenant = sub.TenantID
+	}
 	return sdk.Provider{
-		Name:         providerName,
-		NativeID:     armID,
-		Account:      sub.SubscriptionID,
-		Type:         nativeType,
-		Region:       normalizeAzureLocation(location),
-		Subscription: sub.SubscriptionID,
-		Tenant:       sub.TenantID,
-		System:       sub.DisplayName,
-		Version:      armAPIVersion(nativeType),
-		Source:       "azure-cli",
+		Name:     providerName,
+		NativeID: armID,
+		Account:  owner,
+		Type:     nativeType,
+		Region:   normalizeAzureLocation(location),
+		Tenant:   tenant,
+		Version:  armAPIVersion(nativeType),
+		Source:   "azure-cli",
 	}
 }
 
-// armAPIVersion returns the latest stable ARM API version for the given resource type.
+// armAPIVersion returns the latest stable ARM API version for the
+// given resource type.
 func armAPIVersion(nativeType string) string {
 	return armAPIVersions[nativeType]
 }
 
-// armAPIVersions maps ARM resource types to their latest stable collection API version.
+// armAPIVersions maps ARM resource types to their latest stable
+// collection API version.
 var armAPIVersions = map[string]string{
 	"Microsoft.Network/virtualNetworks":                     "2024-05-01",
 	"Microsoft.Network/virtualNetworks/subnets":             "2024-05-01",
@@ -123,6 +136,10 @@ var armAPIVersions = map[string]string{
 	"Microsoft.DataProtection/backupVaults":                 "2024-04-01",
 	"Microsoft.Sql/servers":                                 "2023-08-01",
 	"Microsoft.Sql/servers/databases":                       "2023-08-01",
+	"Microsoft.Sql/servers/elasticPools":                    "2023-08-01",
+	"Microsoft.Sql/servers/failoverGroups":                  "2023-08-01",
+	"Microsoft.Sql/managedInstances/databases":              "2023-08-01",
+	"Microsoft.SqlVirtualMachine/SqlVirtualMachines":        "2023-10-01",
 	"Microsoft.DBforPostgreSQL/flexibleServers":             "2024-08-01",
 	"Microsoft.DBforMySQL/flexibleServers":                  "2024-02-01-preview",
 	"Microsoft.DocumentDB/databaseAccounts":                 "2024-05-15",
@@ -141,7 +158,8 @@ var armAPIVersions = map[string]string{
 	"Microsoft.Resources/resourceGroups":                    "2024-07-01",
 }
 
-// deriveDescription returns a resource description from tags or falls back to "name in rg".
+// deriveDescription returns a resource description from tags or falls
+// back to "name in rg".
 // Checks tags["description"] and tags["Description"] first.
 func deriveDescription(name, resourceGroup string, tags map[string]string) string {
 	if d := tags["description"]; d != "" {
@@ -156,12 +174,13 @@ func deriveDescription(name, resourceGroup string, tags map[string]string) strin
 	return name
 }
 
-// normalizeAzureLocation canonicalizes an Azure location to its slug form
-// (lowercase, no spaces). `az` returns `location` inconsistently: most ARM
-// APIs return the slug (e.g. `westeurope`, `eastus2`) while some surface the
-// display name (`West Europe`, `East US 2`). Azure location slugs are all
-// `[a-z0-9]+` with no separators, so lowercasing and stripping spaces yields
-// the canonical form for every standard Azure region.
+// normalizeAzureLocation canonicalizes an Azure location to its slug
+// form (lowercase, no spaces). `az` returns `location` inconsistently:
+// most ARM APIs return the slug (e.g. `westeurope`, `eastus2`) while
+// some surface the display name (`West Europe`, `East US 2`).
+// Azure location slugs are all `[a-z0-9]+` with no separators, so
+// lowercasing and stripping spaces yields the canonical form for every
+// standard Azure region.
 func normalizeAzureLocation(loc string) string {
 	if loc == "" {
 		return ""
@@ -169,7 +188,8 @@ func normalizeAzureLocation(loc string) string {
 	return strings.ToLower(strings.ReplaceAll(loc, " ", ""))
 }
 
-// extractResourceGroup extracts the resource group name from an ARM resource ID.
+// extractResourceGroup extracts the resource group name from an
+// ARM resource ID.
 func extractResourceGroup(armID string) string {
 	lower := strings.ToLower(armID)
 	idx := strings.Index(lower, "/resourcegroups/")
@@ -183,69 +203,9 @@ func extractResourceGroup(armID string) string {
 	return rest
 }
 
-// peBinding is an intermediate shape used to collect "resource X has these Private Endpoint (PE)connections" tuples from
-// heterogeneous resource types so the common wiring loop can build connections once.
-type peBinding struct {
-	TargetArmID string
-	Conns       []azPrivateEndpointConnRef
-	Name        string
-}
-
-// collectPEBindings turns a per-resource-type iterator into a flat slice of peBinding tuples.
-func collectPEBindings(iter func(yield func(targetArmID string, conns []azPrivateEndpointConnRef, name string))) []peBinding {
-	var out []peBinding
-	iter(func(targetArmID string, conns []azPrivateEndpointConnRef, name string) {
-		out = append(out, peBinding{TargetArmID: targetArmID, Conns: conns, Name: name})
-	})
-	return out
-}
-
-// transformPEBoundConnections emits connections from each private endpoint
-// referenced by a binding's privateEndpointConnections array to the target
-// resource identified by targetArmID. connType lets callers attach an
-// OSIRIS JSON spec chapter 5 section 5.2.3 ("dependency", "dependency.storage", "dependency.database").
-func transformPEBoundConnections(bindings []peBinding, targetIDMap, peIDMap map[string]string, connType string) []sdk.Connection {
-	var connections []sdk.Connection
-	for _, b := range bindings {
-		if len(b.Conns) == 0 {
-			continue
-		}
-		targetID, ok := targetIDMap[b.TargetArmID]
-		if !ok {
-			continue
-		}
-		for _, pec := range b.Conns {
-			peArmID := pec.PrivateEndpointID()
-			if peArmID == "" {
-				continue
-			}
-			sourceID, ok := peIDMap[peArmID]
-			if !ok {
-				continue
-			}
-
-			canonicalKey := sdk.ConnectionCanonicalKey(sdk.ConnectionIDInput{
-				Type:      connType,
-				Direction: "forward",
-				Source:    sourceID,
-				Target:    targetID,
-			})
-			connID := sdk.BuildConnectionID(canonicalKey, 16)
-
-			conn, err := sdk.NewConnection(connID, connType, sourceID, targetID)
-			if err != nil {
-				continue
-			}
-			conn.Name = fmt.Sprintf("%s -> %s", extractLastSegment(peArmID), b.Name)
-			_ = conn.SetDirection("forward")
-			connections = append(connections, conn)
-		}
-	}
-	return connections
-}
-
-// mapProvisioningState converts an ARM provisioningState value into an OSIRIS JSON
-// status enum. "Succeeded" is the ARM steady state -> active.
+// mapProvisioningState converts an ARM provisioningState value into an
+// OSIRIS JSON status enum. "Succeeded" is the ARM steady state -> active.
+// An empty state yields "" so status is omitted rather than guessed.
 func mapProvisioningState(state string) string {
 	switch strings.ToLower(state) {
 	case "succeeded":
@@ -255,14 +215,15 @@ func mapProvisioningState(state string) string {
 	case "failed", "canceled":
 		return "inactive"
 	case "":
-		return "active"
+		return ""
 	default:
 		return "unknown"
 	}
 }
 
 // collectPEIDs extracts the private endpoint ARM IDs from an array of
-// privateEndpointConnections references (shared between webapps, storage, key vaults, registries).
+// privateEndpointConnections references (shared between webapps,
+// storage, key vaults, registries).
 func collectPEIDs(conns []azPrivateEndpointConnRef) []string {
 	if len(conns) == 0 {
 		return nil
@@ -276,7 +237,8 @@ func collectPEIDs(conns []azPrivateEndpointConnRef) []string {
 	return ids
 }
 
-// extractLastSegment returns the last path segment of an ARM resource ID.
+// extractLastSegment returns the last path segment of an
+// ARM resource ID.
 func extractLastSegment(armID string) string {
 	idx := strings.LastIndex(armID, "/")
 	if idx < 0 {
@@ -285,10 +247,12 @@ func extractLastSegment(armID string) string {
 	return armID[idx+1:]
 }
 
-// attachUniversalEnvelope merges graph envelope fields into r.Extensions["osiris.azure"].
-// arm_id is always written (it equals r.Provider.NativeID); all other fields are written
-// only when non-empty. Existing extension keys set by per-resource transform functions
-// are preserved - this function only adds keys, never overwrites them.
+// attachUniversalEnvelope merges graph envelope fields into
+// r.Extensions["osiris.azure"].
+// arm_id is always written (it equals r.Provider.NativeID); all other
+// fields are written only when non-empty. Existing extension keys set
+// by per-resource transform functions are preserved, this function only
+// adds keys, never overwrites them.
 func attachUniversalEnvelope(r *sdk.Resource, env *GraphEnvelope) {
 	if r.Extensions == nil {
 		r.Extensions = make(map[string]any)
@@ -340,7 +304,8 @@ func attachUniversalEnvelope(r *sdk.Resource, env *GraphEnvelope) {
 			}
 			ext["plan"] = plan
 		}
-		// Timestamps: prefer systemData (service-populated), fall back to properties aliases.
+		// Timestamps: prefer systemData (service-populated), fall back
+		// to properties aliases.
 		createdAt := ""
 		changedAt := ""
 		if env.SystemData != nil {
@@ -436,17 +401,20 @@ func attachUniversalEnvelope(r *sdk.Resource, env *GraphEnvelope) {
 	r.Extensions[extensionNamespace] = ext
 }
 
-// attachArmBody stores the unmodified ARM body under extensions["osiris.azure.arm"].
-// body is marshalled from the typed properties struct; nil body produces {"body": null}.
-// This provides lossless passthrough of all fields the struct models, closing field-depth
-// gaps (OSIRIS JSON spec chapter 6) without additional API calls.
+// attachArmBody stores the unmodified ARM body under
+// extensions["osiris.azure.arm"].
+// body is marshalled from the typed properties struct; nil body
+// roduces {"body": null}. This provides lossless passthrough of all
+// fields the struct models, closing field-depth gaps
+// (OSIRIS JSON spec chapter 6) without additional API calls.
 func attachArmBody(r *sdk.Resource, body any) {
 	if r.Extensions == nil {
 		r.Extensions = make(map[string]any)
 	}
-	// Store as a JSON string so the secret scanner does not recurse into ARM field
-	// names (e.g. "enableRbacAuthorization" contains "auth") and false-positive with
-	// fail-closed mode. Consumers that need the raw body parse the string.
+	// Store as a JSON string so the secret scanner does not recurse
+	// into ARM field names (e.g. "enableRbacAuthorization"
+	// contains "auth") and false-positive with fail-closed mode.
+	// Consumers that need the raw body parse the string.
 	var bodyStr string
 	if body != nil {
 		if b, err := json.Marshal(body); err == nil {
@@ -457,12 +425,12 @@ func attachArmBody(r *sdk.Resource, body any) {
 		"schema":      "raw-passthrough/v1",
 		"api_version": armAPIVersion(r.Provider.Type),
 		"kind":        "snapshot",
-		"fetched_at":  time.Now().UTC().Format(time.RFC3339),
 		"body":        bodyStr,
 	}
 }
 
-// BuildAllResourceIDMap merges all ARM ID -> OSIRIS JSON ID maps into one for gateway connection wiring.
+// BuildAllResourceIDMap merges all ARM ID -> OSIRIS JSON ID maps
+// into one for gateway connection wiring.
 func BuildAllResourceIDMap(maps ...map[string]string) map[string]string {
 	total := 0
 	for _, m := range maps {

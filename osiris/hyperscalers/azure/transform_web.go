@@ -1,4 +1,5 @@
-// transform_web.go - Web/App Service resource and connection transforms (App Service Plan, Web App, Function App).
+// transform_web.go - Web/App Service resource and connection transforms
+// (App Service Plan, Web App, Function App).
 //
 // For an introduction to OSIRIS JSON Producer for Microsoft Azure see:
 // [OSIRIS-JSON-AZURE]: https://docs.osirisjson.org/osiris-producers/hyperscalers/microsoft-azure/
@@ -13,16 +14,17 @@ import (
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
-// TransformAppServicePlans converts Azure App Service Plans (Microsoft.Web/serverfarms)
-// into OSIRIS JSON resources. Returns resources and a map of ASP ARM ID -> resource ID
-// so site->plan connections can be wired without an extra lookup.
+// TransformAppServicePlans converts Azure App Service Plans
+// (Microsoft.Web/serverfarms) into OSIRIS JSON resources. Returns
+// resources and a map of ASP ARM ID -> resource ID so site->plan
+// connections can be wired without an extra lookup.
 func TransformAppServicePlans(plans []AppServicePlan, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(plans))
 
 	for _, p := range plans {
 		id := resourceID("osiris.azure.appserviceplan", p.ID)
-		idMap[p.ID] = id
+		idMap[armKey(p.ID)] = id
 
 		prov := azureProvider(p.ID, "Microsoft.Web/serverfarms", p.Location, sub)
 
@@ -81,14 +83,15 @@ func TransformAppServicePlans(plans []AppServicePlan, sub SubscriptionInfo) ([]s
 	return resources, idMap
 }
 
-// TransformWebApps converts Azure App Service sites (Microsoft.Web/sites)
-// into OSIRIS JSON resources, both standard types per OSIRIS-JSON-v1.0
-// section 7.7.3. Kind routing:
+// TransformWebApps converts Azure App Service sites
+// (Microsoft.Web/sites) into OSIRIS JSON resources, both standard types
+// per OSIRIS-JSON-v1.0 section 7.7.3. Kind routing:
 //
 //	kind contains "functionapp" -> compute.function.serverless
 //	otherwise                   -> application.service
 //
-// Returns resources and a map of site ARM ID -> resource ID for connection wiring.
+// Returns resources and a map of site ARM ID -> resource ID for
+// connection wiring.
 func TransformWebApps(apps []WebApp, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(apps))
@@ -99,7 +102,7 @@ func TransformWebApps(apps []WebApp, sub SubscriptionInfo) ([]sdk.Resource, map[
 			osirisType = "compute.function.serverless"
 		}
 		id := resourceID(osirisType, a.ID)
-		idMap[a.ID] = id
+		idMap[armKey(a.ID)] = id
 
 		prov := azureProvider(a.ID, "Microsoft.Web/sites", a.Location, sub)
 
@@ -148,7 +151,7 @@ func TransformWebApps(apps []WebApp, sub SubscriptionInfo) ([]sdk.Resource, map[
 			props["inbound_ip"] = a.InboundIPAddress
 		}
 		if a.OutboundIPAddresses != "" {
-			props["outbound_ips"] = splitCSV(a.OutboundIPAddresses)
+			props["public_ip"] = splitCSV(a.OutboundIPAddresses)
 		}
 		if a.RedundancyMode != "" && strings.ToLower(a.RedundancyMode) != "none" {
 			props["redundancy_mode"] = a.RedundancyMode
@@ -187,7 +190,8 @@ func TransformWebApps(apps []WebApp, sub SubscriptionInfo) ([]sdk.Resource, map[
 		}
 		r.Properties = props
 
-		// Extensions: Azure-specific site fields (identity, VNet routing flags, PE connections).
+		// Extensions: Azure-specific site fields (identity, VNet
+		// routing flags, PE connections).
 		ext := map[string]any{}
 		if id := a.Identity; id != nil && id.Type != "" {
 			idMap := map[string]any{"type": id.Type}
@@ -250,8 +254,9 @@ func TransformWebApps(apps []WebApp, sub SubscriptionInfo) ([]sdk.Resource, map[
 	return resources, idMap
 }
 
-// TransformWebAppToPlanConnections creates contains connections from an App
-// Service Plan to each of its hosted sites (web apps / function apps).
+// TransformWebAppToPlanConnections creates contains connections from
+// an App Service Plan to each of its hosted sites
+// (web apps / function apps).
 func TransformWebAppToPlanConnections(apps []WebApp, webAppIDMap, planIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, a := range apps {
@@ -259,11 +264,11 @@ func TransformWebAppToPlanConnections(apps []WebApp, webAppIDMap, planIDMap map[
 		if planArmID == "" {
 			continue
 		}
-		targetID, ok := webAppIDMap[a.ID]
+		targetID, ok := armLookup(webAppIDMap, a.ID)
 		if !ok {
 			continue
 		}
-		sourceID, ok := planIDMap[planArmID]
+		sourceID, ok := armLookup(planIDMap, planArmID)
 		if !ok {
 			continue
 		}
@@ -287,19 +292,20 @@ func TransformWebAppToPlanConnections(apps []WebApp, webAppIDMap, planIDMap map[
 	return connections
 }
 
-// TransformWebAppToSubnetConnections creates network connections from a web/function app
-// to its VNet integration subnet (regional VNet integration).
+// TransformWebAppToSubnetConnections creates network connections from
+// a web/function app to its VNet integration subnet
+// (regional VNet integration).
 func TransformWebAppToSubnetConnections(apps []WebApp, webAppIDMap, subnetIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, a := range apps {
 		if a.VirtualNetworkSubnetID == "" {
 			continue
 		}
-		sourceID, ok := webAppIDMap[a.ID]
+		sourceID, ok := armLookup(webAppIDMap, a.ID)
 		if !ok {
 			continue
 		}
-		targetID, ok := subnetIDMap[a.VirtualNetworkSubnetID]
+		targetID, ok := armLookup(subnetIDMap, a.VirtualNetworkSubnetID)
 		if !ok {
 			continue
 		}
@@ -323,50 +329,7 @@ func TransformWebAppToSubnetConnections(apps []WebApp, webAppIDMap, subnetIDMap 
 	return connections
 }
 
-// TransformPEToWebAppConnections creates network connections from a private
-// endpoint to the web/function app it fronts. The binding lives on the site's
-// privateEndpointConnections array.
-func TransformPEToWebAppConnections(apps []WebApp, webAppIDMap, peIDMap map[string]string) []sdk.Connection {
-	var connections []sdk.Connection
-	for _, a := range apps {
-		if len(a.PrivateEndpointConnections) == 0 {
-			continue
-		}
-		targetID, ok := webAppIDMap[a.ID]
-		if !ok {
-			continue
-		}
-		for _, pec := range a.PrivateEndpointConnections {
-			peArmID := pec.PrivateEndpointID()
-			if peArmID == "" {
-				continue
-			}
-			sourceID, ok := peIDMap[peArmID]
-			if !ok {
-				continue
-			}
-
-			canonicalKey := sdk.ConnectionCanonicalKey(sdk.ConnectionIDInput{
-				Type:      "dependency",
-				Direction: "forward",
-				Source:    sourceID,
-				Target:    targetID,
-			})
-			connID := sdk.BuildConnectionID(canonicalKey, 16)
-
-			conn, err := sdk.NewConnection(connID, "dependency", sourceID, targetID)
-			if err != nil {
-				continue
-			}
-			conn.Name = fmt.Sprintf("%s -> %s", extractLastSegment(peArmID), a.Name)
-			_ = conn.SetDirection("forward")
-			connections = append(connections, conn)
-		}
-	}
-	return connections
-}
-
-// TransformWebAppToAppInsightsConnections wires App Service / Function App
+// TransformWebAppToAppInsightsConnections wires App Service Function App
 // sites to their bound Application Insights component. The binding is
 // declared on the site via the Azure portal `hidden-link` tag, which is
 // parsed once at WebApp transform time and reused here to emit the edge.
@@ -377,11 +340,11 @@ func TransformWebAppToAppInsightsConnections(webApps []WebApp, webAppIDMap, aiID
 		if aiArm == "" {
 			continue
 		}
-		sourceID, ok := webAppIDMap[w.ID]
+		sourceID, ok := armLookup(webAppIDMap, w.ID)
 		if !ok {
 			continue
 		}
-		targetID, ok := aiIDMap[aiArm]
+		targetID, ok := armLookup(aiIDMap, aiArm)
 		if !ok {
 			continue
 		}
@@ -405,19 +368,23 @@ func TransformWebAppToAppInsightsConnections(webApps []WebApp, webAppIDMap, aiID
 	return connections
 }
 
-// mapAppServicePlanStatus converts Azure App Service Plan status to OSIRIS JSON status.
+// mapAppServicePlanStatus converts Azure App Service Plan status
+// to OSIRIS JSON status.
 func mapAppServicePlanStatus(status string) string {
 	switch strings.ToLower(status) {
 	case "ready":
 		return "active"
 	case "pending", "creating":
 		return "degraded"
+	case "":
+		return ""
 	default:
 		return "unknown"
 	}
 }
 
-// mapWebAppState converts Azure App Service (site) state + enabled flag to OSIRIS JSON status.
+// mapWebAppState converts Azure App Service (site) state + enabled flag
+// to OSIRIS JSON status.
 func mapWebAppState(state string, enabled bool) string {
 	if !enabled {
 		return "inactive"
@@ -432,7 +399,8 @@ func mapWebAppState(state string, enabled bool) string {
 	}
 }
 
-// splitCSV splits a comma-separated string into a trimmed, non-empty slice.
+// splitCSV splits a comma-separated string into a trimmed,
+// non-empty slice.
 func splitCSV(s string) []string {
 	if s == "" {
 		return nil
@@ -448,15 +416,15 @@ func splitCSV(s string) []string {
 	return out
 }
 
-// TransformAppServiceSlots converts Microsoft.Web/sites/slots into OSIRIS JSON resources
-// of type osiris.azure.webapp.slot.
+// TransformAppServiceSlots converts Microsoft.Web/sites/slots into
+// OSIRIS JSON resources of type osiris.azure.webapp.slot.
 func TransformAppServiceSlots(slots []AppServiceSlot, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(slots))
 
 	for _, s := range slots {
 		id := resourceID("osiris.azure.webapp.slot", s.ID)
-		idMap[s.ID] = id
+		idMap[armKey(s.ID)] = id
 
 		prov := azureProvider(s.ID, "Microsoft.Web/sites/slots", s.Location, sub)
 
@@ -494,24 +462,19 @@ func TransformAppServiceSlots(slots []AppServiceSlot, sub SubscriptionInfo) ([]s
 	return resources, idMap
 }
 
-// TransformWebAppContainsSlotConnections wires each slot to its parent webapp
-// with a contains/forward connection.
+// TransformWebAppContainsSlotConnections wires each slot to
+// its parent webapp with a contains/forward connection.
 func TransformWebAppContainsSlotConnections(slots []AppServiceSlot, webAppIDMap, slotIDMap map[string]string) []sdk.Connection {
-	webAppLower := make(map[string]string, len(webAppIDMap))
-	for k, v := range webAppIDMap {
-		webAppLower[strings.ToLower(k)] = v
-	}
-
 	var connections []sdk.Connection
 	for _, s := range slots {
 		if s.WebAppID == "" {
 			continue
 		}
-		slotID, ok := slotIDMap[s.ID]
+		slotID, ok := armLookup(slotIDMap, s.ID)
 		if !ok {
 			continue
 		}
-		parentID, ok := webAppLower[strings.ToLower(s.WebAppID)]
+		parentID, ok := armLookup(webAppIDMap, s.WebAppID)
 		if !ok {
 			continue
 		}
@@ -533,8 +496,8 @@ func TransformWebAppContainsSlotConnections(slots []AppServiceSlot, webAppIDMap,
 	return connections
 }
 
-// appInsightsFromTags extracts the Application Insights ARM ID from the Azure
-// portal hidden-link tag (`hidden-link: /app-insights-resource-id`).
+// appInsightsFromTags extracts the Application Insights ARM ID from
+// the Azure portal hidden-link tag (`hidden-link: /app-insights-resource-id`).
 func appInsightsFromTags(tags map[string]string) string {
 	for k, v := range tags {
 		if strings.EqualFold(strings.TrimSpace(k), "hidden-link: /app-insights-resource-id") {

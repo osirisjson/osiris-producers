@@ -1,4 +1,4 @@
-// transform_test.go - Unit tests for Microsoft Azure data
+// transform_test.go Unit tests for Microsoft Azure data
 // transformation to OSIRIS JSON mapping functions.
 //
 // For an introduction to OSIRIS JSON Producer for Microsoft Azure see:
@@ -56,11 +56,12 @@ func TestTransformVNets(t *testing.T) {
 	if r.Provider.Region != "westeurope" {
 		t.Errorf("expected region westeurope, got %q", r.Provider.Region)
 	}
-	if r.Provider.Subscription != "a1b2c3d4-e5f6-7890-abcd-ef1234567890" {
-		t.Errorf("expected subscription ID in provider, got %q", r.Provider.Subscription)
+	if r.Provider.Account != "11111111-1111-1111-1111-111111111111" || r.Provider.Subscription != "" || r.Provider.Tenant != "" {
+		t.Errorf("provider = account %q subscription %q tenant %q", r.Provider.Account, r.Provider.Subscription, r.Provider.Tenant)
 	}
-	if r.Status != "active" {
-		t.Errorf("expected status active, got %q", r.Status)
+	// The input carries no provisioningState, so status is omitted.
+	if r.Status != "" {
+		t.Errorf("expected no status without provisioningState, got %q", r.Status)
 	}
 	if r.Properties["resource_group"] != "rg1" {
 		t.Errorf("expected resource_group rg1, got %v", r.Properties["resource_group"])
@@ -102,7 +103,7 @@ func TestTransformSubnets(t *testing.T) {
 	}
 
 	// Verify the ID map contains the subnet's ARM ID.
-	if _, ok := idMap[subnets[0].ID]; !ok {
+	if _, ok := idMap[armKey(subnets[0].ID)]; !ok {
 		t.Error("expected subnet ARM ID in ID map")
 	}
 }
@@ -165,7 +166,7 @@ func TestTransformNICs(t *testing.T) {
 		t.Errorf("expected private_ip 10.0.1.4, got %v", ips[0]["private_ip"])
 	}
 
-	if _, ok := idMap[nics[0].ID]; !ok {
+	if _, ok := idMap[armKey(nics[0].ID)]; !ok {
 		t.Error("expected NIC ARM ID in ID map")
 	}
 }
@@ -274,11 +275,14 @@ func TestTransformSubnetNSGConnections(t *testing.T) {
 	if len(conns) != 1 {
 		t.Fatalf("expected 1 connection (only subnet with NSG), got %d", len(conns))
 	}
-	if conns[0].Type != "network" {
-		t.Errorf("expected type network.policy, got %q", conns[0].Type)
+	if conns[0].Type != connNSGAssociation {
+		t.Errorf("expected type %s, got %q", connNSGAssociation, conns[0].Type)
 	}
 	if conns[0].Direction != "forward" {
 		t.Errorf("expected forward direction, got %q", conns[0].Direction)
+	}
+	if conns[0].Source != "azure::/sub/subnet1" || conns[0].Target != "azure::/sub/nsg1" {
+		t.Errorf("expected subnet1 -> nsg1, got %q -> %q", conns[0].Source, conns[0].Target)
 	}
 }
 
@@ -417,8 +421,10 @@ func TestMapVMPowerState(t *testing.T) {
 		{"VM running", "active"},
 		{"VM deallocated", "inactive"},
 		{"VM stopped", "inactive"},
-		{"VM starting", "unknown"},
-		{"", "unknown"},
+		{"VM starting", "degraded"},
+		{"PowerState/running", "active"},
+		{"", ""},
+		{"VM unknown-state", "unknown"},
 	}
 
 	for _, tt := range tests {
@@ -452,7 +458,8 @@ func TestResourceIDFormat(t *testing.T) {
 	armID := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/vnet1"
 	id := resourceID("network.vpc", armID)
 
-	// Per OSIRIS Producer Guidelines chapter 2 section 2.2.1: hyperscaler IDs use provider::native-id.
+	// Per OSIRIS Producer Guidelines chapter 2 section 2.2.1:
+	// hyperscaler IDs use provider::native-id.
 	expected := "azure::" + armID
 	if id != expected {
 		t.Errorf("resourceID(%q) = %q, want %q", armID, id, expected)
@@ -472,7 +479,7 @@ func TestResourceIDFormat(t *testing.T) {
 	}
 }
 
-func TestTransformSubnetToVNetConnections(t *testing.T) {
+func TestTransformVNetToSubnetConnections(t *testing.T) {
 	subnets := []Subnet{
 		{
 			ID:   "/sub/vnet1/subnets/subnet1",
@@ -482,7 +489,7 @@ func TestTransformSubnetToVNetConnections(t *testing.T) {
 		{
 			ID:   "/sub/nosubnets",
 			Name: "subnet2",
-			// No /subnets/ in ID - VNetID() returns "" - should be skipped.
+			// No /subnets/ in ID VNetID() returns "" should be skipped.
 		},
 	}
 	subnetIDMap := map[string]string{
@@ -493,19 +500,23 @@ func TestTransformSubnetToVNetConnections(t *testing.T) {
 		"/sub/vnet1": "azure::/sub/vnet1",
 	}
 
-	conns := TransformSubnetToVNetConnections(subnets, subnetIDMap, vnetIDMap)
+	conns := TransformVNetToSubnetConnections(subnets, subnetIDMap, vnetIDMap)
 
 	if len(conns) != 1 {
 		t.Fatalf("expected 1 connection (only subnet with VNet), got %d", len(conns))
 	}
 	if conns[0].Type != "contains" {
-		t.Errorf("expected type network.membership, got %q", conns[0].Type)
+		t.Errorf("expected type contains, got %q", conns[0].Type)
 	}
-	if conns[0].Source != "azure::/sub/vnet1/subnets/subnet1" {
-		t.Errorf("expected source to be subnet, got %q", conns[0].Source)
+	if conns[0].Direction != "forward" {
+		t.Errorf("expected forward direction, got %q", conns[0].Direction)
 	}
-	if conns[0].Target != "azure::/sub/vnet1" {
-		t.Errorf("expected target to be vnet, got %q", conns[0].Target)
+	// Source contains target: the VNet contains the subnet.
+	if conns[0].Source != "azure::/sub/vnet1" {
+		t.Errorf("expected source to be vnet, got %q", conns[0].Source)
+	}
+	if conns[0].Target != "azure::/sub/vnet1/subnets/subnet1" {
+		t.Errorf("expected target to be subnet, got %q", conns[0].Target)
 	}
 }
 
@@ -516,7 +527,7 @@ func TestTransformNICToSubnetConnections(t *testing.T) {
 			Name: "nic1",
 			IPConfigurations: []IPConfiguration{
 				{Subnet: &azSubnetRef{ID: "/sub/subnet1"}, PrivateIPAddress: "10.0.1.4"},
-				{Subnet: &azSubnetRef{ID: "/sub/subnet1"}, PrivateIPAddress: "10.0.1.5"}, // same subnet - should deduplicate.
+				{Subnet: &azSubnetRef{ID: "/sub/subnet1"}, PrivateIPAddress: "10.0.1.5"}, // same subnet should deduplicate.
 			},
 		},
 	}
@@ -539,7 +550,7 @@ func TestTransformNICToSubnetConnections(t *testing.T) {
 func TestTransformPrivateEndpointToSubnetConnections(t *testing.T) {
 	pes := []PrivateEndpoint{
 		{ID: "/sub/pe1", Name: "pe1", Subnet: &azSubnetRef{ID: "/sub/subnet1"}},
-		{ID: "/sub/pe2", Name: "pe2"}, // no subnet - skipped.
+		{ID: "/sub/pe2", Name: "pe2"}, // no subnet skipped.
 	}
 	subnetIDMap := map[string]string{"/sub/subnet1": "azure::/sub/subnet1"}
 
@@ -605,6 +616,30 @@ func TestTransformPrivateDNSToVNetConnections(t *testing.T) {
 	if stubs[0].Properties["cross_subscription"] != true {
 		t.Errorf("expected cross_subscription=true on stub")
 	}
+	// The owner is never repeated in properties (this placeholder ID
+	// has no subscription segment, so provider.account is right empty).
+	if _, dup := stubs[0].Properties["subscription_id"]; dup {
+		t.Errorf("stub properties %v repeat the owner", stubs[0].Properties)
+	}
+}
+
+// TestPeeringStubOwner: a remote VNet in another subscription becomes a
+// stub whose owner is in provider.account (canonical lower case), not
+// in a duplicated property.
+func TestPeeringStubOwner(t *testing.T) {
+	local := "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/RG-LAB/providers/Microsoft.Network/virtualNetworks/LAB-VNET01"
+	remote := "/subscriptions/ABCDEF01-0000-0000-0000-000000000002/resourceGroups/RG-LAB-DR/providers/Microsoft.Network/virtualNetworks/LAB-VNET02"
+	peerings := decode[[]VNetPeering](t, `[{"id":"`+local+`/virtualNetworkPeerings/LAB-P1","name":"LAB-P1","peeringState":"Connected","remoteVirtualNetwork":{"id":"`+remote+`"}}]`)
+	_, stubs := TransformVNetPeerings(peerings, idMapOf(local))
+	if len(stubs) != 1 {
+		t.Fatalf("expected 1 stub, got %d", len(stubs))
+	}
+	if stubs[0].Provider.Account != "abcdef01-0000-0000-0000-000000000002" {
+		t.Errorf("stub account = %q", stubs[0].Provider.Account)
+	}
+	if _, dup := stubs[0].Properties["subscription_id"]; dup {
+		t.Errorf("stub repeats the owner in properties: %v", stubs[0].Properties)
+	}
 }
 
 func TestExtractLastSegment(t *testing.T) {
@@ -640,7 +675,7 @@ func TestWireResourcesToResourceGroups(t *testing.T) {
 	}
 	resources := TransformVNets(vnets, nil, testSub)
 
-	WireResourcesToResourceGroups(resources, nameToID, groups)
+	WireResourcesToResourceGroups(resources, "11111111-1111-1111-1111-111111111111", nameToID, groups)
 
 	if len(groups[0].Members) != 1 {
 		t.Fatalf("expected 1 member in rg1 group, got %d", len(groups[0].Members))
@@ -702,8 +737,8 @@ func TestTransformAppServicePlans(t *testing.T) {
 	if r.Properties["zone_redundant"] != true {
 		t.Errorf("expected zone_redundant=true, got %v", r.Properties["zone_redundant"])
 	}
-	if idMap[plans[0].ID] != r.ID {
-		t.Errorf("idMap mismatch: got %q, want %q", idMap[plans[0].ID], r.ID)
+	if idMap[armKey(plans[0].ID)] != r.ID {
+		t.Errorf("idMap mismatch: got %q, want %q", idMap[armKey(plans[0].ID)], r.ID)
 	}
 }
 
@@ -753,8 +788,8 @@ func TestTransformWebApps(t *testing.T) {
 	if resources[0].Status != "active" {
 		t.Errorf("expected first site status active, got %q", resources[0].Status)
 	}
-	if ips, _ := resources[0].Properties["outbound_ips"].([]string); len(ips) != 3 {
-		t.Errorf("expected 3 outbound ips, got %v", resources[0].Properties["outbound_ips"])
+	if ips, _ := resources[0].Properties["public_ip"].([]string); len(ips) != 3 {
+		t.Errorf("expected 3 outbound ips, got %v", resources[0].Properties["public_ip"])
 	}
 	ext, _ := resources[0].Extensions[extensionNamespace].(map[string]any)
 	if ext == nil {
@@ -801,8 +836,8 @@ func TestTransformApplicationSecurityGroups(t *testing.T) {
 	if r.Provider.Type != "Microsoft.Network/applicationSecurityGroups" {
 		t.Errorf("expected provider type Microsoft.Network/applicationSecurityGroups, got %q", r.Provider.Type)
 	}
-	if idMap[asgs[0].ID] != r.ID {
-		t.Errorf("idMap mismatch: got %q, want %q", idMap[asgs[0].ID], r.ID)
+	if idMap[armKey(asgs[0].ID)] != r.ID {
+		t.Errorf("idMap mismatch: got %q, want %q", idMap[armKey(asgs[0].ID)], r.ID)
 	}
 }
 
@@ -855,40 +890,6 @@ func TestTransformWebAppToSubnetConnections(t *testing.T) {
 	}
 }
 
-func TestTransformPEToWebAppConnections(t *testing.T) {
-	apps := []WebApp{
-		{
-			ID:   "/sub/site1",
-			Name: "site1",
-			PrivateEndpointConnections: []azPrivateEndpointConnRef{
-				{Properties: struct {
-					PrivateEndpoint struct {
-						ID string `json:"id"`
-					} `json:"privateEndpoint"`
-				}{PrivateEndpoint: struct {
-					ID string `json:"id"`
-				}{ID: "/sub/pe1"}}},
-			},
-		},
-	}
-	webAppIDMap := map[string]string{"/sub/site1": "azure::/sub/site1"}
-	peIDMap := map[string]string{"/sub/pe1": "azure::/sub/pe1"}
-
-	conns := TransformPEToWebAppConnections(apps, webAppIDMap, peIDMap)
-	if len(conns) != 1 {
-		t.Fatalf("expected 1 connection, got %d", len(conns))
-	}
-	if conns[0].Source != "azure::/sub/pe1" {
-		t.Errorf("expected source PE, got %q", conns[0].Source)
-	}
-	if conns[0].Target != "azure::/sub/site1" {
-		t.Errorf("expected target site, got %q", conns[0].Target)
-	}
-	if conns[0].Type != "dependency" {
-		t.Errorf("expected PE->WebApp type 'dependency' per specification chapter 5.2.3, got %q", conns[0].Type)
-	}
-}
-
 func TestTransformNICToASGConnections(t *testing.T) {
 	nics := []NetworkInterface{
 		{
@@ -911,8 +912,8 @@ func TestTransformNICToASGConnections(t *testing.T) {
 	if len(conns) != 1 {
 		t.Fatalf("expected 1 deduplicated connection, got %d", len(conns))
 	}
-	if conns[0].Type != "network" {
-		t.Errorf("expected type network, got %q", conns[0].Type)
+	if conns[0].Type != connASGAssociation {
+		t.Errorf("expected type %s, got %q", connASGAssociation, conns[0].Type)
 	}
 }
 
@@ -924,7 +925,8 @@ func TestMapAppServicePlanStatus(t *testing.T) {
 		{"Ready", "active"},
 		{"Pending", "degraded"},
 		{"Creating", "degraded"},
-		{"", "unknown"},
+		{"", ""},
+		{"Mystery", "unknown"},
 	}
 	for _, tt := range tests {
 		if got := mapAppServicePlanStatus(tt.in); got != tt.want {
@@ -1039,7 +1041,7 @@ func TestTransformStorageAccounts(t *testing.T) {
 	if acls, ok := ext["network_acls"].(map[string]any); !ok || acls["default_action"] != "Deny" {
 		t.Errorf("expected network_acls.default_action Deny, got %v", ext["network_acls"])
 	}
-	if idMap[accts[0].ID] != r.ID {
+	if idMap[armKey(accts[0].ID)] != r.ID {
 		t.Errorf("idMap mismatch")
 	}
 }
@@ -1107,6 +1109,11 @@ func TestTransformKeyVaults(t *testing.T) {
 	if ext == nil || ext["tenant_id"] == "" {
 		t.Errorf("expected tenant_id extension")
 	}
+	// network_acls is emitted once, in properties; no equivalent
+	// extensions copy.
+	if _, dup := ext["network_acls"]; dup {
+		t.Error("network_acls must not be duplicated in extensions")
+	}
 }
 
 func TestTransformContainerRegistries(t *testing.T) {
@@ -1169,7 +1176,7 @@ func TestTransformManagedIdentities(t *testing.T) {
 	if r.Properties["client_id"] != "00000000-0000-0000-0000-000000000002" {
 		t.Errorf("expected client_id in properties, got %v", r.Properties["client_id"])
 	}
-	if idMap[ids[0].ID] != r.ID {
+	if idMap[armKey(ids[0].ID)] != r.ID {
 		t.Errorf("idMap mismatch")
 	}
 }
@@ -1251,7 +1258,7 @@ func TestTransformSnapshots(t *testing.T) {
 	}
 }
 
-func TestTransformSnapshotToDiskConnections(t *testing.T) {
+func TestTransformDiskToSnapshotConnections(t *testing.T) {
 	snaps := []Snapshot{
 		{
 			ID:           "/sub/snap1",
@@ -1265,66 +1272,39 @@ func TestTransformSnapshotToDiskConnections(t *testing.T) {
 	snapshotIDMap := map[string]string{"/sub/snap1": "azure::/sub/snap1", "/sub/snap2": "azure::/sub/snap2"}
 	diskIDMap := map[string]string{"/sub/disk1": "azure::/sub/disk1"}
 
-	conns := TransformSnapshotToDiskConnections(snaps, snapshotIDMap, diskIDMap)
+	conns := TransformDiskToSnapshotConnections(snaps, snapshotIDMap, diskIDMap)
 	if len(conns) != 1 {
 		t.Fatalf("expected 1 connection, got %d", len(conns))
 	}
-	if conns[0].Type != "contains" {
-		t.Errorf("expected contains, got %q", conns[0].Type)
-	}
-	if conns[0].Direction != "reverse" {
-		t.Errorf("expected reverse direction, got %q", conns[0].Direction)
+	c := conns[0]
+	if c.Type != connDataflow || c.Direction != "forward" || c.Source != "azure::/sub/disk1" || c.Target != "azure::/sub/snap1" {
+		t.Errorf("want dataflow disk1 -> snap1 forward, got %s %s -> %s (%s)", c.Type, c.Source, c.Target, c.Direction)
 	}
 }
 
-func TestTransformDiskToVMConnections(t *testing.T) {
-	disks := []Disk{
-		{ID: "/sub/disk1", Name: "disk1", ManagedBy: "/sub/vm1"},
-		{ID: "/sub/disk2", Name: "disk2"}, // unattached -> skipped.
+// TestStatusMappersUseSchemaEnum checks that every status mapper
+// returns a value of the schema status enum, and nothing when Azure
+// reports no state.
+func TestStatusMappersUseSchemaEnum(t *testing.T) {
+	enum := map[string]bool{"": true, "active": true, "inactive": true, "degraded": true, "retired": true, "unknown": true}
+	mappers := map[string]func(string) string{
+		"provisioning": mapProvisioningState, "sqlserver": mapSQLServerState, "sqldb": mapSQLDatabaseStatus,
+		"flexserver": mapFlexServerState, "sqlmi": mapSQLMIState, "streamanalytics": mapStreamAnalyticsState,
+		"logic": mapLogicWorkflowState, "automation": mapAutomationState, "arc": mapArcMachineStatus,
+		"peering": mapPeeringState, "plan": mapAppServicePlanStatus, "privatelink": privateLinkStatus,
+		"vmpower": mapVMPowerState,
 	}
-	diskIDMap := map[string]string{"/sub/disk1": "azure::/sub/disk1", "/sub/disk2": "azure::/sub/disk2"}
-	vmIDMap := map[string]string{"/sub/vm1": "azure::/sub/vm1"}
-
-	conns := TransformDiskToVMConnections(disks, diskIDMap, vmIDMap)
-	if len(conns) != 1 {
-		t.Fatalf("expected 1 connection, got %d", len(conns))
-	}
-	if conns[0].Type != "contains" {
-		t.Errorf("expected contains, got %q", conns[0].Type)
-	}
-	if conns[0].Direction != "reverse" {
-		t.Errorf("expected reverse direction, got %q", conns[0].Direction)
-	}
-}
-
-func TestTransformPEToStorageConnections(t *testing.T) {
-	accts := []StorageAccount{
-		{
-			ID:   "/sub/stg1",
-			Name: "stg1",
-			PrivateEndpointConnections: []azPrivateEndpointConnRef{
-				{Properties: struct {
-					PrivateEndpoint struct {
-						ID string `json:"id"`
-					} `json:"privateEndpoint"`
-				}{PrivateEndpoint: struct {
-					ID string `json:"id"`
-				}{ID: "/sub/pe1"}}},
-			},
-		},
-	}
-	storageIDMap := map[string]string{"/sub/stg1": "azure::/sub/stg1"}
-	peIDMap := map[string]string{"/sub/pe1": "azure::/sub/pe1"}
-
-	conns := TransformPEToStorageConnections(accts, storageIDMap, peIDMap)
-	if len(conns) != 1 {
-		t.Fatalf("expected 1 connection, got %d", len(conns))
-	}
-	if conns[0].Source != "azure::/sub/pe1" || conns[0].Target != "azure::/sub/stg1" {
-		t.Errorf("unexpected source/target: %q -> %q", conns[0].Source, conns[0].Target)
-	}
-	if conns[0].Type != "dependency.storage" {
-		t.Errorf("expected PE->Storage type 'dependency.storage' per OSIRIS JSON spec section 5.2.3, got %q", conns[0].Type)
+	inputs := []string{"", "PowerState/running", "PowerState/deallocated", "PowerState/starting", "Succeeded", "Ready", "Online", "Paused", "Scaling", "Starting", "Stopped",
+		"Deleted", "Completed", "Suspended", "Connected", "Disconnected", "Mystery", "Enabled", "Disabled"}
+	for name, m := range mappers {
+		for _, in := range inputs {
+			if got := m(in); !enum[got] {
+				t.Errorf("%s(%q) = %q, not a schema status value", name, in, got)
+			}
+		}
+		if got := m(""); got != "" {
+			t.Errorf("%s(\"\") = %q, want status omitted", name, got)
+		}
 	}
 }
 
@@ -1333,7 +1313,7 @@ func TestMapProvisioningState(t *testing.T) {
 		in, want string
 	}{
 		{"Succeeded", "active"},
-		{"", "active"},
+		{"", ""},
 		{"Updating", "degraded"},
 		{"Failed", "inactive"},
 		{"Mystery", "unknown"},
@@ -1427,10 +1407,11 @@ func TestTransformApplicationInsights(t *testing.T) {
 			}
 		}
 	}
-	// Classic App Insights (no Properties): fallback status=active and no workspace extension.
+	// Classic App Insights (no Properties): no invented status and
+	// no workspace extension.
 	rc := resources[1]
-	if rc.Status != "active" {
-		t.Errorf("classic AI should default to active when properties absent, got %q", rc.Status)
+	if rc.Status != "" || rc.State != "" {
+		t.Errorf("classic AI without properties must not get a status, got %q/%q", rc.Status, rc.State)
 	}
 	if rcExt, _ := rc.Extensions[extensionNamespace].(map[string]any); rcExt != nil {
 		if _, has := rcExt["workspace_resource_id"]; has {
@@ -1498,7 +1479,7 @@ func TestTransformLogAnalyticsWorkspaces(t *testing.T) {
 			}
 		}
 	}
-	if idMap[wss[0].ID] != r.ID {
+	if idMap[armKey(wss[0].ID)] != r.ID {
 		t.Errorf("idMap mismatch")
 	}
 }
@@ -1513,7 +1494,7 @@ func TestTransformAppInsightsToWorkspaceConnections(t *testing.T) {
 			Properties: &AppInsightsProperties{WorkspaceResourceID: wsArm},
 		},
 		{
-			// Classic AI with no workspace binding - should not emit an edge.
+			// Classic AI with no workspace binding should not emit an edge.
 			ID:         "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/microsoft.insights/components/classic1",
 			Name:       "classic1",
 			Properties: nil,
@@ -1527,8 +1508,8 @@ func TestTransformAppInsightsToWorkspaceConnections(t *testing.T) {
 		t.Fatalf("expected 1 connection (classic AI should be skipped), got %d", len(conns))
 	}
 	c := conns[0]
-	if c.Type != "network" {
-		t.Errorf("expected type network, got %q", c.Type)
+	if c.Type != connDataflow {
+		t.Errorf("expected type dataflow, got %q", c.Type)
 	}
 	if c.Source != "ai-resource-id" || c.Target != "la-resource-id" {
 		t.Errorf("source/target mismatch: %+v", c)
@@ -1592,7 +1573,7 @@ func TestTransformRecoveryServicesVaults(t *testing.T) {
 	if !ok || len(peIDs) != 1 || peIDs[0] != peArm {
 		t.Errorf("expected private_endpoint_ids=[%q], got %v", peArm, ext["private_endpoint_ids"])
 	}
-	if idMap[vaults[0].ID] != r.ID {
+	if idMap[armKey(vaults[0].ID)] != r.ID {
 		t.Errorf("idMap mismatch")
 	}
 }
@@ -1641,7 +1622,7 @@ func TestTransformBackupVaults(t *testing.T) {
 	if r.Properties["backup_instance_count"] != 1 {
 		t.Errorf("expected backup_instance_count=1")
 	}
-	if idMap[vaults[0].ID] != r.ID {
+	if idMap[armKey(vaults[0].ID)] != r.ID {
 		t.Errorf("idMap mismatch")
 	}
 }
@@ -1687,8 +1668,8 @@ func TestTransformBackupProtectedItemConnections(t *testing.T) {
 	if c.Source != "vm-id" || c.Target != "rsv-id" {
 		t.Errorf("source/target mismatch: %+v", c)
 	}
-	if c.Type != "network" {
-		t.Errorf("expected type network, got %q", c.Type)
+	if c.Type != connDataflow {
+		t.Errorf("expected type dataflow, got %q", c.Type)
 	}
 }
 
@@ -1824,7 +1805,7 @@ func TestTransformSQLServers(t *testing.T) {
 			t.Errorf("SQL server properties must not contain password field %q", key)
 		}
 	}
-	if idMap[servers[0].ID] != r.ID {
+	if idMap[armKey(servers[0].ID)] != r.ID {
 		t.Errorf("idMap mismatch")
 	}
 }
@@ -1873,7 +1854,7 @@ func TestTransformSQLDatabases(t *testing.T) {
 	if r.Properties["server_name"] != "sqlsrv1" {
 		t.Errorf("expected server_name=sqlsrv1")
 	}
-	if idMap[servers[0].Databases[0].ID] != r.ID {
+	if idMap[armKey(servers[0].Databases[0].ID)] != r.ID {
 		t.Errorf("idMap mismatch")
 	}
 }
@@ -1950,7 +1931,7 @@ func TestTransformPostgreSQLServers(t *testing.T) {
 			t.Errorf("PG server properties must not contain password field %q", key)
 		}
 	}
-	if idMap[servers[0].ID] != r.ID {
+	if idMap[armKey(servers[0].ID)] != r.ID {
 		t.Errorf("idMap mismatch")
 	}
 }
@@ -2056,7 +2037,7 @@ func TestTransformCosmosAccounts(t *testing.T) {
 			t.Errorf("Cosmos properties must not contain %q", key)
 		}
 	}
-	if idMap[accts[0].ID] != r.ID {
+	if idMap[armKey(accts[0].ID)] != r.ID {
 		t.Errorf("idMap mismatch")
 	}
 }
@@ -2128,7 +2109,7 @@ func TestTransformRedisCaches(t *testing.T) {
 			t.Errorf("Redis properties must not contain %q", key)
 		}
 	}
-	if idMap[caches[0].ID] != r.ID {
+	if idMap[armKey(caches[0].ID)] != r.ID {
 		t.Errorf("idMap mismatch")
 	}
 }
@@ -2278,7 +2259,7 @@ func TestTransformAKSClusters(t *testing.T) {
 	if len(peIDs) != 1 || peIDs[0] != peArm {
 		t.Errorf("expected pe ids=[%q], got %v", peArm, peIDs)
 	}
-	if idMap[clusters[0].ID] != r.ID {
+	if idMap[armKey(clusters[0].ID)] != r.ID {
 		t.Errorf("idMap mismatch")
 	}
 }
@@ -2328,7 +2309,7 @@ func TestTransformAKSAgentPools(t *testing.T) {
 	if r.Properties["vnet_subnet_id"] != subnetArm {
 		t.Errorf("expected vnet_subnet_id=%s", subnetArm)
 	}
-	if idMap[clusters[0].AgentPools[0].ID] != r.ID {
+	if idMap[armKey(clusters[0].AgentPools[0].ID)] != r.ID {
 		t.Errorf("idMap mismatch")
 	}
 }
@@ -2371,7 +2352,7 @@ func TestTransformContainerAppEnvironments(t *testing.T) {
 	if r.Properties["zone_redundant"] != true {
 		t.Errorf("expected zone_redundant=true")
 	}
-	if idMap[envs[0].ID] != r.ID {
+	if idMap[armKey(envs[0].ID)] != r.ID {
 		t.Errorf("idMap mismatch")
 	}
 }
@@ -2756,9 +2737,13 @@ func TestTransformGatewayConnections_CrossSubscriptionPeer(t *testing.T) {
 	}
 	allIDMap := map[string]string{localGW: "gw1-rid"}
 
-	conns, stubs := TransformGatewayConnections(gwConns, allIDMap)
+	all, stubs := TransformGatewayConnections(gwConns, allIDMap)
+	conns, endpoints := splitERConnectionEndpoints(all)
 	if len(conns) != 1 {
 		t.Fatalf("expected 1 connection, got %d", len(conns))
+	}
+	if len(endpoints) != 2 {
+		t.Fatalf("expected connection -> gateway and connection -> circuit endpoint edges, got %d", len(endpoints))
 	}
 	if len(stubs) != 1 {
 		t.Fatalf("expected 1 stub for cross-sub ER circuit, got %d", len(stubs))
@@ -2766,8 +2751,8 @@ func TestTransformGatewayConnections_CrossSubscriptionPeer(t *testing.T) {
 	if stubs[0].Type != "osiris.azure.expressroute" {
 		t.Errorf("stub type = %q, want osiris.azure.expressroute", stubs[0].Type)
 	}
-	if stubs[0].Provider.Subscription != "22222222-2222-2222-2222-222222222222" {
-		t.Errorf("stub subscription = %q, want the remote sub", stubs[0].Provider.Subscription)
+	if stubs[0].Provider.Account != "22222222-2222-2222-2222-222222222222" {
+		t.Errorf("stub account = %q, want the remote sub", stubs[0].Provider.Account)
 	}
 	if stubs[0].Provider.Type != "Microsoft.Network/expressRouteCircuits" {
 		t.Errorf("stub ARM type = %q, want Microsoft.Network/expressRouteCircuits", stubs[0].Provider.Type)
@@ -2778,15 +2763,15 @@ func TestTransformGatewayConnections_CrossSubscriptionPeer(t *testing.T) {
 	if conns[0].Source != "gw1-rid" || conns[0].Target != stubs[0].ID {
 		t.Errorf("connection endpoints mismatch: source=%q target=%q stub=%q", conns[0].Source, conns[0].Target, stubs[0].ID)
 	}
-	if conns[0].Type != "network.bgp" {
-		t.Errorf("expected ExpressRoute gateway connection to use network.bgp subtype, got %q", conns[0].Type)
+	if conns[0].Type != "network" || conns[0].Direction != "bidirectional" {
+		t.Errorf("expected ExpressRoute gateway connection to be network bidirectional, got %q %q", conns[0].Type, conns[0].Direction)
 	}
 }
 
 func TestGatewayConnectionSubtype(t *testing.T) {
 	cases := map[string]string{
-		"ExpressRoute": "network.bgp",
-		"expressroute": "network.bgp",
+		"ExpressRoute": "network",
+		"expressroute": "network",
 		"IPsec":        "network.vpn",
 		"Vnet2Vnet":    "network.vpn",
 		"VPNClient":    "network.vpn",
@@ -2814,9 +2799,13 @@ func TestTransformGatewayConnections_InScopePeer(t *testing.T) {
 	}
 	allIDMap := map[string]string{localGW: "gw1-rid", localER: "er1-rid"}
 
-	conns, stubs := TransformGatewayConnections(gwConns, allIDMap)
+	all, stubs := TransformGatewayConnections(gwConns, allIDMap)
+	conns, endpoints := splitERConnectionEndpoints(all)
 	if len(conns) != 1 {
 		t.Fatalf("expected 1 connection, got %d", len(conns))
+	}
+	if len(endpoints) != 2 {
+		t.Fatalf("expected connection -> gateway and connection -> circuit endpoint edges, got %d", len(endpoints))
 	}
 	if len(stubs) != 0 {
 		t.Fatalf("expected no stubs when peer is in scope, got %d", len(stubs))
@@ -2989,7 +2978,7 @@ func TestTransformMetricAlerts(t *testing.T) {
 	if r.Properties["evaluation_frequency"] != "PT1M" {
 		t.Errorf("expected evaluation_frequency PT1M, got %v", r.Properties["evaluation_frequency"])
 	}
-	if _, ok := idMap[alerts[0].ID]; !ok {
+	if _, ok := idMap[armKey(alerts[0].ID)]; !ok {
 		t.Error("expected ID in idMap")
 	}
 }
@@ -3028,7 +3017,35 @@ func TestTransformActionGroups(t *testing.T) {
 	if r.Properties["email_receiver_count"] != 2 {
 		t.Errorf("expected email_receiver_count 2, got %v", r.Properties["email_receiver_count"])
 	}
-	if _, ok := idMap[groups[0].ID]; !ok {
+	if _, ok := idMap[armKey(groups[0].ID)]; !ok {
 		t.Error("expected ID in idMap")
+	}
+}
+
+// splitERConnectionEndpoints separates gateway <-> circuit data-path
+// edges from ExpressRoute connection -> endpoint configuration edges.
+func splitERConnectionEndpoints(all []sdk.Connection) (dataPath, endpoints []sdk.Connection) {
+	for _, c := range all {
+		if c.Type == connERConnectionEndpoint {
+			endpoints = append(endpoints, c)
+		} else {
+			dataPath = append(dataPath, c)
+		}
+	}
+	return dataPath, endpoints
+}
+
+// TestProviderAccountCanonicalCase: an ARM ID may spell the
+// subscription GUID in upper case; provider.account is the same
+// subscription in the canonical lower-case form, so it equals
+// metadata.scope.accounts, and the exported tenant applies.
+func TestProviderAccountCanonicalCase(t *testing.T) {
+	arm := "/subscriptions/A1B2C3D4-E5F6-7890-ABCD-EF1234567890/resourceGroups/rg1/providers/microsoft.insights/actionGroups/ag1"
+	p := azureProvider(arm, "microsoft.insights/actionGroups", "global", testSub)
+	if p.Account != "a1b2c3d4-e5f6-7890-abcd-ef1234567890" || p.Tenant != testSub.TenantID {
+		t.Errorf("provider = account %q tenant %q, want lower-case exported subscription and its tenant", p.Account, p.Tenant)
+	}
+	if p.NativeID != arm {
+		t.Errorf("native_id must keep the ARM ID as returned, got %q", p.NativeID)
 	}
 }
