@@ -41,13 +41,14 @@ import (
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
-// TransformVNets converts Azure VirtualNetworks into OSIRIS JSON resources.
+// TransformVNets converts Azure VirtualNetworks into OSIRIS JSON
+// resources.
 // Peerings are passed in to embed peering summary in VNet properties.
 func TransformVNets(vnets []VirtualNetwork, peerings []VNetPeering, sub SubscriptionInfo) []sdk.Resource {
 	// Build peering lookup: VNet ARM ID -> peerings for that VNet.
 	peeringsByVNet := make(map[string][]VNetPeering)
 	for _, p := range peerings {
-		peeringsByVNet[p.VNetID()] = append(peeringsByVNet[p.VNetID()], p)
+		peeringsByVNet[armKey(p.VNetID())] = append(peeringsByVNet[armKey(p.VNetID())], p)
 	}
 	var resources []sdk.Resource
 	for _, v := range vnets {
@@ -76,7 +77,7 @@ func TransformVNets(vnets []VirtualNetwork, peerings []VNetPeering, sub Subscrip
 		if v.EnableDdosProtection {
 			props["enable_ddos_protection"] = true
 		}
-		if vnetPeerings := peeringsByVNet[v.ID]; len(vnetPeerings) > 0 {
+		if vnetPeerings := peeringsByVNet[armKey(v.ID)]; len(vnetPeerings) > 0 {
 			peerList := make([]map[string]any, 0, len(vnetPeerings))
 			for _, p := range vnetPeerings {
 				entry := map[string]any{
@@ -110,8 +111,9 @@ func TransformVNets(vnets []VirtualNetwork, peerings []VNetPeering, sub Subscrip
 }
 
 // TransformSubnets converts Azure Subnets into OSIRIS JSON resources.
-// VNets are passed in to inherit the parent VNet's region for each subnet.
-// Returns resources and a map of subnet ARM ID -> resource ID for wiring connections.
+// VNets are passed in to inherit the parent VNet's region for each
+// subnet. Returns resources and a map of subnet ARM ID -> resource ID
+// for wiring connections.
 func TransformSubnets(subnets []Subnet, vnets []VirtualNetwork, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	vnetLocation := make(map[string]string, len(vnets))
 	for _, v := range vnets {
@@ -123,7 +125,7 @@ func TransformSubnets(subnets []Subnet, vnets []VirtualNetwork, sub Subscription
 
 	for _, s := range subnets {
 		id := resourceID("network.subnet", s.ID)
-		idMap[s.ID] = id
+		idMap[armKey(s.ID)] = id
 
 		loc := vnetLocation[strings.ToLower(s.VNetID())]
 		prov := azureProvider(s.ID, "Microsoft.Network/virtualNetworks/subnets", loc, sub)
@@ -183,7 +185,8 @@ func TransformSubnets(subnets []Subnet, vnets []VirtualNetwork, sub Subscription
 	return resources, idMap
 }
 
-// TransformNICs converts Azure NetworkInterfaces into OSIRIS JSON resources.
+// TransformNICs converts Azure NetworkInterfaces into OSIRIS JSON
+// resources.
 // Returns resources and a map of NIC ARM ID -> resource ID.
 func TransformNICs(nics []NetworkInterface, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
@@ -191,7 +194,7 @@ func TransformNICs(nics []NetworkInterface, sub SubscriptionInfo) ([]sdk.Resourc
 
 	for _, n := range nics {
 		id := resourceID("network.interface", n.ID)
-		idMap[n.ID] = id
+		idMap[armKey(n.ID)] = id
 
 		prov := azureProvider(n.ID, "Microsoft.Network/networkInterfaces", n.Location, sub)
 
@@ -275,7 +278,8 @@ func TransformNICs(nics []NetworkInterface, sub SubscriptionInfo) ([]sdk.Resourc
 	return resources, idMap
 }
 
-// TransformNSGs converts Azure NetworkSecurityGroups into OSIRIS JSON resources.
+// TransformNSGs converts Azure NetworkSecurityGroups into OSIRIS JSON
+// resources.
 // Returns resources and a map of NSG ARM ID -> resource ID.
 func TransformNSGs(nsgs []NetworkSecurityGroup, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
@@ -283,7 +287,7 @@ func TransformNSGs(nsgs []NetworkSecurityGroup, sub SubscriptionInfo) ([]sdk.Res
 
 	for _, n := range nsgs {
 		id := resourceID("network.security.group", n.ID)
-		idMap[n.ID] = id
+		idMap[armKey(n.ID)] = id
 
 		prov := azureProvider(n.ID, "Microsoft.Network/networkSecurityGroups", n.Location, sub)
 
@@ -311,7 +315,8 @@ func TransformNSGs(nsgs []NetworkSecurityGroup, sub SubscriptionInfo) ([]sdk.Res
 		}
 		r.Properties = props
 
-		// Extensions: default rules (platform-managed; kept separate from custom rules).
+		// Extensions: default rules (platform-managed; kept separate
+		// from custom rules).
 		if len(n.DefaultSecurityRules) > 0 {
 			r.Extensions = map[string]any{extensionNamespace: map[string]any{
 				"default_security_rules": transformNSGRules(n.DefaultSecurityRules),
@@ -323,7 +328,8 @@ func TransformNSGs(nsgs []NetworkSecurityGroup, sub SubscriptionInfo) ([]sdk.Res
 	return resources, idMap
 }
 
-// TransformRouteTables converts Azure RouteTables into OSIRIS JSON resources.
+// TransformRouteTables converts Azure RouteTables into OSIRIS JSON
+// resources.
 // Returns resources and a map of route table ARM ID -> resource ID.
 func TransformRouteTables(tables []RouteTable, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
@@ -331,7 +337,7 @@ func TransformRouteTables(tables []RouteTable, sub SubscriptionInfo) ([]sdk.Reso
 
 	for _, t := range tables {
 		id := resourceID("osiris.azure.routetable", t.ID)
-		idMap[t.ID] = id
+		idMap[armKey(t.ID)] = id
 
 		prov := azureProvider(t.ID, "Microsoft.Network/routeTables", t.Location, sub)
 
@@ -382,7 +388,8 @@ func TransformRouteTables(tables []RouteTable, sub SubscriptionInfo) ([]sdk.Reso
 	return resources, idMap
 }
 
-// TransformPublicIPs converts Azure PublicIPAddresses into OSIRIS JSON resources.
+// TransformPublicIPs converts Azure PublicIPAddresses into OSIRIS JSON
+// resources.
 func TransformPublicIPs(ips []PublicIPAddress, sub SubscriptionInfo) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, p := range ips {
@@ -421,7 +428,8 @@ func TransformPublicIPs(ips []PublicIPAddress, sub SubscriptionInfo) []sdk.Resou
 	return resources
 }
 
-// TransformLoadBalancers converts Azure LoadBalancers into OSIRIS JSON resources.
+// TransformLoadBalancers converts Azure LoadBalancers into OSIRIS JSON
+// resources.
 func TransformLoadBalancers(lbs []LoadBalancer, sub SubscriptionInfo) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, lb := range lbs {
@@ -587,7 +595,7 @@ func TransformVNetGateways(gws []VNetGateway, gwConns []GatewayConnection, sub S
 	connsByGW := make(map[string][]GatewayConnection)
 	for _, gc := range gwConns {
 		if gwID := gc.VirtualNetworkGateway1ID(); gwID != "" {
-			connsByGW[gwID] = append(connsByGW[gwID], gc)
+			connsByGW[armKey(gwID)] = append(connsByGW[armKey(gwID)], gc)
 		}
 	}
 
@@ -621,7 +629,10 @@ func TransformVNetGateways(gws []VNetGateway, gwConns []GatewayConnection, sub S
 		if gw.ActiveActive {
 			props["active_active"] = true
 		}
-		if conns := connsByGW[gw.ID]; len(conns) > 0 {
+		// Transit settings are configuration either way false is stated.
+		props["allow_remote_vnet_traffic"] = gw.AllowRemoteVnetTraffic
+		props["allow_virtual_wan_traffic"] = gw.AllowVirtualWanTraffic
+		if conns := connsByGW[armKey(gw.ID)]; len(conns) > 0 {
 			connList := make([]map[string]any, 0, len(conns))
 			for _, gc := range conns {
 				entry := map[string]any{
@@ -694,8 +705,9 @@ func TransformFirewalls(fws []AzureFirewall, sub SubscriptionInfo) []sdk.Resourc
 	return resources
 }
 
-// TransformAppGateways converts Azure ApplicationGateways into OSIRIS JSON resources.
-// Application Gateway is an L7 reverse proxy / WAF, not a load balancer; it gets its own type.
+// TransformAppGateways converts Azure ApplicationGateways into
+// OSIRIS JSON resources. Application Gateway is an L7 reverse proxy/WAF
+// not a load balancer; it gets its own type.
 func TransformAppGateways(gws []ApplicationGateway, sub SubscriptionInfo) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, gw := range gws {
@@ -760,7 +772,8 @@ func TransformDNSZones(zones []DNSZone, sub SubscriptionInfo) []sdk.Resource {
 	return resources
 }
 
-// TransformPrivateDNSZones converts Azure private DNS zones into OSIRIS JSON resources.
+// TransformPrivateDNSZones converts Azure private DNS zones into
+// OSIRIS JSON resources.
 func TransformPrivateDNSZones(zones []PrivateDNSZone, sub SubscriptionInfo) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, z := range zones {
@@ -801,7 +814,8 @@ func TransformPrivateDNSZones(zones []PrivateDNSZone, sub SubscriptionInfo) []sd
 	return resources
 }
 
-// TransformExpressRouteCircuits converts Azure ExpressRoute circuits into OSIRIS JSON resources.
+// TransformExpressRouteCircuits converts Azure ExpressRoute circuits
+// into OSIRIS JSON resources.
 func TransformExpressRouteCircuits(circuits []ExpressRouteCircuit, sub SubscriptionInfo) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, c := range circuits {
@@ -846,9 +860,6 @@ func TransformExpressRouteCircuits(circuits []ExpressRouteCircuit, sub Subscript
 		}
 		if c.SKU.Family != "" {
 			ext["sku_family"] = c.SKU.Family
-		}
-		if c.ServiceKey != "" {
-			ext["service_key"] = c.ServiceKey
 		}
 		if c.AllowGlobalReach {
 			ext["allow_global_reach"] = true
@@ -910,15 +921,16 @@ func TransformExpressRouteCircuits(circuits []ExpressRouteCircuit, sub Subscript
 	return resources
 }
 
-// TransformApplicationSecurityGroups converts Azure ApplicationSecurityGroups into OSIRIS JSON resources.
-// Returns resources and a map of ASG ARM ID -> resource ID for NIC -> ASG connection wiring.
+// TransformApplicationSecurityGroups converts Azure ApplicationSecurityGroups
+// into OSIRIS JSON resources. Returns resources and a map of
+// ASG ARM ID -> resource ID for NIC -> ASG connection wiring.
 func TransformApplicationSecurityGroups(asgs []ApplicationSecurityGroup, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(asgs))
 
 	for _, a := range asgs {
 		id := resourceID("osiris.azure.asg", a.ID)
-		idMap[a.ID] = id
+		idMap[armKey(a.ID)] = id
 
 		prov := azureProvider(a.ID, "Microsoft.Network/applicationSecurityGroups", a.Location, sub)
 
@@ -939,34 +951,35 @@ func TransformApplicationSecurityGroups(asgs []ApplicationSecurityGroup, sub Sub
 	return resources, idMap
 }
 
-// TransformVNetPeerings converts Azure VNet peerings into OSIRIS JSON connections.
-// Requires a map of VNet ARM ID -> OSIRIS JSON resource ID to wire source/target.
-// Returns connections and stub resources for remote VNets in other subscriptions.
+// TransformVNetPeerings converts Azure VNet peerings into OSIRIS JSON
+// connections. Requires a map of VNet ARM ID -> OSIRIS JSON resource
+// ID to wire source/target. Returns connections and stub resources
+// for remote VNets in other subscriptions.
 func TransformVNetPeerings(peerings []VNetPeering, vnetIDMap map[string]string) ([]sdk.Connection, []sdk.Resource) {
 	var connections []sdk.Connection
 	var stubs []sdk.Resource
 	seen := map[string]bool{}
 	stubSeen := map[string]bool{}
 	for _, p := range peerings {
-		sourceID, ok := vnetIDMap[p.VNetID()]
+		sourceID, ok := armLookup(vnetIDMap, p.VNetID())
 		if !ok {
 			continue
 		}
 
-		// The remote VNet may be in a different subscription (not in our ID map).
-		// Create a stub resource for it so peering connections can reference it.
-		targetID, ok := vnetIDMap[p.RemoteVNetID()]
+		// The remote VNet may be in a different subscription
+		// (not in our ID map). Create a stub resource for it so peering
+		// connections can reference it.
+		targetID, ok := armLookup(vnetIDMap, p.RemoteVNetID())
 		if !ok {
 			targetID = resourceID("network.vpc", p.RemoteVNetID())
 			if !stubSeen[targetID] {
 				stubSeen[targetID] = true
 				remoteSubID := extractSubscriptionID(p.RemoteVNetID())
 				prov := sdk.Provider{
-					Name:         providerName,
-					NativeID:     p.RemoteVNetID(),
-					Type:         "Microsoft.Network/virtualNetworks",
-					Subscription: remoteSubID,
-					Account:      remoteSubID,
+					Name:     providerName,
+					NativeID: p.RemoteVNetID(),
+					Type:     "Microsoft.Network/virtualNetworks",
+					Account:  canonicalSubscriptionID(remoteSubID),
 				}
 				stub, err := sdk.NewResource(targetID, "network.vpc", prov)
 				if err == nil {
@@ -974,7 +987,6 @@ func TransformVNetPeerings(peerings []VNetPeering, vnetIDMap map[string]string) 
 					stub.Status = "unknown"
 					stub.Properties = map[string]any{
 						"cross_subscription": true,
-						"subscription_id":    remoteSubID,
 					}
 					stubs = append(stubs, stub)
 				}
@@ -1017,66 +1029,114 @@ func TransformVNetPeerings(peerings []VNetPeering, vnetIDMap map[string]string) 
 	return connections, stubs
 }
 
-// TransformSubnetNSGConnections creates connections between subnets and their associated NSGs.
+// TransformSubnetNSGConnections links each subnet to the network
+// security group applied to it (Subnet -> NSG, type "osiris.azure.nsg.association").
+// An NSG attachment is a policy association rather than network
+// reachability, so the namespaced association type of OSIRIS JSON
+// spec chapter 5 section 5.2.4 is used instead of "network".
+//
+// Evidence: subnet networkSecurityGroup.id.
 func TransformSubnetNSGConnections(subnets []Subnet, subnetIDMap, nsgIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, s := range subnets {
-		if s.NSGId() == "" {
-			continue
-		}
-		sourceID, ok := subnetIDMap[s.ID]
+		sourceID, ok := armLookup(subnetIDMap, s.ID)
 		if !ok {
 			continue
 		}
-		targetID, ok := nsgIDMap[s.NSGId()]
+		targetID, ok := armLookup(nsgIDMap, s.NSGId())
 		if !ok {
 			continue
 		}
-
-		canonicalKey := sdk.ConnectionCanonicalKey(sdk.ConnectionIDInput{
-			Type:      "network",
-			Direction: "forward",
-			Source:    sourceID,
-			Target:    targetID,
-		})
-		connID := sdk.BuildConnectionID(canonicalKey, 16)
-
-		conn, err := sdk.NewConnection(connID, "network", sourceID, targetID)
-		if err != nil {
-			continue
+		if conn, ok := newEdge(connNSGAssociation, sourceID, targetID, fmt.Sprintf("%s -> %s", s.Name, extractLastSegment(s.NSGId()))); ok {
+			connections = append(connections, conn)
 		}
-		conn.Name = fmt.Sprintf("%s -> NSG", s.Name)
-		_ = conn.SetDirection("forward")
-		connections = append(connections, conn)
 	}
 	return connections
 }
 
-// TransformSubnetRouteTableConnections creates connections between subnets and their route tables.
+// TransformNICToNSGConnections links each network interface to the
+// network security group applied directly to it (NIC -> NSG, type
+// "osiris.azure.nsg.association"), the NIC-level counterpart of
+// [TransformSubnetNSGConnections].
+//
+// Evidence: NIC networkSecurityGroup.id.
+func TransformNICToNSGConnections(nics []NetworkInterface, nicIDMap, nsgIDMap map[string]string) []sdk.Connection {
+	var connections []sdk.Connection
+	for _, n := range nics {
+		sourceID, ok := armLookup(nicIDMap, n.ID)
+		if !ok {
+			continue
+		}
+		targetID, ok := armLookup(nsgIDMap, n.NSGId())
+		if !ok {
+			continue
+		}
+		if conn, ok := newEdge(connNSGAssociation, sourceID, targetID, fmt.Sprintf("%s -> %s", n.Name, extractLastSegment(n.NSGId()))); ok {
+			connections = append(connections, conn)
+		}
+	}
+	return connections
+}
+
+// TransformNICToPublicIPConnections links each network interface to the
+// public IP addresses bound to its IP configurations (NIC -> Public IP,
+// type "network", forward). properties.ip_configuration names the IP
+// configuration carrying the binding.
+//
+// Evidence: NIC ipConfigurations[].publicIpAddress.id.
+func TransformNICToPublicIPConnections(nics []NetworkInterface, nicIDMap, publicIPIDMap map[string]string) []sdk.Connection {
+	var connections []sdk.Connection
+	seen := map[string]bool{}
+	for _, n := range nics {
+		sourceID, ok := armLookup(nicIDMap, n.ID)
+		if !ok {
+			continue
+		}
+		for _, ip := range n.IPConfigurations {
+			targetID, ok := armLookup(publicIPIDMap, ip.PublicIPAddressID())
+			if !ok {
+				continue
+			}
+			conn, ok := newEdge(connNetwork, sourceID, targetID, fmt.Sprintf("%s -> %s", n.Name, extractLastSegment(ip.PublicIPAddressID())))
+			if !ok || seen[conn.ID] {
+				continue
+			}
+			seen[conn.ID] = true
+			if ip.Name != "" {
+				conn.Properties = map[string]any{"ip_configuration": ip.Name}
+			}
+			connections = append(connections, conn)
+		}
+	}
+	return connections
+}
+
+// TransformSubnetRouteTableConnections associates each subnet with the
+// route table applied to it (osiris.azure.routetable.association).
 func TransformSubnetRouteTableConnections(subnets []Subnet, subnetIDMap, rtIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, s := range subnets {
 		if s.RouteTableId() == "" {
 			continue
 		}
-		sourceID, ok := subnetIDMap[s.ID]
+		sourceID, ok := armLookup(subnetIDMap, s.ID)
 		if !ok {
 			continue
 		}
-		targetID, ok := rtIDMap[s.RouteTableId()]
+		targetID, ok := armLookup(rtIDMap, s.RouteTableId())
 		if !ok {
 			continue
 		}
 
 		canonicalKey := sdk.ConnectionCanonicalKey(sdk.ConnectionIDInput{
-			Type:      "network",
+			Type:      connRouteTableAssociation,
 			Direction: "forward",
 			Source:    sourceID,
 			Target:    targetID,
 		})
 		connID := sdk.BuildConnectionID(canonicalKey, 16)
 
-		conn, err := sdk.NewConnection(connID, "network", sourceID, targetID)
+		conn, err := sdk.NewConnection(connID, connRouteTableAssociation, sourceID, targetID)
 		if err != nil {
 			continue
 		}
@@ -1087,19 +1147,21 @@ func TransformSubnetRouteTableConnections(subnets []Subnet, subnetIDMap, rtIDMap
 	return connections
 }
 
-// TransformGatewayConnections converts Azure gateway connections into OSIRIS JSON connections.
-// A gateway connection's peer (ExpressRoute circuit, remote gateway) often lives in a
-// different subscription - typically a central connectivity/hub subscription. For those out-of-scope
-// peers we emit a stub resource (mirroring the VNet peering pattern) so the topology edge
-// is preserved without violating the document-builder invariant that every connection
-// endpoint references an existing resource.
+// TransformGatewayConnections converts Azure gateway connections into
+// OSIRIS JSON connections.
+// A gateway connection's peer (ExpressRoute circuit, remote gateway)
+// often lives in a different subscription typically a central
+// connectivity/hub subscription. For those out-of-scope peers we emit
+// a stub resource (mirroring the VNet peering pattern) so the topology
+// edge is preserved without violating the document-builder invariant
+// that every connection endpoint references an existing resource.
 func TransformGatewayConnections(gwConns []GatewayConnection, allResourceIDs map[string]string) ([]sdk.Connection, []sdk.Resource) {
 	var connections []sdk.Connection
 	var stubs []sdk.Resource
 	stubSeen := map[string]bool{}
 	for _, gc := range gwConns {
 		gw1ARM := gc.VirtualNetworkGateway1ID()
-		sourceID, ok := allResourceIDs[gw1ARM]
+		sourceID, ok := armLookup(allResourceIDs, gw1ARM)
 		if !ok {
 			continue
 		}
@@ -1108,7 +1170,7 @@ func TransformGatewayConnections(gwConns []GatewayConnection, allResourceIDs map
 		if peerARM == "" {
 			continue
 		}
-		targetID, ok := allResourceIDs[peerARM]
+		targetID, ok := armLookup(allResourceIDs, peerARM)
 		if !ok {
 			osirisType := gatewayPeerOsirisType(peerARM)
 			if osirisType == "" {
@@ -1118,11 +1180,11 @@ func TransformGatewayConnections(gwConns []GatewayConnection, allResourceIDs map
 			if !stubSeen[targetID] {
 				stubSeen[targetID] = true
 				prov := sdk.Provider{
-					Name:         providerName,
-					NativeID:     peerARM,
-					Type:         gatewayPeerARMType(peerARM),
-					Subscription: extractSubscriptionID(peerARM),
-					Source:       "azure-cli",
+					Name:     providerName,
+					NativeID: peerARM,
+					Type:     gatewayPeerARMType(peerARM),
+					Account:  canonicalSubscriptionID(extractSubscriptionID(peerARM)),
+					Source:   "azure-cli",
 				}
 				stub, err := sdk.NewResource(targetID, osirisType, prov)
 				if err == nil {
@@ -1150,67 +1212,82 @@ func TransformGatewayConnections(gwConns []GatewayConnection, allResourceIDs map
 		conn.Status = mapProvisioningState(gc.ProvisioningState)
 		conn.State = gc.ProvisioningState
 
-		props := map[string]any{}
+		// connection_id names the Microsoft.Network/connections
+		// resource that configures this link (emitted in the
+		// same document).
+		props := map[string]any{
+			"connection_id":  resourceID("", gc.ID),
+			"routing_weight": gc.RoutingWeight,
+		}
 		if gc.ConnectionType != "" {
 			props["connection_type"] = gc.ConnectionType
 		}
 		if gc.EnableBgp {
 			props["enable_bgp"] = true
 		}
-		if gc.RoutingWeight > 0 {
-			props["routing_weight"] = gc.RoutingWeight
-		}
-		if len(props) > 0 {
-			conn.Properties = props
-		}
+		conn.Properties = props
 		connections = append(connections, conn)
+
+		// The connection resource itself is linked to both ends it
+		// configures, so it is reachable by graph traversal.
+		if strings.EqualFold(gc.ConnectionType, "ExpressRoute") {
+			connResID := resourceID("", gc.ID)
+			// source_arm_id is the ARM ID exactly as the connection
+			// states it; evidence_field names the ARM field it was
+			// read from.
+			for _, end := range []struct{ id, role, field, arm string }{
+				{sourceID, "gateway", "virtualNetworkGateway1.id", gw1ARM},
+				{targetID, "circuit", "peer.id", peerARM},
+			} {
+				if e, ok := newEdge(connERConnectionEndpoint, connResID, end.id,
+					fmt.Sprintf("%s -> %s", gc.Name, extractLastSegment(end.id))); ok {
+					e.Properties = map[string]any{
+						"endpoint_role":  end.role,
+						"evidence_field": end.field,
+						"source_arm_id":  end.arm,
+					}
+					connections = append(connections, e)
+				}
+			}
+		}
 	}
 	return connections, stubs
 }
 
-// TransformSubnetToVNetConnections creates connections between subnets and their parent VNet.
-// This is the fundamental containment relationship in Azure networking.
-func TransformSubnetToVNetConnections(subnets []Subnet, subnetIDMap, vnetIDMap map[string]string) []sdk.Connection {
+// TransformVNetToSubnetConnections links each virtual network to its
+// subnets as forward "contains" connections (VNet -> Subnet, source
+// contains target per OSIRIS JSON spec chapter 5 section 5.2.3).
+// This is the fundamental structural relationship in Azure networking
+// and is not duplicated as group membership.
+//
+// Evidence: the subnet ARM ID is a child path of its VNet ARM ID
+// (Subnet.VNetID).
+func TransformVNetToSubnetConnections(subnets []Subnet, subnetIDMap, vnetIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, s := range subnets {
-		if s.VNetID() == "" {
-			continue
-		}
-		sourceID, ok := subnetIDMap[s.ID]
+		subnetID, ok := armLookup(subnetIDMap, s.ID)
 		if !ok {
 			continue
 		}
-		targetID, ok := vnetIDMap[s.VNetID()]
+		vnetID, ok := armLookup(vnetIDMap, s.VNetID())
 		if !ok {
 			continue
 		}
-
-		canonicalKey := sdk.ConnectionCanonicalKey(sdk.ConnectionIDInput{
-			Type:      "contains",
-			Direction: "forward",
-			Source:    sourceID,
-			Target:    targetID,
-		})
-		connID := sdk.BuildConnectionID(canonicalKey, 16)
-
-		conn, err := sdk.NewConnection(connID, "contains", sourceID, targetID)
-		if err != nil {
-			continue
+		if conn, ok := newEdge(connContains, vnetID, subnetID, fmt.Sprintf("%s -> %s", extractLastSegment(s.VNetID()), s.Name)); ok {
+			connections = append(connections, conn)
 		}
-		conn.Name = fmt.Sprintf("%s -> %s", s.Name, extractLastSegment(s.VNetID()))
-		_ = conn.SetDirection("forward")
-		connections = append(connections, conn)
 	}
 	return connections
 }
 
-// TransformNICToSubnetConnections creates connections between NICs and their subnets.
-// Each NIC ipConfiguration references a subnet - this is how VMs attach to the network.
+// TransformNICToSubnetConnections creates connections between NICs and
+// their subnets. Each NIC ipConfiguration references a subnet this is
+// how VMs attach to the network.
 func TransformNICToSubnetConnections(nics []NetworkInterface, nicIDMap, subnetIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	seen := map[string]bool{} // deduplicate NIC->subnet pairs
 	for _, n := range nics {
-		sourceID, ok := nicIDMap[n.ID]
+		sourceID, ok := armLookup(nicIDMap, n.ID)
 		if !ok {
 			continue
 		}
@@ -1218,7 +1295,7 @@ func TransformNICToSubnetConnections(nics []NetworkInterface, nicIDMap, subnetID
 			if ip.SubnetID() == "" {
 				continue
 			}
-			targetID, ok := subnetIDMap[ip.SubnetID()]
+			targetID, ok := armLookup(subnetIDMap, ip.SubnetID())
 			if !ok {
 				continue
 			}
@@ -1263,7 +1340,7 @@ func TransformPrivateEndpointToSubnetConnections(pes []PrivateEndpoint, subnetID
 			continue
 		}
 		sourceID := resourceID("network.endpoint", pe.ID)
-		targetID, ok := subnetIDMap[pe.SubnetID()]
+		targetID, ok := armLookup(subnetIDMap, pe.SubnetID())
 		if !ok {
 			continue
 		}
@@ -1294,7 +1371,7 @@ func TransformPrivateEndpointToNICConnections(pes []PrivateEndpoint, nicIDMap ma
 	for _, pe := range pes {
 		sourceID := resourceID("network.endpoint", pe.ID)
 		for _, nicArmID := range pe.NetworkInterfaceIDs() {
-			targetID, ok := nicIDMap[nicArmID]
+			targetID, ok := armLookup(nicIDMap, nicArmID)
 			if !ok {
 				continue
 			}
@@ -1329,7 +1406,7 @@ func TransformLBFrontendToPublicIPConnections(lbs []LoadBalancer, publicIPIDMap 
 			if fe.PublicIPAddressID() == "" {
 				continue
 			}
-			targetID, ok := publicIPIDMap[fe.PublicIPAddressID()]
+			targetID, ok := armLookup(publicIPIDMap, fe.PublicIPAddressID())
 			if !ok {
 				continue
 			}
@@ -1364,7 +1441,7 @@ func TransformVNetGatewayToSubnetConnections(gws []VNetGateway, subnetIDMap map[
 			if ip.SubnetID() == "" {
 				continue
 			}
-			targetID, ok := subnetIDMap[ip.SubnetID()]
+			targetID, ok := armLookup(subnetIDMap, ip.SubnetID())
 			if !ok {
 				continue
 			}
@@ -1399,7 +1476,7 @@ func TransformVNetGatewayToPublicIPConnections(gws []VNetGateway, publicIPIDMap 
 			if ip.PublicIPAddressID() == "" {
 				continue
 			}
-			targetID, ok := publicIPIDMap[ip.PublicIPAddressID()]
+			targetID, ok := armLookup(publicIPIDMap, ip.PublicIPAddressID())
 			if !ok {
 				continue
 			}
@@ -1424,38 +1501,6 @@ func TransformVNetGatewayToPublicIPConnections(gws []VNetGateway, publicIPIDMap 
 	return connections
 }
 
-// TransformNATGatewayToSubnetConnections creates connections between
-// NAT gateways and their subnets.
-func TransformNATGatewayToSubnetConnections(gws []NATGateway, subnetIDMap map[string]string) []sdk.Connection {
-	var connections []sdk.Connection
-	for _, gw := range gws {
-		sourceID := resourceID("network.gateway", gw.ID)
-		for _, subnetArmID := range gw.SubnetIDs() {
-			targetID, ok := subnetIDMap[subnetArmID]
-			if !ok {
-				continue
-			}
-
-			canonicalKey := sdk.ConnectionCanonicalKey(sdk.ConnectionIDInput{
-				Type:      "network",
-				Direction: "forward",
-				Source:    sourceID,
-				Target:    targetID,
-			})
-			connID := sdk.BuildConnectionID(canonicalKey, 16)
-
-			conn, err := sdk.NewConnection(connID, "network", sourceID, targetID)
-			if err != nil {
-				continue
-			}
-			conn.Name = fmt.Sprintf("%s -> %s", gw.Name, extractLastSegment(subnetArmID))
-			_ = conn.SetDirection("forward")
-			connections = append(connections, conn)
-		}
-	}
-	return connections
-}
-
 // TransformNATGatewayToPublicIPConnections creates connections between
 // NAT gateways and their public IPs.
 func TransformNATGatewayToPublicIPConnections(gws []NATGateway, publicIPIDMap map[string]string) []sdk.Connection {
@@ -1463,7 +1508,7 @@ func TransformNATGatewayToPublicIPConnections(gws []NATGateway, publicIPIDMap ma
 	for _, gw := range gws {
 		sourceID := resourceID("network.gateway", gw.ID)
 		for _, pipArmID := range gw.PublicIPAddressIDs() {
-			targetID, ok := publicIPIDMap[pipArmID]
+			targetID, ok := armLookup(publicIPIDMap, pipArmID)
 			if !ok {
 				continue
 			}
@@ -1507,18 +1552,17 @@ func TransformPrivateDNSToVNetConnections(zones []PrivateDNSZone, vnetIDMap map[
 			if vnetArmID == "" {
 				continue
 			}
-			targetID, ok := vnetIDMap[vnetArmID]
+			targetID, ok := armLookup(vnetIDMap, vnetArmID)
 			if !ok {
 				targetID = resourceID("network.vpc", vnetArmID)
 				if !stubSeen[targetID] {
 					stubSeen[targetID] = true
 					remoteSubID := extractSubscriptionID(vnetArmID)
 					prov := sdk.Provider{
-						Name:         providerName,
-						NativeID:     vnetArmID,
-						Type:         "Microsoft.Network/virtualNetworks",
-						Subscription: remoteSubID,
-						Account:      remoteSubID,
+						Name:     providerName,
+						NativeID: vnetArmID,
+						Type:     "Microsoft.Network/virtualNetworks",
+						Account:  canonicalSubscriptionID(remoteSubID),
 					}
 					stub, err := sdk.NewResource(targetID, "network.vpc", prov)
 					if err == nil {
@@ -1526,7 +1570,6 @@ func TransformPrivateDNSToVNetConnections(zones []PrivateDNSZone, vnetIDMap map[
 						stub.Status = "unknown"
 						stub.Properties = map[string]any{
 							"cross_subscription": true,
-							"subscription_id":    remoteSubID,
 						}
 						stubs = append(stubs, stub)
 					}
@@ -1562,25 +1605,18 @@ func TransformPrivateDNSToVNetConnections(zones []PrivateDNSZone, vnetIDMap map[
 	return connections, stubs
 }
 
-// TransformFlowLogConnections wires enabled NSG flow logs to their storage account targets.
-// Each active flow log is represented as a forward dependency edge: NSG -> storage account.
+// TransformFlowLogConnections wires enabled NSG flow logs to their
+// storage account targets.
+// Each active flow log is represented as a forward dependency
+// edge: NSG -> storage account.
 func TransformFlowLogConnections(flowLogs []FlowLog, nsgIDMap, storageIDMap map[string]string) []sdk.Connection {
-	nsgLow := make(map[string]string, len(nsgIDMap))
-	for k, v := range nsgIDMap {
-		nsgLow[strings.ToLower(k)] = v
-	}
-	storageLow := make(map[string]string, len(storageIDMap))
-	for k, v := range storageIDMap {
-		storageLow[strings.ToLower(k)] = v
-	}
-
 	var connections []sdk.Connection
 	for _, fl := range flowLogs {
-		sourceID, ok := nsgLow[strings.ToLower(fl.TargetResourceID)]
+		sourceID, ok := armLookup(nsgIDMap, fl.TargetResourceID)
 		if !ok {
 			continue
 		}
-		targetID, ok := storageLow[strings.ToLower(fl.StorageID)]
+		targetID, ok := armLookup(storageIDMap, fl.StorageID)
 		if !ok {
 			continue
 		}
@@ -1603,19 +1639,20 @@ func TransformFlowLogConnections(flowLogs []FlowLog, nsgIDMap, storageIDMap map[
 	return connections
 }
 
-// TransformNICToASGConnections creates network connections from a NIC to each
-// Application Security Group referenced by any of its IP configurations.
+// TransformNICToASGConnections creates network connections from a
+// NIC to each Application Security Group referenced by any of its
+// IP configurations.
 func TransformNICToASGConnections(nics []NetworkInterface, nicIDMap, asgIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	seen := map[string]bool{}
 	for _, n := range nics {
-		sourceID, ok := nicIDMap[n.ID]
+		sourceID, ok := armLookup(nicIDMap, n.ID)
 		if !ok {
 			continue
 		}
 		for _, ip := range n.IPConfigurations {
 			for _, asgArmID := range ip.ASGIDs() {
-				targetID, ok := asgIDMap[asgArmID]
+				targetID, ok := armLookup(asgIDMap, asgArmID)
 				if !ok {
 					continue
 				}
@@ -1626,14 +1663,14 @@ func TransformNICToASGConnections(nics []NetworkInterface, nicIDMap, asgIDMap ma
 				seen[pairKey] = true
 
 				canonicalKey := sdk.ConnectionCanonicalKey(sdk.ConnectionIDInput{
-					Type:      "network",
+					Type:      connASGAssociation,
 					Direction: "forward",
 					Source:    sourceID,
 					Target:    targetID,
 				})
 				connID := sdk.BuildConnectionID(canonicalKey, 16)
 
-				conn, err := sdk.NewConnection(connID, "network", sourceID, targetID)
+				conn, err := sdk.NewConnection(connID, connASGAssociation, sourceID, targetID)
 				if err != nil {
 					continue
 				}
@@ -1646,20 +1683,22 @@ func TransformNICToASGConnections(nics []NetworkInterface, nicIDMap, asgIDMap ma
 	return connections
 }
 
-// BuildVNetIDMap builds a map of VNet ARM ID -> OSIRIS JSON resource ID from VNet resources.
+// BuildVNetIDMap builds a map of VNet ARM ID -> OSIRIS JSON resource
+// ID from VNet resources.
 func BuildVNetIDMap(vnets []VirtualNetwork) map[string]string {
 	m := make(map[string]string, len(vnets))
 	for _, v := range vnets {
-		m[v.ID] = resourceID("network.vpc", v.ID)
+		m[armKey(v.ID)] = resourceID("network.vpc", v.ID)
 	}
 	return m
 }
 
-// BuildPublicIPIDMap builds a map of public IP ARM ID -> OSIRIS JSON resource ID.
+// BuildPublicIPIDMap builds a map of public IP ARM ID -> OSIRIS JSON
+// resource ID.
 func BuildPublicIPIDMap(pips []PublicIPAddress) map[string]string {
 	m := make(map[string]string, len(pips))
 	for _, p := range pips {
-		m[p.ID] = resourceID("osiris.azure.publicip", p.ID)
+		m[armKey(p.ID)] = resourceID("osiris.azure.publicip", p.ID)
 	}
 	return m
 }
@@ -1669,34 +1708,32 @@ func BuildPublicIPIDMap(pips []PublicIPAddress) map[string]string {
 func BuildPrivateEndpointIDMap(pes []PrivateEndpoint) map[string]string {
 	m := make(map[string]string, len(pes))
 	for _, pe := range pes {
-		m[pe.ID] = resourceID("network.endpoint", pe.ID)
+		m[armKey(pe.ID)] = resourceID("network.endpoint", pe.ID)
 	}
 	return m
 }
 
-// BuildLBIDMap builds a map of Load Balancer ARM ID -> OSIRIS JSON resource ID.
-// Used for metric alert scope resolution (LBs are a common monitored resource).
+// BuildLBIDMap builds a map of Load Balancer ARM ID -> OSIRIS JSON
+// resource ID. Used for metric alert scope resolution (LBs are a
+// common monitored resource).
 func BuildLBIDMap(lbs []LoadBalancer) map[string]string {
 	m := make(map[string]string, len(lbs))
 	for _, lb := range lbs {
-		m[lb.ID] = resourceID("network.loadbalancer", lb.ID)
+		m[armKey(lb.ID)] = resourceID("network.loadbalancer", lb.ID)
 	}
 	return m
 }
 
-// TransformLBToSubnetConnections creates network/forward connections from each
-// load balancer to the subnets referenced by its frontend IP configurations.
-// Only internal (private) frontends carry a subnet reference; public frontends
-// are skipped. ARM ID casing is normalised to lowercase before lookup.
+// TransformLBToSubnetConnections creates network/forward connections
+// from each load balancer to the subnets referenced by its frontend
+// IP configurations.
+// Only internal (private) frontends carry a subnet reference; public
+// frontends are skipped. ARM ID casing is normalised to lowercase
+// before lookup.
 func TransformLBToSubnetConnections(lbs []LoadBalancer, lbIDMap, subnetIDMap map[string]string) []sdk.Connection {
-	subnetLower := make(map[string]string, len(subnetIDMap))
-	for k, v := range subnetIDMap {
-		subnetLower[strings.ToLower(k)] = v
-	}
-
 	var connections []sdk.Connection
 	for _, lb := range lbs {
-		sourceID, ok := lbIDMap[lb.ID]
+		sourceID, ok := armLookup(lbIDMap, lb.ID)
 		if !ok {
 			continue
 		}
@@ -1710,7 +1747,7 @@ func TransformLBToSubnetConnections(lbs []LoadBalancer, lbIDMap, subnetIDMap map
 				continue
 			}
 			seen[subnetKey] = true
-			targetID, ok := subnetLower[subnetKey]
+			targetID, ok := armLookup(subnetIDMap, subnetKey)
 			if !ok {
 				continue
 			}
@@ -1733,7 +1770,8 @@ func TransformLBToSubnetConnections(lbs []LoadBalancer, lbIDMap, subnetIDMap map
 	return connections
 }
 
-// transformNSGRules converts NSG security rules into OSIRIS JSON compatible maps.
+// transformNSGRules converts NSG security rules into OSIRIS JSON
+// compatible maps.
 func transformNSGRules(rules []NSGSecurityRule) []map[string]any {
 	out := make([]map[string]any, 0, len(rules))
 	for _, rule := range rules {
@@ -1747,7 +1785,8 @@ func transformNSGRules(rules []NSGSecurityRule) []map[string]any {
 		if rule.Description != "" {
 			entry["description"] = rule.Description
 		}
-		// Single-value fields take precedence when set; fall back to array variants.
+		// Single-value fields take precedence when set; fall back to
+		// array variants.
 		if rule.SourcePortRange != "" {
 			entry["source_port_range"] = rule.SourcePortRange
 		} else if len(rule.SourcePortRanges) > 0 {
@@ -1773,8 +1812,16 @@ func transformNSGRules(rules []NSGSecurityRule) []map[string]any {
 	return out
 }
 
-// extractSubscriptionID extracts the subscription UUID from an ARM resource ID.
-// ARM IDs follow the pattern: /subscriptions/<uuid>/...
+// extractSubscriptionID extracts the subscription UUID from an ARM
+// resource ID. ARM IDs follow the pattern: /subscriptions/<uuid>/...
+// canonicalSubscriptionID returns a subscription ID in the lower-case
+// form used for provider.account, metadata.scope.accounts and the
+// subscription catalog. Subscription IDs are GUIDs, compared
+// case-insensitively by ARM.
+func canonicalSubscriptionID(id string) string {
+	return strings.ToLower(strings.TrimSpace(id))
+}
+
 func extractSubscriptionID(armID string) string {
 	lower := strings.ToLower(armID)
 	idx := strings.Index(lower, "/subscriptions/")
@@ -1797,12 +1844,28 @@ func vnetNameFromARM(armID string) string {
 	return armID
 }
 
-// gatewayConnectionSubtype maps the Azure ConnectionType field to an OSIRIS JSON spec chapter 5 section 5.2.3.
-// ExpressRoute uses BGP sessions; site-to-site, VNet-to-VNet, and P2S are all IPsec/IKEv2 VPNs.
+// gatewayConnectionResourceType returns the OSIRIS JSON resource type
+// of a Microsoft.Network/connections resource from its connectionType:
+// an ExpressRoute connection is not a VPN.
+func gatewayConnectionResourceType(azConnType string) string {
+	if strings.EqualFold(azConnType, "ExpressRoute") {
+		return "osiris.azure.expressroute.connection"
+	}
+	return "network.vpn"
+}
+
+// gatewayConnectionSubtype maps the Azure ConnectionType field to an
+// OSIRIS JSON connection type (spec chapter 5 section 5.2.3).
+// An ExpressRoute connection is plain `network` connectivity (data
+// path and route exchange); site-to-site, VNet-to-VNet and P2S are
+// IPsec/IKEv2 VPNs.
 func gatewayConnectionSubtype(azConnType string) string {
 	switch strings.ToLower(azConnType) {
 	case "expressroute":
-		return "network.bgp"
+		// The connection carries both the private-peering data path and
+		// the gateway <-> Microsoft edge BGP session: plain
+		// connectivity.
+		return "network"
 	case "ipsec", "vnet2vnet", "vpnclient":
 		return "network.vpn"
 	default:
@@ -1810,8 +1873,8 @@ func gatewayConnectionSubtype(azConnType string) string {
 	}
 }
 
-// gatewayPeerARMType classifies an ARM ID by its /providers/<ns>/<type>/ segment.
-// Returns the ARM provider/type string (e.g. Microsoft.Network/expressRouteCircuits)
+// gatewayPeerARMType classify an ARM ID by its /providers/<ns>/<type>/
+// segment. Returns the ARM provider/type string (e.g. Microsoft.Network/expressRouteCircuits)
 // or empty when the ID can't be parsed.
 func gatewayPeerARMType(armID string) string {
 	idx := strings.Index(strings.ToLower(armID), "/providers/")
@@ -1851,7 +1914,7 @@ func TransformPublicIPPrefixes(prefixes []PublicIPPrefix, sub SubscriptionInfo) 
 
 	for _, p := range prefixes {
 		id := resourceID("osiris.azure.publicipprefix", p.ID)
-		idMap[p.ID] = id
+		idMap[armKey(p.ID)] = id
 
 		prov := azureProvider(p.ID, "Microsoft.Network/publicIPPrefixes", p.Location, sub)
 		if len(p.Zones) > 0 {
@@ -1895,14 +1958,15 @@ func TransformPublicIPPrefixes(prefixes []PublicIPPrefix, sub SubscriptionInfo) 
 	return resources, idMap
 }
 
-// TransformAvailabilitySets converts Microsoft.Compute/availabilitySets into OSIRIS JSON resources.
+// TransformAvailabilitySets converts Microsoft.Compute/availabilitySets
+// into OSIRIS JSON resources.
 func TransformAvailabilitySets(sets []AvailabilitySet, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(sets))
 
 	for _, s := range sets {
 		id := resourceID("osiris.azure.availabilityset", s.ID)
-		idMap[s.ID] = id
+		idMap[armKey(s.ID)] = id
 
 		prov := azureProvider(s.ID, "Microsoft.Compute/availabilitySets", s.Location, sub)
 		r, err := sdk.NewResource(id, "osiris.azure.availabilityset", prov)
@@ -1911,9 +1975,6 @@ func TransformAvailabilitySets(sets []AvailabilitySet, sub SubscriptionInfo) ([]
 		}
 		r.Name = s.Name
 		asPS := s.ProvisioningState
-		if asPS == "" {
-			asPS = "Succeeded"
-		}
 		r.Status = mapProvisioningState(asPS)
 		r.State = asPS
 		r.Tags = s.Tags
@@ -1940,21 +2001,17 @@ func TransformAvailabilitySets(sets []AvailabilitySet, sub SubscriptionInfo) ([]
 	return resources, idMap
 }
 
-// TransformAvailabilitySetToVMConnections wires each Availability Set to its member VMs.
+// TransformAvailabilitySetToVMConnections wires each Availability Set
+// to its member VMs.
 func TransformAvailabilitySetToVMConnections(sets []AvailabilitySet, asIDMap, vmIDMap map[string]string) []sdk.Connection {
-	vmLower := make(map[string]string, len(vmIDMap))
-	for k, v := range vmIDMap {
-		vmLower[strings.ToLower(k)] = v
-	}
-
 	var connections []sdk.Connection
 	for _, s := range sets {
-		sourceID, ok := asIDMap[s.ID]
+		sourceID, ok := armLookup(asIDMap, s.ID)
 		if !ok {
 			continue
 		}
 		for _, vmRef := range s.VirtualMachines {
-			targetID, ok := vmLower[strings.ToLower(vmRef.ID)]
+			targetID, ok := armLookup(vmIDMap, vmRef.ID)
 			if !ok {
 				continue
 			}
@@ -1972,14 +2029,15 @@ func TransformAvailabilitySetToVMConnections(sets []AvailabilitySet, asIDMap, vm
 	return connections
 }
 
-// TransformRouteServers converts Microsoft.Network/virtualHubs (Route Server) into OSIRIS JSON resources.
+// TransformRouteServers converts Microsoft.Network/virtualHubs
+// (Route Server) into OSIRIS JSON resources.
 func TransformRouteServers(rs []RouteServer, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(rs))
 
 	for _, r := range rs {
 		id := resourceID("osiris.azure.routeserver", r.ID)
-		idMap[r.ID] = id
+		idMap[armKey(r.ID)] = id
 
 		prov := azureProvider(r.ID, "Microsoft.Network/virtualHubs", r.Location, sub)
 		res, err := sdk.NewResource(id, "osiris.azure.routeserver", prov)
@@ -2003,9 +2061,9 @@ func TransformRouteServers(rs []RouteServer, sub SubscriptionInfo) ([]sdk.Resour
 		if r.HubRoutingPreference != "" {
 			props["hub_routing_preference"] = r.HubRoutingPreference
 		}
-		if r.AllowBranchToBranchTraffic {
-			props["allow_branch_to_branch_traffic"] = true
-		}
+		// Always stated: false means the Route Server exchanges no
+		// routes with the VNet's ExpressRoute or VPN gateway.
+		props["allow_branch_to_branch_traffic"] = r.AllowBranchToBranchTraffic
 		if len(r.BGPConnections) > 0 {
 			props["bgp_peer_count"] = len(r.BGPConnections)
 		}
@@ -2030,35 +2088,28 @@ func TransformRouteServers(rs []RouteServer, sub SubscriptionInfo) ([]sdk.Resour
 	return resources, idMap
 }
 
-// BuildRouteServerIDMap builds ARM ID -> OSIRIS JSON resource ID map for Route Servers.
+// BuildRouteServerIDMap builds ARM ID -> OSIRIS JSON resource ID map
+// for Route Servers.
 func BuildRouteServerIDMap(rs []RouteServer) map[string]string {
 	m := make(map[string]string, len(rs))
 	for _, r := range rs {
-		m[r.ID] = resourceID("osiris.azure.routeserver", r.ID)
+		m[armKey(r.ID)] = resourceID("osiris.azure.routeserver", r.ID)
 	}
 	return m
 }
 
-// TransformRouteServerConnections wires each Route Server to its RouteServerSubnet and public IP.
+// TransformRouteServerConnections wires each Route Server to its
+// RouteServerSubnet and public IP.
 func TransformRouteServerConnections(rs []RouteServer, rsIDMap, subnetIDMap, pipIDMap map[string]string) []sdk.Connection {
-	subnetLower := make(map[string]string, len(subnetIDMap))
-	for k, v := range subnetIDMap {
-		subnetLower[strings.ToLower(k)] = v
-	}
-	pipLower := make(map[string]string, len(pipIDMap))
-	for k, v := range pipIDMap {
-		pipLower[strings.ToLower(k)] = v
-	}
-
 	var connections []sdk.Connection
 	for _, r := range rs {
-		sourceID, ok := rsIDMap[r.ID]
+		sourceID, ok := armLookup(rsIDMap, r.ID)
 		if !ok {
 			continue
 		}
 		for _, ipc := range r.IPConfigurations {
 			if ipc.Subnet != nil && ipc.Subnet.ID != "" {
-				if targetID, ok := subnetLower[strings.ToLower(ipc.Subnet.ID)]; ok {
+				if targetID, ok := armLookup(subnetIDMap, ipc.Subnet.ID); ok {
 					canonicalKey := sdk.ConnectionCanonicalKey(sdk.ConnectionIDInput{
 						Type: "network", Direction: "forward", Source: sourceID, Target: targetID,
 					})
@@ -2071,7 +2122,7 @@ func TransformRouteServerConnections(rs []RouteServer, rsIDMap, subnetIDMap, pip
 				}
 			}
 			if ipc.PublicIPAddress != nil && ipc.PublicIPAddress.ID != "" {
-				if targetID, ok := pipLower[strings.ToLower(ipc.PublicIPAddress.ID)]; ok {
+				if targetID, ok := armLookup(pipIDMap, ipc.PublicIPAddress.ID); ok {
 					canonicalKey := sdk.ConnectionCanonicalKey(sdk.ConnectionIDInput{
 						Type: "network", Direction: "forward", Source: sourceID, Target: targetID,
 					})
@@ -2090,8 +2141,8 @@ func TransformRouteServerConnections(rs []RouteServer, rsIDMap, subnetIDMap, pip
 
 // TransformGatewayConnectionResources emits Microsoft.Network/connections
 // as first-class OSIRIS JSON resources of the standard type network.vpn
-// (Appendix C: "VPN connection", naming Azure VPN directly). The
-// gateway-to-peer topology edges are handled separately by
+// (Appendix C: "VPN connection", naming Azure VPN directly).
+// The gateway-to-peer topology edges are handled separately by
 // TransformGatewayConnections; this function adds the connection object
 // itself so consumers can inventory VPN/ER connections independently of
 // the routing graph.
@@ -2100,11 +2151,12 @@ func TransformGatewayConnectionResources(gwConns []GatewayConnection, sub Subscr
 	idMap := make(map[string]string, len(gwConns))
 
 	for _, gc := range gwConns {
-		id := resourceID("network.vpn", gc.ID)
-		idMap[gc.ID] = id
+		resType := gatewayConnectionResourceType(gc.ConnectionType)
+		id := resourceID(resType, gc.ID)
+		idMap[armKey(gc.ID)] = id
 
 		prov := azureProvider(gc.ID, "Microsoft.Network/connections", gc.Location, sub)
-		r, err := sdk.NewResource(id, "network.vpn", prov)
+		r, err := sdk.NewResource(id, resType, prov)
 		if err != nil {
 			continue
 		}
@@ -2142,7 +2194,7 @@ func TransformGatewayConnectionResources(gwConns []GatewayConnection, sub Subscr
 func BuildGatewayConnectionIDMap(gwConns []GatewayConnection) map[string]string {
 	m := make(map[string]string, len(gwConns))
 	for _, gc := range gwConns {
-		m[gc.ID] = resourceID("network.vpn", gc.ID)
+		m[armKey(gc.ID)] = resourceID("network.vpn", gc.ID)
 	}
 	return m
 }
@@ -2156,6 +2208,8 @@ func mapPeeringState(state string) string {
 		return "inactive"
 	case "initiated":
 		return "degraded"
+	case "":
+		return ""
 	default:
 		return "unknown"
 	}

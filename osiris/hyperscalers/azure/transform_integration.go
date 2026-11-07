@@ -89,7 +89,7 @@ func transformMessagingNamespaces(osirisType, nativeType string, iter func(yield
 
 	iter(func(n messagingNamespaceView) {
 		id := resourceID(osirisType, n.ID)
-		idMap[n.ID] = id
+		idMap[armKey(n.ID)] = id
 
 		prov := azureProvider(n.ID, nativeType, n.Location, sub)
 
@@ -137,9 +137,6 @@ func transformMessagingNamespaces(osirisType, nativeType string, iter func(yield
 			if peIDs := collectPEIDs(p.PrivateEndpointConnections); len(peIDs) > 0 {
 				ext["private_endpoint_connection_ids"] = peIDs
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Succeeded"
 		}
 		r.Properties = props
 		if len(ext) > 0 {
@@ -152,15 +149,17 @@ func transformMessagingNamespaces(osirisType, nativeType string, iter func(yield
 	return resources, idMap
 }
 
-// TransformAPIMServices converts Microsoft.ApiManagement/service into OSIRIS JSON resources of type osiris.azure.apim.
-// Individual APIs, operations, products, and policy documents are out of scope.
+// TransformAPIMServices converts Microsoft.ApiManagement/service into
+// OSIRIS JSON resources of type osiris.azure.apim.
+// Individual APIs, operations, products, and policy documents
+// are out of scope.
 func TransformAPIMServices(services []APIMService, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(services))
 
 	for _, s := range services {
 		id := resourceID("osiris.azure.apim", s.ID)
-		idMap[s.ID] = id
+		idMap[armKey(s.ID)] = id
 
 		prov := azureProvider(s.ID, "Microsoft.ApiManagement/service", s.Location, sub)
 
@@ -215,9 +214,6 @@ func TransformAPIMServices(services []APIMService, sub SubscriptionInfo) ([]sdk.
 			if peIDs := collectPEIDs(p.PrivateEndpointConnections); len(peIDs) > 0 {
 				r.Extensions = map[string]any{extensionNamespace: map[string]any{"private_endpoint_connection_ids": peIDs}}
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Succeeded"
 		}
 		r.Properties = props
 
@@ -227,15 +223,17 @@ func TransformAPIMServices(services []APIMService, sub SubscriptionInfo) ([]sdk.
 	return resources, idMap
 }
 
-// TransformFrontDoorProfiles converts Microsoft.Cdn/profiles entries with an Azure Front Door SKU (Standard / Premium)
-// into OSIRIS JSON resources of type osiris.azure.frontdoor.profile. Routes, rules, and WAF policies are out of scope.
+// TransformFrontDoorProfiles converts Microsoft.Cdn/profiles entries
+// with an Azure Front Door SKU (Standard / Premium) into OSIRIS JSON
+// resources of type osiris.azure.frontdoor.profile. Routes, rules
+// and WAF policies are out of scope.
 func TransformFrontDoorProfiles(profiles []FrontDoorProfile, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(profiles))
 
 	for _, fp := range profiles {
 		id := resourceID("osiris.azure.frontdoor.profile", fp.ID)
-		idMap[fp.ID] = id
+		idMap[armKey(fp.ID)] = id
 
 		prov := azureProvider(fp.ID, "Microsoft.Cdn/profiles", fp.Location, sub)
 
@@ -264,9 +262,6 @@ func TransformFrontDoorProfiles(profiles []FrontDoorProfile, sub SubscriptionInf
 			if p.FrontDoorID != "" {
 				props["front_door_id"] = p.FrontDoorID
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Succeeded"
 		}
 		r.Properties = props
 
@@ -276,39 +271,8 @@ func TransformFrontDoorProfiles(profiles []FrontDoorProfile, sub SubscriptionInf
 	return resources, idMap
 }
 
-// TransformPEToServiceBusConnections wires Private Endpoints to Service Bus namespaces (Premium tier only).
-func TransformPEToServiceBusConnections(namespaces []ServiceBusNamespace, sbIDMap, peIDMap map[string]string) []sdk.Connection {
-	bindings := make([]peBinding, 0, len(namespaces))
-	for _, n := range namespaces {
-		if n.Properties == nil {
-			continue
-		}
-		bindings = append(bindings, peBinding{
-			TargetArmID: n.ID,
-			Name:        n.Name,
-			Conns:       n.Properties.PrivateEndpointConnections,
-		})
-	}
-	return transformPEBoundConnections(bindings, sbIDMap, peIDMap, "dependency")
-}
-
-// TransformPEToEventHubsConnections wires Private Endpoints to Event Hubs namespaces (Standard/Premium tiers).
-func TransformPEToEventHubsConnections(namespaces []EventHubsNamespace, ehIDMap, peIDMap map[string]string) []sdk.Connection {
-	bindings := make([]peBinding, 0, len(namespaces))
-	for _, n := range namespaces {
-		if n.Properties == nil {
-			continue
-		}
-		bindings = append(bindings, peBinding{
-			TargetArmID: n.ID,
-			Name:        n.Name,
-			Conns:       n.Properties.PrivateEndpointConnections,
-		})
-	}
-	return transformPEBoundConnections(bindings, ehIDMap, peIDMap, "dependency")
-}
-
-// TransformAPIMToSubnetConnections emits `network` edges from each VNet-integrated APIM service (External / Internal mode) to its subnet.
+// TransformAPIMToSubnetConnections emits `network` edges from each
+// VNet-integrated APIM service (External/Internal mode) to its subnet.
 func TransformAPIMToSubnetConnections(services []APIMService, apimIDMap, subnetIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, s := range services {
@@ -319,11 +283,11 @@ func TransformAPIMToSubnetConnections(services []APIMService, apimIDMap, subnetI
 		if subnetArmID == "" {
 			continue
 		}
-		srcID, ok := apimIDMap[s.ID]
+		srcID, ok := armLookup(apimIDMap, s.ID)
 		if !ok {
 			continue
 		}
-		dstID, ok := subnetIDMap[subnetArmID]
+		dstID, ok := armLookup(subnetIDMap, subnetArmID)
 		if !ok {
 			continue
 		}
@@ -345,15 +309,15 @@ func TransformAPIMToSubnetConnections(services []APIMService, apimIDMap, subnetI
 	return connections
 }
 
-// TransformStreamAnalyticsJobs converts Microsoft.StreamAnalytics/streamingjobs into
-// OSIRIS JSON resources of type osiris.azure.streamanalytics.
+// TransformStreamAnalyticsJobs converts Microsoft.StreamAnalytics/streamingjobs
+// into OSIRIS JSON resources of type osiris.azure.streamanalytics.
 func TransformStreamAnalyticsJobs(jobs []StreamAnalyticsJob, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(jobs))
 
 	for _, j := range jobs {
 		id := resourceID("osiris.azure.streamanalytics", j.ID)
-		idMap[j.ID] = id
+		idMap[armKey(j.ID)] = id
 
 		prov := azureProvider(j.ID, "Microsoft.StreamAnalytics/streamingjobs", j.Location, sub)
 
@@ -379,9 +343,6 @@ func TransformStreamAnalyticsJobs(jobs []StreamAnalyticsJob, sub SubscriptionInf
 			if p.OutputStartMode != "" {
 				props["output_start_mode"] = p.OutputStartMode
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Running"
 		}
 		r.Properties = props
 
@@ -398,21 +359,23 @@ func mapStreamAnalyticsState(state string) string {
 	case "Stopped", "Degraded", "Failed":
 		return "inactive"
 	case "Deleting", "Deleted":
-		return "terminated"
+		return "retired"
+	case "":
+		return ""
 	default:
-		return "active"
+		return "unknown"
 	}
 }
 
-// TransformEventGridSystemTopics converts Microsoft.EventGrid/systemTopics into
-// OSIRIS JSON resources of type osiris.azure.eventgrid.systemtopic.
+// TransformEventGridSystemTopics converts Microsoft.EventGrid/systemTopics
+// into OSIRIS JSON resources of type osiris.azure.eventgrid.systemtopic.
 func TransformEventGridSystemTopics(topics []EventGridSystemTopic, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(topics))
 
 	for _, t := range topics {
 		id := resourceID("osiris.azure.eventgrid.systemtopic", t.ID)
-		idMap[t.ID] = id
+		idMap[armKey(t.ID)] = id
 
 		prov := azureProvider(t.ID, "Microsoft.EventGrid/systemTopics", t.Location, sub)
 
@@ -435,9 +398,6 @@ func TransformEventGridSystemTopics(topics []EventGridSystemTopic, sub Subscript
 			if p.Source != "" {
 				props["source"] = p.Source
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Succeeded"
 		}
 		r.Properties = props
 
@@ -445,20 +405,4 @@ func TransformEventGridSystemTopics(topics []EventGridSystemTopic, sub Subscript
 		resources = append(resources, r)
 	}
 	return resources, idMap
-}
-
-// TransformPEToAPIMConnections wires Private Endpoints to APIM services.
-func TransformPEToAPIMConnections(services []APIMService, apimIDMap, peIDMap map[string]string) []sdk.Connection {
-	bindings := make([]peBinding, 0, len(services))
-	for _, s := range services {
-		if s.Properties == nil {
-			continue
-		}
-		bindings = append(bindings, peBinding{
-			TargetArmID: s.ID,
-			Name:        s.Name,
-			Conns:       s.Properties.PrivateEndpointConnections,
-		})
-	}
-	return transformPEBoundConnections(bindings, apimIDMap, peIDMap, "dependency")
 }

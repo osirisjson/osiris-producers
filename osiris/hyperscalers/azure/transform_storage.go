@@ -11,16 +11,17 @@ import (
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
-// TransformStorageAccounts converts Azure storage accounts into OSIRIS JSON
-// resources of type osiris.azure.storage. Returns resources and the ARM ID ->
-// resource ID map for wiring private endpoint connections.
+// TransformStorageAccounts converts Azure storage accounts into
+// OSIRIS JSON resources of type osiris.azure.storage. Returns resources
+// and the ARM ID -> resource ID map for wiring private
+// endpoint connections.
 func TransformStorageAccounts(accts []StorageAccount, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(accts))
 
 	for _, a := range accts {
 		id := resourceID("osiris.azure.storage", a.ID)
-		idMap[a.ID] = id
+		idMap[armKey(a.ID)] = id
 
 		prov := azureProvider(a.ID, "Microsoft.Storage/storageAccounts", a.Location, sub)
 
@@ -69,7 +70,8 @@ func TransformStorageAccounts(accts []StorageAccount, sub SubscriptionInfo) ([]s
 		}
 		r.Properties = props
 
-		// Extensions: Azure-specific fields (endpoints, network ACLs, encryption, PE IDs).
+		// Extensions: Azure-specific fields (endpoints, network ACLs,
+		// encryption, PE IDs).
 		ext := map[string]any{}
 		if ep := a.PrimaryEndpoints; ep != nil {
 			endpoints := map[string]any{}
@@ -111,7 +113,7 @@ func TransformStorageAccounts(accts []StorageAccount, sub SubscriptionInfo) ([]s
 					}
 				}
 				if len(ips) > 0 {
-					acls["ip_rules"] = ips
+					acls["ip_ranges"] = ips
 				}
 			}
 			if len(n.VirtualNetworkRules) > 0 {
@@ -161,17 +163,4 @@ func TransformStorageAccounts(accts []StorageAccount, sub SubscriptionInfo) ([]s
 		resources = append(resources, r)
 	}
 	return resources, idMap
-}
-
-// TransformPEToStorageConnections creates network connections from each
-// private endpoint to the storage account it fronts. The binding lives on the storage account's privateEndpointConnections array.
-func TransformPEToStorageConnections(accts []StorageAccount, storageIDMap, peIDMap map[string]string) []sdk.Connection {
-	return transformPEBoundConnections(
-		collectPEBindings(func(yield func(targetArmID string, conns []azPrivateEndpointConnRef, name string)) {
-			for _, a := range accts {
-				yield(a.ID, a.PrivateEndpointConnections, a.Name)
-			}
-		}),
-		storageIDMap, peIDMap, "dependency.storage",
-	)
 }

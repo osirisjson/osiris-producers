@@ -13,15 +13,16 @@ import (
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
-// TransformKeyVaults converts Azure Key Vaults into OSIRIS JSON resources of
-// type osiris.azure.keyvault. Returns resources and ARM ID -> resource ID map.
+// TransformKeyVaults converts Azure Key Vaults into OSIRIS JSON
+// resources of type osiris.azure.keyvault. Returns resources and
+// ARM ID -> resource ID map.
 func TransformKeyVaults(vaults []KeyVault, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(vaults))
 
 	for _, v := range vaults {
 		id := resourceID("osiris.azure.keyvault", v.ID)
-		idMap[v.ID] = id
+		idMap[armKey(v.ID)] = id
 
 		prov := azureProvider(v.ID, "Microsoft.KeyVault/vaults", v.Location, sub)
 
@@ -30,8 +31,6 @@ func TransformKeyVaults(vaults []KeyVault, sub SubscriptionInfo) ([]sdk.Resource
 			continue
 		}
 		r.Name = v.Name
-		r.Status = "active"
-		r.State = "Succeeded"
 		r.Tags = v.Tags
 
 		props := map[string]any{
@@ -98,7 +97,7 @@ func TransformKeyVaults(vaults []KeyVault, sub SubscriptionInfo) ([]sdk.Resource
 						}
 					}
 					if len(ips) > 0 {
-						acls["ip_rules"] = ips
+						acls["ip_ranges"] = ips
 					}
 				}
 				if len(n.VirtualNetworkRules) > 0 {
@@ -114,7 +113,6 @@ func TransformKeyVaults(vaults []KeyVault, sub SubscriptionInfo) ([]sdk.Resource
 				}
 				if len(acls) > 0 {
 					props["network_acls"] = acls
-					ext["network_acls"] = acls
 				}
 			} else if _, hasDA := ext["default_action"]; !hasDA {
 				// No explicit ACL configured: derive default_action from publicNetworkAccess
@@ -141,8 +139,9 @@ func TransformKeyVaults(vaults []KeyVault, sub SubscriptionInfo) ([]sdk.Resource
 	return resources, idMap
 }
 
-// publicNetworkAccessToDefaultAction maps Azure's publicNetworkAccess flag to a
-// canonical network_acls default_action value, consistent with storage accounts.
+// publicNetworkAccessToDefaultAction maps Azure's publicNetworkAccess
+// flag to a canonical network_acls default_action value, consistent
+// with storage accounts.
 func publicNetworkAccessToDefaultAction(pna string) string {
 	if strings.EqualFold(pna, "Disabled") {
 		return "Deny"
@@ -158,7 +157,7 @@ func TransformContainerRegistries(regs []ContainerRegistry, sub SubscriptionInfo
 
 	for _, reg := range regs {
 		id := resourceID("osiris.azure.containerregistry", reg.ID)
-		idMap[reg.ID] = id
+		idMap[armKey(reg.ID)] = id
 
 		prov := azureProvider(reg.ID, "Microsoft.ContainerRegistry/registries", reg.Location, sub)
 
@@ -230,33 +229,4 @@ func TransformContainerRegistries(regs []ContainerRegistry, sub SubscriptionInfo
 		resources = append(resources, r)
 	}
 	return resources, idMap
-}
-
-// TransformPEToKeyVaultConnections mirrors TransformPEToStorageConnections
-// for Key Vaults. The PE list lives under properties.privateEndpointConnections.
-func TransformPEToKeyVaultConnections(vaults []KeyVault, kvIDMap, peIDMap map[string]string) []sdk.Connection {
-	return transformPEBoundConnections(
-		collectPEBindings(func(yield func(targetArmID string, conns []azPrivateEndpointConnRef, name string)) {
-			for _, v := range vaults {
-				var conns []azPrivateEndpointConnRef
-				if v.Properties != nil {
-					conns = v.Properties.PrivateEndpointConnections
-				}
-				yield(v.ID, conns, v.Name)
-			}
-		}),
-		kvIDMap, peIDMap, "dependency",
-	)
-}
-
-// TransformPEToContainerRegistryConnections mirrors the pattern for ACR.
-func TransformPEToContainerRegistryConnections(regs []ContainerRegistry, acrIDMap, peIDMap map[string]string) []sdk.Connection {
-	return transformPEBoundConnections(
-		collectPEBindings(func(yield func(targetArmID string, conns []azPrivateEndpointConnRef, name string)) {
-			for _, r := range regs {
-				yield(r.ID, r.PrivateEndpointConnections, r.Name)
-			}
-		}),
-		acrIDMap, peIDMap, "dependency",
-	)
 }

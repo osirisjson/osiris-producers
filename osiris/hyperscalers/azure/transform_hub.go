@@ -14,14 +14,15 @@ import (
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
-// TransformBastionHosts converts Microsoft.Network/bastionHosts into OSIRIS JSON resources.
+// TransformBastionHosts converts Microsoft.Network/bastionHosts into
+// OSIRIS JSON resources.
 func TransformBastionHosts(hosts []BastionHost, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(hosts))
 
 	for _, h := range hosts {
 		id := resourceID("osiris.azure.bastion", h.ID)
-		idMap[h.ID] = id
+		idMap[armKey(h.ID)] = id
 
 		prov := azureProvider(h.ID, "Microsoft.Network/bastionHosts", h.Location, sub)
 
@@ -68,25 +69,22 @@ func TransformBastionHosts(hosts []BastionHost, sub SubscriptionInfo) ([]sdk.Res
 	return resources, idMap
 }
 
-// BuildBastionIDMap builds ARM ID -> OSIRIS JSON resources ID map for Bastion hosts.
+// BuildBastionIDMap builds ARM ID -> OSIRIS JSON resources ID map
+// for Bastion hosts.
 func BuildBastionIDMap(hosts []BastionHost) map[string]string {
 	m := make(map[string]string, len(hosts))
 	for _, h := range hosts {
-		m[h.ID] = resourceID("osiris.azure.bastion", h.ID)
+		m[armKey(h.ID)] = resourceID("osiris.azure.bastion", h.ID)
 	}
 	return m
 }
 
-// TransformBastionToSubnetConnections wires each Bastion host to its AzureBastionSubnet.
+// TransformBastionToSubnetConnections wires each Bastion host to
+// its AzureBastionSubnet.
 func TransformBastionToSubnetConnections(hosts []BastionHost, bastionIDMap, subnetIDMap map[string]string) []sdk.Connection {
-	subnetLower := make(map[string]string, len(subnetIDMap))
-	for k, v := range subnetIDMap {
-		subnetLower[strings.ToLower(k)] = v
-	}
-
 	var connections []sdk.Connection
 	for _, h := range hosts {
-		sourceID, ok := bastionIDMap[h.ID]
+		sourceID, ok := armLookup(bastionIDMap, h.ID)
 		if !ok {
 			continue
 		}
@@ -94,7 +92,7 @@ func TransformBastionToSubnetConnections(hosts []BastionHost, bastionIDMap, subn
 			if ipc.Subnet == nil || ipc.Subnet.ID == "" {
 				continue
 			}
-			targetID, ok := subnetLower[strings.ToLower(ipc.Subnet.ID)]
+			targetID, ok := armLookup(subnetIDMap, ipc.Subnet.ID)
 			if !ok {
 				continue
 			}
@@ -117,16 +115,12 @@ func TransformBastionToSubnetConnections(hosts []BastionHost, bastionIDMap, subn
 	return connections
 }
 
-// TransformBastionToPublicIPConnections wires each Bastion host to its public IP.
+// TransformBastionToPublicIPConnections wires each Bastion host
+// to its public IP.
 func TransformBastionToPublicIPConnections(hosts []BastionHost, bastionIDMap, publicIPIDMap map[string]string) []sdk.Connection {
-	pipLower := make(map[string]string, len(publicIPIDMap))
-	for k, v := range publicIPIDMap {
-		pipLower[strings.ToLower(k)] = v
-	}
-
 	var connections []sdk.Connection
 	for _, h := range hosts {
-		sourceID, ok := bastionIDMap[h.ID]
+		sourceID, ok := armLookup(bastionIDMap, h.ID)
 		if !ok {
 			continue
 		}
@@ -134,7 +128,7 @@ func TransformBastionToPublicIPConnections(hosts []BastionHost, bastionIDMap, pu
 			if ipc.PublicIPAddress == nil || ipc.PublicIPAddress.ID == "" {
 				continue
 			}
-			targetID, ok := pipLower[strings.ToLower(ipc.PublicIPAddress.ID)]
+			targetID, ok := armLookup(publicIPIDMap, ipc.PublicIPAddress.ID)
 			if !ok {
 				continue
 			}
@@ -165,7 +159,7 @@ func TransformTrafficManagerProfiles(profiles []TrafficManagerProfile, sub Subsc
 
 	for _, p := range profiles {
 		id := resourceID("osiris.azure.trafficmanager", p.ID)
-		idMap[p.ID] = id
+		idMap[armKey(p.ID)] = id
 
 		// Traffic Manager is a global service; location from ARM is always "global".
 		prov := azureProvider(p.ID, "Microsoft.Network/trafficManagerProfiles", p.Location, sub)
@@ -239,7 +233,8 @@ func TransformTrafficManagerProfiles(profiles []TrafficManagerProfile, sub Subsc
 				if ep.Type != "" {
 					e.Type = extractLastSegment(ep.Type)
 				}
-				// For external endpoints Target is the IP/FQDN; for Azure endpoints it is the resource FQDN.
+				// For external endpoints Target is the IP/FQDN; for
+				// Azure endpoints it is the resource FQDN.
 				if ep.Target != "" {
 					e.Target = ep.Target
 				}
@@ -254,27 +249,23 @@ func TransformTrafficManagerProfiles(profiles []TrafficManagerProfile, sub Subsc
 	return resources, idMap
 }
 
-// BuildTrafficManagerIDMap builds ARM ID -> OSIRIS JSON resources ID map for Traffic Manager profiles.
+// BuildTrafficManagerIDMap builds ARM ID -> OSIRIS JSON resources ID
+// map for Traffic Manager profiles.
 func BuildTrafficManagerIDMap(profiles []TrafficManagerProfile) map[string]string {
 	m := make(map[string]string, len(profiles))
 	for _, p := range profiles {
-		m[p.ID] = resourceID("osiris.azure.trafficmanager", p.ID)
+		m[armKey(p.ID)] = resourceID("osiris.azure.trafficmanager", p.ID)
 	}
 	return m
 }
 
-// TransformTrafficManagerToTargetConnections wires Traffic Manager profiles to
-// the Azure resources they front (Azure endpoints only - external/IP endpoints have
-// no resolvable OSIRIS JSON resources).
+// TransformTrafficManagerToTargetConnections wires Traffic Manager
+// profiles to the Azure resources they front (Azure endpoints only,
+// external/IP endpoints have no resolvable OSIRIS JSON resources).
 func TransformTrafficManagerToTargetConnections(profiles []TrafficManagerProfile, tmIDMap, allResourceIDMap map[string]string) []sdk.Connection {
-	targetLower := make(map[string]string, len(allResourceIDMap))
-	for k, v := range allResourceIDMap {
-		targetLower[strings.ToLower(k)] = v
-	}
-
 	var connections []sdk.Connection
 	for _, p := range profiles {
-		sourceID, ok := tmIDMap[p.ID]
+		sourceID, ok := armLookup(tmIDMap, p.ID)
 		if !ok {
 			continue
 		}
@@ -282,7 +273,7 @@ func TransformTrafficManagerToTargetConnections(profiles []TrafficManagerProfile
 			if ep.TargetResourceID == "" {
 				continue
 			}
-			targetID, ok := targetLower[strings.ToLower(ep.TargetResourceID)]
+			targetID, ok := armLookup(allResourceIDMap, ep.TargetResourceID)
 			if !ok {
 				continue
 			}
@@ -305,14 +296,15 @@ func TransformTrafficManagerToTargetConnections(profiles []TrafficManagerProfile
 	return connections
 }
 
-// TransformDNSPrivateResolvers converts Microsoft.Network/dnsResolvers into OSIRIS JSON resources.
+// TransformDNSPrivateResolvers converts Microsoft.Network/dnsResolvers
+// into OSIRIS JSON resources.
 func TransformDNSPrivateResolvers(resolvers []DNSPrivateResolver, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(resolvers))
 
 	for _, res := range resolvers {
 		id := resourceID("osiris.azure.dns.resolver", res.ID)
-		idMap[res.ID] = id
+		idMap[armKey(res.ID)] = id
 
 		prov := azureProvider(res.ID, "Microsoft.Network/dnsResolvers", res.Location, sub)
 
@@ -335,9 +327,6 @@ func TransformDNSPrivateResolvers(resolvers []DNSPrivateResolver, sub Subscripti
 			if p.VirtualNetwork != nil && p.VirtualNetwork.ID != "" {
 				props["virtual_network_id"] = p.VirtualNetwork.ID
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Succeeded"
 		}
 		r.Properties = props
 		attachArmBody(&r, &res)
@@ -346,32 +335,29 @@ func TransformDNSPrivateResolvers(resolvers []DNSPrivateResolver, sub Subscripti
 	return resources, idMap
 }
 
-// BuildDNSResolverIDMap builds ARM ID -> OSIRIS JSON resources ID map for DNS private resolvers.
+// BuildDNSResolverIDMap builds ARM ID -> OSIRIS JSON resources ID map
+// for DNS private resolvers.
 func BuildDNSResolverIDMap(resolvers []DNSPrivateResolver) map[string]string {
 	m := make(map[string]string, len(resolvers))
 	for _, r := range resolvers {
-		m[r.ID] = resourceID("osiris.azure.dns.resolver", r.ID)
+		m[armKey(r.ID)] = resourceID("osiris.azure.dns.resolver", r.ID)
 	}
 	return m
 }
 
-// TransformDNSResolverToVNetConnections wires each DNS private resolver to its bound VNet.
+// TransformDNSResolverToVNetConnections wires each DNS private resolver
+// to its bound VNet.
 func TransformDNSResolverToVNetConnections(resolvers []DNSPrivateResolver, resolverIDMap, vnetIDMap map[string]string) []sdk.Connection {
-	vnetLower := make(map[string]string, len(vnetIDMap))
-	for k, v := range vnetIDMap {
-		vnetLower[strings.ToLower(k)] = v
-	}
-
 	var connections []sdk.Connection
 	for _, res := range resolvers {
 		if res.Properties == nil || res.Properties.VirtualNetwork == nil || res.Properties.VirtualNetwork.ID == "" {
 			continue
 		}
-		sourceID, ok := resolverIDMap[res.ID]
+		sourceID, ok := armLookup(resolverIDMap, res.ID)
 		if !ok {
 			continue
 		}
-		targetID, ok := vnetLower[strings.ToLower(res.Properties.VirtualNetwork.ID)]
+		targetID, ok := armLookup(vnetIDMap, res.Properties.VirtualNetwork.ID)
 		if !ok {
 			continue
 		}
@@ -393,14 +379,15 @@ func TransformDNSResolverToVNetConnections(resolvers []DNSPrivateResolver, resol
 	return connections
 }
 
-// TransformDNSForwardingRulesets converts Microsoft.Network/dnsForwardingRulesets into OSIRIS JSON resources.
+// TransformDNSForwardingRulesets converts Microsoft.Network/dnsForwardingRulesets
+// into OSIRIS JSON resources.
 func TransformDNSForwardingRulesets(rulesets []DNSForwardingRuleset, sub SubscriptionInfo) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(rulesets))
 
 	for _, rs := range rulesets {
 		id := resourceID("osiris.azure.dns.forwardingruleset", rs.ID)
-		idMap[rs.ID] = id
+		idMap[armKey(rs.ID)] = id
 
 		prov := azureProvider(rs.ID, "Microsoft.Network/dnsForwardingRulesets", rs.Location, sub)
 
@@ -428,9 +415,6 @@ func TransformDNSForwardingRulesets(rulesets []DNSForwardingRuleset, sub Subscri
 					props["outbound_endpoint_ids"] = epIDs
 				}
 			}
-		} else {
-			r.Status = "active"
-			r.State = "Succeeded"
 		}
 		r.Properties = props
 		attachArmBody(&r, &rs)
@@ -439,30 +423,27 @@ func TransformDNSForwardingRulesets(rulesets []DNSForwardingRuleset, sub Subscri
 	return resources, idMap
 }
 
-// BuildDNSRulesetIDMap builds ARM ID -> OSIRIS JSON resources ID map for DNS forwarding rulesets.
+// BuildDNSRulesetIDMap builds ARM ID -> OSIRIS JSON resources ID map
+// for DNS forwarding rulesets.
 func BuildDNSRulesetIDMap(rulesets []DNSForwardingRuleset) map[string]string {
 	m := make(map[string]string, len(rulesets))
 	for _, rs := range rulesets {
-		m[rs.ID] = resourceID("osiris.azure.dns.forwardingruleset", rs.ID)
+		m[armKey(rs.ID)] = resourceID("osiris.azure.dns.forwardingruleset", rs.ID)
 	}
 	return m
 }
 
-// TransformDNSRulesetToResolverConnections wires each DNS forwarding ruleset to the
-// DNS private resolver(s) it is attached to via outbound endpoints.
+// TransformDNSRulesetToResolverConnections wires each DNS forwarding
+// ruleset to the DNS private resolver(s) it is attached to via
+// outbound endpoints.
 // The outbound endpoint ARM ID encodes the resolver: strip "/outboundEndpoints/{name}"
 // from the endpoint ID to recover the resolver ARM ID.
 func TransformDNSRulesetToResolverConnections(rulesets []DNSForwardingRuleset, rulesetIDMap, resolverIDMap map[string]string) []sdk.Connection {
-	resolverLower := make(map[string]string, len(resolverIDMap))
-	for k, v := range resolverIDMap {
-		resolverLower[strings.ToLower(k)] = v
-	}
-
 	var connections []sdk.Connection
 	seen := map[string]bool{}
 
 	for _, rs := range rulesets {
-		sourceID, ok := rulesetIDMap[rs.ID]
+		sourceID, ok := armLookup(rulesetIDMap, rs.ID)
 		if !ok {
 			continue
 		}
@@ -486,7 +467,7 @@ func TransformDNSRulesetToResolverConnections(rulesets []DNSForwardingRuleset, r
 			}
 			seen[dedup] = true
 
-			targetID, ok := resolverLower[resolverARM]
+			targetID, ok := armLookup(resolverIDMap, resolverARM)
 			if !ok {
 				continue
 			}

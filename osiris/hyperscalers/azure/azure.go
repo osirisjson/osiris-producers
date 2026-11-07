@@ -49,7 +49,7 @@ import (
 
 const (
 	generatorName    = "osirisjson-producer-azure"
-	generatorVersion = "0.5.2"
+	generatorVersion = "0.6.0"
 	generatorURL     = "https://docs.osirisjson.org/osiris-producers/hyperscalers/microsoft-azure/"
 )
 
@@ -74,6 +74,12 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		client = NewClient(p.target.SubscriptionID, ctx.Logger)
 	}
 	client.purpose = p.cfg.Purpose
+	// The Azure ARM body is only emitted using --purpose audit with
+	// --include-raw-body flag (osirismeta.Project strips extensions
+	// otherwise), so capture only then.
+	if p.cfg.IncludeRawBody && p.cfg.Purpose == "audit" {
+		client.raw = newRawStore()
+	}
 	// Inject pre-fetched MG entities from a batch run to avoid N
 	// redundant tenant-scoped API calls (one per subscription,
 	// all returning the same data).
@@ -166,6 +172,7 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	sqlMIResources, sqlMIIDMap := TransformSQLManagedInstances(data.SQLManagedInstances, sub)
 	sqlMIDBResources, sqlMIDBIDMap := TransformSQLMIDatabases(data.SQLManagedInstances, sub)
 	sqlElasticPoolResources, sqlElasticPoolIDMap := TransformSQLElasticPools(data.SQLServers, sub)
+	sqlFailoverGroupResources, sqlFailoverGroupIDMap := TransformSQLFailoverGroups(data.SQLServers, sub)
 	sqlVMResources, sqlVMIDMap := TransformSQLVMs(data.SQLVirtualMachines, sub)
 	logicResources, _ := TransformLogicWorkflows(data.LogicWorkflows, sub)
 	dataFactoryResources, _ := TransformDataFactories(data.DataFactories, sub)
@@ -193,18 +200,25 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 
 	// Network topology connections - the full end-to-end path.
 	//
-	// Layer 1: VNet peering (cross-VNet and cross-subscription connectivity)
+	// Layer 1: VNet peering (cross-VNet and cross-subscription
+	//          connectivity)
 	peeringConns, peeringStubs := TransformVNetPeerings(data.VNetPeerings, vnetIDMap)
 	//
-	// Layer 2: Subnet <-> VNet containment
-	subnetVNetConns := TransformSubnetToVNetConnections(data.Subnets, subnetIDMap, vnetIDMap)
+	// Layer 2: VNet -> Subnet containment
+	subnetVNetConns := TransformVNetToSubnetConnections(data.Subnets, subnetIDMap, vnetIDMap)
 	//
 	// Layer 3: Subnet policy and routing
+	//          (Subnet -> NSG and Subnet -> route table associations)
 	nsgConns := TransformSubnetNSGConnections(data.Subnets, subnetIDMap, nsgIDMap)
 	rtConns := TransformSubnetRouteTableConnections(data.Subnets, subnetIDMap, rtIDMap)
 	//
 	// Layer 4: NIC <-> Subnet (e.g. how VMs attach to the network)
 	nicSubnetConns := TransformNICToSubnetConnections(data.NetworkInterfaces, nicIDMap, subnetIDMap)
+	//
+	// Layer 4a: VM -> NIC containment, NIC -> NSG association, NIC -> public IP
+	vmNICConns := TransformVMToNICConnections(data.VirtualMachines, data.NetworkInterfaces, vmIDMap, nicIDMap)
+	nicNSGConns := TransformNICToNSGConnections(data.NetworkInterfaces, nicIDMap, nsgIDMap)
+	nicPIPConns := TransformNICToPublicIPConnections(data.NetworkInterfaces, nicIDMap, publicIPIDMap)
 	//
 	// Layer 5: Private endpoints (private link connectivity)
 	peSubnetConns := TransformPrivateEndpointToSubnetConnections(data.PrivateEndpoints, subnetIDMap)
@@ -214,12 +228,15 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	lbPIPConns := TransformLBFrontendToPublicIPConnections(data.LoadBalancers, publicIPIDMap)
 	lbSubnetConns := TransformLBToSubnetConnections(data.LoadBalancers, lbIDMap, subnetIDMap)
 	//
+	// Layer 6a: Load balancer -> backend NIC / VMSS (rule-backed pools only)
+	lbBackendConns := TransformLBBackendConnections(data.LoadBalancers, data.NetworkInterfaces, data.VMSSes, lbIDMap, nicIDMap, vmssIDMap)
+	//
 	// Layer 7: VNet gateways (ExpressRoute/VPN ingress)
 	gwSubnetConns := TransformVNetGatewayToSubnetConnections(data.VNetGateways, subnetIDMap)
 	gwPIPConns := TransformVNetGatewayToPublicIPConnections(data.VNetGateways, publicIPIDMap)
 	//
-	// Layer 8: NAT gateways (outbound SNAT)
-	natSubnetConns := TransformNATGatewayToSubnetConnections(data.NATGateways, subnetIDMap)
+	// Layer 8: NAT gateways (outbound SNAT): Subnet -> NAT gateway association
+	natSubnetConns := TransformSubnetToNATGatewayConnections(data.Subnets, data.NATGateways, subnetIDMap)
 	natPIPConns := TransformNATGatewayToPublicIPConnections(data.NATGateways, publicIPIDMap)
 	//
 	// Layer 9: Private DNS zone -> VNet links (stubs for cross-subscription VNets)
@@ -234,19 +251,11 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	// Layer 12: Web App / Function App -> VNet integration subnet
 	webAppSubnetConns := TransformWebAppToSubnetConnections(data.WebApps, webAppIDMap, subnetIDMap)
 	//
-	// Layer 13: Private Endpoint -> Web App / Function App (Private Link binding)
-	peWebAppConns := TransformPEToWebAppConnections(data.WebApps, webAppIDMap, peIDMap)
+	// Layer 15: Source disk/snapshot -> snapshot (dataflow, creation lineage)
+	diskSnapshotConns := TransformDiskToSnapshotConnections(data.Snapshots, snapshotIDMap, diskIDMap)
 	//
-	// Layer 14: Private Endpoint -> Storage Account / Key Vault / Container Registry
-	peStorageConns := TransformPEToStorageConnections(data.StorageAccounts, storageIDMap, peIDMap)
-	peKeyVaultConns := TransformPEToKeyVaultConnections(data.KeyVaults, keyVaultIDMap, peIDMap)
-	peACRConns := TransformPEToContainerRegistryConnections(data.ContainerRegistries, acrIDMap, peIDMap)
-	//
-	// Layer 15: Snapshot -> source disk/snapshot (creation lineage, contains/reverse)
-	snapshotDiskConns := TransformSnapshotToDiskConnections(data.Snapshots, snapshotIDMap, diskIDMap)
-	//
-	// Layer 16: Disk -> VM (managedBy attachment, contains/reverse)
-	diskVMConns := TransformDiskToVMConnections(data.Disks, diskIDMap, vmIDMap)
+	// Layer 16: VM -> Disk (dependency.storage, from VM storage profile and disk managedBy)
+	vmDiskConns := TransformVMToDiskConnections(data.VirtualMachines, data.Disks, vmIDMap, diskIDMap)
 	//
 	// Layer 17: App Insights -> Log Analytics workspace (workspace-based AI only)
 	aiWorkspaceConns := TransformAppInsightsToWorkspaceConnections(data.ApplicationInsights, aiIDMap, laIDMap)
@@ -254,12 +263,10 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	// Layer 18: Web App / Function App -> App Insights (via hidden-link tag)
 	webAppAIConns := TransformWebAppToAppInsightsConnections(data.WebApps, webAppIDMap, aiIDMap)
 	//
-	// Layer 19: Private Endpoint -> Recovery Services Vault
-	peRSVConns := TransformPEToRecoveryServicesVaultConnections(data.RecoveryServicesVaults, rsvIDMap, peIDMap)
-	//
 	// Layer 20: Protected resource -> vault (backup data flow).
-	// Merges every ARM ID -> resource ID map so a backup item's source (VM,
-	// disk, storage account, web/function app, etc.) can be wired to the vault.
+	// Merges every ARM ID -> resource ID map so a backup item's source
+	// (VM, disk, storage account, web/function app, etc.) can be wired
+	// to the vault.
 	backupSrcIDMap := BuildAllResourceIDMap(
 		vmIDMap, diskIDMap, storageIDMap, keyVaultIDMap, acrIDMap,
 		webAppIDMap, snapshotIDMap,
@@ -270,14 +277,10 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	// Layer 21: SQL Server -> SQL Database (contains)
 	sqlServerDBConns := TransformSQLServerContainsDatabaseConnections(data.SQLServers, sqlServerIDMap, sqlDatabaseIDMap)
 	//
-	// Layer 22: Private Endpoint -> SQL Server / Cosmos DB / Redis
-	peSQLConns := TransformPEToSQLServerConnections(data.SQLServers, sqlServerIDMap, peIDMap)
-	peCosmosConns := TransformPEToCosmosAccountConnections(data.CosmosAccounts, cosmosIDMap, peIDMap)
-	peRedisConns := TransformPEToRedisConnections(data.RedisCaches, redisIDMap, peIDMap)
-	//
-	// Layer 23: PG / MySQL flexible server -> delegated subnet (VNet integrated),
-	// Redis Premium -> injected subnet. Combined DB IDs into a single lookup so
-	// the helper can resolve either source type.
+	// Layer 23: PG / MySQL flexible server -> delegated subnet
+	// (VNet integrated), Redis Premium -> injected subnet. Combined DB
+	// IDs into a single lookup so the helper can resolve either
+	// source type.
 	flexServerIDMap := BuildAllResourceIDMap(pgIDMap, mysqlIDMap)
 	flexSubnetConns := TransformFlexServerToSubnetConnections(data.PostgreSQLServers, data.MySQLServers, flexServerIDMap, subnetIDMap)
 	redisSubnetConns := TransformRedisToSubnetConnections(data.RedisCaches, redisIDMap, subnetIDMap)
@@ -288,22 +291,15 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	// Layer 25: AKS node pool -> delegated subnet (network)
 	aksPoolSubnetConns := TransformAKSNodePoolToSubnetConnections(data.AKSClusters, aksPoolIDMap, subnetIDMap)
 	//
-	// Layer 26: Private Endpoint -> AKS cluster (private cluster Private Link)
-	peAKSConns := TransformPEToAKSClusterConnections(data.AKSClusters, aksIDMap, peIDMap)
-	//
 	// Layer 27: Container App Environment -> Container App (contains)
 	envAppConns := TransformContainerEnvContainsAppConnections(data.ContainerApps, containerEnvIDMap, containerAppIDMap)
 	//
-	// Layer 28: Container App Environment -> infrastructure subnet (VNet integrated)
+	// Layer 28: Container App Environment -> infrastructure subnet
+	// 			 (VNet integrated)
 	envSubnetConns := TransformContainerEnvToSubnetConnections(data.ContainerAppEnvironments, containerEnvIDMap, subnetIDMap)
 	//
 	// Layer 29: ACI Container Group -> subnet (VNet integrated)
 	cgSubnetConns := TransformContainerGroupToSubnetConnections(data.ContainerGroups, containerGroupIDMap, subnetIDMap)
-	//
-	// Layer 30: Private Endpoint -> Service Bus / Event Hubs / APIM
-	peServiceBusConns := TransformPEToServiceBusConnections(data.ServiceBusNamespaces, serviceBusIDMap, peIDMap)
-	peEventHubsConns := TransformPEToEventHubsConnections(data.EventHubsNamespaces, eventHubsIDMap, peIDMap)
-	peAPIMConns := TransformPEToAPIMConnections(data.APIMServices, apimIDMap, peIDMap)
 	//
 	// Layer 31: APIM -> subnet (VNet integrated, External / Internal mode)
 	apimSubnetConns := TransformAPIMToSubnetConnections(data.APIMServices, apimIDMap, subnetIDMap)
@@ -311,21 +307,23 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	// Layer 32: Gateway connections (ExpressRoute circuit <-> gateway)
 	allIDMap := BuildAllResourceIDMap(vnetIDMap, subnetIDMap, nicIDMap, nsgIDMap, rtIDMap)
 	for _, gw := range data.VNetGateways {
-		allIDMap[gw.ID] = resourceID("network.gateway", gw.ID)
+		allIDMap[armKey(gw.ID)] = resourceID("network.gateway", gw.ID)
 	}
 	for _, er := range data.ExpressRouteCircuits {
-		allIDMap[er.ID] = resourceID("osiris.azure.expressroute", er.ID)
+		allIDMap[armKey(er.ID)] = resourceID("osiris.azure.expressroute", er.ID)
 	}
 	gwConns, gwStubs := TransformGatewayConnections(data.GatewayConnections, allIDMap)
 	//
-	// Layer 33: Metric Alert -> Action Group (audit only, gated with resources above)
+	// Layer 33: Metric Alert -> Action Group (audit only, gated with
+	// resources above)
 	var alertAGConns []sdk.Connection
 	if p.cfg.Purpose == "audit" {
 		alertAGConns = TransformMetricAlertToActionGroupConnections(data.MetricAlerts, metricAlertIDMap, agIDMap)
 	}
 	//
-	// Layer 34: scope ID map always needed for Traffic Manager (layer 36).
-	// Alert-to-scope connections are audit-only because alerts are audit-only.
+	// Layer 34: scope ID map always needed for Traffic Manager
+	// (layer 36). Alert-to-scope connections are audit-only because
+	// alerts are audit-only.
 	alertScopeIDMap := BuildAllResourceIDMap(
 		vmIDMap, diskIDMap, storageIDMap, keyVaultIDMap, acrIDMap,
 		webAppIDMap, snapshotIDMap,
@@ -362,17 +360,33 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	// Layer 37: DNS private resolver -> bound VNet
 	dnsResolverVNetConns := TransformDNSResolverToVNetConnections(data.DNSPrivateResolvers, dnsResolverIDMap, vnetIDMap)
 	//
-	// Layer 38: DNS forwarding ruleset -> DNS private resolver (via outbound endpoint)
+	// Layer 38: DNS forwarding ruleset -> DNS private resolver
+	// (via outbound endpoint)
 	dnsRulesetResolverConns := TransformDNSRulesetToResolverConnections(data.DNSForwardingRulesets, dnsRulesetIDMap, dnsResolverIDMap)
 	//
 	// Layer 39: Route Server -> RouteServerSubnet and public IP
 	routeServerConns := TransformRouteServerConnections(data.RouteServers, routeServerIDMap, subnetIDMap, publicIPIDMap)
+	//
+	// Layer 39a: Route Server <-> NVA NIC BGP sessions (control plane
+	// only), on a unique peer IP match in the Route Server's VNet or
+	// a peered VNet.
+	nicIPIndex := buildPrivateIPIndex(data.NetworkInterfaces, nil, false)
+	routeServerPeerConns, routeServerPeers := TransformRouteServerPeerConnections(data.RouteServers, data.VNetPeerings, nicIPIndex, routeServerIDMap, nicIDMap)
+	//
+	// Layer 39b: route table -> next-hop NIC / internal load balancer
+	// (configured forwarding intent), on a unique next-hop IP match.
+	nextHopIndex := buildPrivateIPIndex(data.NetworkInterfaces, data.LoadBalancers, true)
+	routeNextHopConns, routeNextHopStats := TransformRouteNextHopConnections(data.RouteTables, data.Subnets, data.VNetPeerings, nextHopIndex, rtIDMap, BuildAllResourceIDMap(nicIDMap, lbIDMap))
+	routeNextHopStats.log(ctx.Logger)
 	//
 	// Layer 40: Availability Set -> member VMs (containment)
 	asetVMConns := TransformAvailabilitySetToVMConnections(data.AvailabilitySets, asetIDMap, vmIDMap)
 	//
 	// Layer 41: VMSS -> subnet (network - scale set NIC config)
 	vmssSubnetConns := TransformVMSSToSubnetConnections(data.VMSSes, vmssIDMap, subnetIDMap)
+	//
+	// Layer 41a: VMSS -> NSG association (scale set NIC config)
+	vmssNSGConns := TransformVMSSToNSGConnections(data.VMSSes, vmssIDMap, nsgIDMap)
 	//
 	// Layer 42: SQL Managed Instance -> subnet (VNet injection)
 	sqlMISubnetConns := TransformSQLMIToSubnetConnections(data.SQLManagedInstances, sqlMIIDMap, subnetIDMap)
@@ -386,11 +400,20 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	// Layer 42c: SQL VM -> underlying Azure VM (dependency)
 	sqlVMToVMConns := TransformSQLVMToVMConnections(data.SQLVirtualMachines, sqlVMIDMap, vmIDMap)
 	//
+	// Layer 42d: SQL database -> elastic pool (dependency)
+	sqlDBPoolConns := TransformSQLDatabaseToElasticPoolConnections(data.SQLServers, sqlDatabaseIDMap, sqlElasticPoolIDMap)
+	//
+	// Layer 42e: SQL failover groups (server contains group,
+	// group contains databases, primary -> secondary server
+	// geo-replication dataflow)
+	sqlFailoverConns := TransformSQLFailoverGroupConnections(data.SQLServers, sqlServerIDMap, sqlFailoverGroupIDMap, sqlDatabaseIDMap)
+	//
 	// Layer 43: DCR -> Log Analytics workspace (dependency - telemetry routing)
 	dcrWorkspaceConns := TransformDCRToWorkspaceConnections(data.DataCollectionRules, dcrIDMap, laIDMap)
 	//
 	// Layer 44: Autoscale -> target resource (dependency - governs scaling)
-	// Build a merged ID map covering all resource types that can be autoscale targets.
+	// Build a merged ID map covering all resource types that can be
+	// autoscale targets.
 	autoscaleScopeIDMap := BuildAllResourceIDMap(vmIDMap, vmssIDMap, aksIDMap, webAppIDMap, aspIDMap)
 	autoscaleTargetConns := TransformAutoscaleToTargetConnections(data.AutoscaleSettings, autoscaleIDMap, autoscaleScopeIDMap)
 	//
@@ -406,10 +429,12 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	subGroup := TransformSubscriptionGroup(sub)
 
 	// Management group hierarchy (tenant-scoped, best-effort).
-	// Finds the ancestor MG chain for this subscription, creates logical.managementgroup
-	// groups, and wires the subscription group as a child of its direct parent MG.
+	// Finds the ancestor MG chain for this subscription, creates
+	// logical.managementgroup groups, and wires the subscription group
+	//as a child of its direct parent MG.
 	mgAncestors, mgPath := buildMGAncestors(data.ManagementGroupEntities, sub.SubscriptionID)
 	mgGroups, _ := TransformManagementGroupGroups(mgAncestors)
+	setTenantName(mgGroups, sub.TenantID, sub.TenantDisplayName)
 	if len(mgPath) > 0 {
 		subGroup.Extensions = map[string]any{
 			extensionNamespace: map[string]any{
@@ -447,7 +472,7 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 			len(pipPrefixResources)+len(asetResources)+
 			// H1
 			len(vmssResources)+len(sqlMIResources)+len(sqlMIDBResources)+
-			len(sqlElasticPoolResources)+len(sqlVMResources)+
+			len(sqlElasticPoolResources)+len(sqlFailoverGroupResources)+len(sqlVMResources)+
 			len(logicResources)+
 			len(dataFactoryResources)+len(synapseResources)+len(commSvcResources)+
 			len(automationResources)+len(arcMachineResources)+
@@ -516,6 +541,7 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	allResources = append(allResources, sqlMIResources...)
 	allResources = append(allResources, sqlMIDBResources...)
 	allResources = append(allResources, sqlElasticPoolResources...)
+	allResources = append(allResources, sqlFailoverGroupResources...)
 	allResources = append(allResources, sqlVMResources...)
 	allResources = append(allResources, logicResources...)
 	allResources = append(allResources, dataFactoryResources...)
@@ -534,11 +560,13 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	allResources = append(allResources, eventGridResources...)
 	allResources = append(allResources, slotResources...)
 	// Merge cross-subscription VNet stubs with deduplication.
-	// The same VNet can appear as a remote peer AND as a DNS zone link target,
-	// producing duplicate IDs. Keep the first occurrence and skip the rest.
+	// The same VNet can appear as a remote peer AND as a DNS zone link
+	// target, producing duplicate IDs. Keep the first occurrence and
+	// skip the rest.
 	{
 		seen := make(map[string]bool)
 		for _, stubs := range [][]sdk.Resource{peeringStubs, gwStubs, dnsVNetStubs} {
+			enrichStubSubscriptionContext(stubs, data.ManagementGroupEntities)
 			for _, s := range stubs {
 				if !seen[s.ID] {
 					seen[s.ID] = true
@@ -548,8 +576,9 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		}
 	}
 
-	// Backfill resource.description for every resource that doesn't have one.
-	// Prefers tags["description"] / tags["Description"]; falls back to "name in rg".
+	// Backfill resource.description for every resource that doesn't
+	// have one. Prefers tags["description"] / tags["Description"];
+	// falls back to "name in rg".
 	for i := range allResources {
 		if allResources[i].Description == "" {
 			rg, _ := allResources[i].Properties["resource_group"].(string)
@@ -557,19 +586,21 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		}
 	}
 
-	// Attach universal osiris.azure extension envelope (arm_id, kind, sku, identity,
-	// timestamps, public_network_access, locks, diag_settings) to every resource.
+	// Attach universal osiris.azure extension envelope (arm_id, kind,
+	// sku, identity, timestamps, public_network_access, locks,
+	// diag_settings) to every resource.
 	for i := range allResources {
 		key := strings.ToLower(allResources[i].Provider.NativeID)
 		attachUniversalEnvelope(&allResources[i], data.GraphEnvelopes[key])
 	}
 
 	// Wire resources to resource groups.
-	WireResourcesToResourceGroups(allResources, rgNameToID, rgGroups)
+	WireResourcesToResourceGroups(allResources, sub.SubscriptionID, rgNameToID, rgGroups)
 
-	// Attach group-scope role assignments (RG / subscription / MG) from bulk list.
-	// Resource-scope RAs are already on individual graph envelopes and projected by
-	// attachUniversalEnvelope above.
+	// Attach group-scope role assignments
+	// (Resource Group / Subscription / Management Group) from bulk list.
+	// Resource-scope RAs are already on individual graph envelopes and
+	// projected by attachUniversalEnvelope above.
 	if p.cfg.Purpose == "audit" && len(data.BulkRoleAssignments) > 0 {
 		// RG scope: match by full ARM ID (case-insensitive).
 		rgIDToName := make(map[string]string, len(data.ResourceGroups))
@@ -580,7 +611,8 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		for i, g := range rgGroups {
 			rgGroupIdx[strings.ToLower(g.Name)] = i
 		}
-		// MG scope: match last path segment (mg.Name) to mgGroups by properties.management_group_id.
+		// MG scope: match last path segment (mg.Name) to mgGroups by
+		// properties.management_group_id.
 		mgIDToIdx := make(map[string]int, len(mgAncestors))
 		for i, mg := range mgAncestors {
 			mgIDToIdx[strings.ToLower(mg.Name)] = i
@@ -659,10 +691,13 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		regions = append(regions, reg)
 	}
 
-	// Build scope name: "SubscriptionID - SubscriptionName".
+	// Build scope name: the subscription display name
+	// The subscription ID is already carried in scope.subscriptions,
+	// so it is only used here as a fallback when Azure return
+	// no display name.
 	scopeName := sub.SubscriptionID
 	if sub.DisplayName != "" {
-		scopeName = sub.SubscriptionID + " - " + sub.DisplayName
+		scopeName = sub.DisplayName
 	}
 
 	// Build scope.
@@ -670,13 +705,17 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	if err != nil {
 		return nil, fmt.Errorf("invalid purpose in config: %w", err)
 	}
+	// scope.accounts is the exported subscription (the standard field;
+	// the same value as provider.account of its resources).
+	// Subscriptions merely referenced by ARM IDs are not added; they
+	// are listed, with their coverage, in the metadata["osiris.azure"]
+	// subscription catalog.
 	scope := sdk.Scope{
-		Name:          scopeName,
-		Purpose:       purpose.String(),
-		Providers:     []string{providerName},
-		Accounts:      []string{sub.TenantID},
-		Subscriptions: []string{sub.SubscriptionID},
-		Regions:       regions,
+		Name:      scopeName,
+		Purpose:   purpose.String(),
+		Providers: []string{providerName},
+		Accounts:  []string{canonicalSubscriptionID(sub.SubscriptionID)},
+		Regions:   regions,
 	}
 	if p.target.Environment != "" {
 		scope.Environments = []string{p.target.Environment}
@@ -686,6 +725,26 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	builder := sdk.NewDocumentBuilder(ctx).
 		WithGenerator(generatorName, generatorVersion, generatorURL).
 		WithScope(scope)
+
+	// One snapshot time for every ARM body, from the run clock.
+	fetchedAt := ctx.Clock().UTC().Format(time.RFC3339)
+	for i := range allResources {
+		if arm, ok := allResources[i].Extensions["osiris.azure.arm"].(map[string]any); ok {
+			arm["fetched_at"] = fetchedAt
+		}
+	}
+	// ARM bodies are emitted only with --include-raw-body under audit
+	// (client.raw set); there every body is redacted and checked.
+	// Otherwise they are removed now, before the builder's fail-closed
+	// secret scan, so a body that would never be emitted cannot
+	// abort the document.
+	if client.raw != nil {
+		applyRawBodies(allResources, client.raw).log(ctx.Logger)
+	} else {
+		for i := range allResources {
+			delete(allResources[i].Extensions, "osiris.azure.arm")
+		}
+	}
 
 	for _, r := range allResources {
 		builder.AddResource(r)
@@ -703,37 +762,29 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	allConns = append(allConns, gwSubnetConns...)
 	allConns = append(allConns, gwPIPConns...)
 	allConns = append(allConns, natSubnetConns...)
+	allConns = append(allConns, lbBackendConns...)
 	allConns = append(allConns, natPIPConns...)
 	allConns = append(allConns, dnsVNetConns...)
 	allConns = append(allConns, nicASGConns...)
 	allConns = append(allConns, planAppConns...)
 	allConns = append(allConns, webAppSubnetConns...)
-	allConns = append(allConns, peWebAppConns...)
-	allConns = append(allConns, peStorageConns...)
-	allConns = append(allConns, peKeyVaultConns...)
-	allConns = append(allConns, peACRConns...)
-	allConns = append(allConns, snapshotDiskConns...)
-	allConns = append(allConns, diskVMConns...)
+	allConns = append(allConns, diskSnapshotConns...)
+	allConns = append(allConns, vmDiskConns...)
+	allConns = append(allConns, vmNICConns...)
+	allConns = append(allConns, nicNSGConns...)
+	allConns = append(allConns, nicPIPConns...)
 	allConns = append(allConns, aiWorkspaceConns...)
 	allConns = append(allConns, webAppAIConns...)
-	allConns = append(allConns, peRSVConns...)
 	allConns = append(allConns, rsvProtectedConns...)
 	allConns = append(allConns, bvInstanceConns...)
 	allConns = append(allConns, sqlServerDBConns...)
-	allConns = append(allConns, peSQLConns...)
-	allConns = append(allConns, peCosmosConns...)
-	allConns = append(allConns, peRedisConns...)
 	allConns = append(allConns, flexSubnetConns...)
 	allConns = append(allConns, redisSubnetConns...)
 	allConns = append(allConns, aksPoolConns...)
 	allConns = append(allConns, aksPoolSubnetConns...)
-	allConns = append(allConns, peAKSConns...)
 	allConns = append(allConns, envAppConns...)
 	allConns = append(allConns, envSubnetConns...)
 	allConns = append(allConns, cgSubnetConns...)
-	allConns = append(allConns, peServiceBusConns...)
-	allConns = append(allConns, peEventHubsConns...)
-	allConns = append(allConns, peAPIMConns...)
 	allConns = append(allConns, apimSubnetConns...)
 	allConns = append(allConns, gwConns...)
 	allConns = append(allConns, alertAGConns...)
@@ -745,11 +796,16 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	allConns = append(allConns, dnsResolverVNetConns...)
 	allConns = append(allConns, dnsRulesetResolverConns...)
 	allConns = append(allConns, routeServerConns...)
+	allConns = append(allConns, routeServerPeerConns...)
+	allConns = append(allConns, routeNextHopConns...)
 	allConns = append(allConns, asetVMConns...)
 	allConns = append(allConns, vmssSubnetConns...)
+	allConns = append(allConns, vmssNSGConns...)
 	allConns = append(allConns, sqlMISubnetConns...)
 	allConns = append(allConns, sqlMIDBConns...)
 	allConns = append(allConns, sqlElasticPoolConns...)
+	allConns = append(allConns, sqlDBPoolConns...)
+	allConns = append(allConns, sqlFailoverConns...)
 	allConns = append(allConns, sqlVMToVMConns...)
 	allConns = append(allConns, dcrWorkspaceConns...)
 	allConns = append(allConns, autoscaleTargetConns...)
@@ -757,37 +813,30 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	allConns = append(allConns, webAppSlotConns...)
 	allConns = append(allConns, TransformFlowLogConnections(data.FlowLogs, nsgIDMap, storageIDMap)...)
 
-	// Layer 41: Resource -> Log Analytics / Storage diagnostic dependency (audit only).
-	// Each diag_settings entry in the graph envelope describes one diagnostic setting
-	// that routes logs/metrics to a workspace or storage account. These edges are
-	// audit-gated because they require the full diagnostic settings Pass 3 collection.
+	// Layer 41: Resource -> Log Analytics / Storage diagnostic
+	// dependency (audit only). Each diag_settings entry in the graph
+	// envelope describes one diagnostic setting that routes
+	// logs/metrics to a workspace or storage account. These edges are
+	// audit-gated because they require the full diagnostic settings
+	// Pass 3 collection.
 	if p.cfg.Purpose == "audit" {
-		laIDMapLow := make(map[string]string, len(laIDMap))
-		for k, v := range laIDMap {
-			laIDMapLow[strings.ToLower(k)] = v
-		}
-		storageIDMapLow := make(map[string]string, len(storageIDMap))
-		for k, v := range storageIDMap {
-			storageIDMapLow[strings.ToLower(k)] = v
-		}
-		// Seed seen set from all connections already built so we don't collide
-		// with existing edges (e.g. App Insights -> workspace is already in aiWorkspaceConns).
+		// Seed seen set from all connections already built so we
+		// don't collide with existing edges (e.g. App Insights -> workspace is already in aiWorkspaceConns).
 		seenConnIDs := make(map[string]struct{}, len(allConns))
 		for _, c := range allConns {
 			seenConnIDs[c.ID] = struct{}{}
 		}
 		for _, r := range allResources {
-			armKey := strings.ToLower(r.Provider.NativeID)
-			env := data.GraphEnvelopes[armKey]
+			env := data.GraphEnvelopes[strings.ToLower(r.Provider.NativeID)]
 			if env == nil {
 				continue
 			}
 			for _, d := range env.DiagSettings {
 				var targetID string
 				if d.WorkspaceID != "" {
-					targetID = laIDMapLow[strings.ToLower(d.WorkspaceID)]
+					targetID, _ = armLookup(laIDMap, d.WorkspaceID)
 				} else if d.StorageID != "" {
-					targetID = storageIDMapLow[strings.ToLower(d.StorageID)]
+					targetID, _ = armLookup(storageIDMap, d.StorageID)
 				}
 				if targetID == "" || targetID == r.ID {
 					continue
@@ -815,9 +864,32 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		}
 	}
 
+	// Every configured Route Server BGP peer, with its resolution.
+	annotateRouteServerPeers(allResources, data.RouteServers, routeServerPeers)
+
+	// Layer 47: Private endpoint -> Private Link target (network),
+	// resolved against every emitted resource so any target type is
+	// covered.
+	docIDMap := make(map[string]string, len(allResources))
+	for _, r := range allResources {
+		docIDMap[armKey(r.Provider.NativeID)] = r.ID
+	}
+	allConns = append(allConns, TransformPrivateEndpointToTargetConnections(data.PrivateEndpoints, peIDMap, docIDMap)...)
+	//
+	// Layer 48: Workload -> user-assigned managed identity
+	// (osiris.azure.identity.assignment), from ARM identity blocks.
+	allConns = append(allConns, TransformIdentityAssignmentConnections(allResources, data.GraphEnvelopes, data.AKSClusters, docIDMap)...)
+	//
+	// Layer 49: Monitored resource -> data collection rule (dataflow),
+	// from data collection rule associations.
+	dcrAssocConns, dcrAssocStats := TransformDCRAssociationConnections(data.DCRAssociations, docIDMap)
+	dcrAssocStats.log(ctx.Logger)
+	allConns = append(allConns, dcrAssocConns...)
+
 	// Backfill connection.tags from source resource.
 	// Connections inherit the source resource's tags so graph consumers
-	// can filter/colour edges by the same ownership/environment labels they use for nodes.
+	// can filter/colour edges by the same ownership/environment labels
+	// they use for nodes.
 	if len(allConns) > 0 {
 		resourceTagMap := make(map[string]map[string]string, len(allResources))
 		for _, r := range allResources {
@@ -833,6 +905,16 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 			}
 		}
 	}
+
+	// Resolve: drop dangling and self-referencing edges and collapse
+	// the same relationship learned from more than one ARM field into a
+	// single connection, before the document builder enforces integrity.
+	resourceIDSet := make(map[string]struct{}, len(allResources))
+	for _, r := range allResources {
+		resourceIDSet[r.ID] = struct{}{}
+	}
+	allConns, relStats := finalizeConnections(allConns, resourceIDSet)
+	relStats.log(ctx.Logger)
 
 	for _, c := range allConns {
 		builder.AddConnection(c)
@@ -854,16 +936,24 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		return nil, fmt.Errorf("document build failed: %w", err)
 	}
 
-	// Strip raw ARM bodies unless the caller opted in. In documentation mode
-	// osirismeta.Project strips all extensions anyway; this handles audit mode.
-	if !p.cfg.IncludeRawBody {
-		for i := range doc.Topology.Resources {
-			delete(doc.Topology.Resources[i].Extensions, "osiris.azure.arm")
-		}
+	// Defense in depth after the builder's fail-closed scan: tag values
+	// and property strings matching an Azure credential format
+	// (SAS signature, storage key, App Insights connection string)
+	// are redacted.
+	if n := redactDocumentValues(doc); n > 0 {
+		ctx.Logger.Info("redacted credential values in tags and properties", "count", n)
 	}
 
-	// Shape the emitted document per OSIRIS JSON spec chapter 13.1.3 based on the declared purpose.
-	// Collection itself is always exhaustive; the projection trims fields.
+	// Subscription catalog (producer extension on metadata), built from
+	// the full document before the purpose projection so it is the same
+	// for every --purpose.
+	doc.Metadata.Extensions = map[string]any{
+		"osiris.azure": buildSubscriptionCatalog(doc, sub, data.ManagementGroupEntities, data.AccessibleSubscriptions, data.TenantNames),
+	}
+
+	// Shape the emitted document per OSIRIS JSON spec chapter 13.1.3
+	// based on the declared purpose. Collection itself is always
+	// exhaustive; the projection trims fields.
 	osirismeta.Project(doc, purpose)
 
 	ctx.Logger.Info("Azure collection complete",
@@ -905,7 +995,8 @@ func Run(args []string) error {
 		return err
 	}
 
-	// Shared timestamp for the entire batch run so all files land in the same directory.
+	// Shared timestamp for the entire batch run so all files land in
+	// the same directory.
 	cfg.Timestamp = FormatTimestamp(time.Now())
 
 	if cfg.IsBatch() {
@@ -915,7 +1006,8 @@ func Run(args []string) error {
 	return runSingle(cfg)
 }
 
-// runSingle executes a single-subscription collection and writes to a local file.
+// runSingle executes a single-subscription collection and writes to a
+// local file.
 // Output filename: microsoft-azure-<timestamp>-<subscription-name>.json
 func runSingle(cfg *Config) error {
 	target := cfg.Targets[0]
@@ -958,10 +1050,11 @@ func runBatch(cfg *Config, logger *slog.Logger) error {
 	)
 
 	// Pre-fetch management group entities once for the whole batch.
-	// az account management-group entities list is tenant-scoped: it returns
-	// identical data regardless of which subscription context is active, so
-	// one call covers all subscriptions in the same tenant. If this fails, each
-	// subscription client falls back to fetching independently.
+	// az account management-group entities list is tenant-scoped: it
+	// returns identical data regardless of which subscription context
+	// is active, so one call covers all subscriptions in the same
+	// tenant. If this fails, each subscription client falls back to
+	// fetching independently.
 	if len(cfg.Targets) > 0 {
 		tmpClient := NewClient(cfg.Targets[0].SubscriptionID, logger)
 		var entities []MGEntity
@@ -976,9 +1069,9 @@ func runBatch(cfg *Config, logger *slog.Logger) error {
 	var succeeded, failed int
 
 	for i, target := range cfg.Targets {
-		// Brief cooldown between subscriptions to let the OS recycle TCP
-		// sockets and file descriptors, preventing connection exhaustion
-		// on large batch runs (hundreds of subscriptions).
+		// Brief cooldown between subscriptions to let the OS recycle
+		// TCP sockets and file descriptors, preventing connection
+		// exhaustion on large batch runs (hundreds of subscriptions).
 		if i > 0 {
 			time.Sleep(5 * time.Second)
 		}
@@ -1120,8 +1213,12 @@ Common flags:
   --safe-failure-mode   Secret handling: fail-closed (default), log-and-redact, off
 ` + osirismeta.PurposeHelp() + `
   --include-raw-body    When combined with --purpose audit, attach the full ARM
-                        response body for each resource under
-                        extensions["osiris.azure.arm"].body (JSON string).
+                        object returned by the az CLI for each resource under
+                        extensions["osiris.azure.arm"].body (JSON string),
+                        including fields still not mapped to OSIRIS JSON. Secrets
+                        are redacted. extensions["osiris.azure.arm"].source is
+                        "arm" for the captured object or "struct" when only
+                        decoded fields are available.
 
 Other:
   osirisjson-producer azure template --generate   Generate a CSV template for batch collection

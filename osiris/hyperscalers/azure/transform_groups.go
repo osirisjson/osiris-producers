@@ -13,9 +13,10 @@ import (
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
-// TransformResourceGroupResources creates OSIRIS JSON resources of type container.resourcegroup
-// for each Azure resource group. Per OSIRIS JSON specification Appendix C.5, resource groups are modeled
-// as resources to enable full provenance tracking.
+// TransformResourceGroupResources creates OSIRIS JSON resources of type
+// container.resourcegroup for each Azure resource group.
+// Per OSIRIS JSON specification Appendix C.5, resource groups are
+// modeled as resources to enable full provenance tracking.
 func TransformResourceGroupResources(rgs []ResourceGroup, sub SubscriptionInfo) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, rg := range rgs {
@@ -30,9 +31,6 @@ func TransformResourceGroupResources(rgs []ResourceGroup, sub SubscriptionInfo) 
 		r.Description = deriveDescription(rg.Name, "", rg.Tags)
 		r.Tags = rg.Tags
 		ps := rg.Properties.ProvisioningState
-		if ps == "" {
-			ps = "Succeeded"
-		}
 		r.Status = mapProvisioningState(ps)
 		r.State = ps
 		r.Properties = map[string]any{
@@ -45,8 +43,8 @@ func TransformResourceGroupResources(rgs []ResourceGroup, sub SubscriptionInfo) 
 }
 
 // OSIRIS JSON Group transforms
-
-// TransformSubscriptionGroup creates an OSIRIS JSON group for the subscription.
+// TransformSubscriptionGroup creates an OSIRIS JSON group for
+// the subscription.
 func TransformSubscriptionGroup(sub SubscriptionInfo) sdk.Group {
 	gid := sdk.GroupID(sdk.GroupIDInput{
 		Type:          "logical.subscription",
@@ -56,11 +54,21 @@ func TransformSubscriptionGroup(sub SubscriptionInfo) sdk.Group {
 	g, _ := sdk.NewGroup(gid, "logical.subscription")
 	g.Name = sub.DisplayName
 	g.Tags = sub.Tags
+	props := map[string]any{"subscription_id": canonicalSubscriptionID(sub.SubscriptionID)}
+	if sub.TenantID != "" {
+		props["tenant_id"] = sub.TenantID
+	}
+	if sub.TenantDisplayName != "" {
+		props["tenant_name"] = sub.TenantDisplayName
+	}
+	g.Properties = props
 	return g
 }
 
-// TransformResourceGroupGroups creates OSIRIS JSON groups for each Azure resource group.
-// Returns the groups and a map of resource group name (lowered) -> group ID for membership wiring.
+// TransformResourceGroupGroups creates OSIRIS JSON groups for each
+// Azure resource group.
+// Returns the groups and a map of resource group name
+// (lowered) -> group ID for membership wiring.
 func TransformResourceGroupGroups(rgs []ResourceGroup, sub SubscriptionInfo) ([]sdk.Group, map[string]string) {
 	var groups []sdk.Group
 	nameToID := make(map[string]string, len(rgs))
@@ -83,11 +91,9 @@ func TransformResourceGroupGroups(rgs []ResourceGroup, sub SubscriptionInfo) ([]
 			"location": rg.Location,
 		}
 		ext := map[string]any{}
-		ps := rg.Properties.ProvisioningState
-		if ps == "" {
-			ps = "Succeeded"
+		if ps := rg.Properties.ProvisioningState; ps != "" {
+			ext["provisioning_state"] = ps
 		}
-		ext["provisioning_state"] = ps
 		if rg.ManagedBy != "" {
 			ext["managed_by"] = rg.ManagedBy
 		}
@@ -97,10 +103,19 @@ func TransformResourceGroupGroups(rgs []ResourceGroup, sub SubscriptionInfo) ([]
 	return groups, nameToID
 }
 
-// WireResourcesToResourceGroups assigns resources as members of their resource group.
-func WireResourcesToResourceGroups(resources []sdk.Resource, rgNameToGroupID map[string]string, rgGroups []sdk.Group) {
+// WireResourcesToResourceGroups assigns resources as members of their
+// resource group.
+// rgGroups are the resource groups of subscriptionID. A resource whose
+// ARM ID belongs to another subscription (e.g. a stub for a remote
+// peered VNet) is never a member, even when its resource group has the
+// same name as a local one: resource group names are unique only
+// within a subscription.
+func WireResourcesToResourceGroups(resources []sdk.Resource, subscriptionID string, rgNameToGroupID map[string]string, rgGroups []sdk.Group) {
 	idx := groupIndex(rgGroups)
 	for _, r := range resources {
+		if owner := extractSubscriptionID(r.Provider.NativeID); owner != "" && !strings.EqualFold(owner, subscriptionID) {
+			continue
+		}
 		rgName := ""
 		if r.Properties != nil {
 			if rg, ok := r.Properties["resource_group"].(string); ok {
@@ -123,7 +138,8 @@ func WireResourcesToResourceGroups(resources []sdk.Resource, rgNameToGroupID map
 	}
 }
 
-// WireResourceGroupsToSubscription adds resource group group IDs as children of the subscription group.
+// WireResourceGroupsToSubscription adds resource group group IDs as
+// children of the subscription group.
 func WireResourceGroupsToSubscription(subGroup *sdk.Group, rgGroups []sdk.Group) {
 	for _, rg := range rgGroups {
 		subGroup.AddChildren(rg.ID)
@@ -131,13 +147,19 @@ func WireResourceGroupsToSubscription(subGroup *sdk.Group, rgGroups []sdk.Group)
 }
 
 // TransformRegionGroups builds one container.region group per distinct
-// provider.region value found on the resources, membering every resource in
-// that region. Region "global" and empty-region resources are skipped -
-// they are not geographically scoped. The boundary token is
-// "<subscription-id>/<region>" so groups do not collide across subscriptions.
+// provider.region value found on the resources, membering every
+// resource in that region. Region "global" and empty-region resources
+// are skipped they are not geographically scoped. The boundary token is
+// "<subscription-id>/<region>" so groups do not collide
+// across subscriptions.
 //
-// OSIRIS JSON spec chapter 6 section 6.5 defines container.region as a standard group type for
-// geographical or regional metadata distribution visualisation.
+// container.region is not one of the standard group type families of
+// OSIRIS JSON spec chapter 6 section 6.2.3; it is a custom group type,
+// which consumers must accept per section 6.2.5.
+// Region is a geographical dimension orthogonal to resource group
+// membership: a resource is a member of both its resource group and
+// its region group, and resource groups are never nested under
+// region groups.
 func TransformRegionGroups(resources []sdk.Resource, sub SubscriptionInfo) []sdk.Group {
 	regions := map[string][]string{}
 	for _, r := range resources {
@@ -165,11 +187,52 @@ func TransformRegionGroups(resources []sdk.Resource, sub SubscriptionInfo) []sdk
 	return groups
 }
 
-// buildMGAncestors extracts the management group ancestry chain for subscriptionID
-// from the flat entity list returned by az account management-group entities list.
-// Returns the ancestor MGEntities ordered root-to-leaf and the display path string
-// (e.g. "Tenant Root Group > IT Hub > Production").
-// Returns nil, "" when the subscription cannot be found or has no parent MGs.
+// enrichStubSubscriptionContext fills the provider context of stub
+// resources (resources referenced from this subscription but owned
+// by another subscription or not discovered here, e.g. a remote peered
+// VNet) from the subscription entries of the management group entity
+// list, which is authoritative for every subscription visible in
+// the tenant.
+//
+// For each stub, provider.account is the owning subscription read
+// from the stub's own ARM ID (set when empty). When that subscription
+// is in the entity list, provider.tenant is set from it. Display names
+// are not put on resources; they belong to the document's subscription
+// catalog.
+// Stubs are never made members of any group: the producer did not
+// discover their resource group or management group placement, and
+// must not imply it.
+// Stubs with no matching entity get no tenant.
+func enrichStubSubscriptionContext(stubs []sdk.Resource, entities []MGEntity) {
+	subs := make(map[string]*MGEntity)
+	for i := range entities {
+		e := &entities[i]
+		if strings.EqualFold(e.Type, "/subscriptions") && e.Name != "" {
+			subs[strings.ToLower(e.Name)] = e
+		}
+	}
+	for i := range stubs {
+		p := &stubs[i].Provider
+		if p.Account == "" {
+			p.Account = extractSubscriptionID(p.NativeID)
+		}
+		p.Account = canonicalSubscriptionID(p.Account)
+		if p.Account == "" {
+			continue
+		}
+		if e, ok := subs[strings.ToLower(p.Account)]; ok && p.Tenant == "" && e.TenantID != "" {
+			p.Tenant = e.TenantID
+		}
+	}
+}
+
+// buildMGAncestors extracts the management group ancestry chain for
+// subscriptionID from the flat entity list returned by az account
+// management-group entities list.
+// Returns the ancestor MGEntities ordered root-to-leaf and the display
+// path string (e.g. "Tenant Root Group > IT Hub > Production").
+// Returns nil, "" when the subscription cannot be found or has
+// no parent MGs.
 func buildMGAncestors(entities []MGEntity, subscriptionID string) ([]MGEntity, []string) {
 	var subEntity *MGEntity
 	for i := range entities {
@@ -191,17 +254,39 @@ func buildMGAncestors(entities []MGEntity, subscriptionID string) ([]MGEntity, [
 		}
 	}
 
+	// A management group the caller cannot read is absent from the
+	// entity list but still named in the subscription's own parent
+	// chains. It is rebuilt from those chains rather than skipped:
+	// skipping would attach its child to the grandparent and assert a
+	// hierarchy Azure did not return.
 	ancestors := make([]MGEntity, 0, len(subEntity.ParentNameChain))
-	for _, name := range subEntity.ParentNameChain {
+	for i, name := range subEntity.ParentNameChain {
 		if e, ok := byName[name]; ok {
 			ancestors = append(ancestors, *e)
+			continue
 		}
+		display := name
+		if i < len(subEntity.ParentDisplayNameChain) && subEntity.ParentDisplayNameChain[i] != "" {
+			display = subEntity.ParentDisplayNameChain[i]
+		}
+		ancestors = append(ancestors, MGEntity{
+			ID:          mgARMIDPrefix + name,
+			Name:        name,
+			DisplayName: display,
+			Type:        "Microsoft.Management/managementGroups",
+			TenantID:    subEntity.TenantID,
+		})
 	}
 	return ancestors, subEntity.ParentDisplayNameChain
 }
 
-// TransformManagementGroupGroups creates OSIRIS JSON logical.managementgroup groups for
-// each management group in the ancestry chain. Groups are ordered root-to-leaf.
+// mgARMIDPrefix is the ARM resource ID prefix of a management group;
+// the group name follows it.
+const mgARMIDPrefix = "/providers/Microsoft.Management/managementGroups/"
+
+// TransformManagementGroupGroups creates OSIRIS JSON logical.managementgroup
+// groups for each management group in the ancestry chain. Groups are
+// ordered root-to-leaf.
 // Returns groups and a name -> groupID map for hierarchy wiring.
 func TransformManagementGroupGroups(ancestors []MGEntity) ([]sdk.Group, map[string]string) {
 	groups := make([]sdk.Group, 0, len(ancestors))
@@ -228,10 +313,27 @@ func TransformManagementGroupGroups(ancestors []MGEntity) ([]sdk.Group, map[stri
 	return groups, nameToID
 }
 
-// WireMGHierarchy wires management group groups into a root-to-leaf parent-child
-// chain and connects the subscription group as a child of the leaf (direct parent) MG.
-// mgGroups must be ordered root-to-leaf. subGroup is the subscription group; the leaf MG
-// gains subGroup.ID as a child so the full hierarchy is: Root MG -> ... -> Leaf MG -> Sub.
+// setTenantName adds properties.tenant_name to every group whose
+// properties.tenant_id is tenantID, when the tenant display name is
+// known. Groups of another tenant, or an unknown name, are
+// left unchanged.
+func setTenantName(groups []sdk.Group, tenantID, tenantName string) {
+	if tenantID == "" || tenantName == "" {
+		return
+	}
+	for i := range groups {
+		if id, _ := groups[i].Properties["tenant_id"].(string); strings.EqualFold(id, tenantID) {
+			groups[i].Properties["tenant_name"] = tenantName
+		}
+	}
+}
+
+// WireMGHierarchy wires management group groups into a root-to-leaf
+// parent-child chain and connects the subscription group as a child
+// of the leaf (direct parent) MG.
+// mgGroups must be ordered root-to-leaf. subGroup is the subscription
+// group; the leaf MG gains subGroup.ID as a child so the full
+// hierarchy is: Root MG -> ... -> Leaf MG -> Sub.
 func WireMGHierarchy(mgGroups []sdk.Group, subGroup *sdk.Group) {
 	if len(mgGroups) == 0 {
 		return
@@ -242,7 +344,8 @@ func WireMGHierarchy(mgGroups []sdk.Group, subGroup *sdk.Group) {
 	mgGroups[len(mgGroups)-1].AddChildren(subGroup.ID)
 }
 
-// groupIndex builds a map of group ID -> index in slice for efficient mutation.
+// groupIndex builds a map of group ID -> index in slice for
+// efficient mutation.
 func groupIndex(groups []sdk.Group) map[string]int {
 	idx := make(map[string]int, len(groups))
 	for i, g := range groups {
@@ -251,7 +354,8 @@ func groupIndex(groups []sdk.Group) map[string]int {
 	return idx
 }
 
-// raToMap converts a RoleAssignment to the canonical map shape used in group extensions.
+// raToMap converts a RoleAssignment to the canonical map shape used
+// in group extensions.
 func raToMap(ra RoleAssignment) map[string]any {
 	m := map[string]any{
 		"role":         ra.RoleName,
@@ -266,7 +370,8 @@ func raToMap(ra RoleAssignment) map[string]any {
 	return m
 }
 
-// appendGroupRA appends a role-assignment map to the group's osiris.azure extension.
+// appendGroupRA appends a role-assignment map to the group's
+// osiris.azure extension.
 func appendGroupRA(g *sdk.Group, ra map[string]any) {
 	if g.Extensions == nil {
 		g.Extensions = make(map[string]any)
