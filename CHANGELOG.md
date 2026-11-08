@@ -41,6 +41,91 @@ OSIRIS JSON core schema itself, see the [OSIRIS JSON Repository](https://github.
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-11-08
+
+Microsoft Azure OSIRIS JSON producer topology enrichment, collection
+fixes and credential redaction (behavior version 0.6.0).
+No other OSIRIS JSON producers changed.
+
+| Producer | Behavior version |
+|----------|------------------|
+| Amazon Web Services OSIRIS JSON producer | 0.1.1 (no change) |
+| Microsoft Azure OSIRIS JSON producer | [0.6.0](osiris/hyperscalers/azure/CHANGELOG.md#060---2026-11-08) |
+| Cisco APIC OSIRIS JSON producer | 0.2.0 (no change) |
+| Cisco IOS-XE OSIRIS JSON producer | 0.1.0 (no change) |
+| Cisco NX-OS OSIRIS JSON producer | 0.2.0 (no change) |
+| Cisco vManage OSIRIS JSON producer | 0.1.0 (no change) |
+| HPE Aruba Networking Central OSIRIS JSON producer | 0.1.0 (no change) |
+
+### Highlights (Microsoft Azure 0.6.0)
+- **Explicit topology:** VM -> NIC, VM -> disk, NIC -> public IP,
+  private endpoint -> Private Link target, load balancer -> backend NIC
+  or VMSS, workload -> user-assigned identity, monitored resource ->
+  data collection rule, SQL database -> elastic pool and SQL failover
+  groups, ExpressRoute gateway <-> circuit with its connection resource,
+  Route Server placement, NVA <-> Route Server BGP sessions and route
+  table -> next-hop NIC / internal load balancer, plus NSG, ASG, route
+  table and NAT gateway associations, all from explicit ARM references
+  or a unique in-scope private IP match. Every connection is checked for
+  referential integrity and deduplicated before the document is built.
+- **Corrected semantics:** VNet -> subnet containment direction, backup,
+  snapshot lineage and Application Insights -> workspace as `dataflow`,
+  ExpressRoute gateway <-> circuit as `network` with connection
+  resources typed by `connectionType`, and no invented `status` /
+  `state`: status values are limited to the schema enum and omitted
+  where Azure reports none.
+- **Collection fixes:** ARM IDs resolved case-insensitively; resource
+  fields of flat az list output and of `az resource list` (null
+  properties) decoded; Key Vault properties, VM power state and the
+  management group chain restored; transient az failures retried.
+- **Identity metadata:** `provider.account` is each resource's owning
+  subscription (from its ARM ID), `metadata.scope.accounts` holds only
+  the exported subscription, and a new `metadata["osiris.azure"]`
+  catalog lists the exported and referenced subscriptions and their
+  tenants, with names only from authoritative sources.
+- **`--include-raw-body`** now attaches the redacted ARM object as
+  returned by az. `metadata.scope.name` is the subscription display name
+  alone.
+- **Security:** Application Insights connection strings stored by the
+  Azure portal in resource tags, SAS signatures and other credential
+  formats are redacted in tags, properties and raw bodies; ExpressRoute
+  circuit service keys are no longer emitted; every attached ARM body,
+  including struct-derived fallbacks, is redacted, and bodies that will
+  not be emitted are removed before the fail-closed scan.
+
+**Breaking** to several connection types, directions and IDs, to
+`status` / `state` of resources Azure reports no state for, and to
+identity metadata: `provider.account` is each resource's own owning
+subscription and `provider.subscription` / `provider.system` are no
+longer emitted; `metadata.scope.accounts` holds the exported
+subscription ID and `metadata.scope.subscriptions` has been replaced;
+tenant and subscription names move to the `metadata["osiris.azure"]`
+subscription catalog; Key Vault no longer duplicates `network_acls` in
+extensions.
+Resource and group IDs are unchanged; connection IDs change only for
+the retyped or redirected connections.
+
+See the [Microsoft Azure 0.6.0 entry](osiris/hyperscalers/azure/CHANGELOG.md#060---2026-11-08)
+for the full list of changes.
+
+### Added
+- `pkg/sdk`: `Metadata.Extensions` emits producer-specific metadata as
+  additional namespaced members (`"osiris.<ns>"`), which OSIRIS JSON
+  schema permits on `metadata`; they are not OSIRIS JSON v1.0 fields.
+  Unset by default, so no other producer's output changes.
+- `testdata/`: shared tree of synthetic fixtures and expected documents
+  for every producer (`osiris/<category>/<vendor>/<scenario>/`), with
+  the approved test data rules; first scenario Microsoft Azure
+  `hub-spoke`, two subscriptions exported as separate documents
+  (`<scenario>/<subscription>/`).
+
+### Changed
+- `scripts/validate-golden.sh` renamed to `scripts/validate_golden.sh`.
+  Expected documents are named `purpose/golden_<purpose>.json`; the
+  script still discovers files named `golden.json`.
+
+---
+
 ## [0.8.0] - 2026-09-01
 
 Cisco APIC producer resource-model, identity, transport,
@@ -570,7 +655,8 @@ Initial SDK release. No producers shipped under this tag.
 - Removed empty `common/` stubs (replaced by `pkg/sdk/`).
 - Updated `.gitignore` for Go.
 
-[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/osirisjson/osiris-producers/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/osirisjson/osiris-producers/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/osirisjson/osiris-producers/compare/v0.6.4...v0.7.0
 [0.6.4]: https://github.com/osirisjson/osiris-producers/compare/v0.6.3...v0.6.4
