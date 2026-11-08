@@ -104,7 +104,10 @@ func TestSQLFailoverGroup(t *testing.T) {
 		t.Errorf("failover group properties = %v", res[0].Properties)
 	}
 
-	conns := TransformSQLFailoverGroupConnections(servers, idMapOf(tSQL, tSQL2), fgIDs, idMapOf(tSQLDB, tSQLDB2))
+	conns, stubs := TransformSQLFailoverGroupConnections(servers, idMapOf(tSQL, tSQL2), fgIDs, idMapOf(tSQLDB, tSQLDB2))
+	if len(stubs) != 0 {
+		t.Errorf("both servers exported, want no stubs, got %+v", stubs)
+	}
 	set := map[string]struct{}{}
 	for _, id := range []string{tSQL, tSQL2, tFG1, tFG2, tSQLDB, tSQLDB2} {
 		set[resourceID("", id)] = struct{}{}
@@ -126,9 +129,48 @@ func TestSQLFailoverGroup(t *testing.T) {
 	// Negative: no roles, no replication edge.
 	fg1[0].Properties.ReplicationRole = ""
 	servers = []SQLServer{{ID: tSQL, Name: "lab-sql01", FailoverGroups: fg1}}
-	for _, c := range TransformSQLFailoverGroupConnections(servers, idMapOf(tSQL, tSQL2), fgIDs, idMapOf(tSQLDB)) {
+	noRoleConns, noRoleStubs := TransformSQLFailoverGroupConnections(servers, idMapOf(tSQL), fgIDs, idMapOf(tSQLDB))
+	for _, c := range noRoleConns {
 		if c.Type == connDataflow {
 			t.Errorf("replication direction must not be guessed without roles: %+v", c)
 		}
+	}
+	if len(noRoleStubs) != 0 {
+		t.Errorf("no replication edge, want no partner stub, got %+v", noRoleStubs)
+	}
+}
+
+func TestSQLFailoverGroupPartnerStub(t *testing.T) {
+	// The partner server lives in another subscription and is not
+	// exported: the replication edge must be kept through a stub.
+	partner := "/subscriptions/00000000-0000-0000-0000-000000000002/resourceGroups/RG-LAB-DR/providers/Microsoft.Sql/servers/lab-sql02"
+	fg := decode[[]SQLFailoverGroup](t, `[{"id":"`+tFG1+`","name":"lab-fg01","replicationRole":"Primary",
+		"partnerServers":[{"id":"`+partner+`","location":"northeurope","replicationRole":"Secondary"},
+		{"id":"`+partner+`/databases/LAB-DB01","replicationRole":"Secondary"}],"databases":["`+tSQLDB+`"]}]`)
+	servers := []SQLServer{{ID: tSQL, Name: "lab-sql01", FailoverGroups: fg}}
+	_, fgIDs := TransformSQLFailoverGroups(servers, SubscriptionInfo{})
+	conns, stubs := TransformSQLFailoverGroupConnections(servers, idMapOf(tSQL), fgIDs, idMapOf(tSQLDB))
+	if len(stubs) != 1 {
+		t.Fatalf("stubs = %+v, want exactly the partner server (a non-server ID is not stubbed)", stubs)
+	}
+	s := stubs[0]
+	if s.ID != resourceID("", partner) || s.Type != "osiris.azure.sqlserver" || s.Name != "lab-sql02" ||
+		s.Provider.Type != "Microsoft.Sql/servers" || s.Provider.Account != "00000000-0000-0000-0000-000000000002" ||
+		s.Provider.Region != "" || s.Status != "unknown" {
+		t.Errorf("stub = %+v", s)
+	}
+	set := map[string]struct{}{resourceID("", tSQL): {}, resourceID("", tFG1): {}, resourceID("", tSQLDB): {}, s.ID: {}}
+	final, _ := finalizeConnections(conns, set)
+	flows := 0
+	for _, c := range final {
+		if c.Type == connDataflow {
+			flows++
+			if c.Source != resourceID("", tSQL) || c.Target != s.ID {
+				t.Errorf("replication must flow primary -> partner stub, got %s -> %s", c.Source, c.Target)
+			}
+		}
+	}
+	if flows != 1 {
+		t.Errorf("dataflow edges = %d, want 1", flows)
 	}
 }

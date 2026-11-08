@@ -405,8 +405,9 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	//
 	// Layer 42e: SQL failover groups (server contains group,
 	// group contains databases, primary -> secondary server
-	// geo-replication dataflow)
-	sqlFailoverConns := TransformSQLFailoverGroupConnections(data.SQLServers, sqlServerIDMap, sqlFailoverGroupIDMap, sqlDatabaseIDMap)
+	// geo-replication dataflow; stubs for partner servers outside
+	// the export)
+	sqlFailoverConns, sqlFailoverStubs := TransformSQLFailoverGroupConnections(data.SQLServers, sqlServerIDMap, sqlFailoverGroupIDMap, sqlDatabaseIDMap)
 	//
 	// Layer 43: DCR -> Log Analytics workspace (dependency - telemetry routing)
 	dcrWorkspaceConns := TransformDCRToWorkspaceConnections(data.DataCollectionRules, dcrIDMap, laIDMap)
@@ -559,13 +560,14 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	allResources = append(allResources, streamAnalyticsResources...)
 	allResources = append(allResources, eventGridResources...)
 	allResources = append(allResources, slotResources...)
-	// Merge cross-subscription VNet stubs with deduplication.
+	// Merge cross-subscription stubs (VNets, gateway peers, SQL
+	// failover partner servers) with deduplication.
 	// The same VNet can appear as a remote peer AND as a DNS zone link
 	// target, producing duplicate IDs. Keep the first occurrence and
 	// skip the rest.
 	{
 		seen := make(map[string]bool)
-		for _, stubs := range [][]sdk.Resource{peeringStubs, gwStubs, dnsVNetStubs} {
+		for _, stubs := range [][]sdk.Resource{peeringStubs, gwStubs, dnsVNetStubs, sqlFailoverStubs} {
 			enrichStubSubscriptionContext(stubs, data.ManagementGroupEntities)
 			for _, s := range stubs {
 				if !seen[s.ID] {

@@ -1119,8 +1119,46 @@ func TransformSQLFailoverGroups(servers []SQLServer, sub SubscriptionInfo) ([]sd
 //     from the group's replicationRole and its partnerServers roles.
 //
 // The same replication seen from both servers yields one connection ID.
-func TransformSQLFailoverGroupConnections(servers []SQLServer, serverIDMap, fgIDMap, dbIDMap map[string]string) []sdk.Connection {
+//
+// A partner server outside the export (typical in another subscription
+// or region) gets a stub resource, the same pattern as gateway
+// connection peers, so the replication edge is kept instead of being
+// dropped. A stub is only created when a replication edge is emitted
+// for it, and carries no region or group placement: only what the
+// partner ARM ID states. Returns connections and stubs.
+func TransformSQLFailoverGroupConnections(servers []SQLServer, serverIDMap, fgIDMap, dbIDMap map[string]string) ([]sdk.Connection, []sdk.Resource) {
 	var connections []sdk.Connection
+	var stubs []sdk.Resource
+	stubSeen := map[string]bool{}
+	// partner resolves a partner server ARM ID to its OSIRIS JSON
+	// resource ID, creating a stub when the server is not exported.
+	partner := func(armID string) (string, bool) {
+		if id, ok := armLookup(serverIDMap, armID); ok {
+			return id, true
+		}
+		if !isSQLServerARMID(armID) {
+			return "", false
+		}
+		id := resourceID("osiris.azure.sqlserver", armID)
+		if !stubSeen[id] {
+			stubSeen[id] = true
+			prov := sdk.Provider{
+				Name:     providerName,
+				NativeID: armID,
+				Type:     "Microsoft.Sql/servers",
+				Account:  canonicalSubscriptionID(extractSubscriptionID(armID)),
+				Source:   "azure-cli",
+			}
+			stub, err := sdk.NewResource(id, "osiris.azure.sqlserver", prov)
+			if err != nil {
+				return "", false
+			}
+			stub.Name = extractLastSegment(armID)
+			stub.Status = "unknown"
+			stubs = append(stubs, stub)
+		}
+		return id, true
+	}
 	add := func(connType, src, dst, name string, props map[string]any) {
 		if conn, ok := newEdge(connType, src, dst, name); ok {
 			conn.Properties = props
@@ -1150,19 +1188,37 @@ func TransformSQLFailoverGroupConnections(servers []SQLServer, serverIDMap, fgID
 				continue
 			}
 			for _, ps := range p.PartnerServers {
-				partnerID, ok := armLookup(serverIDMap, ps.ID)
+				primary := strings.EqualFold(p.ReplicationRole, "Primary") && strings.EqualFold(ps.ReplicationRole, "Secondary")
+				secondary := strings.EqualFold(p.ReplicationRole, "Secondary") && strings.EqualFold(ps.ReplicationRole, "Primary")
+				if !primary && !secondary {
+					continue
+				}
+				partnerID, ok := partner(ps.ID)
 				if !ok {
 					continue
 				}
 				props := map[string]any{"failover_group": fg.Name}
-				switch {
-				case strings.EqualFold(p.ReplicationRole, "Primary") && strings.EqualFold(ps.ReplicationRole, "Secondary"):
+				if primary {
 					add(connDataflow, serverID, partnerID, fmt.Sprintf("%s -> %s", s.Name, extractLastSegment(ps.ID)), props)
-				case strings.EqualFold(p.ReplicationRole, "Secondary") && strings.EqualFold(ps.ReplicationRole, "Primary"):
+				} else {
 					add(connDataflow, partnerID, serverID, fmt.Sprintf("%s -> %s", extractLastSegment(ps.ID), s.Name), props)
 				}
 			}
 		}
 	}
-	return connections
+	return connections, stubs
+}
+
+// isSQLServerARMID reports whether armID names a
+// Microsoft.Sql/servers resource itself (not a child such as a
+// database or failover group).
+func isSQLServerARMID(armID string) bool {
+	const marker = "/providers/microsoft.sql/servers/"
+	lower := strings.ToLower(armID)
+	idx := strings.Index(lower, marker)
+	if idx < 0 || !strings.HasPrefix(lower, "/subscriptions/") {
+		return false
+	}
+	name := armID[idx+len(marker):]
+	return name != "" && !strings.Contains(name, "/")
 }
