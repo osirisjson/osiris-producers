@@ -1,0 +1,38 @@
+[
+  {
+    "circuitProvisioningState": "Enabled",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/expressRouteCircuits/LAB-HUB-ER01",
+    "location": "westeurope",
+    "name": "LAB-HUB-ER01",
+    "peerings": [
+      {
+        "name": "AzurePrivatePeering",
+        "peerASN": 64500,
+        "peeringType": "AzurePrivatePeering",
+        "primaryPeerAddressPrefix": "203.0.113.248/30",
+        "secondaryPeerAddressPrefix": "203.0.113.252/30",
+        "state": "Enabled",
+        "vlanId": 100
+      }
+    ],
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-HUB-NET",
+    "serviceKey": "00000000-0000-0000-0000-00000000beef",
+    "serviceProviderProperties": {
+      "bandwidthInMbps": 1000,
+      "peeringLocation": "MXP",
+      "serviceProviderName": "LAB-PROVIDER"
+    },
+    "serviceProviderProvisioningState": "Provisioned",
+    "sku": {
+      "family": "MeteredData",
+      "name": "Standard_MeteredData",
+      "tier": "Standard"
+    },
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Network/expressRouteCircuits"
+  }
+]

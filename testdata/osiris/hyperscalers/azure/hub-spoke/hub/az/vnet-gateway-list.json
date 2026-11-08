@@ -1,0 +1,39 @@
+[
+  {
+    "activeActive": false,
+    "allowRemoteVnetTraffic": true,
+    "allowVirtualWanTraffic": false,
+    "enableBgp": false,
+    "gatewayType": "ExpressRoute",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworkGateways/LAB-HUB-ERGW",
+    "ipConfigurations": [
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworkGateways/LAB-HUB-ERGW/ipConfigurations/default",
+        "name": "default",
+        "privateIPAllocationMethod": "Dynamic",
+        "publicIPAddress": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ERGW-PIP",
+          "resourceGroup": "RG-HUB-NET"
+        },
+        "subnet": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/GatewaySubnet",
+          "resourceGroup": "RG-HUB-NET"
+        }
+      }
+    ],
+    "location": "westeurope",
+    "name": "LAB-HUB-ERGW",
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-HUB-NET",
+    "sku": {
+      "name": "ErGw1AZ",
+      "tier": "ErGw1AZ"
+    },
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Network/virtualNetworkGateways",
+    "vpnType": "RouteBased"
+  }
+]

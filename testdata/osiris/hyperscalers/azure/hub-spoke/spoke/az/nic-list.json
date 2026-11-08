@@ -1,0 +1,224 @@
+[
+  {
+    "enableAcceleratedNetworking": false,
+    "enableIPForwarding": false,
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Network/networkInterfaces/LAB-APP01-nic",
+    "ipConfigurations": [
+      {
+        "applicationSecurityGroups": [
+          {
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/applicationSecurityGroups/LAB-ASG-APP",
+            "resourceGroup": "RG-SPOKE-NET"
+          }
+        ],
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Network/networkInterfaces/LAB-APP01-nic/ipConfigurations/ipconfig1",
+        "name": "ipconfig1",
+        "primary": true,
+        "privateIPAddress": "198.51.100.4",
+        "privateIPAddressVersion": "IPv4",
+        "privateIPAllocationMethod": "Static",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-SPOKE-APP",
+        "subnet": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-APP",
+          "resourceGroup": "RG-SPOKE-NET"
+        },
+        "type": "Microsoft.Network/networkInterfaces/ipConfigurations"
+      }
+    ],
+    "location": "westeurope",
+    "name": "LAB-APP01-nic",
+    "primary": true,
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-SPOKE-APP",
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Network/networkInterfaces",
+    "virtualMachine": {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Compute/virtualMachines/LAB-APP01",
+      "resourceGroup": "RG-SPOKE-APP"
+    }
+  },
+  {
+    "enableAcceleratedNetworking": false,
+    "enableIPForwarding": false,
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Network/networkInterfaces/LAB-SQLVM01-nic",
+    "ipConfigurations": [
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Network/networkInterfaces/LAB-SQLVM01-nic/ipConfigurations/ipconfig1",
+        "name": "ipconfig1",
+        "primary": true,
+        "privateIPAddress": "198.51.100.164",
+        "privateIPAddressVersion": "IPv4",
+        "privateIPAllocationMethod": "Static",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-SPOKE-DATA",
+        "subnet": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-DATA",
+          "resourceGroup": "RG-SPOKE-NET"
+        },
+        "type": "Microsoft.Network/networkInterfaces/ipConfigurations"
+      }
+    ],
+    "location": "westeurope",
+    "name": "LAB-SQLVM01-nic",
+    "primary": true,
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-SPOKE-DATA",
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Network/networkInterfaces",
+    "virtualMachine": {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Compute/virtualMachines/LAB-SQLVM01",
+      "resourceGroup": "RG-SPOKE-DATA"
+    }
+  },
+  {
+    "enableAcceleratedNetworking": false,
+    "enableIPForwarding": false,
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-WEB01-nic",
+    "ipConfigurations": [
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-WEB01-nic/ipConfigurations/ipconfig1",
+        "name": "ipconfig1",
+        "primary": true,
+        "privateIPAddress": "198.51.100.68",
+        "privateIPAddressVersion": "IPv4",
+        "privateIPAllocationMethod": "Dynamic",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-SPOKE-NET",
+        "subnet": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-PE",
+          "resourceGroup": "RG-SPOKE-NET"
+        },
+        "type": "Microsoft.Network/networkInterfaces/ipConfigurations"
+      }
+    ],
+    "location": "westeurope",
+    "name": "LAB-PE-WEB01-nic",
+    "primary": true,
+    "privateEndpoint": {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-WEB01",
+      "resourceGroup": "RG-SPOKE-NET"
+    },
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-SPOKE-NET",
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Network/networkInterfaces"
+  },
+  {
+    "enableAcceleratedNetworking": false,
+    "enableIPForwarding": false,
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-KV01-nic",
+    "ipConfigurations": [
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-KV01-nic/ipConfigurations/ipconfig1",
+        "name": "ipconfig1",
+        "primary": true,
+        "privateIPAddress": "198.51.100.69",
+        "privateIPAddressVersion": "IPv4",
+        "privateIPAllocationMethod": "Dynamic",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-SPOKE-NET",
+        "subnet": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-PE",
+          "resourceGroup": "RG-SPOKE-NET"
+        },
+        "type": "Microsoft.Network/networkInterfaces/ipConfigurations"
+      }
+    ],
+    "location": "westeurope",
+    "name": "LAB-PE-KV01-nic",
+    "primary": true,
+    "privateEndpoint": {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-KV01",
+      "resourceGroup": "RG-SPOKE-NET"
+    },
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-SPOKE-NET",
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Network/networkInterfaces"
+  },
+  {
+    "enableAcceleratedNetworking": false,
+    "enableIPForwarding": false,
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-SA01-nic",
+    "ipConfigurations": [
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-SA01-nic/ipConfigurations/ipconfig1",
+        "name": "ipconfig1",
+        "primary": true,
+        "privateIPAddress": "198.51.100.70",
+        "privateIPAddressVersion": "IPv4",
+        "privateIPAllocationMethod": "Dynamic",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-SPOKE-NET",
+        "subnet": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-PE",
+          "resourceGroup": "RG-SPOKE-NET"
+        },
+        "type": "Microsoft.Network/networkInterfaces/ipConfigurations"
+      }
+    ],
+    "location": "westeurope",
+    "name": "LAB-PE-SA01-nic",
+    "primary": true,
+    "privateEndpoint": {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-SA01",
+      "resourceGroup": "RG-SPOKE-NET"
+    },
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-SPOKE-NET",
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Network/networkInterfaces"
+  },
+  {
+    "enableAcceleratedNetworking": false,
+    "enableIPForwarding": false,
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-ACR01-nic",
+    "ipConfigurations": [
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-ACR01-nic/ipConfigurations/ipconfig1",
+        "name": "ipconfig1",
+        "primary": true,
+        "privateIPAddress": "198.51.100.71",
+        "privateIPAddressVersion": "IPv4",
+        "privateIPAllocationMethod": "Dynamic",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-SPOKE-NET",
+        "subnet": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-PE",
+          "resourceGroup": "RG-SPOKE-NET"
+        },
+        "type": "Microsoft.Network/networkInterfaces/ipConfigurations"
+      }
+    ],
+    "location": "westeurope",
+    "name": "LAB-PE-ACR01-nic",
+    "primary": true,
+    "privateEndpoint": {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-ACR01",
+      "resourceGroup": "RG-SPOKE-NET"
+    },
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-SPOKE-NET",
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Network/networkInterfaces"
+  }
+]

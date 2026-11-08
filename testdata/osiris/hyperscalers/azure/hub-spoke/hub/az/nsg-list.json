@@ -1,0 +1,40 @@
+[
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
+    "location": "westeurope",
+    "name": "LAB-HUB-NSG",
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-HUB-NET",
+    "securityRules": [
+      {
+        "access": "Allow",
+        "destinationAddressPrefix": "*",
+        "destinationPortRange": "*",
+        "direction": "Inbound",
+        "name": "LAB-ALLOW-SPOKE",
+        "priority": 100,
+        "protocol": "Tcp",
+        "provisioningState": "Succeeded",
+        "sourceAddressPrefix": "198.51.100.0/24",
+        "sourcePortRange": "*"
+      },
+      {
+        "access": "Allow",
+        "destinationAddressPrefix": "*",
+        "destinationPortRange": "22",
+        "direction": "Inbound",
+        "name": "LAB-ALLOW-MGMT-SSH",
+        "priority": 110,
+        "protocol": "Tcp",
+        "provisioningState": "Succeeded",
+        "sourceAddressPrefix": "192.0.2.32/27",
+        "sourcePortRange": "*"
+      }
+    ],
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Network/networkSecurityGroups"
+  }
+]

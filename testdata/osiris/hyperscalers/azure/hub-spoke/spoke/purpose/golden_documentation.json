@@ -1,0 +1,1576 @@
+{
+  "$schema": "https://osirisjson.org/schema/v1.0/osiris.schema.json",
+  "version": "1.0.0",
+  "metadata": {
+    "timestamp": "2026-01-01T00:00:00Z",
+    "generator": {
+      "name": "osirisjson-producer-azure",
+      "version": "0.6.0",
+      "url": "https://docs.osirisjson.org/osiris-producers/hyperscalers/microsoft-azure/"
+    },
+    "scope": {
+      "name": "LAB-SPOKE-SUB",
+      "purpose": "documentation",
+      "providers": [
+        "azure"
+      ],
+      "accounts": [
+        "00000000-0000-0000-0000-000000000012"
+      ],
+      "regions": [
+        "westeurope"
+      ]
+    },
+    "osiris.azure": {
+      "tenants": {
+        "00000000-0000-0000-0000-0000000000aa": {
+          "name": "LAB-TENANT"
+        }
+      },
+      "subscriptions": {
+        "00000000-0000-0000-0000-000000000011": {
+          "coverage": "reference_only",
+          "name": "LAB-HUB-SUB",
+          "tenant_id": "00000000-0000-0000-0000-0000000000aa"
+        },
+        "00000000-0000-0000-0000-000000000012": {
+          "coverage": "exported",
+          "name": "LAB-SPOKE-SUB",
+          "tenant_id": "00000000-0000-0000-0000-0000000000aa"
+        }
+      }
+    }
+  },
+  "topology": {
+    "resources": [
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
+        "type": "network.vpc",
+        "name": "LAB-HUB-VNET",
+        "description": "LAB-HUB-VNET",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
+          "account": "00000000-0000-0000-0000-000000000011",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Network/virtualNetworks"
+        },
+        "status": "unknown"
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP",
+        "type": "container.resourcegroup",
+        "name": "RG-SPOKE-APP",
+        "description": "RG-SPOKE-APP",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Resources/resourceGroups",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-07-01"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Compute/disks/LAB-APP01-os",
+        "type": "storage.volume",
+        "name": "LAB-APP01-os",
+        "description": "LAB-APP01-os in RG-SPOKE-APP",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Compute/disks/LAB-APP01-os",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Compute/disks",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-03-02"
+        },
+        "status": "active",
+        "state": "Attached",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Compute/virtualMachines/LAB-APP01",
+        "type": "compute.vm",
+        "name": "LAB-APP01",
+        "description": "LAB-APP01 in RG-SPOKE-APP",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Compute/virtualMachines/LAB-APP01",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Compute/virtualMachines",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-07-01"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.ContainerRegistry/registries/labspokeacr01",
+        "type": "osiris.azure.containerregistry",
+        "name": "labspokeacr01",
+        "description": "labspokeacr01 in RG-SPOKE-APP",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.ContainerRegistry/registries/labspokeacr01",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.ContainerRegistry/registries",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2023-11-01-preview"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Logic/workflows/LAB-SPOKE-LOGIC01",
+        "type": "osiris.azure.logic.workflow",
+        "name": "LAB-SPOKE-LOGIC01",
+        "description": "LAB-SPOKE-LOGIC01 in RG-SPOKE-APP",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Logic/workflows/LAB-SPOKE-LOGIC01",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Logic/workflows",
+          "region": "westeurope",
+          "source": "azure-cli"
+        },
+        "status": "active",
+        "state": "Enabled",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.ManagedIdentity/userAssignedIdentities/LAB-SPOKE-UAMI01",
+        "type": "osiris.azure.managedidentity",
+        "name": "LAB-SPOKE-UAMI01",
+        "description": "LAB-SPOKE-UAMI01 in RG-SPOKE-APP",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.ManagedIdentity/userAssignedIdentities/LAB-SPOKE-UAMI01",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2023-07-31-preview"
+        },
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Network/networkInterfaces/LAB-APP01-nic",
+        "type": "network.interface",
+        "name": "LAB-APP01-nic",
+        "description": "LAB-APP01-nic in RG-SPOKE-APP",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Network/networkInterfaces/LAB-APP01-nic",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Network/networkInterfaces",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-05-01"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.OperationalInsights/workspaces/LAB-SPOKE-LA01",
+        "type": "osiris.azure.loganalytics",
+        "name": "LAB-SPOKE-LA01",
+        "description": "LAB-SPOKE-LA01 in RG-SPOKE-APP",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.OperationalInsights/workspaces/LAB-SPOKE-LA01",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.OperationalInsights/workspaces",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2023-09-01"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.RecoveryServices/vaults/LAB-SPOKE-RSV01",
+        "type": "osiris.azure.recoveryservicesvault",
+        "name": "LAB-SPOKE-RSV01",
+        "description": "LAB-SPOKE-RSV01 in RG-SPOKE-APP",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.RecoveryServices/vaults/LAB-SPOKE-RSV01",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.RecoveryServices/vaults",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-04-01"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/connections/LAB-SPOKE-APICONN01",
+        "type": "osiris.azure.logic.apiconnection",
+        "name": "LAB-SPOKE-APICONN01",
+        "description": "LAB-SPOKE-APICONN01 in RG-SPOKE-APP",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/connections/LAB-SPOKE-APICONN01",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Web/connections",
+          "region": "westeurope",
+          "source": "azure-cli"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/serverfarms/LAB-ASP01",
+        "type": "osiris.azure.appserviceplan",
+        "name": "LAB-ASP01",
+        "description": "LAB-ASP01 in RG-SPOKE-APP",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/serverfarms/LAB-ASP01",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Web/serverfarms",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-04-01"
+        },
+        "status": "active",
+        "state": "Ready",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/sites/LAB-WEB01",
+        "type": "application.service",
+        "name": "LAB-WEB01",
+        "description": "LAB-WEB01 in RG-SPOKE-APP",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/sites/LAB-WEB01",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Web/sites",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-04-01"
+        },
+        "status": "active",
+        "state": "Running",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/microsoft.insights/autoscalesettings/LAB-ASP01-AUTOSCALE",
+        "type": "osiris.azure.monitor.autoscale",
+        "name": "LAB-ASP01-AUTOSCALE",
+        "description": "LAB-ASP01-AUTOSCALE in RG-SPOKE-APP",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/microsoft.insights/autoscalesettings/LAB-ASP01-AUTOSCALE",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Insights/autoscalesettings",
+          "region": "westeurope",
+          "source": "azure-cli"
+        },
+        "status": "active",
+        "state": "Enabled",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA",
+        "type": "container.resourcegroup",
+        "name": "RG-SPOKE-DATA",
+        "description": "RG-SPOKE-DATA",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Resources/resourceGroups",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-07-01"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Compute/disks/LAB-SQLVM01-os",
+        "type": "storage.volume",
+        "name": "LAB-SQLVM01-os",
+        "description": "LAB-SQLVM01-os in RG-SPOKE-DATA",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Compute/disks/LAB-SQLVM01-os",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Compute/disks",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-03-02"
+        },
+        "status": "active",
+        "state": "Attached",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Compute/virtualMachines/LAB-SQLVM01",
+        "type": "compute.vm",
+        "name": "LAB-SQLVM01",
+        "description": "LAB-SQLVM01 in RG-SPOKE-DATA",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Compute/virtualMachines/LAB-SQLVM01",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Compute/virtualMachines",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-07-01"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.DataFactory/factories/LAB-SPOKE-ADF01",
+        "type": "osiris.azure.datafactory",
+        "name": "LAB-SPOKE-ADF01",
+        "description": "LAB-SPOKE-ADF01 in RG-SPOKE-DATA",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.DataFactory/factories/LAB-SPOKE-ADF01",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.DataFactory/factories",
+          "region": "westeurope",
+          "source": "azure-cli"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.KeyVault/vaults/LAB-SPOKE-KV01",
+        "type": "osiris.azure.keyvault",
+        "name": "LAB-SPOKE-KV01",
+        "description": "LAB-SPOKE-KV01 in RG-SPOKE-DATA",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.KeyVault/vaults/LAB-SPOKE-KV01",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.KeyVault/vaults",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2023-07-01"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Network/networkInterfaces/LAB-SQLVM01-nic",
+        "type": "network.interface",
+        "name": "LAB-SQLVM01-nic",
+        "description": "LAB-SQLVM01-nic in RG-SPOKE-DATA",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Network/networkInterfaces/LAB-SQLVM01-nic",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Network/networkInterfaces",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-05-01"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Sql/managedInstances/lab-sqlmi01",
+        "type": "osiris.azure.sqlmi",
+        "name": "lab-sqlmi01",
+        "description": "lab-sqlmi01 in RG-SPOKE-DATA",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Sql/managedInstances/lab-sqlmi01",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Sql/managedInstances",
+          "region": "westeurope",
+          "source": "azure-cli"
+        },
+        "status": "active",
+        "state": "Ready",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Sql/managedInstances/lab-sqlmi01/databases/LAB-DB01",
+        "type": "application.database",
+        "name": "LAB-DB01",
+        "description": "LAB-DB01 in RG-SPOKE-DATA",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Sql/managedInstances/lab-sqlmi01/databases/LAB-DB01",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Sql/managedInstances/databases",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2023-08-01"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.SqlVirtualMachine/SqlVirtualMachines/LAB-SQLVM01",
+        "type": "osiris.azure.sqlvm",
+        "name": "LAB-SQLVM01",
+        "description": "LAB-SQLVM01 in RG-SPOKE-DATA",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.SqlVirtualMachine/SqlVirtualMachines/LAB-SQLVM01",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.SqlVirtualMachine/SqlVirtualMachines",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2023-10-01"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Storage/storageAccounts/labspokesa01",
+        "type": "osiris.azure.storage",
+        "name": "labspokesa01",
+        "description": "labspokesa01 in RG-SPOKE-DATA",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Storage/storageAccounts/labspokesa01",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Storage/storageAccounts",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2023-05-01"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET",
+        "type": "container.resourcegroup",
+        "name": "RG-SPOKE-NET",
+        "description": "RG-SPOKE-NET",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Resources/resourceGroups",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-07-01"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/applicationSecurityGroups/LAB-ASG-APP",
+        "type": "osiris.azure.asg",
+        "name": "LAB-ASG-APP",
+        "description": "LAB-ASG-APP in RG-SPOKE-NET",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/applicationSecurityGroups/LAB-ASG-APP",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Network/applicationSecurityGroups",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-05-01"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-ACR01-nic",
+        "type": "network.interface",
+        "name": "LAB-PE-ACR01-nic",
+        "description": "LAB-PE-ACR01-nic in RG-SPOKE-NET",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-ACR01-nic",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Network/networkInterfaces",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-05-01"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-KV01-nic",
+        "type": "network.interface",
+        "name": "LAB-PE-KV01-nic",
+        "description": "LAB-PE-KV01-nic in RG-SPOKE-NET",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-KV01-nic",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Network/networkInterfaces",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-05-01"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-SA01-nic",
+        "type": "network.interface",
+        "name": "LAB-PE-SA01-nic",
+        "description": "LAB-PE-SA01-nic in RG-SPOKE-NET",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-SA01-nic",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Network/networkInterfaces",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-05-01"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-WEB01-nic",
+        "type": "network.interface",
+        "name": "LAB-PE-WEB01-nic",
+        "description": "LAB-PE-WEB01-nic in RG-SPOKE-NET",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-WEB01-nic",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Network/networkInterfaces",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-05-01"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-SPOKE-NSG",
+        "type": "network.security.group",
+        "name": "LAB-SPOKE-NSG",
+        "description": "LAB-SPOKE-NSG in RG-SPOKE-NET",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-SPOKE-NSG",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Network/networkSecurityGroups",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-05-01"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-ACR01",
+        "type": "network.endpoint",
+        "name": "LAB-PE-ACR01",
+        "description": "LAB-PE-ACR01 in RG-SPOKE-NET",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-ACR01",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Network/privateEndpoints",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-05-01"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-KV01",
+        "type": "network.endpoint",
+        "name": "LAB-PE-KV01",
+        "description": "LAB-PE-KV01 in RG-SPOKE-NET",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-KV01",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Network/privateEndpoints",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-05-01"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-SA01",
+        "type": "network.endpoint",
+        "name": "LAB-PE-SA01",
+        "description": "LAB-PE-SA01 in RG-SPOKE-NET",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-SA01",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Network/privateEndpoints",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-05-01"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-WEB01",
+        "type": "network.endpoint",
+        "name": "LAB-PE-WEB01",
+        "description": "LAB-PE-WEB01 in RG-SPOKE-NET",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-WEB01",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Network/privateEndpoints",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-05-01"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/routeTables/LAB-SPOKE-RT",
+        "type": "osiris.azure.routetable",
+        "name": "LAB-SPOKE-RT",
+        "description": "LAB-SPOKE-RT in RG-SPOKE-NET",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/routeTables/LAB-SPOKE-RT",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Network/routeTables",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-05-01"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET",
+        "type": "network.vpc",
+        "name": "LAB-SPOKE-VNET",
+        "description": "LAB-SPOKE-VNET in RG-SPOKE-NET",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Network/virtualNetworks",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-05-01"
+        },
+        "status": "active",
+        "state": "Succeeded",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-APP",
+        "type": "network.subnet",
+        "name": "LAB-SNET-APP",
+        "description": "LAB-SNET-APP in RG-SPOKE-NET",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-APP",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Network/virtualNetworks/subnets",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-05-01"
+        },
+        "status": "active",
+        "state": "Succeeded"
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-DATA",
+        "type": "network.subnet",
+        "name": "LAB-SNET-DATA",
+        "description": "LAB-SNET-DATA in RG-SPOKE-NET",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-DATA",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Network/virtualNetworks/subnets",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-05-01"
+        },
+        "status": "active",
+        "state": "Succeeded"
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-INTEG",
+        "type": "network.subnet",
+        "name": "LAB-SNET-INTEG",
+        "description": "LAB-SNET-INTEG in RG-SPOKE-NET",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-INTEG",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Network/virtualNetworks/subnets",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-05-01"
+        },
+        "status": "active",
+        "state": "Succeeded"
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-PE",
+        "type": "network.subnet",
+        "name": "LAB-SNET-PE",
+        "description": "LAB-SNET-PE in RG-SPOKE-NET",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-PE",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Network/virtualNetworks/subnets",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-05-01"
+        },
+        "status": "active",
+        "state": "Succeeded"
+      },
+      {
+        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-SQLMI",
+        "type": "network.subnet",
+        "name": "LAB-SNET-SQLMI",
+        "description": "LAB-SNET-SQLMI in RG-SPOKE-NET",
+        "provider": {
+          "name": "azure",
+          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-SQLMI",
+          "account": "00000000-0000-0000-0000-000000000012",
+          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "type": "Microsoft.Network/virtualNetworks/subnets",
+          "region": "westeurope",
+          "source": "azure-cli",
+          "version": "2024-05-01"
+        },
+        "status": "active",
+        "state": "Succeeded"
+      }
+    ],
+    "connections": [
+      {
+        "id": "conn-contains-lab-app01-to-lab-app01-nic-d47400064e2aab17",
+        "type": "contains",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Compute/virtualMachines/LAB-APP01",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Network/networkInterfaces/LAB-APP01-nic",
+        "direction": "forward",
+        "name": "LAB-APP01 -> LAB-APP01-nic",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-contains-lab-asp01-to-lab-web01-84cd76e1d24b0c31",
+        "type": "contains",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/serverfarms/LAB-ASP01",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/sites/LAB-WEB01",
+        "direction": "forward",
+        "name": "LAB-ASP01 -> LAB-WEB01",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-contains-lab-spoke-vnet-to-lab-snet-app-81fef36f3ea23220",
+        "type": "contains",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-APP",
+        "direction": "forward",
+        "name": "LAB-SPOKE-VNET -> LAB-SNET-APP",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-contains-lab-spoke-vnet-to-lab-snet-data-91108b05d949bf58",
+        "type": "contains",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-DATA",
+        "direction": "forward",
+        "name": "LAB-SPOKE-VNET -> LAB-SNET-DATA",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-contains-lab-spoke-vnet-to-lab-snet-integ-c35440f3ea59650a",
+        "type": "contains",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-INTEG",
+        "direction": "forward",
+        "name": "LAB-SPOKE-VNET -> LAB-SNET-INTEG",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-contains-lab-spoke-vnet-to-lab-snet-pe-77efc6ec4dad30aa",
+        "type": "contains",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-PE",
+        "direction": "forward",
+        "name": "LAB-SPOKE-VNET -> LAB-SNET-PE",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-contains-lab-spoke-vnet-to-lab-snet-sqlmi-4e1673c11ae615ab",
+        "type": "contains",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-SQLMI",
+        "direction": "forward",
+        "name": "LAB-SPOKE-VNET -> LAB-SNET-SQLMI",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-contains-lab-sqlmi01-to-lab-db01-72243144b29613f2",
+        "type": "contains",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Sql/managedInstances/lab-sqlmi01",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Sql/managedInstances/lab-sqlmi01/databases/LAB-DB01",
+        "direction": "forward",
+        "name": "lab-sqlmi01 -> LAB-DB01",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-contains-lab-sqlvm01-to-lab-sqlvm01-nic-ccba1c9fbc772150",
+        "type": "contains",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Compute/virtualMachines/LAB-SQLVM01",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Network/networkInterfaces/LAB-SQLVM01-nic",
+        "direction": "forward",
+        "name": "LAB-SQLVM01 -> LAB-SQLVM01-nic",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-dataflow-lab-app01-to-lab-spoke-rsv01-2d13ab0d179ec606",
+        "type": "dataflow",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Compute/virtualMachines/LAB-APP01",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.RecoveryServices/vaults/LAB-SPOKE-RSV01",
+        "direction": "forward",
+        "name": "lab-app01 -> LAB-SPOKE-RSV01",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-dependency-lab-asp01-autoscale-to-lab-asp01-161e3f879488e5d7",
+        "type": "dependency",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/microsoft.insights/autoscalesettings/LAB-ASP01-AUTOSCALE",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/serverfarms/LAB-ASP01",
+        "direction": "forward",
+        "name": "LAB-ASP01-AUTOSCALE governs LAB-ASP01",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-dependency-lab-sqlvm01-to-lab-sqlvm01-c166c251d7f4a9fa",
+        "type": "dependency",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.SqlVirtualMachine/SqlVirtualMachines/LAB-SQLVM01",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Compute/virtualMachines/LAB-SQLVM01",
+        "direction": "forward",
+        "name": "LAB-SQLVM01 -> LAB-SQLVM01",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-dependency.storage-lab-app01-to-lab-app01-os-f40c44c449234007",
+        "type": "dependency.storage",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Compute/virtualMachines/LAB-APP01",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Compute/disks/LAB-APP01-os",
+        "direction": "forward",
+        "name": "LAB-APP01 -> LAB-APP01-os",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-dependency.storage-lab-sqlvm01-to-lab-sqlvm01-os-d4f01994c254866e",
+        "type": "dependency.storage",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Compute/virtualMachines/LAB-SQLVM01",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Compute/disks/LAB-SQLVM01-os",
+        "direction": "forward",
+        "name": "LAB-SQLVM01 -> LAB-SQLVM01-os",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-network-lab-app01-nic-to-lab-snet-app-7f8ab8dcbd255242",
+        "type": "network",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Network/networkInterfaces/LAB-APP01-nic",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-APP",
+        "direction": "forward",
+        "name": "LAB-APP01-nic -> LAB-SNET-APP",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-network-lab-pe-acr01-nic-to-lab-snet-pe-32eabbbd1761207a",
+        "type": "network",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-ACR01-nic",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-PE",
+        "direction": "forward",
+        "name": "LAB-PE-ACR01-nic -> LAB-SNET-PE",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-network-lab-pe-acr01-to-lab-pe-acr01-nic-617a3446a75d40b7",
+        "type": "network",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-ACR01",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-ACR01-nic",
+        "direction": "forward",
+        "name": "LAB-PE-ACR01 -> LAB-PE-ACR01-nic",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-network-lab-pe-acr01-to-lab-snet-pe-c444a6a70579ef5f",
+        "type": "network",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-ACR01",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-PE",
+        "direction": "forward",
+        "name": "LAB-PE-ACR01 -> LAB-SNET-PE",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-network-lab-pe-acr01-to-labspokeacr01-1878a12bcd858eef",
+        "type": "network",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-ACR01",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.ContainerRegistry/registries/labspokeacr01",
+        "direction": "forward",
+        "name": "LAB-PE-ACR01 -> labspokeacr01",
+        "status": "active",
+        "state": "Approved",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-network-lab-pe-kv01-nic-to-lab-snet-pe-3c7c1a259a69668a",
+        "type": "network",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-KV01-nic",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-PE",
+        "direction": "forward",
+        "name": "LAB-PE-KV01-nic -> LAB-SNET-PE",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-network-lab-pe-kv01-to-lab-pe-kv01-nic-064560357d38cc0d",
+        "type": "network",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-KV01",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-KV01-nic",
+        "direction": "forward",
+        "name": "LAB-PE-KV01 -> LAB-PE-KV01-nic",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-network-lab-pe-kv01-to-lab-snet-pe-6004357c4d2ea157",
+        "type": "network",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-KV01",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-PE",
+        "direction": "forward",
+        "name": "LAB-PE-KV01 -> LAB-SNET-PE",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-network-lab-pe-kv01-to-lab-spoke-kv01-a613dc31cd13d3ef",
+        "type": "network",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-KV01",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.KeyVault/vaults/LAB-SPOKE-KV01",
+        "direction": "forward",
+        "name": "LAB-PE-KV01 -> LAB-SPOKE-KV01",
+        "status": "active",
+        "state": "Approved",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-network-lab-pe-sa01-nic-to-lab-snet-pe-b6ff011ca2d48256",
+        "type": "network",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-SA01-nic",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-PE",
+        "direction": "forward",
+        "name": "LAB-PE-SA01-nic -> LAB-SNET-PE",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-network-lab-pe-sa01-to-lab-pe-sa01-nic-a226b4db91f81208",
+        "type": "network",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-SA01",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-SA01-nic",
+        "direction": "forward",
+        "name": "LAB-PE-SA01 -> LAB-PE-SA01-nic",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-network-lab-pe-sa01-to-lab-snet-pe-b4f8590e5298c053",
+        "type": "network",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-SA01",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-PE",
+        "direction": "forward",
+        "name": "LAB-PE-SA01 -> LAB-SNET-PE",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-network-lab-pe-sa01-to-labspokesa01-25a92901120d5300",
+        "type": "network",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-SA01",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Storage/storageAccounts/labspokesa01",
+        "direction": "forward",
+        "name": "LAB-PE-SA01 -> labspokesa01",
+        "status": "active",
+        "state": "Approved",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-network-lab-pe-web01-nic-to-lab-snet-pe-db9fdaab253c764b",
+        "type": "network",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-WEB01-nic",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-PE",
+        "direction": "forward",
+        "name": "LAB-PE-WEB01-nic -> LAB-SNET-PE",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-network-lab-pe-web01-to-lab-pe-web01-nic-6ea0af0272da8020",
+        "type": "network",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-WEB01",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-WEB01-nic",
+        "direction": "forward",
+        "name": "LAB-PE-WEB01 -> LAB-PE-WEB01-nic",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-network-lab-pe-web01-to-lab-snet-pe-409efc4e15ce98a1",
+        "type": "network",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-WEB01",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-PE",
+        "direction": "forward",
+        "name": "LAB-PE-WEB01 -> LAB-SNET-PE",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-network-lab-pe-web01-to-lab-web01-fad8ecb31e2e030d",
+        "type": "network",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-WEB01",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/sites/LAB-WEB01",
+        "direction": "forward",
+        "name": "LAB-PE-WEB01 -> LAB-WEB01",
+        "status": "active",
+        "state": "Approved",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-network-lab-sqlmi01-to-lab-snet-sqlmi-f9669933739206b3",
+        "type": "network",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Sql/managedInstances/lab-sqlmi01",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-SQLMI",
+        "direction": "forward",
+        "name": "lab-sqlmi01 -> LAB-SNET-SQLMI",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-network-lab-sqlvm01-nic-to-lab-snet-data-bd00e26c89a8763b",
+        "type": "network",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Network/networkInterfaces/LAB-SQLVM01-nic",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-DATA",
+        "direction": "forward",
+        "name": "LAB-SQLVM01-nic -> LAB-SNET-DATA",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-network-lab-web01-to-lab-snet-integ-d6d32f1df8eff1d2",
+        "type": "network",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/sites/LAB-WEB01",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-INTEG",
+        "direction": "forward",
+        "name": "LAB-WEB01 -> LAB-SNET-INTEG",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-network.peering-lab-hub-vnet-to-lab-spoke-vnet-bc8ceb6e648ed2c1",
+        "type": "network.peering",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
+        "direction": "bidirectional",
+        "name": "LAB-SPOKE-TO-HUB",
+        "status": "active",
+        "state": "Connected",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-osiris.azure.asg.association-lab-app01-nic-to-lab-asg-app-5e426953c592e4ca",
+        "type": "osiris.azure.asg.association",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Network/networkInterfaces/LAB-APP01-nic",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/applicationSecurityGroups/LAB-ASG-APP",
+        "direction": "forward",
+        "name": "LAB-APP01-nic -> LAB-ASG-APP",
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "conn-osiris.azure.nsg.association-lab-snet-app-to-lab-spoke-nsg-3f85a910074a9211",
+        "type": "osiris.azure.nsg.association",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-APP",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-SPOKE-NSG",
+        "direction": "forward",
+        "name": "LAB-SNET-APP -> LAB-SPOKE-NSG"
+      },
+      {
+        "id": "conn-osiris.azure.nsg.association-lab-snet-data-to-lab-spoke-nsg-afe95fd4be7fd17b",
+        "type": "osiris.azure.nsg.association",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-DATA",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-SPOKE-NSG",
+        "direction": "forward",
+        "name": "LAB-SNET-DATA -> LAB-SPOKE-NSG"
+      },
+      {
+        "id": "conn-osiris.azure.nsg.association-lab-snet-sqlmi-to-lab-spoke-nsg-8b32dcb9baafe3f9",
+        "type": "osiris.azure.nsg.association",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-SQLMI",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-SPOKE-NSG",
+        "direction": "forward",
+        "name": "LAB-SNET-SQLMI -> LAB-SPOKE-NSG"
+      },
+      {
+        "id": "conn-osiris.azure.routetable.association-lab-snet-app-to-lab-spoke-rt-60edce4fb00d4961",
+        "type": "osiris.azure.routetable.association",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-APP",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/routeTables/LAB-SPOKE-RT",
+        "direction": "forward",
+        "name": "LAB-SNET-APP -> route table"
+      },
+      {
+        "id": "conn-osiris.azure.routetable.association-lab-snet-data-to-lab-spoke-rt-4fa1203fe2da99e4",
+        "type": "osiris.azure.routetable.association",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-DATA",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/routeTables/LAB-SPOKE-RT",
+        "direction": "forward",
+        "name": "LAB-SNET-DATA -> route table"
+      },
+      {
+        "id": "conn-osiris.azure.routetable.association-lab-snet-sqlmi-to-lab-spoke-rt-26ba47c34429b761",
+        "type": "osiris.azure.routetable.association",
+        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-SQLMI",
+        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/routeTables/LAB-SPOKE-RT",
+        "direction": "forward",
+        "name": "LAB-SNET-SQLMI -> route table"
+      }
+    ],
+    "groups": [
+      {
+        "id": "group-container.region-westeurope-c2099f4ac54d8632",
+        "type": "container.region",
+        "name": "westeurope",
+        "members": [
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Compute/disks/LAB-APP01-os",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Compute/virtualMachines/LAB-APP01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.ContainerRegistry/registries/labspokeacr01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Logic/workflows/LAB-SPOKE-LOGIC01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.ManagedIdentity/userAssignedIdentities/LAB-SPOKE-UAMI01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Network/networkInterfaces/LAB-APP01-nic",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.OperationalInsights/workspaces/LAB-SPOKE-LA01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.RecoveryServices/vaults/LAB-SPOKE-RSV01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/connections/LAB-SPOKE-APICONN01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/serverfarms/LAB-ASP01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/sites/LAB-WEB01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/microsoft.insights/autoscalesettings/LAB-ASP01-AUTOSCALE",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Compute/disks/LAB-SQLVM01-os",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Compute/virtualMachines/LAB-SQLVM01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.DataFactory/factories/LAB-SPOKE-ADF01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.KeyVault/vaults/LAB-SPOKE-KV01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Network/networkInterfaces/LAB-SQLVM01-nic",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Sql/managedInstances/lab-sqlmi01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Sql/managedInstances/lab-sqlmi01/databases/LAB-DB01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.SqlVirtualMachine/SqlVirtualMachines/LAB-SQLVM01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Storage/storageAccounts/labspokesa01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/applicationSecurityGroups/LAB-ASG-APP",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-ACR01-nic",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-KV01-nic",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-SA01-nic",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-WEB01-nic",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-SPOKE-NSG",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-ACR01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-KV01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-SA01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-WEB01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/routeTables/LAB-SPOKE-RT",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-APP",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-DATA",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-INTEG",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-PE",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-SQLMI"
+        ]
+      },
+      {
+        "id": "group-logical.managementgroup-00000000-0000-0000-0000--7d6099bf7981b5b0",
+        "type": "logical.managementgroup",
+        "name": "Tenant Root Group",
+        "children": [
+          "group-logical.managementgroup-lab-mg-landingzones-04c8a663de62a1b7"
+        ]
+      },
+      {
+        "id": "group-logical.managementgroup-lab-mg-landingzones-04c8a663de62a1b7",
+        "type": "logical.managementgroup",
+        "name": "LAB-MG-LANDINGZONES",
+        "children": [
+          "group-logical.subscription-00000000-0000-0000-0000--793710d0ba54ea3c"
+        ]
+      },
+      {
+        "id": "group-logical.resourcegroup-rg-spoke-app-79bac1fc9df6cbca",
+        "type": "logical.resourcegroup",
+        "name": "RG-SPOKE-APP",
+        "description": "RG-SPOKE-APP",
+        "members": [
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Compute/disks/LAB-APP01-os",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Compute/virtualMachines/LAB-APP01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.ContainerRegistry/registries/labspokeacr01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Logic/workflows/LAB-SPOKE-LOGIC01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.ManagedIdentity/userAssignedIdentities/LAB-SPOKE-UAMI01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Network/networkInterfaces/LAB-APP01-nic",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.OperationalInsights/workspaces/LAB-SPOKE-LA01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.RecoveryServices/vaults/LAB-SPOKE-RSV01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/connections/LAB-SPOKE-APICONN01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/serverfarms/LAB-ASP01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/sites/LAB-WEB01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/microsoft.insights/autoscalesettings/LAB-ASP01-AUTOSCALE"
+        ],
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "group-logical.resourcegroup-rg-spoke-data-6e4d59153d304268",
+        "type": "logical.resourcegroup",
+        "name": "RG-SPOKE-DATA",
+        "description": "RG-SPOKE-DATA",
+        "members": [
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Compute/disks/LAB-SQLVM01-os",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Compute/virtualMachines/LAB-SQLVM01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.DataFactory/factories/LAB-SPOKE-ADF01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.KeyVault/vaults/LAB-SPOKE-KV01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Network/networkInterfaces/LAB-SQLVM01-nic",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Sql/managedInstances/lab-sqlmi01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Sql/managedInstances/lab-sqlmi01/databases/LAB-DB01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.SqlVirtualMachine/SqlVirtualMachines/LAB-SQLVM01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Storage/storageAccounts/labspokesa01"
+        ],
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "group-logical.resourcegroup-rg-spoke-net-f1b49b042b316306",
+        "type": "logical.resourcegroup",
+        "name": "RG-SPOKE-NET",
+        "description": "RG-SPOKE-NET",
+        "members": [
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/applicationSecurityGroups/LAB-ASG-APP",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-ACR01-nic",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-KV01-nic",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-SA01-nic",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-WEB01-nic",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-SPOKE-NSG",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-ACR01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-KV01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-SA01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-WEB01",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/routeTables/LAB-SPOKE-RT",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-APP",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-DATA",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-INTEG",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-PE",
+          "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-SQLMI"
+        ],
+        "tags": {
+          "env": "LAB",
+          "owner": "LAB-TEAM"
+        }
+      },
+      {
+        "id": "group-logical.subscription-00000000-0000-0000-0000--793710d0ba54ea3c",
+        "type": "logical.subscription",
+        "name": "LAB-SPOKE-SUB",
+        "children": [
+          "group-logical.resourcegroup-rg-spoke-app-79bac1fc9df6cbca",
+          "group-logical.resourcegroup-rg-spoke-data-6e4d59153d304268",
+          "group-logical.resourcegroup-rg-spoke-net-f1b49b042b316306"
+        ]
+      }
+    ]
+  }
+}

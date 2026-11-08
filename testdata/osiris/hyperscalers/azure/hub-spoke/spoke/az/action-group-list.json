@@ -1,0 +1,33 @@
+[
+  {
+    "armRoleReceivers": [],
+    "automationRunbookReceivers": [],
+    "azureAppPushReceivers": [],
+    "azureFunctionReceivers": [],
+    "emailReceivers": [
+      {
+        "emailAddress": "osirisjson@example.com",
+        "name": "LAB-OPS",
+        "status": "Enabled",
+        "useCommonAlertSchema": true
+      }
+    ],
+    "enabled": true,
+    "eventHubReceivers": [],
+    "groupShortName": "LABSPOKE",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/microsoft.insights/actionGroups/LAB-SPOKE-AG01",
+    "itsmReceivers": [],
+    "location": "global",
+    "logicAppReceivers": [],
+    "name": "LAB-SPOKE-AG01",
+    "resourceGroup": "RG-SPOKE-APP",
+    "smsReceivers": [],
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Insights/ActionGroups",
+    "voiceReceivers": [],
+    "webhookReceivers": []
+  }
+]

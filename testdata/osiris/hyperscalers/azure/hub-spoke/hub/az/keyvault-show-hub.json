@@ -1,0 +1,43 @@
+{
+  "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.KeyVault/vaults/LAB-HUB-KV01",
+  "location": "westeurope",
+  "name": "LAB-HUB-KV01",
+  "properties": {
+    "accessPolicies": [],
+    "enablePurgeProtection": true,
+    "enableRbacAuthorization": true,
+    "enableSoftDelete": true,
+    "networkAcls": {
+      "bypass": "AzureServices",
+      "defaultAction": "Deny",
+      "ipRules": [
+        {
+          "value": "203.0.113.0/24"
+        }
+      ],
+      "virtualNetworkRules": [
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-MGMT"
+        },
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000014/resourceGroups/RG-PARTNER/providers/Microsoft.Network/virtualNetworks/LAB-VNET-PARTNER/subnets/LAB-SNET-PARTNER"
+        }
+      ]
+    },
+    "provisioningState": "Succeeded",
+    "publicNetworkAccess": "Disabled",
+    "sku": {
+      "family": "A",
+      "name": "standard"
+    },
+    "softDeleteRetentionInDays": 90,
+    "tenantId": "00000000-0000-0000-0000-0000000000aa",
+    "vaultUri": "https://lab-hub-kv01.example.com/"
+  },
+  "resourceGroup": "RG-HUB-MGMT",
+  "tags": {
+    "env": "LAB",
+    "owner": "LAB-TEAM"
+  },
+  "type": "Microsoft.KeyVault/vaults"
+}

@@ -280,7 +280,7 @@ func TestRedactMultilineEncodedMatch(t *testing.T) {
 
 func TestRedactDocumentValues(t *testing.T) {
 	const conn = "InstrumentationKey=00000000-0000-0000-0000-0000000000ee;IngestionEndpoint=https://LAB-AI01.example.com/"
-	shared := map[string]string{"hidden-link: /app-insights-conn-string": conn, "env": "LAB"}
+	shared := map[string]string{"hidden-link": conn, "env": "LAB"}
 	doc := &sdk.Document{}
 	doc.Topology.Resources = []sdk.Resource{
 		{
@@ -291,14 +291,14 @@ func TestRedactDocumentValues(t *testing.T) {
 		},
 		{ID: "azure::b", Tags: shared},
 	}
-	doc.Topology.Connections = []sdk.Connection{{ID: "c", Tags: map[string]string{"hidden-link: /app-insights-conn-string": conn}}}
+	doc.Topology.Connections = []sdk.Connection{{ID: "c", Tags: map[string]string{"hidden-link": conn}}}
 	doc.Topology.Groups = []sdk.Group{{ID: "g", Tags: map[string]string{"owner": "LAB-TEAM"}}}
 
 	if n := redactDocumentValues(doc); n != 5 {
 		t.Errorf("redacted %d values, want 5 (2 resource tags, 1 connection tag, 2 property strings)", n)
 	}
 	r := doc.Topology.Resources[0]
-	if r.Tags["hidden-link: /app-insights-conn-string"] != redactedValue || r.Tags["env"] != "LAB" {
+	if r.Tags["hidden-link"] != redactedValue || r.Tags["env"] != "LAB" {
 		t.Errorf("resource tags = %v", r.Tags)
 	}
 	if v := r.Properties["env"].([]any)[0].(map[string]any); v["value"] != redactedValue || v["name"] != "APPLICATIONINSIGHTS_CONNECTION_STRING" {
@@ -307,7 +307,7 @@ func TestRedactDocumentValues(t *testing.T) {
 	if r.Properties["callback"] != redactedValue {
 		t.Errorf("SAS URL in properties not redacted: %v", r.Properties["callback"])
 	}
-	if doc.Topology.Connections[0].Tags["hidden-link: /app-insights-conn-string"] != redactedValue {
+	if doc.Topology.Connections[0].Tags["hidden-link"] != redactedValue {
 		t.Error("connection tag not redacted")
 	}
 	if doc.Topology.Groups[0].Tags["owner"] != "LAB-TEAM" {
@@ -318,11 +318,11 @@ func TestRedactDocumentValues(t *testing.T) {
 		t.Error("redactDocumentValues must not rewrite the raw body string")
 	}
 	// The shared input map itself is not modified.
-	if shared["hidden-link: /app-insights-conn-string"] != conn {
+	if shared["hidden-link"] != conn {
 		t.Error("shared tag map must not be modified in place")
 	}
 	// The pattern also redacts the raw body at attach time.
-	out, _, _ := redactRawBody(json.RawMessage(`{"tags":{"hidden-link: /app-insights-conn-string":"` + conn + `"}}`))
+	out, _, _ := redactRawBody(json.RawMessage(`{"tags":{"hidden-link":"` + conn + `"}}`))
 	if strings.Contains(string(out), "InstrumentationKey") {
 		t.Errorf("raw body tag not redacted: %s", out)
 	}

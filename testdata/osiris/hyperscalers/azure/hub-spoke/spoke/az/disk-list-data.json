@@ -1,0 +1,25 @@
+[
+  {
+    "creationData": {
+      "createOption": "FromImage"
+    },
+    "diskSizeGB": 64,
+    "diskState": "Attached",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Compute/disks/LAB-SQLVM01-os",
+    "location": "westeurope",
+    "managedBy": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Compute/virtualMachines/LAB-SQLVM01",
+    "name": "LAB-SQLVM01-os",
+    "osType": "Linux",
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-SPOKE-DATA",
+    "sku": {
+      "name": "Premium_LRS",
+      "tier": "Premium"
+    },
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Compute/disks"
+  }
+]

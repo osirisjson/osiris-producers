@@ -1,0 +1,151 @@
+[
+  {
+    "addressSpace": {
+      "addressPrefixes": [
+        "198.51.100.0/24"
+      ]
+    },
+    "dhcpOptions": {
+      "dnsServers": []
+    },
+    "enableDdosProtection": false,
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET",
+    "location": "westeurope",
+    "name": "LAB-SPOKE-VNET",
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-SPOKE-NET",
+    "subnets": [
+      {
+        "addressPrefix": "198.51.100.0/26",
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-APP",
+        "name": "LAB-SNET-APP",
+        "networkSecurityGroup": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-SPOKE-NSG",
+          "resourceGroup": "RG-SPOKE-NET"
+        },
+        "privateEndpointNetworkPolicies": "Disabled",
+        "privateLinkServiceNetworkPolicies": "Enabled",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-SPOKE-NET",
+        "routeTable": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/routeTables/LAB-SPOKE-RT",
+          "resourceGroup": "RG-SPOKE-NET"
+        },
+        "type": "Microsoft.Network/virtualNetworks/subnets"
+      },
+      {
+        "addressPrefix": "198.51.100.64/26",
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-PE",
+        "name": "LAB-SNET-PE",
+        "privateEndpointNetworkPolicies": "Disabled",
+        "privateLinkServiceNetworkPolicies": "Enabled",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-SPOKE-NET",
+        "type": "Microsoft.Network/virtualNetworks/subnets"
+      },
+      {
+        "addressPrefix": "198.51.100.128/27",
+        "delegations": [
+          {
+            "actions": [],
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-INTEG/delegations/LAB-DELEGATION-WEB",
+            "name": "LAB-DELEGATION-WEB",
+            "provisioningState": "Succeeded",
+            "resourceGroup": "RG-SPOKE-NET",
+            "serviceName": "Microsoft.Web/serverFarms",
+            "type": "Microsoft.Network/virtualNetworks/subnets/delegations"
+          }
+        ],
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-INTEG",
+        "name": "LAB-SNET-INTEG",
+        "privateEndpointNetworkPolicies": "Disabled",
+        "privateLinkServiceNetworkPolicies": "Enabled",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-SPOKE-NET",
+        "type": "Microsoft.Network/virtualNetworks/subnets"
+      },
+      {
+        "addressPrefix": "198.51.100.160/27",
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-DATA",
+        "name": "LAB-SNET-DATA",
+        "networkSecurityGroup": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-SPOKE-NSG",
+          "resourceGroup": "RG-SPOKE-NET"
+        },
+        "privateEndpointNetworkPolicies": "Disabled",
+        "privateLinkServiceNetworkPolicies": "Enabled",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-SPOKE-NET",
+        "routeTable": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/routeTables/LAB-SPOKE-RT",
+          "resourceGroup": "RG-SPOKE-NET"
+        },
+        "type": "Microsoft.Network/virtualNetworks/subnets"
+      },
+      {
+        "addressPrefix": "198.51.100.192/27",
+        "delegations": [
+          {
+            "actions": [],
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-SQLMI/delegations/LAB-DELEGATION-SQLMI",
+            "name": "LAB-DELEGATION-SQLMI",
+            "provisioningState": "Succeeded",
+            "resourceGroup": "RG-SPOKE-NET",
+            "serviceName": "Microsoft.Sql/managedInstances",
+            "type": "Microsoft.Network/virtualNetworks/subnets/delegations"
+          }
+        ],
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-SQLMI",
+        "name": "LAB-SNET-SQLMI",
+        "networkSecurityGroup": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-SPOKE-NSG",
+          "resourceGroup": "RG-SPOKE-NET"
+        },
+        "privateEndpointNetworkPolicies": "Disabled",
+        "privateLinkServiceNetworkPolicies": "Enabled",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-SPOKE-NET",
+        "routeTable": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/routeTables/LAB-SPOKE-RT",
+          "resourceGroup": "RG-SPOKE-NET"
+        },
+        "type": "Microsoft.Network/virtualNetworks/subnets"
+      }
+    ],
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Network/virtualNetworks",
+    "virtualNetworkPeerings": [
+      {
+        "allowForwardedTraffic": true,
+        "allowGatewayTransit": false,
+        "allowVirtualNetworkAccess": true,
+        "doNotVerifyRemoteGateways": false,
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/virtualNetworkPeerings/LAB-SPOKE-TO-HUB",
+        "name": "LAB-SPOKE-TO-HUB",
+        "peeringState": "Connected",
+        "peeringSyncLevel": "FullyInSync",
+        "provisioningState": "Succeeded",
+        "remoteAddressSpace": {
+          "addressPrefixes": [
+            "192.0.2.0/24"
+          ]
+        },
+        "remoteVirtualNetwork": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
+          "resourceGroup": "RG-HUB-NET"
+        },
+        "remoteVirtualNetworkAddressSpace": {
+          "addressPrefixes": [
+            "192.0.2.0/24"
+          ]
+        },
+        "resourceGroup": "RG-SPOKE-NET",
+        "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+        "useRemoteGateways": true
+      }
+    ]
+  }
+]

@@ -1,0 +1,14 @@
+[
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/applicationSecurityGroups/LAB-ASG-APP",
+    "location": "westeurope",
+    "name": "LAB-ASG-APP",
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-SPOKE-NET",
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Network/applicationSecurityGroups"
+  }
+]

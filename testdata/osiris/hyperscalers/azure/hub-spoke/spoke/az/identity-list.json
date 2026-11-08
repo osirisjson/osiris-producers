@@ -1,0 +1,17 @@
+[
+  {
+    "clientId": "00000000-0000-0000-0000-0000000002e4",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.ManagedIdentity/userAssignedIdentities/LAB-SPOKE-UAMI01",
+    "isolationScope": "None",
+    "location": "westeurope",
+    "name": "LAB-SPOKE-UAMI01",
+    "principalId": "00000000-0000-0000-0000-0000000002e3",
+    "resourceGroup": "RG-SPOKE-APP",
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "tenantId": "00000000-0000-0000-0000-0000000000aa",
+    "type": "Microsoft.ManagedIdentity/userAssignedIdentities"
+  }
+]

@@ -1,0 +1,33 @@
+[
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPPrefixes/LAB-HUB-PIPPFX",
+    "ipPrefix": "203.0.113.16/30",
+    "ipTags": [],
+    "location": "westeurope",
+    "name": "LAB-HUB-PIPPFX",
+    "prefixLength": 30,
+    "provisioningState": "Succeeded",
+    "publicIPAddressVersion": "IPv4",
+    "publicIPAddresses": [
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-PLB-PIP",
+        "resourceGroup": "RG-HUB-NET"
+      }
+    ],
+    "resourceGroup": "RG-HUB-NET",
+    "sku": {
+      "name": "Standard",
+      "tier": "Regional"
+    },
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Network/publicIPPrefixes",
+    "zones": [
+      "1",
+      "2",
+      "3"
+    ]
+  }
+]

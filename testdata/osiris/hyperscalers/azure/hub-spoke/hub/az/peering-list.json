@@ -1,0 +1,30 @@
+[
+  {
+    "allowForwardedTraffic": true,
+    "allowGatewayTransit": true,
+    "allowVirtualNetworkAccess": true,
+    "doNotVerifyRemoteGateways": false,
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/virtualNetworkPeerings/LAB-HUB-TO-SPOKE",
+    "name": "LAB-HUB-TO-SPOKE",
+    "peeringState": "Connected",
+    "peeringSyncLevel": "FullyInSync",
+    "provisioningState": "Succeeded",
+    "remoteAddressSpace": {
+      "addressPrefixes": [
+        "198.51.100.0/24"
+      ]
+    },
+    "remoteVirtualNetwork": {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET",
+      "resourceGroup": "RG-SPOKE-NET"
+    },
+    "remoteVirtualNetworkAddressSpace": {
+      "addressPrefixes": [
+        "198.51.100.0/24"
+      ]
+    },
+    "resourceGroup": "RG-HUB-NET",
+    "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+    "useRemoteGateways": false
+  }
+]

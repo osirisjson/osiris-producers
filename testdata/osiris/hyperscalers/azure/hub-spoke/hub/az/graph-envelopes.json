@@ -1,0 +1,51 @@
+{
+  "count": 11,
+  "data": [
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA01",
+      "provisioningState": "Succeeded"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA02",
+      "provisioningState": "Succeeded"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
+      "provisioningState": "Succeeded"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
+      "provisioningState": "Succeeded"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB",
+      "provisioningState": "Succeeded"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ARS-PIP",
+      "provisioningState": "Succeeded"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.KeyVault/vaults/LAB-HUB-KV01",
+      "provisioningState": "Succeeded"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.ServiceBus/namespaces/LAB-HUB-SB01",
+      "provisioningState": "Succeeded"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.RecoveryServices/vaults/LAB-HUB-RSV01",
+      "provisioningState": "Succeeded"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA01",
+      "provisioningState": "Succeeded"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Storage/storageAccounts/labhubsa01",
+      "kind": "StorageV2",
+      "provisioningState": "Succeeded",
+      "publicNetworkAccess": "Disabled"
+    }
+  ]
+}

@@ -1,0 +1,130 @@
+[
+  {
+    "enableAcceleratedNetworking": false,
+    "enableIPForwarding": true,
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic",
+    "ipConfigurations": [
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic/ipConfigurations/ipconfig1",
+        "loadBalancerBackendAddressPools": [
+          {
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB/backendAddressPools/LAB-POOL-NVA",
+            "resourceGroup": "RG-HUB-NET"
+          }
+        ],
+        "name": "ipconfig1",
+        "primary": true,
+        "privateIPAddress": "192.0.2.4",
+        "privateIPAddressVersion": "IPv4",
+        "privateIPAllocationMethod": "Static",
+        "provisioningState": "Succeeded",
+        "publicIPAddress": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-NVA01-PIP",
+          "resourceGroup": "RG-HUB-NET"
+        },
+        "resourceGroup": "RG-HUB-NVA",
+        "subnet": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-NVA",
+          "resourceGroup": "RG-HUB-NET"
+        },
+        "type": "Microsoft.Network/networkInterfaces/ipConfigurations"
+      }
+    ],
+    "location": "westeurope",
+    "name": "LAB-NVA01-nic",
+    "networkSecurityGroup": {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
+      "resourceGroup": "RG-HUB-NET"
+    },
+    "primary": true,
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-HUB-NVA",
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Network/networkInterfaces",
+    "virtualMachine": {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA01",
+      "resourceGroup": "RG-HUB-NVA"
+    }
+  },
+  {
+    "enableAcceleratedNetworking": false,
+    "enableIPForwarding": true,
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA02-nic",
+    "ipConfigurations": [
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA02-nic/ipConfigurations/ipconfig1",
+        "loadBalancerBackendAddressPools": [
+          {
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB/backendAddressPools/LAB-POOL-NVA",
+            "resourceGroup": "RG-HUB-NET"
+          }
+        ],
+        "name": "ipconfig1",
+        "primary": true,
+        "privateIPAddress": "192.0.2.5",
+        "privateIPAddressVersion": "IPv4",
+        "privateIPAllocationMethod": "Static",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-HUB-NVA",
+        "subnet": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-NVA",
+          "resourceGroup": "RG-HUB-NET"
+        },
+        "type": "Microsoft.Network/networkInterfaces/ipConfigurations"
+      }
+    ],
+    "location": "westeurope",
+    "name": "LAB-NVA02-nic",
+    "primary": true,
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-HUB-NVA",
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Network/networkInterfaces",
+    "virtualMachine": {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA02",
+      "resourceGroup": "RG-HUB-NVA"
+    }
+  },
+  {
+    "enableAcceleratedNetworking": false,
+    "enableIPForwarding": false,
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkInterfaces/LAB-HUB-PE-AA01-nic",
+    "ipConfigurations": [
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkInterfaces/LAB-HUB-PE-AA01-nic/ipConfigurations/ipconfig1",
+        "name": "ipconfig1",
+        "primary": true,
+        "privateIPAddress": "192.0.2.68",
+        "privateIPAddressVersion": "IPv4",
+        "privateIPAllocationMethod": "Dynamic",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-HUB-NET",
+        "subnet": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-PE",
+          "resourceGroup": "RG-HUB-NET"
+        },
+        "type": "Microsoft.Network/networkInterfaces/ipConfigurations"
+      }
+    ],
+    "location": "westeurope",
+    "name": "LAB-HUB-PE-AA01-nic",
+    "primary": true,
+    "privateEndpoint": {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/privateEndpoints/LAB-HUB-PE-AA01",
+      "resourceGroup": "RG-HUB-NET"
+    },
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-HUB-NET",
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Network/networkInterfaces"
+  }
+]

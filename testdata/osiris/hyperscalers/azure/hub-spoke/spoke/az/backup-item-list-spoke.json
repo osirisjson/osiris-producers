@@ -1,0 +1,15 @@
+[
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.RecoveryServices/vaults/LAB-SPOKE-RSV01/backupFabrics/Azure/protectionContainers/iaasvmcontainerv2;rg-spoke-app;lab-app01/protectedItems/vm;iaasvmcontainerv2;rg-spoke-app;lab-app01",
+    "name": "VM;iaasvmcontainerv2;rg-spoke-app;lab-app01",
+    "properties": {
+      "friendlyName": "LAB-APP01",
+      "protectedItemType": "Microsoft.Compute/virtualMachines",
+      "protectionState": "Protected",
+      "protectionStatus": "Healthy",
+      "sourceResourceId": "/subscriptions/00000000-0000-0000-0000-000000000012/resourcegroups/rg-spoke-app/providers/microsoft.compute/virtualmachines/lab-app01",
+      "workloadType": "VM"
+    },
+    "resourceGroup": "RG-SPOKE-APP"
+  }
+]

@@ -1,0 +1,14 @@
+[
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/microsoft.insights/autoscalesettings/LAB-HUB-VMSS01-AUTOSCALE",
+    "location": "westeurope",
+    "name": "LAB-HUB-VMSS01-AUTOSCALE",
+    "properties": null,
+    "resourceGroup": "RG-HUB-NVA",
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "microsoft.insights/autoscalesettings"
+  }
+]

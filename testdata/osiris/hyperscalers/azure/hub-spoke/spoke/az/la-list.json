@@ -1,0 +1,21 @@
+[
+  {
+    "customerId": "00000000-0000-0000-0000-0000000002a1",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.OperationalInsights/workspaces/LAB-SPOKE-LA01",
+    "location": "westeurope",
+    "name": "LAB-SPOKE-LA01",
+    "provisioningState": "Succeeded",
+    "publicNetworkAccessForIngestion": "Enabled",
+    "publicNetworkAccessForQuery": "Enabled",
+    "resourceGroup": "RG-SPOKE-APP",
+    "retentionInDays": 30,
+    "sku": {
+      "name": "PerGB2018"
+    },
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.OperationalInsights/workspaces"
+  }
+]

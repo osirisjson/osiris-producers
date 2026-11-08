@@ -1,0 +1,41 @@
+[
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET",
+    "location": "westeurope",
+    "name": "RG-HUB-NET",
+    "properties": {
+      "provisioningState": "Succeeded"
+    },
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Resources/resourceGroups"
+  },
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA",
+    "location": "westeurope",
+    "name": "RG-HUB-NVA",
+    "properties": {
+      "provisioningState": "Succeeded"
+    },
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Resources/resourceGroups"
+  },
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT",
+    "location": "westeurope",
+    "name": "RG-HUB-MGMT",
+    "properties": {
+      "provisioningState": "Succeeded"
+    },
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Resources/resourceGroups"
+  }
+]

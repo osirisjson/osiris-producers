@@ -1,0 +1,15 @@
+[
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.RecoveryServices/vaults/LAB-HUB-RSV01/backupFabrics/Azure/protectionContainers/iaasvmcontainerv2;rg-hub-nva;lab-nva01/protectedItems/vm;iaasvmcontainerv2;rg-hub-nva;lab-nva01",
+    "name": "VM;iaasvmcontainerv2;rg-hub-nva;lab-nva01",
+    "properties": {
+      "friendlyName": "LAB-NVA01",
+      "protectedItemType": "Microsoft.Compute/virtualMachines",
+      "protectionState": "Protected",
+      "protectionStatus": "Healthy",
+      "sourceResourceId": "/subscriptions/00000000-0000-0000-0000-000000000011/resourcegroups/rg-hub-nva/providers/microsoft.compute/virtualmachines/lab-nva01",
+      "workloadType": "VM"
+    },
+    "resourceGroup": "RG-HUB-MGMT"
+  }
+]

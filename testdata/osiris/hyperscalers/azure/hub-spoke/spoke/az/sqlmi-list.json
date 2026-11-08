@@ -1,0 +1,38 @@
+[
+  {
+    "administratorLogin": "admin",
+    "collation": "SQL_Latin1_General_CP1_CI_AS",
+    "dnsZone": "0000lab",
+    "fullyQualifiedDomainName": "lab-sqlmi01.example.com",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Sql/managedInstances/lab-sqlmi01",
+    "identity": {
+      "principalId": "00000000-0000-0000-0000-0000000002e2",
+      "tenantId": "00000000-0000-0000-0000-0000000000aa",
+      "type": "SystemAssigned"
+    },
+    "licenseType": "LicenseIncluded",
+    "location": "westeurope",
+    "minimalTlsVersion": "1.2",
+    "name": "lab-sqlmi01",
+    "provisioningState": "Succeeded",
+    "proxyOverride": "Redirect",
+    "publicDataEndpointEnabled": false,
+    "resourceGroup": "RG-SPOKE-DATA",
+    "sku": {
+      "capacity": 4,
+      "family": "Gen5",
+      "name": "GP_Gen5",
+      "tier": "GeneralPurpose"
+    },
+    "state": "Ready",
+    "storageSizeInGb": 256,
+    "subnetId": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-SQLMI",
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Sql/managedInstances",
+    "vCores": 4,
+    "zoneRedundant": false
+  }
+]

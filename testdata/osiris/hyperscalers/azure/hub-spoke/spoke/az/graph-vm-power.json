@@ -1,0 +1,13 @@
+{
+  "count": 2,
+  "data": [
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Compute/virtualMachines/LAB-APP01",
+      "powerState": "PowerState/running"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Compute/virtualMachines/LAB-SQLVM01",
+      "powerState": "PowerState/running"
+    }
+  ]
+}

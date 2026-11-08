@@ -1,0 +1,14 @@
+{
+  "count": 1,
+  "data": [
+    {
+      "enabled": true,
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Network/networkWatchers/LAB-HUB-NW/flowLogs/LAB-HUB-NSG-FLOW",
+      "location": "westeurope",
+      "name": "LAB-HUB-NSG-FLOW",
+      "resourceGroup": "RG-HUB-MGMT",
+      "storageId": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Storage/storageAccounts/labhubsa01",
+      "targetResourceId": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG"
+    }
+  ]
+}

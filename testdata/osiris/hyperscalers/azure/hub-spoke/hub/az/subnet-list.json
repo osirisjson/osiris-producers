@@ -1,0 +1,95 @@
+[
+  {
+    "addressPrefix": "192.0.2.0/27",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-NVA",
+    "name": "LAB-SNET-NVA",
+    "networkSecurityGroup": {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
+      "resourceGroup": "RG-HUB-NET"
+    },
+    "privateEndpointNetworkPolicies": "Disabled",
+    "privateLinkServiceNetworkPolicies": "Enabled",
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-HUB-NET",
+    "type": "Microsoft.Network/virtualNetworks/subnets"
+  },
+  {
+    "addressPrefix": "192.0.2.32/27",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-MGMT",
+    "name": "LAB-SNET-MGMT",
+    "privateEndpointNetworkPolicies": "Disabled",
+    "privateLinkServiceNetworkPolicies": "Enabled",
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-HUB-NET",
+    "routeTable": {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourcegroups/rg-hub-net/providers/Microsoft.Network/routeTables/LAB-HUB-RT-MGMT",
+      "resourceGroup": "RG-HUB-NET"
+    },
+    "type": "Microsoft.Network/virtualNetworks/subnets"
+  },
+  {
+    "addressPrefix": "192.0.2.64/27",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-PE",
+    "name": "LAB-SNET-PE",
+    "privateEndpointNetworkPolicies": "Disabled",
+    "privateLinkServiceNetworkPolicies": "Enabled",
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-HUB-NET",
+    "type": "Microsoft.Network/virtualNetworks/subnets"
+  },
+  {
+    "addressPrefix": "192.0.2.96/28",
+    "delegations": [
+      {
+        "actions": [],
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-DNSIN/delegations/LAB-DELEGATION-DNS",
+        "name": "LAB-DELEGATION-DNS",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-HUB-NET",
+        "serviceName": "Microsoft.Network/dnsResolvers",
+        "type": "Microsoft.Network/virtualNetworks/subnets/delegations"
+      }
+    ],
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-DNSIN",
+    "name": "LAB-SNET-DNSIN",
+    "privateEndpointNetworkPolicies": "Disabled",
+    "privateLinkServiceNetworkPolicies": "Enabled",
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-HUB-NET",
+    "type": "Microsoft.Network/virtualNetworks/subnets"
+  },
+  {
+    "addressPrefix": "192.0.2.128/27",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/RouteServerSubnet",
+    "name": "RouteServerSubnet",
+    "privateEndpointNetworkPolicies": "Disabled",
+    "privateLinkServiceNetworkPolicies": "Enabled",
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-HUB-NET",
+    "type": "Microsoft.Network/virtualNetworks/subnets"
+  },
+  {
+    "addressPrefix": "192.0.2.160/27",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-VMSS",
+    "name": "LAB-SNET-VMSS",
+    "networkSecurityGroup": {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
+      "resourceGroup": "RG-HUB-NET"
+    },
+    "privateEndpointNetworkPolicies": "Disabled",
+    "privateLinkServiceNetworkPolicies": "Enabled",
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-HUB-NET",
+    "type": "Microsoft.Network/virtualNetworks/subnets"
+  },
+  {
+    "addressPrefix": "192.0.2.224/27",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/GatewaySubnet",
+    "name": "GatewaySubnet",
+    "privateEndpointNetworkPolicies": "Disabled",
+    "privateLinkServiceNetworkPolicies": "Enabled",
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-HUB-NET",
+    "type": "Microsoft.Network/virtualNetworks/subnets"
+  }
+]

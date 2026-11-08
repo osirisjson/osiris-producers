@@ -1,0 +1,18 @@
+{
+  "value": [
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualHubs/LAB-HUB-ARS/ipConfigurations/ipconfig1",
+      "name": "ipconfig1",
+      "properties": {
+        "privateIPAllocationMethod": "Dynamic",
+        "provisioningState": "Succeeded",
+        "publicIPAddress": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ARS-PIP"
+        },
+        "subnet": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/RouteServerSubnet"
+        }
+      }
+    }
+  ]
+}

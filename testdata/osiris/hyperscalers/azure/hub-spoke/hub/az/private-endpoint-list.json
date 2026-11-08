@@ -1,0 +1,51 @@
+[
+  {
+    "customDnsConfigs": [
+      {
+        "fqdn": "lab-hub-aa01.example.com",
+        "ipAddresses": [
+          "192.0.2.68"
+        ]
+      }
+    ],
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/privateEndpoints/LAB-HUB-PE-AA01",
+    "location": "westeurope",
+    "manualPrivateLinkServiceConnections": [],
+    "name": "LAB-HUB-PE-AA01",
+    "networkInterfaces": [
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkInterfaces/LAB-HUB-PE-AA01-nic",
+        "resourceGroup": "RG-HUB-NET"
+      }
+    ],
+    "privateLinkServiceConnections": [
+      {
+        "groupIds": [
+          "DSCAndHybridWorker"
+        ],
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/privateEndpoints/LAB-HUB-PE-AA01/privateLinkServiceConnections/LAB-HUB-PE-AA01-DSCAndHybridWorker",
+        "name": "LAB-HUB-PE-AA01-DSCAndHybridWorker",
+        "privateLinkServiceConnectionState": {
+          "actionsRequired": "None",
+          "description": "Auto-Approved",
+          "status": "Approved"
+        },
+        "privateLinkServiceId": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Automation/automationAccounts/LAB-HUB-AA01",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-HUB-NET",
+        "type": "Microsoft.Network/privateEndpoints/privateLinkServiceConnections"
+      }
+    ],
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-HUB-NET",
+    "subnet": {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-PE",
+      "resourceGroup": "RG-HUB-NET"
+    },
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Network/privateEndpoints"
+  }
+]

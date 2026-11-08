@@ -114,7 +114,9 @@ When a change alters emitted output on purpose, regenerate them and
 review the diff before committing:
 
 ```bash
-OSIRIS_UPDATE_GOLDEN=1 go test ./osiris/<category>/<vendor>/... -run TestGolden ./scripts/validate_golden.sh testdata/osiris/<category>/<vendor>
+OSIRIS_UPDATE_GOLDEN=1 go test ./osiris/<category>/<vendor>/... -run TestGolden
+
+./scripts/validate_golden.sh testdata/osiris/<category>/<vendor>
 ```
 
 MUST NOT commit a `golden_<purpose>.json` that has not passed

@@ -1,0 +1,35 @@
+[
+  {
+    "dataCollectionEndpointId": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Insights/dataCollectionEndpoints/LAB-HUB-DCE01",
+    "dataFlows": [
+      {
+        "destinations": [
+          "LAB-HUB-LA01"
+        ],
+        "streams": [
+          "Microsoft-Syslog"
+        ]
+      }
+    ],
+    "destinations": {
+      "logAnalytics": [
+        {
+          "name": "LAB-HUB-LA01",
+          "workspaceId": "00000000-0000-0000-0000-0000000001a1",
+          "workspaceResourceId": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA01"
+        }
+      ]
+    },
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Insights/dataCollectionRules/LAB-HUB-DCR01",
+    "immutableId": "dcr-00000000000000000000000000000001",
+    "location": "westeurope",
+    "name": "LAB-HUB-DCR01",
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-HUB-MGMT",
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Insights/dataCollectionRules"
+  }
+]

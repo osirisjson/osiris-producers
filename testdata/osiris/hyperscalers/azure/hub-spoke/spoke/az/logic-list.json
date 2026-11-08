@@ -1,0 +1,36 @@
+[
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Logic/workflows/LAB-SPOKE-LOGIC01",
+    "location": "westeurope",
+    "name": "LAB-SPOKE-LOGIC01",
+    "properties": {
+      "accessEndpoint": "https://lab-spoke-logic01.example.com/workflows/0000",
+      "definition": {
+        "actions": {
+          "Send_alert": {
+            "inputs": {
+              "method": "post"
+            },
+            "runAfter": {},
+            "type": "Http"
+          }
+        },
+        "contentVersion": "1.0.0.0",
+        "triggers": {
+          "manual": {
+            "kind": "Http",
+            "type": "Request"
+          }
+        }
+      },
+      "provisioningState": "Succeeded",
+      "state": "Enabled"
+    },
+    "resourceGroup": "RG-SPOKE-APP",
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Logic/workflows"
+  }
+]

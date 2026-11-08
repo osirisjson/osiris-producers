@@ -1,0 +1,54 @@
+[
+  {
+    "availabilityState": "Normal",
+    "clientAffinityEnabled": false,
+    "clientCertEnabled": false,
+    "clientCertMode": "Required",
+    "defaultHostName": "lab-web01.example.com",
+    "enabled": true,
+    "enabledHostNames": [
+      "lab-web01.example.com"
+    ],
+    "hostNames": [
+      "lab-web01.example.com"
+    ],
+    "httpsOnly": true,
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/sites/LAB-WEB01",
+    "identity": {
+      "principalId": "00000000-0000-0000-0000-0000000002e1",
+      "tenantId": "00000000-0000-0000-0000-0000000000aa",
+      "type": "SystemAssigned"
+    },
+    "kind": "app,linux",
+    "location": "westeurope",
+    "name": "LAB-WEB01",
+    "outboundIpAddresses": "203.0.113.30,203.0.113.31",
+    "outboundVnetRouting": {
+      "allTraffic": true,
+      "applicationTraffic": false,
+      "backupRestoreTraffic": false,
+      "contentShareTraffic": false,
+      "imagePullTraffic": false
+    },
+    "possibleOutboundIpAddresses": "203.0.113.30,203.0.113.31,203.0.113.32",
+    "publicNetworkAccess": "Disabled",
+    "redundancyMode": "None",
+    "reserved": true,
+    "resourceGroup": "RG-SPOKE-APP",
+    "serverFarmId": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/serverfarms/LAB-ASP01",
+    "siteConfig": {
+      "alwaysOn": true,
+      "http20Enabled": true,
+      "linuxFxVersion": "DOTNETCORE|8.0",
+      "numberOfWorkers": 1
+    },
+    "state": "Running",
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Web/sites",
+    "usageState": "Normal",
+    "virtualNetworkSubnetId": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-INTEG"
+  }
+]

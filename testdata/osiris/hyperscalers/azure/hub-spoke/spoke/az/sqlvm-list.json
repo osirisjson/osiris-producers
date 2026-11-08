@@ -1,0 +1,20 @@
+[
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.SqlVirtualMachine/SqlVirtualMachines/LAB-SQLVM01",
+    "leastPrivilegeMode": "Enabled",
+    "location": "westeurope",
+    "name": "LAB-SQLVM01",
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-SPOKE-DATA",
+    "sqlImageOffer": "SQL2022-WS2022",
+    "sqlImageSku": "Standard",
+    "sqlManagement": "Full",
+    "sqlServerLicenseType": "PAYG",
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.SqlVirtualMachine/sqlVirtualMachines",
+    "virtualMachineResourceId": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Compute/virtualMachines/LAB-SQLVM01"
+  }
+]

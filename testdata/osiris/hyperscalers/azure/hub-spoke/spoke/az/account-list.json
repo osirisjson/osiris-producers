@@ -1,0 +1,35 @@
+[
+  {
+    "id": "00000000-0000-0000-0000-000000000011",
+    "isDefault": false,
+    "name": "LAB-HUB-SUB",
+    "state": "Enabled",
+    "tenantId": "00000000-0000-0000-0000-0000000000aa",
+    "user": {
+      "name": "admin@example.com",
+      "type": "user"
+    }
+  },
+  {
+    "id": "00000000-0000-0000-0000-000000000012",
+    "isDefault": true,
+    "name": "LAB-SPOKE-SUB",
+    "state": "Enabled",
+    "tenantId": "00000000-0000-0000-0000-0000000000aa",
+    "user": {
+      "name": "admin@example.com",
+      "type": "user"
+    }
+  },
+  {
+    "id": "00000000-0000-0000-0000-000000000014",
+    "isDefault": false,
+    "name": "LAB-PARTNER-SUB",
+    "state": "Enabled",
+    "tenantId": "00000000-0000-0000-0000-0000000000bb",
+    "user": {
+      "name": "admin@example.com",
+      "type": "user"
+    }
+  }
+]

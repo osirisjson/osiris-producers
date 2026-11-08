@@ -1,0 +1,28 @@
+[
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-SPOKE-NSG",
+    "location": "westeurope",
+    "name": "LAB-SPOKE-NSG",
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-SPOKE-NET",
+    "securityRules": [
+      {
+        "access": "Allow",
+        "destinationAddressPrefix": "*",
+        "destinationPortRange": "443",
+        "direction": "Inbound",
+        "name": "LAB-ALLOW-HUB",
+        "priority": 100,
+        "protocol": "Tcp",
+        "provisioningState": "Succeeded",
+        "sourceAddressPrefix": "192.0.2.0/24",
+        "sourcePortRange": "*"
+      }
+    ],
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Network/networkSecurityGroups"
+  }
+]
