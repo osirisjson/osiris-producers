@@ -20,6 +20,407 @@ the release-level index of which producers shipped under each tag.
 
 ---
 
+## [0.6.0] - 2026-11-08
+
+Topology enrichment. Relationships the ARM data states explicitly are
+now emitted as connections; nothing is inferred from resource names,
+resource group, region or cardinality. Connections describe configured
+relationships, typed by kind (configuration association, data path, BGP
+control plane, configured forwarding intent); two resources being in the
+same connected component does not show that traffic can flow between
+them. No Route Server <-> gateway route exchange is emitted;
+`allow_branch_to_branch_traffic` states the Route Server setting.
+Several collection gaps that silently dropped resource fields, status
+and relationships are fixed, and credentials found in tags and raw
+bodies are redacted (see Security).
+
+### Added
+- **VM -> NIC** `contains` (forward) connections, from the VM
+  `networkProfile.networkInterfaces[].id` and the NIC
+  `virtualMachine.id`. An attachment visible from both sides is
+  emitted once.
+- **NIC -> NSG** `osiris.azure.nsg.association` (forward)
+  connections, from the NIC `networkSecurityGroup.id`.
+- **NIC -> Public IP** `network` (forward) connections, from the NIC
+  `ipConfigurations[].publicIpAddress.id`. `properties.ip_configuration`
+  names the IP configuration carrying the binding.
+- **VM -> Disk** `dependency.storage` (forward) connections, from the
+  VM `storageProfile.osDisk.managedDisk.id` and
+  `storageProfile.dataDisks[].managedDisk.id`, and from the disk
+  `managedBy` field. `properties.disk_role` is `os` or `data`;
+  data disks also carry `properties.lun`. One connection per VM/disk
+  pair regardless of how many fields report it.
+- **Private endpoint -> Private Link target** `network` (forward)
+  connections, from the endpoint's own
+  `privateLinkServiceConnections[].privateLinkServiceId` and
+  `manualPrivateLinkServiceConnections[].privateLinkServiceId`, for any
+  target resource in the document. `status` is `active` for an
+  `Approved` binding and `inactive` for `Pending`, `Rejected` or
+  `Disconnected`; `state` keeps the ARM approval state.
+  `properties.group_ids` lists the Private Link sub-resources and
+  `properties.manual_approval` marks manual bindings. Several bindings
+  of one endpoint to the same target are one connection.
+- **Load balancer -> backend NIC / VMSS** `network` (forward)
+  connections, for backend pools that a load-balancing rule sends
+  traffic to. Membership is read from the pool
+  (`backendIPConfigurations`, `loadBalancerBackendAddresses`), the NIC
+  IP configurations and the VMSS model
+  (`loadBalancerBackendAddressPools`). `properties.backend_pools` lists
+  the pool names. Pools and IP configurations are not emitted as
+  resources.
+- **VMSS -> NSG** `osiris.azure.nsg.association` (forward)
+  connections, from the VMSS model NIC configurations.
+- **SQL database -> elastic pool** `dependency` (forward)
+  connections, from the database `elasticPoolId`.
+- **Workload -> user-assigned managed identity**
+  `osiris.azure.identity.assignment` (forward) connections, from each
+  resource's ARM `identity.userAssignedIdentities` and the AKS
+  `identityProfile` (kubelet identity). `properties.assigned_as` lists
+  `resource` and/or the identity profile key.
+- **Monitored resource -> data collection rule** `dataflow` (forward)
+  connections, from data collection rule associations (one paginated
+  Resource Graph query). `properties.association` names the
+  association.
+- **SQL failover groups** as `osiris.azure.sql.failovergroup`
+  resources (`az sql failover-group list` per server), with
+  `replication_role`, `partner_server_ids`, `database_count`,
+  `failover_policy`, `grace_period_minutes`; `state` is the replication
+  state. Connections: SQL server -> failover group `contains`, failover
+  group -> member database `contains`, primary -> secondary server
+  `dataflow` (geo-replication). A replication stated by both servers is
+  one connection. A partner server outside the export (another
+  subscription or region) resolves to an `osiris.azure.sqlserver` stub
+  (status `unknown`, no region or group placement), so the
+  geo-replication edge is kept.
+- **ExpressRoute connection -> gateway and -> circuit**
+  `osiris.azure.expressroute.connection.endpoint` (forward)
+  connections, from the connection's `virtualNetworkGateway1.id` and
+  `peer.id` (a circuit in another subscription resolves to its stub),
+  so every `osiris.azure.expressroute.connection` resource is reachable
+  by graph traversal. Properties: `endpoint_role` (`gateway` or
+  `circuit`), `evidence_field` (`virtualNetworkGateway1.id` or
+  `peer.id`) and `source_arm_id` (the ARM ID exactly as the connection
+  states it). Configuration relationships next to the gateway <->
+  circuit `network` edge, which remains the data path; its connection
+  ID is unchanged.
+- **Route table -> next hop** `osiris.azure.route.nexthop` (forward)
+  connections: a user-defined route with next hop type
+  `VirtualAppliance` links its route table to the internal load
+  balancer or NIC whose private IP is the next hop, when exactly one
+  exported frontend or NIC IP configuration carries that IP in the
+  route table's VNet or a VNet an exported peering links with it.
+  Configured forwarding intent, not observed traffic. Properties:
+  `next_hop_ips`, `route_count`, `address_prefix_count`,
+  `route_names`. Unmatched, ambiguous and out-of-scope next hops are
+  not linked (counts logged to stderr).
+- **Route Server placement and BGP peers.** The Route Server IP
+  configurations (`virtualHubs/{hub}/ipConfigurations`, via `az rest`)
+  and BGP peers (`az network routeserver peering list`) are collected,
+  both read-only. Route Server -> subnet and -> public IP `network`
+  (forward) connections are emitted from them. A `network.bgp`
+  (bidirectional) connection links the Route Server and the NIC
+  carrying a peer IP when exactly one exported NIC IP configuration
+  carries it in the Route Server's VNet or a peered VNet; it is a
+  control-plane session (the Route Server does not forward traffic).
+  Every peer is kept in `extensions["osiris.azure"].bgp_connections`
+  with `peer_ip`, `peer_asn`, `connection_state` and `resolution`
+  (`resolved` with `resource_id`, `unresolved`, `ambiguous` or
+  `no_placement`); unresolved peers carry no association.
+- **Gateway transit settings** `allow_remote_vnet_traffic` and
+  `allow_virtual_wan_traffic` on virtual network gateways, and
+  `allow_branch_to_branch_traffic` on Route Servers, are always stated,
+  also when `false`. No Route Server <-> gateway route exchange is
+  emitted.
+- **Subscription catalog** `metadata["osiris.azure"]`: an Azure-specific
+  producer extension on `metadata` (OSIRIS JSON schema permit additional
+  members there; it is not an OSIRIS JSON v1.0 field). Shape:
+  `{"tenants": {"<tenant id>": {"name"}}, "subscriptions": {"<subscription id>": {"coverage", "name", "tenant_id"}}}`. `tenants`
+  and `subscriptions` are sibling objects keyed by unique, lower-case
+  Azure IDs; a record never repeats its own key. `tenants` lists exactly
+  the tenants the listed subscriptions belong to and states each
+  tenant's name once; the exported tenant is the `tenant_id` of the
+  exported subscription's entry. `coverage` is `exported` for the
+  subscription this document inventories (the only one in
+  `metadata.scope.accounts`) and `reference_only` for every other
+  subscription the document names in ARM IDs (stubs, peerings, network
+  ACL subnets, diagnostic destinations, connection properties), whose
+  resources were not inventoried. Raw ARM bodies are not scanned, so the
+  catalog does not depend on `--include-raw-body` or `--purpose`. Names
+  and tenants come only from read-only authoritative sources:
+  `az account show` (the exported subscription and its
+  `tenantDisplayName`), the management group entity list (subscriptions
+  of the same tenant), `az account list --all` (subscriptions the caller
+  can see in other tenants) and the ARM tenants API through `az rest`
+  (tenant names).
+  Anything unknown is omitted (a subscription no source names keeps
+  `coverage` only), an ID is never used as a name, and the exported
+  tenant is never assumed for another subscription. When no source
+  states a tenant name, the tenant is listed without one.
+- **Subscription and tenant IDs on groups.** The
+  `logical.subscription` group carries `properties.subscription_id`,
+  `tenant_id` and, when known, `tenant_name`; its `name` stays the
+  subscription display name. Management groups gain `tenant_name` for
+  their tenant when known. Group IDs and membership are unchanged; no
+  group is created for a `reference_only` subscription.
+- **`extensions["osiris.azure.arm"].source`** (with
+  `--include-raw-body`): `arm` when `body` is the ARM object returned by
+  the az CLI, `struct` when only the decoded fields are available.
+
+### Changed
+- **Breaking: subnet/VNet containment direction corrected.** The
+  connection is now VNet -> Subnet (`contains`, forward), matching the
+  "source contains target" definition of OSIRIS JSON spec chapter 5
+  section 5.2.3. It was previously emitted as Subnet -> VNet. The
+  connection IDs of these edges change.
+- **Breaking: subnet -> NSG connection type** changed from `network`
+  to `osiris.azure.nsg.association`. An NSG attachment is a policy
+  association, not network reachability. The connection IDs of these
+  edges change.
+- **Breaking: subnet -> route table connection type** changed from
+  `network` to `osiris.azure.routetable.association`. The connection
+  IDs of these edges change.
+- **Breaking: NAT gateway attachment** is now Subnet -> NAT gateway
+  `osiris.azure.natgateway.association` (forward), read from the
+  subnet `natGateway` and the gateway `subnets`, replacing NAT gateway
+  -> Subnet `network`.
+- **Breaking: private endpoint -> target connections** are typed
+  `network` and built from the private endpoint, replacing the
+  per-service `dependency`, `dependency.storage` and
+  `dependency.database` builders that read the target's
+  `privateEndpointConnections` (which emitted none in practice, see
+  Fixed).
+- **Breaking: ExpressRoute gateway <-> circuit** connections changed
+  from `network.bgp` to `network` (bidirectional): the connection
+  carries the private-peering data path as well as the route exchange.
+  Properties: `connection_id` (the `Microsoft.Network/connections`
+  resource in the document), `connection_type`, `routing_weight`,
+  `enable_bgp`. The connection IDs of these edges change.
+- **Breaking: `Microsoft.Network/connections` resources** are typed by
+  their `connectionType`: ExpressRoute ->
+  `osiris.azure.expressroute.connection`; IPsec, Vnet2Vnet and
+  VPNClient stay `network.vpn`. Resource IDs are unchanged.
+- **Breaking: backup protection** connections (protected resource ->
+  Recovery Services vault / Backup vault) changed from `network` to
+  `dataflow`: backup data flows from the resource to the vault. The
+  connection IDs of these edges change.
+- **Breaking: snapshot lineage** is now source disk (or source
+  snapshot) -> snapshot `dataflow` (forward), from the snapshot
+  `creationData.sourceResourceId`. It was emitted as snapshot -> disk
+  `contains` (reverse), which reads "snapshot contains disk".
+- **Breaking: Application Insights -> Log Analytics workspace**
+  connection type changed from `network` to `dataflow`: telemetry is
+  written into the workspace. The connection IDs of these edges
+  change.
+- **Breaking: NIC -> application security group** connection type
+  changed from `network` to `osiris.azure.asg.association`. ASG
+  membership is a policy association, not network reachability.
+- **Breaking: `status` and `state` are no longer invented.** When Azure
+  reports no state for a resource, both are omitted (previously
+  `status: active` plus a fixed `state` such as `Succeeded`, `Enabled`,
+  `Online`, `Ready` or `Connected`). Status mappers now return only the
+  schema values `active`, `inactive`, `degraded`, `retired` and
+  `unknown`: paused or stopped -> `inactive`, transitional (starting,
+  stopping, updating, scaling) -> `degraded`, deleted or completed ->
+  `retired`, unrecognized -> `unknown`. `state` keeps the Azure value.
+- **Breaking: disk -> VM `contains` (reverse) connections removed**,
+  replaced by the VM -> Disk `dependency.storage` connections above.
+- ARM resource ID references are resolved case-insensitively
+  everywhere. `provider.native_id` and resource IDs keep the casing
+  Azure returned; no resource ID changes.
+- Every connection passes one final resolution step before the
+  document is built: connections whose source or target is not a
+  resource in the document, self-references and duplicates of the same
+  relationship are dropped. A summary (candidates, emitted, duplicates,
+  dangling, per type) is logged to stderr.
+- `--include-raw-body` now attaches the ARM object as returned by
+  the az CLI, including fields not mapped to OSIRIS JSON, instead of
+  re-serializing the producer's decoded struct (which kept only modeled
+  fields). Objects are captured from the list output the producer
+  already fetches; no additional az calls are made. Nested objects that
+  are resources themselves (e.g. subnets inside a VNet) are captured
+  too.
+  Secrets are redacted before attachment and replaced with `[REDACTED]`:
+  - strings under a sensitive key, including ARM spellings
+    (`connectionString`, `primaryKey`, `accessKey`, `customData`) and
+    keys whose value is a secret-bearing URL (`callbackUrl`,
+    `serviceUri`, `triggerUrl`, `webhookUrl`);
+  - value fields (`value`, `defaultValue`, `body`, `content`, `data`,
+    `text`, `key`) of objects below a sensitive key, while structural
+    fields such as `type`, `method`, `uri` and `audience` are kept;
+  - the value of ARM `securestring` and `secureobject` parameters;
+  - any string matching a secret value pattern, including Azure SAS
+    signatures (`sig=`), Function keys (`code=`), storage and Service
+    Bus connection strings, and credentials in form-encoded bodies,
+    checked both as text and in its JSON-encoded form (so the lines of
+    a multi-line string cannot match together once encoded).
+  Booleans and numbers are kept. Keys of Logic App `runAfter` maps
+  (action names) and of Key Vault access policy `permissions`
+  (permission categories) are not field names and never trigger
+  redaction. Application Insights `InstrumentationKey` and everything
+  under Logic App API connection `parameterValues` /
+  `parameterValueSet` are redacted. The body is encoded with every
+  element on its own line after a space, and a space after each colon,
+  so a value pattern cannot match across two fields, also once the body
+  is stored as a JSON string. A body that still matches a secret pattern 
+  after redaction is discarded and the decoded struct is attached
+  instead, with `extensions["osiris.azure.arm"].raw_rejected` naming the 
+  matched rule.
+  A capture summary (attached, fallback per ARM type, rejected,
+  redacted values) is logged to stderr.
+- `extensions["osiris.azure.arm"].fetched_at` is the run's snapshot
+  time, identical for every resource of a document, instead of the
+  moment each resource was transformed. Repeated runs over the same
+  data produce identical documents.
+- **Breaking: provider and scope identity fields made consistent.**
+  For consumers:
+  - `provider.account` is the owning Azure subscription of every
+    resource, read from its own ARM ID (`provider.native_id`) and
+    written in lower case (ARM IDs may spell the GUID in either case);
+    a stub keeps its foreign subscription. Previously every transformed
+    resource was given the exported subscription. Subscription IDs in
+    `metadata.scope.accounts`, the subscription catalog and the
+    subscription group's `subscription_id` use the same lower-case
+    form.
+    VNet stubs no longer repeat the owner as 
+    `properties.subscription_id`.
+  - `provider.subscription` is no longer emitted (it duplicated
+    `provider.account`).
+  - `provider.tenant` is set only when the owning tenant is known: the
+    exported subscription's tenant for its resources, or the tenant the
+    management group entity list states for a stub's subscription.
+  - `provider.system` is no longer emitted. It carried the subscription
+    display name, which is not a producing or source system; names are
+    in the subscription catalog and the `logical.subscription` group.
+  - `metadata.scope.accounts` is the exported subscription ID (it
+    previously held the tenant ID, now the `tenant_id` of the exported
+    subscription's entry in the `metadata["osiris.azure"]` catalog);
+    `metadata.scope.subscriptions` is no longer emitted.
+    Subscriptions only referenced by ARM IDs are not added to scope.
+  - Key Vault `extensions["osiris.azure"].network_acls` is removed: it
+    was an identical copy of `properties.network_acls`, which is
+    unchanged. Storage accounts keep their `network_acls` in extensions.
+  Resource, connection and group IDs are unchanged, and no connection
+  or group membership changes.
+- `metadata.scope.name` is now the subscription display name alone
+  (previously `"<subscription-id> - <display-name>"`). The subscription
+  ID remains in `metadata.scope.accounts`; it is used as the name only
+  when Azure returns no display name.
+
+### Fixed
+- **Management group hierarchy skipped unreadable levels.** An ancestor
+  management group the caller cannot read was dropped, attaching its
+  child to the grandparent. It is now rebuilt from the subscription's
+  own parent name chain, with the same group ID it has when readable.
+- **Resource group membership across subscriptions.** A resource owned
+  by another subscription could become a member of a local resource
+  group with the same name. Membership is now limited to resources of
+  the exported subscription.
+- **Disk attachments silently dropped.** The disk `managedBy` field
+  frequently differs from the VM ARM ID only in casing, so no
+  disk/VM connection was emitted for those disks.
+- **Resource fields lost for flat az list output.** Several az list
+  commands return resource fields at the top level of each object
+  instead of under `properties`, which the decoder expected. Those
+  fields decoded to nothing: properties, status and relationships
+  derived from them were missing for API Management, AKS, Key Vault,
+  SQL server, SQL database, SQL managed instance, Logic Apps, data
+  collection rules and endpoints, Automation accounts and VMSS. Both
+  forms are now decoded. This adds properties to those resources and
+  emits relationships that were silently skipped (VMSS -> Subnet,
+  SQL managed instance -> Subnet, data collection rule -> Log
+  Analytics workspace). Disabled Logic App workflows were reported as
+  `Enabled` / `active`; they now carry their real state.
+- **Private endpoint references on targets** returned flattened by az
+  (`privateEndpoint.id` instead of `properties.privateEndpoint.id`)
+  were not read, so the private endpoint ID extensions
+  (`private_endpoint_ids`, `private_endpoint_connection_ids`) of
+  targets listed in that form were empty.
+- **Status values outside the schema enum.** SQL database, SQL
+  managed instance, PostgreSQL / MySQL flexible server, Stream
+  Analytics and Logic App states could map to `transitioning`,
+  `terminated` or a lower-cased Azure value, which fail strict schema
+  validation.
+- SQL managed instance databases, SQL elastic pools and SQL virtual
+  machines now carry `extensions["osiris.azure.arm"]` like every
+  other resource (with `--include-raw-body`, the ARM object).
+- **Transient az failures dropped whole collections.** A single
+  network or service error (e.g. an SSL EOF, a connection reset,
+  throttling, a 5xx) on one az call, such as the tenant-wide management
+  group entity list, removed that data for the run. az calls failing
+  with such an error are now retried twice (after 2 s and 5 s);
+  authorization, not-found, validation errors and timeouts are not
+  retried. Retries are logged to stderr.
+- **`--include-raw-body` redacted boolean flags stored as text** below
+  a secret-named key (e.g. the AKS Key Vault add-on
+  `enableSecretRotation: "false"`). `"true"` / `"false"` strings are
+  now kept; secure parameters and value patterns still apply.
+- Resource fields missing for 13 types collected with
+  `az resource list` (Application Insights, Logic App API
+  connections, Communication and email services and domains, Data
+  Factory, Synapse, Arc machines, autoscale settings, DNS private
+  resolvers and forwarding rulesets, Stream Analytics, Event Grid
+  system topics). That command returns `properties` as null, so these
+  resources had no properties, status or relationships derived from
+  them (e.g. Application Insights -> Log Analytics workspace).
+  `properties` are now filled from Resource Graph (one paginated
+  query) by ARM ID; resource IDs and names still come from the list.
+  With `--include-raw-body` the body's null `properties` is filled the
+  same way.
+- **Key Vault properties.** `az keyvault list` returns no vault
+  properties and the `az keyvault show` enrichment ran only when the
+  TLS version was missing, copying two fields. It now runs whenever
+  the vault URI is missing and uses the full show properties (SKU,
+  vault URI, soft delete, purge protection, RBAC), keeping Resource
+  Graph values where show has none. With `--include-raw-body` the show
+  object is attached.
+- **VM `status` was always `unknown`.** `az vm list` returns no power
+  state, so the power state mapper never had input. The power state is
+  now read from Resource Graph (one paginated query) and mapped:
+  running -> `active`, stopped / deallocated -> `inactive`, starting /
+  stopping -> `degraded`. `state` remains the provisioning state.
+
+- **ExpressRoute gateway connections were not emitted** when a
+  connection referenced its gateway or circuit with different casing
+  than the referenced resource, and the gateway's `connections`
+  property and a VNet's peering list missed entries in the same case.
+
+### Security
+- **Credentials in tags.** Resource tags are free text and are emitted
+  for every `--purpose`; the Azure portal stores an Application
+  Insights connection string (`InstrumentationKey=...`) as the value of
+  the `hidden-link` tag, and connections inherit their source's tags.
+  Every tag value, and every string in properties and extensions, of
+  resources, connections and groups that matches a secret value pattern
+  is now replaced with `[REDACTED]` after the document is built.
+  Documents produced by earlier versions for subscriptions using that
+  tag contain the connection string.
+- Fail-closed scan aborted documents on ARM bodies that would not be
+  emitted, and struct bodies were not redacted.
+  Without `--include-raw-body`, the decoded-struct ARM bodies were
+  removed only after the document was built, so the fail-closed secret
+  scan could reject a whole subscription because of a body that would
+  never be emitted; they are now removed before the build. With
+  `--include-raw-body`, a resource whose ARM object was not captured, or
+  whose capture was rejected, kept its struct body unredacted; struct
+  bodies now get the same redaction and checks as captured ones, and a
+  struct body that still matches a secret pattern is dropped, with
+  `extensions["osiris.azure.arm"].struct_rejected` naming the rule.
+  The capture summary on stderr reports `struct_rejected`.
+- **ExpressRoute circuit service keys are no longer emitted.** Earlier
+  versions wrote the circuit `serviceKey` (the key handed to the
+  connectivity provider to provision the circuit) to
+  `extensions["osiris.azure"].service_key` at `--purpose audit`. The
+  field is removed, the key is no longer decoded, and `serviceKey` is
+  redacted in `--include-raw-body` bodies. Audit documents produced by
+  earlier versions for subscriptions with ExpressRoute circuits contain
+  the key.
+- **Application Insights connection strings** (`InstrumentationKey=`)
+  are a secret value pattern: with `--include-raw-body` they are
+  redacted wherever they appear (tags, container app environment
+  variables, app settings).
+
+---
+
 ## [0.5.2] - 2026-08-26
 
 ### Changed
@@ -102,7 +503,7 @@ the release-level index of which producers shipped under each tag.
   (0/1) which the JSON decoder rejects as a bool.
   Field is now excluded from collection.
 - **`network_acls` in envelope**:
-  Key Vault `network_acls` (default_action, bypass, ip_rules,
+  Key Vault `network_acls` (default_action, bypass, ip_ranges,
   vnet_subnet_ids) is now written to `extensions["osiris.azure"]`
   in addition to `properties`. Previously only went to properties.
 - **`default_action` fallback**:
@@ -763,7 +1164,7 @@ Initial Microsoft Azure producer release.
 
 [Unreleased]: ../../../CHANGELOG.md
 [0.5.2]: ../../../CHANGELOG.md#070---2026-08-29
-[0.6.0]: ../../../CHANGELOG.md#060---2026-04-29
+[0.6.0]: ../../../CHANGELOG.md#090---2026-11-08
 [0.5.0]: ../../../CHANGELOG.md#050---2026-04-29
 [0.4.0]: ../../../CHANGELOG.md#040---2026-04-25
 [0.3.0]: ../../../CHANGELOG.md#030---2026-04-20
