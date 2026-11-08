@@ -1,0 +1,33 @@
+[
+  {
+    "elasticScaleEnabled": false,
+    "geoRegion": "West Europe",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/serverfarms/LAB-ASP01",
+    "isSpot": false,
+    "kind": "linux",
+    "location": "westeurope",
+    "maximumElasticWorkerCount": 1,
+    "maximumNumberOfWorkers": 30,
+    "name": "LAB-ASP01",
+    "numberOfSites": 1,
+    "numberOfWorkers": 2,
+    "perSiteScaling": false,
+    "provisioningState": "Succeeded",
+    "reserved": true,
+    "resourceGroup": "RG-SPOKE-APP",
+    "sku": {
+      "capacity": 2,
+      "family": "Pv3",
+      "name": "P1v3",
+      "size": "P1v3",
+      "tier": "PremiumV3"
+    },
+    "status": "Ready",
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Web/serverfarms",
+    "zoneRedundant": false
+  }
+]

@@ -1,0 +1,220 @@
+{
+  "rules": [
+    {
+      "prefix": "account show",
+      "file": "az/account-show.json"
+    },
+    {
+      "prefix": "account list",
+      "file": "az/account-list.json"
+    },
+    {
+      "prefix": "account management-group entities list",
+      "file": "az/mg-entities.json"
+    },
+    {
+      "contains": "/tenants?api-version",
+      "file": "az/tenants-rest.json"
+    },
+    {
+      "contains": "virtualHubs/LAB-HUB-ARS/ipConfigurations",
+      "file": "az/routeserver-ipconfigs.json"
+    },
+    {
+      "prefix": "group list",
+      "file": "az/group-list.json"
+    },
+    {
+      "prefix": "network vnet subnet list --vnet-name LAB-HUB-VNET --resource-group RG-HUB-NET",
+      "file": "az/subnet-list.json"
+    },
+    {
+      "prefix": "network vnet peering list --vnet-name LAB-HUB-VNET --resource-group RG-HUB-NET",
+      "file": "az/peering-list.json"
+    },
+    {
+      "prefix": "network vnet list --resource-group RG-HUB-NET",
+      "file": "az/vnet-list.json"
+    },
+    {
+      "prefix": "network vnet-gateway list --resource-group RG-HUB-NET",
+      "file": "az/vnet-gateway-list.json"
+    },
+    {
+      "prefix": "network vpn-connection list --resource-group RG-HUB-NET",
+      "file": "az/connection-list.json"
+    },
+    {
+      "prefix": "network express-route list",
+      "file": "az/express-route-list.json"
+    },
+    {
+      "prefix": "network routeserver peering list --routeserver LAB-HUB-ARS",
+      "file": "az/routeserver-peers.json"
+    },
+    {
+      "prefix": "network routeserver list",
+      "file": "az/routeserver-list.json"
+    },
+    {
+      "prefix": "network nsg list",
+      "file": "az/nsg-list.json"
+    },
+    {
+      "prefix": "network route-table list --resource-group RG-HUB-NET",
+      "file": "az/route-table-list.json"
+    },
+    {
+      "prefix": "network public-ip prefix list",
+      "file": "az/public-ip-prefix-list.json"
+    },
+    {
+      "prefix": "network public-ip list",
+      "file": "az/public-ip-list.json"
+    },
+    {
+      "prefix": "network lb list",
+      "file": "az/lb-list.json"
+    },
+    {
+      "prefix": "network nic list",
+      "file": "az/nic-list.json"
+    },
+    {
+      "prefix": "network private-endpoint list",
+      "file": "az/private-endpoint-list.json"
+    },
+    {
+      "prefix": "vm list",
+      "file": "az/vm-list.json"
+    },
+    {
+      "prefix": "vmss list",
+      "file": "az/vmss-list.json"
+    },
+    {
+      "prefix": "disk list --resource-group RG-HUB-NVA",
+      "file": "az/disk-list.json"
+    },
+    {
+      "prefix": "storage account list",
+      "file": "az/storage-account-list.json"
+    },
+    {
+      "prefix": "keyvault list",
+      "file": "az/keyvault-list.json"
+    },
+    {
+      "prefix": "keyvault show --name LAB-HUB-KV01",
+      "file": "az/keyvault-show-hub.json"
+    },
+    {
+      "prefix": "automation account list",
+      "file": "az/automation-list.json"
+    },
+    {
+      "prefix": "monitor log-analytics workspace list",
+      "file": "az/la-list.json"
+    },
+    {
+      "prefix": "monitor data-collection rule list",
+      "file": "az/dcr-list.json"
+    },
+    {
+      "prefix": "monitor data-collection endpoint list",
+      "file": "az/dce-list.json"
+    },
+    {
+      "prefix": "backup vault list",
+      "file": "az/rsv-list.json"
+    },
+    {
+      "prefix": "backup item list --vault-name LAB-HUB-RSV01",
+      "file": "az/backup-item-list-hub.json"
+    },
+    {
+      "prefix": "logic workflow list",
+      "file": "az/logic-list.json"
+    },
+    {
+      "prefix": "monitor action-group list",
+      "file": "az/action-group-list.json"
+    },
+    {
+      "prefix": "monitor metrics alert list",
+      "file": "az/metric-alert-list.json"
+    },
+    {
+      "prefix": "servicebus namespace list",
+      "file": "az/servicebus-list.json"
+    },
+    {
+      "prefix": "resource list --resource-type Microsoft.Web/connections",
+      "file": "az/listed-apiconn.json"
+    },
+    {
+      "prefix": "resource list --resource-type Microsoft.Insights/autoscalesettings",
+      "file": "az/listed-autoscale.json"
+    },
+    {
+      "prefix": "resource list --resource-type Microsoft.Network/dnsResolvers",
+      "file": "az/listed-dnsresolver.json"
+    },
+    {
+      "prefix": "resource list --resource-type Microsoft.Network/dnsForwardingRulesets",
+      "file": "az/listed-dnsruleset.json"
+    },
+    {
+      "prefix": "resource list --resource-type Microsoft.StreamAnalytics/streamingjobs",
+      "file": "az/listed-streamanalytics.json"
+    },
+    {
+      "prefix": "monitor diagnostic-settings list --resource /subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
+      "file": "az/diag-vnet.json"
+    },
+    {
+      "prefix": "monitor diagnostic-settings list --resource /subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
+      "file": "az/diag-nsg.json"
+    },
+    {
+      "prefix": "monitor diagnostic-settings list --resource /subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB",
+      "file": "az/diag-ilb.json"
+    },
+    {
+      "prefix": "monitor diagnostic-settings list --resource /subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ARS-PIP",
+      "file": "az/diag-pip.json"
+    },
+    {
+      "prefix": "monitor diagnostic-settings list --resource /subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.KeyVault/vaults/LAB-HUB-KV01",
+      "file": "az/diag-kv.json"
+    },
+    {
+      "prefix": "monitor diagnostic-settings list --resource /subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.ServiceBus/namespaces/LAB-HUB-SB01",
+      "file": "az/diag-sb.json"
+    },
+    {
+      "prefix": "monitor diagnostic-settings list --resource /subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.RecoveryServices/vaults/LAB-HUB-RSV01",
+      "file": "az/diag-rsv.json"
+    },
+    {
+      "prefix": "monitor diagnostic-settings list --resource /subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA01",
+      "file": "az/diag-la.json"
+    },
+    {
+      "contains": "| project id, kind, sku, identity",
+      "file": "az/graph-envelopes.json"
+    },
+    {
+      "contains": "| project id, properties",
+      "file": "az/graph-listed-properties.json"
+    },
+    {
+      "contains": "powerState = tostring",
+      "file": "az/graph-vm-power.json"
+    },
+    {
+      "contains": "networkwatchers/flowlogs",
+      "file": "az/graph-flowlogs.json"
+    }
+  ]
+}

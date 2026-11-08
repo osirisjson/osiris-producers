@@ -1,0 +1,41 @@
+[
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET",
+    "location": "westeurope",
+    "name": "RG-SPOKE-NET",
+    "properties": {
+      "provisioningState": "Succeeded"
+    },
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Resources/resourceGroups"
+  },
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP",
+    "location": "westeurope",
+    "name": "RG-SPOKE-APP",
+    "properties": {
+      "provisioningState": "Succeeded"
+    },
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Resources/resourceGroups"
+  },
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA",
+    "location": "westeurope",
+    "name": "RG-SPOKE-DATA",
+    "properties": {
+      "provisioningState": "Succeeded"
+    },
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Resources/resourceGroups"
+  }
+]

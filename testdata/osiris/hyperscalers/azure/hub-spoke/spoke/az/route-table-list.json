@@ -1,0 +1,53 @@
+[
+  {
+    "disableBgpRoutePropagation": true,
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/routeTables/LAB-SPOKE-RT",
+    "location": "westeurope",
+    "name": "LAB-SPOKE-RT",
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-SPOKE-NET",
+    "routes": [
+      {
+        "addressPrefix": "0.0.0.0/0",
+        "hasBgpOverride": false,
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/routeTables/LAB-SPOKE-RT/routes/LAB-DEFAULT-VIA-HUB",
+        "name": "LAB-DEFAULT-VIA-HUB",
+        "nextHopIpAddress": "192.0.2.10",
+        "nextHopType": "VirtualAppliance",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-SPOKE-NET",
+        "type": "Microsoft.Network/routeTables/routes"
+      },
+      {
+        "addressPrefix": "192.0.2.0/24",
+        "hasBgpOverride": false,
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/routeTables/LAB-SPOKE-RT/routes/LAB-HUB-VIA-NVA",
+        "name": "LAB-HUB-VIA-NVA",
+        "nextHopIpAddress": "192.0.2.10",
+        "nextHopType": "VirtualAppliance",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-SPOKE-NET",
+        "type": "Microsoft.Network/routeTables/routes"
+      }
+    ],
+    "subnets": [
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-APP",
+        "resourceGroup": "RG-SPOKE-NET"
+      },
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-DATA",
+        "resourceGroup": "RG-SPOKE-NET"
+      },
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-SQLMI",
+        "resourceGroup": "RG-SPOKE-NET"
+      }
+    ],
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Network/routeTables"
+  }
+]

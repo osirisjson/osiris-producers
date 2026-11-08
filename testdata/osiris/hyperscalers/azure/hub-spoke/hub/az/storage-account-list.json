@@ -1,0 +1,39 @@
+[
+  {
+    "allowBlobPublicAccess": false,
+    "enableHttpsTrafficOnly": true,
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Storage/storageAccounts/labhubsa01",
+    "kind": "StorageV2",
+    "location": "westeurope",
+    "minimumTlsVersion": "TLS1_2",
+    "name": "labhubsa01",
+    "networkRuleSet": {
+      "bypass": "AzureServices",
+      "defaultAction": "Deny",
+      "ipRules": [],
+      "virtualNetworkRules": [
+        {
+          "action": "Allow",
+          "state": "Succeeded",
+          "virtualNetworkResourceId": "/subscriptions/00000000-0000-0000-0000-000000000015/resourceGroups/RG-LAB-EXT/providers/Microsoft.Network/virtualNetworks/LAB-VNET-EXT/subnets/LAB-SNET-EXT"
+        }
+      ]
+    },
+    "primaryEndpoints": {
+      "blob": "https://labhubsa01.blob.example.com/"
+    },
+    "privateEndpointConnections": [],
+    "provisioningState": "Succeeded",
+    "publicNetworkAccess": "Disabled",
+    "resourceGroup": "RG-HUB-MGMT",
+    "sku": {
+      "name": "Standard_LRS",
+      "tier": "Standard"
+    },
+    "tags": {
+      "env": "LAB",
+      "hidden-link": "InstrumentationKey=00000000-0000-0000-0000-0000000000cc;IngestionEndpoint=https://lab-ai.example.com/"
+    },
+    "type": "Microsoft.Storage/storageAccounts"
+  }
+]

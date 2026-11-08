@@ -1,0 +1,26 @@
+[
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Automation/automationAccounts/LAB-HUB-AA01",
+    "identity": {
+      "principalId": "00000000-0000-0000-0000-0000000001e1",
+      "tenantId": "00000000-0000-0000-0000-0000000000aa",
+      "type": "SystemAssigned"
+    },
+    "location": "westeurope",
+    "name": "LAB-HUB-AA01",
+    "properties": {
+      "provisioningState": "Succeeded",
+      "publicNetworkAccess": false,
+      "sku": {
+        "name": "Basic"
+      },
+      "state": "Ok"
+    },
+    "resourceGroup": "RG-HUB-MGMT",
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Automation/automationAccounts"
+  }
+]

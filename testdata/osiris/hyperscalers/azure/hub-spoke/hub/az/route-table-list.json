@@ -1,0 +1,44 @@
+[
+  {
+    "disableBgpRoutePropagation": true,
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/routeTables/LAB-HUB-RT-MGMT",
+    "location": "westeurope",
+    "name": "LAB-HUB-RT-MGMT",
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-HUB-NET",
+    "routes": [
+      {
+        "addressPrefix": "198.51.100.0/24",
+        "hasBgpOverride": false,
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/routeTables/LAB-HUB-RT-MGMT/routes/LAB-TO-SPOKE-VIA-NVA",
+        "name": "LAB-TO-SPOKE-VIA-NVA",
+        "nextHopIpAddress": "192.0.2.10",
+        "nextHopType": "VirtualAppliance",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-HUB-NET",
+        "type": "Microsoft.Network/routeTables/routes"
+      },
+      {
+        "addressPrefix": "0.0.0.0/0",
+        "hasBgpOverride": false,
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/routeTables/LAB-HUB-RT-MGMT/routes/LAB-DEFAULT",
+        "name": "LAB-DEFAULT",
+        "nextHopType": "Internet",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-HUB-NET",
+        "type": "Microsoft.Network/routeTables/routes"
+      }
+    ],
+    "subnets": [
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-MGMT",
+        "resourceGroup": "RG-HUB-NET"
+      }
+    ],
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Network/routeTables"
+  }
+]

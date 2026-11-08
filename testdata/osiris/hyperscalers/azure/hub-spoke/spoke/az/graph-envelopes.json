@@ -1,0 +1,30 @@
+{
+  "count": 4,
+  "data": [
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Compute/virtualMachines/LAB-APP01",
+      "provisioningState": "Succeeded"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Compute/virtualMachines/LAB-SQLVM01",
+      "provisioningState": "Succeeded"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/sites/LAB-WEB01",
+      "identity": {
+        "principalId": "00000000-0000-0000-0000-0000000002e1",
+        "tenantId": "00000000-0000-0000-0000-0000000000aa",
+        "type": "SystemAssigned"
+      },
+      "kind": "app,linux",
+      "provisioningState": "Succeeded",
+      "publicNetworkAccess": "Disabled"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Storage/storageAccounts/labspokesa01",
+      "kind": "StorageV2",
+      "provisioningState": "Succeeded",
+      "publicNetworkAccess": "Disabled"
+    }
+  ]
+}

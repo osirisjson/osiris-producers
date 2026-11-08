@@ -1,0 +1,44 @@
+[
+  {
+    "allowBlobPublicAccess": false,
+    "enableHttpsTrafficOnly": true,
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Storage/storageAccounts/labspokesa01",
+    "kind": "StorageV2",
+    "location": "westeurope",
+    "minimumTlsVersion": "TLS1_2",
+    "name": "labspokesa01",
+    "networkRuleSet": {
+      "bypass": "AzureServices",
+      "defaultAction": "Deny",
+      "ipRules": [],
+      "virtualNetworkRules": []
+    },
+    "primaryEndpoints": {
+      "blob": "https://labspokesa01.blob.example.com/"
+    },
+    "privateEndpointConnections": [
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Storage/storageAccounts/labspokesa01/privateEndpointConnections/LAB-PE-SA01",
+        "privateEndpoint": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-SA01",
+          "resourceGroup": "RG-SPOKE-NET"
+        },
+        "privateLinkServiceConnectionState": {
+          "status": "Approved"
+        }
+      }
+    ],
+    "provisioningState": "Succeeded",
+    "publicNetworkAccess": "Disabled",
+    "resourceGroup": "RG-SPOKE-DATA",
+    "sku": {
+      "name": "Standard_LRS",
+      "tier": "Standard"
+    },
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Storage/storageAccounts"
+  }
+]

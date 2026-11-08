@@ -1,0 +1,40 @@
+[
+  {
+    "armRoleReceivers": [],
+    "automationRunbookReceivers": [],
+    "azureAppPushReceivers": [],
+    "azureFunctionReceivers": [],
+    "emailReceivers": [
+      {
+        "emailAddress": "osirisjson@example.com",
+        "name": "LAB-OPS",
+        "status": "Enabled",
+        "useCommonAlertSchema": true
+      }
+    ],
+    "enabled": true,
+    "eventHubReceivers": [],
+    "groupShortName": "LABHUB",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/microsoft.insights/actionGroups/LAB-HUB-AG01",
+    "itsmReceivers": [],
+    "location": "global",
+    "logicAppReceivers": [
+      {
+        "callbackUrl": "https://lab-logic.example.com/workflows/0000/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Fx&sv=1.0&sig=changeme",
+        "name": "LAB-LOGIC-TRIGGER",
+        "resourceId": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Logic/workflows/LAB-HUB-LOGIC01",
+        "useCommonAlertSchema": true
+      }
+    ],
+    "name": "LAB-HUB-AG01",
+    "resourceGroup": "RG-HUB-MGMT",
+    "smsReceivers": [],
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Insights/ActionGroups",
+    "voiceReceivers": [],
+    "webhookReceivers": []
+  }
+]

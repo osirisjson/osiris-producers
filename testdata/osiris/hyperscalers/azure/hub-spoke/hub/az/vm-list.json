@@ -1,0 +1,86 @@
+[
+  {
+    "hardwareProfile": {
+      "vmSize": "Standard_D4s_v5"
+    },
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA01",
+    "location": "westeurope",
+    "name": "LAB-NVA01",
+    "networkProfile": {
+      "networkInterfaces": [
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic",
+          "primary": true,
+          "resourceGroup": "RG-HUB-NVA"
+        }
+      ]
+    },
+    "osProfile": {
+      "adminUsername": "admin",
+      "computerName": "LAB-NVA01"
+    },
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-HUB-NVA",
+    "storageProfile": {
+      "dataDisks": [],
+      "osDisk": {
+        "createOption": "FromImage",
+        "diskSizeGB": 64,
+        "managedDisk": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/disks/LAB-NVA01-os",
+          "resourceGroup": "RG-HUB-NVA"
+        },
+        "name": "LAB-NVA01-os",
+        "osType": "Linux"
+      }
+    },
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Compute/virtualMachines",
+    "vmId": "00000000-0000-0000-0000-0000000001f1"
+  },
+  {
+    "hardwareProfile": {
+      "vmSize": "Standard_D4s_v5"
+    },
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA02",
+    "location": "westeurope",
+    "name": "LAB-NVA02",
+    "networkProfile": {
+      "networkInterfaces": [
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA02-nic",
+          "primary": true,
+          "resourceGroup": "RG-HUB-NVA"
+        }
+      ]
+    },
+    "osProfile": {
+      "adminUsername": "admin",
+      "computerName": "LAB-NVA02"
+    },
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-HUB-NVA",
+    "storageProfile": {
+      "dataDisks": [],
+      "osDisk": {
+        "createOption": "FromImage",
+        "diskSizeGB": 64,
+        "managedDisk": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourcegroups/rg-hub-nva/providers/microsoft.compute/disks/lab-nva02-os",
+          "resourceGroup": "RG-HUB-NVA"
+        },
+        "name": "LAB-NVA02-os",
+        "osType": "Linux"
+      }
+    },
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Compute/virtualMachines",
+    "vmId": "00000000-0000-0000-0000-0000000001f2"
+  }
+]

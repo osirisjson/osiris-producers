@@ -1,0 +1,178 @@
+[
+  {
+    "actions": [
+      {
+        "actionGroupId": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/microsoft.insights/actionGroups/LAB-SPOKE-AG01",
+        "webHookProperties": {}
+      }
+    ],
+    "autoMitigate": true,
+    "criteria": {
+      "allOf": [
+        {
+          "criterionType": "StaticThresholdCriterion",
+          "dimensions": [],
+          "metricName": "Http5xx",
+          "metricNamespace": "Microsoft.Web/sites",
+          "name": "LAB-CRITERION",
+          "operator": "LessThan",
+          "skipMetricValidation": false,
+          "threshold": 90,
+          "timeAggregation": "Average"
+        }
+      ],
+      "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+    },
+    "description": "LAB-WEB01-HTTP5XX threshold",
+    "enabled": true,
+    "evaluationFrequency": "PT1M",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Insights/metricAlerts/LAB-WEB01-HTTP5XX",
+    "location": "global",
+    "name": "LAB-WEB01-HTTP5XX",
+    "resourceGroup": "RG-SPOKE-APP",
+    "scopes": [
+      "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/sites/LAB-WEB01"
+    ],
+    "severity": 2,
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "targetResourceRegion": "",
+    "targetResourceType": "",
+    "type": "Microsoft.Insights/metricAlerts",
+    "windowSize": "PT5M"
+  },
+  {
+    "actions": [
+      {
+        "actionGroupId": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/microsoft.insights/actionGroups/LAB-SPOKE-AG01",
+        "webHookProperties": {}
+      }
+    ],
+    "autoMitigate": true,
+    "criteria": {
+      "allOf": [
+        {
+          "criterionType": "StaticThresholdCriterion",
+          "dimensions": [],
+          "metricName": "avg_cpu_percent",
+          "metricNamespace": "Microsoft.Sql/managedInstances",
+          "name": "LAB-CRITERION",
+          "operator": "LessThan",
+          "skipMetricValidation": false,
+          "threshold": 90,
+          "timeAggregation": "Average"
+        }
+      ],
+      "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+    },
+    "description": "LAB-SQLMI01-CPU threshold",
+    "enabled": true,
+    "evaluationFrequency": "PT1M",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Insights/metricAlerts/LAB-SQLMI01-CPU",
+    "location": "global",
+    "name": "LAB-SQLMI01-CPU",
+    "resourceGroup": "RG-SPOKE-APP",
+    "scopes": [
+      "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Sql/managedInstances/lab-sqlmi01"
+    ],
+    "severity": 2,
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "targetResourceRegion": "",
+    "targetResourceType": "",
+    "type": "Microsoft.Insights/metricAlerts",
+    "windowSize": "PT5M"
+  },
+  {
+    "actions": [
+      {
+        "actionGroupId": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/microsoft.insights/actionGroups/LAB-SPOKE-AG01",
+        "webHookProperties": {}
+      }
+    ],
+    "autoMitigate": true,
+    "criteria": {
+      "allOf": [
+        {
+          "criterionType": "StaticThresholdCriterion",
+          "dimensions": [],
+          "metricName": "Availability",
+          "metricNamespace": "Microsoft.Storage/storageAccounts",
+          "name": "LAB-CRITERION",
+          "operator": "LessThan",
+          "skipMetricValidation": false,
+          "threshold": 90,
+          "timeAggregation": "Average"
+        }
+      ],
+      "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+    },
+    "description": "LAB-SPOKE-SA01-AVAIL threshold",
+    "enabled": true,
+    "evaluationFrequency": "PT1M",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Insights/metricAlerts/LAB-SPOKE-SA01-AVAIL",
+    "location": "global",
+    "name": "LAB-SPOKE-SA01-AVAIL",
+    "resourceGroup": "RG-SPOKE-APP",
+    "scopes": [
+      "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Storage/storageAccounts/labspokesa01"
+    ],
+    "severity": 2,
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "targetResourceRegion": "",
+    "targetResourceType": "",
+    "type": "Microsoft.Insights/metricAlerts",
+    "windowSize": "PT5M"
+  },
+  {
+    "actions": [
+      {
+        "actionGroupId": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/microsoft.insights/actionGroups/LAB-SPOKE-AG01",
+        "webHookProperties": {}
+      }
+    ],
+    "autoMitigate": true,
+    "criteria": {
+      "allOf": [
+        {
+          "criterionType": "StaticThresholdCriterion",
+          "dimensions": [],
+          "metricName": "Availability",
+          "metricNamespace": "Microsoft.KeyVault/vaults",
+          "name": "LAB-CRITERION",
+          "operator": "LessThan",
+          "skipMetricValidation": false,
+          "threshold": 90,
+          "timeAggregation": "Average"
+        }
+      ],
+      "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+    },
+    "description": "LAB-SPOKE-KV01-AVAIL threshold",
+    "enabled": true,
+    "evaluationFrequency": "PT1M",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Insights/metricAlerts/LAB-SPOKE-KV01-AVAIL",
+    "location": "global",
+    "name": "LAB-SPOKE-KV01-AVAIL",
+    "resourceGroup": "RG-SPOKE-APP",
+    "scopes": [
+      "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.KeyVault/vaults/LAB-SPOKE-KV01"
+    ],
+    "severity": 2,
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "targetResourceRegion": "",
+    "targetResourceType": "",
+    "type": "Microsoft.Insights/metricAlerts",
+    "windowSize": "PT5M"
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.RecoveryServices/vaults/LAB-HUB-RSV01",
+    "location": "westeurope",
+    "name": "LAB-HUB-RSV01",
+    "properties": {
+      "provisioningState": "Succeeded"
+    },
+    "resourceGroup": "RG-HUB-MGMT",
+    "sku": {
+      "name": "RS0",
+      "tier": "Standard"
+    },
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.RecoveryServices/vaults"
+  }
+]

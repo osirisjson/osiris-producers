@@ -1,0 +1,26 @@
+[
+  {
+    "connectionState": "Connected",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualHubs/LAB-HUB-ARS/bgpConnections/LAB-PEER-NVA01",
+    "name": "LAB-PEER-NVA01",
+    "peerAsn": 64512,
+    "peerIp": "192.0.2.4",
+    "provisioningState": "Succeeded"
+  },
+  {
+    "connectionState": "Connected",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualHubs/LAB-HUB-ARS/bgpConnections/LAB-PEER-NVA02",
+    "name": "LAB-PEER-NVA02",
+    "peerAsn": 64512,
+    "peerIp": "192.0.2.5",
+    "provisioningState": "Succeeded"
+  },
+  {
+    "connectionState": "Connected",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualHubs/LAB-HUB-ARS/bgpConnections/LAB-PEER-UNKNOWN",
+    "name": "LAB-PEER-UNKNOWN",
+    "peerAsn": 64513,
+    "peerIp": "192.0.2.40",
+    "provisioningState": "Succeeded"
+  }
+]

@@ -1,0 +1,15 @@
+[
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Web/connections/LAB-HUB-APICONN01",
+    "kind": "V1",
+    "location": "westeurope",
+    "name": "LAB-HUB-APICONN01",
+    "properties": null,
+    "resourceGroup": "RG-HUB-MGMT",
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Web/connections"
+  }
+]

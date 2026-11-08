@@ -1,0 +1,198 @@
+[
+  {
+    "customDnsConfigs": [
+      {
+        "fqdn": "lab-pe-web01.example.com",
+        "ipAddresses": [
+          "198.51.100.68"
+        ]
+      }
+    ],
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-WEB01",
+    "location": "westeurope",
+    "manualPrivateLinkServiceConnections": [],
+    "name": "LAB-PE-WEB01",
+    "networkInterfaces": [
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-WEB01-nic",
+        "resourceGroup": "RG-SPOKE-NET"
+      }
+    ],
+    "privateLinkServiceConnections": [
+      {
+        "groupIds": [
+          "sites"
+        ],
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-WEB01/privateLinkServiceConnections/LAB-PE-WEB01-sites",
+        "name": "LAB-PE-WEB01-sites",
+        "privateLinkServiceConnectionState": {
+          "actionsRequired": "None",
+          "description": "Auto-Approved",
+          "status": "Approved"
+        },
+        "privateLinkServiceId": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/sites/LAB-WEB01",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-SPOKE-NET",
+        "type": "Microsoft.Network/privateEndpoints/privateLinkServiceConnections"
+      }
+    ],
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-SPOKE-NET",
+    "subnet": {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-PE",
+      "resourceGroup": "RG-SPOKE-NET"
+    },
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Network/privateEndpoints"
+  },
+  {
+    "customDnsConfigs": [
+      {
+        "fqdn": "lab-pe-kv01.example.com",
+        "ipAddresses": [
+          "198.51.100.69"
+        ]
+      }
+    ],
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-KV01",
+    "location": "westeurope",
+    "manualPrivateLinkServiceConnections": [],
+    "name": "LAB-PE-KV01",
+    "networkInterfaces": [
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-KV01-nic",
+        "resourceGroup": "RG-SPOKE-NET"
+      }
+    ],
+    "privateLinkServiceConnections": [
+      {
+        "groupIds": [
+          "vault"
+        ],
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-KV01/privateLinkServiceConnections/LAB-PE-KV01-vault",
+        "name": "LAB-PE-KV01-vault",
+        "privateLinkServiceConnectionState": {
+          "actionsRequired": "None",
+          "description": "Auto-Approved",
+          "status": "Approved"
+        },
+        "privateLinkServiceId": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.KeyVault/vaults/LAB-SPOKE-KV01",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-SPOKE-NET",
+        "type": "Microsoft.Network/privateEndpoints/privateLinkServiceConnections"
+      }
+    ],
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-SPOKE-NET",
+    "subnet": {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-PE",
+      "resourceGroup": "RG-SPOKE-NET"
+    },
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Network/privateEndpoints"
+  },
+  {
+    "customDnsConfigs": [
+      {
+        "fqdn": "lab-pe-sa01.example.com",
+        "ipAddresses": [
+          "198.51.100.70"
+        ]
+      }
+    ],
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-SA01",
+    "location": "westeurope",
+    "manualPrivateLinkServiceConnections": [],
+    "name": "LAB-PE-SA01",
+    "networkInterfaces": [
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-SA01-nic",
+        "resourceGroup": "RG-SPOKE-NET"
+      }
+    ],
+    "privateLinkServiceConnections": [
+      {
+        "groupIds": [
+          "blob"
+        ],
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-SA01/privateLinkServiceConnections/LAB-PE-SA01-blob",
+        "name": "LAB-PE-SA01-blob",
+        "privateLinkServiceConnectionState": {
+          "actionsRequired": "None",
+          "description": "Auto-Approved",
+          "status": "Approved"
+        },
+        "privateLinkServiceId": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Storage/storageAccounts/labspokesa01",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-SPOKE-NET",
+        "type": "Microsoft.Network/privateEndpoints/privateLinkServiceConnections"
+      }
+    ],
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-SPOKE-NET",
+    "subnet": {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-PE",
+      "resourceGroup": "RG-SPOKE-NET"
+    },
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Network/privateEndpoints"
+  },
+  {
+    "customDnsConfigs": [
+      {
+        "fqdn": "lab-pe-acr01.example.com",
+        "ipAddresses": [
+          "198.51.100.71"
+        ]
+      }
+    ],
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-ACR01",
+    "location": "westeurope",
+    "manualPrivateLinkServiceConnections": [],
+    "name": "LAB-PE-ACR01",
+    "networkInterfaces": [
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/networkInterfaces/LAB-PE-ACR01-nic",
+        "resourceGroup": "RG-SPOKE-NET"
+      }
+    ],
+    "privateLinkServiceConnections": [
+      {
+        "groupIds": [
+          "registry"
+        ],
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-ACR01/privateLinkServiceConnections/LAB-PE-ACR01-registry",
+        "name": "LAB-PE-ACR01-registry",
+        "privateLinkServiceConnectionState": {
+          "actionsRequired": "None",
+          "description": "Auto-Approved",
+          "status": "Approved"
+        },
+        "privateLinkServiceId": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.ContainerRegistry/registries/labspokeacr01",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-SPOKE-NET",
+        "type": "Microsoft.Network/privateEndpoints/privateLinkServiceConnections"
+      }
+    ],
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-SPOKE-NET",
+    "subnet": {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-PE",
+      "resourceGroup": "RG-SPOKE-NET"
+    },
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Network/privateEndpoints"
+  }
+]

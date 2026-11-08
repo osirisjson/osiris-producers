@@ -1,0 +1,15 @@
+[
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/connections/LAB-SPOKE-APICONN01",
+    "kind": "V1",
+    "location": "westeurope",
+    "name": "LAB-SPOKE-APICONN01",
+    "properties": null,
+    "resourceGroup": "RG-SPOKE-APP",
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Web/connections"
+  }
+]

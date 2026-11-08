@@ -1,0 +1,59 @@
+{
+  "count": 3,
+  "data": [
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourcegroups/rg-spoke-app/providers/microsoft.insights/autoscalesettings/lab-asp01-autoscale",
+      "properties": {
+        "enabled": true,
+        "name": "LAB-ASP01-AUTOSCALE",
+        "notifications": [],
+        "profiles": [
+          {
+            "capacity": {
+              "default": "2",
+              "maximum": "4",
+              "minimum": "2"
+            },
+            "name": "LAB-DEFAULT-PROFILE",
+            "rules": []
+          }
+        ],
+        "provisioningState": "Succeeded",
+        "targetResourceUri": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/serverfarms/LAB-ASP01"
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourcegroups/rg-spoke-app/providers/microsoft.web/connections/lab-spoke-apiconn01",
+      "properties": {
+        "api": {
+          "displayName": "Azure Blob Storage",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000012/providers/Microsoft.Web/locations/westeurope/managedApis/azureblob",
+          "name": "azureblob",
+          "type": "Microsoft.Web/locations/managedApis"
+        },
+        "connectionState": "Enabled",
+        "displayName": "LAB-SPOKE-APICONN01",
+        "overallStatus": "Connected",
+        "parameterValues": {
+          "accessKey": "changeme-apiconn",
+          "accountName": "labspokesa01"
+        },
+        "provisioningState": "Succeeded",
+        "statuses": [
+          {
+            "status": "Connected"
+          }
+        ]
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourcegroups/rg-spoke-data/providers/microsoft.datafactory/factories/lab-spoke-adf01",
+      "properties": {
+        "createTime": "2026-01-01T00:00:00Z",
+        "provisioningState": "Succeeded",
+        "publicNetworkAccess": "Disabled",
+        "version": "2018-06-01"
+      }
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+[
+  {
+    "hardwareProfile": {
+      "vmSize": "Standard_D2s_v5"
+    },
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Compute/virtualMachines/LAB-APP01",
+    "location": "westeurope",
+    "name": "LAB-APP01",
+    "networkProfile": {
+      "networkInterfaces": [
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Network/networkInterfaces/LAB-APP01-nic",
+          "primary": true,
+          "resourceGroup": "RG-SPOKE-APP"
+        }
+      ]
+    },
+    "osProfile": {
+      "adminUsername": "admin",
+      "computerName": "LAB-APP01"
+    },
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-SPOKE-APP",
+    "storageProfile": {
+      "dataDisks": [],
+      "osDisk": {
+        "createOption": "FromImage",
+        "diskSizeGB": 64,
+        "managedDisk": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Compute/disks/LAB-APP01-os",
+          "resourceGroup": "RG-SPOKE-APP"
+        },
+        "name": "LAB-APP01-os",
+        "osType": "Linux"
+      }
+    },
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Compute/virtualMachines",
+    "vmId": "00000000-0000-0000-0000-0000000002f1"
+  },
+  {
+    "hardwareProfile": {
+      "vmSize": "Standard_E4s_v5"
+    },
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Compute/virtualMachines/LAB-SQLVM01",
+    "location": "westeurope",
+    "name": "LAB-SQLVM01",
+    "networkProfile": {
+      "networkInterfaces": [
+        {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Network/networkInterfaces/LAB-SQLVM01-nic",
+          "primary": true,
+          "resourceGroup": "RG-SPOKE-DATA"
+        }
+      ]
+    },
+    "osProfile": {
+      "adminUsername": "admin",
+      "computerName": "LAB-SQLVM01"
+    },
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-SPOKE-DATA",
+    "storageProfile": {
+      "dataDisks": [],
+      "osDisk": {
+        "createOption": "FromImage",
+        "diskSizeGB": 64,
+        "managedDisk": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Compute/disks/LAB-SQLVM01-os",
+          "resourceGroup": "RG-SPOKE-DATA"
+        },
+        "name": "LAB-SQLVM01-os",
+        "osType": "Linux"
+      }
+    },
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Compute/virtualMachines",
+    "vmId": "00000000-0000-0000-0000-0000000002f2"
+  }
+]

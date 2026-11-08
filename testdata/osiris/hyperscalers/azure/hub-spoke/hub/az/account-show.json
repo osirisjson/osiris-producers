@@ -1,0 +1,9 @@
+{
+  "id": "00000000-0000-0000-0000-000000000011",
+  "name": "LAB-HUB-SUB",
+  "state": "Enabled",
+  "tags": {},
+  "tenantDefaultDomain": "lab.example.com",
+  "tenantDisplayName": "LAB-TENANT",
+  "tenantId": "00000000-0000-0000-0000-0000000000aa"
+}

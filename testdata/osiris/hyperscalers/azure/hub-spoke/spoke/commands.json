@@ -1,0 +1,156 @@
+{
+  "rules": [
+    {
+      "prefix": "account show",
+      "file": "az/account-show.json"
+    },
+    {
+      "prefix": "account list",
+      "file": "az/account-list.json"
+    },
+    {
+      "prefix": "account management-group entities list",
+      "file": "az/mg-entities.json"
+    },
+    {
+      "contains": "/tenants?api-version",
+      "file": "az/tenants-rest.json"
+    },
+    {
+      "prefix": "group list",
+      "file": "az/group-list.json"
+    },
+    {
+      "prefix": "network vnet subnet list --vnet-name LAB-SPOKE-VNET --resource-group RG-SPOKE-NET",
+      "file": "az/subnet-list.json"
+    },
+    {
+      "prefix": "network vnet peering list --vnet-name LAB-SPOKE-VNET --resource-group RG-SPOKE-NET",
+      "file": "az/peering-list.json"
+    },
+    {
+      "prefix": "network vnet list --resource-group RG-SPOKE-NET",
+      "file": "az/vnet-list.json"
+    },
+    {
+      "prefix": "network nsg list",
+      "file": "az/nsg-list.json"
+    },
+    {
+      "prefix": "network asg list",
+      "file": "az/asg-list.json"
+    },
+    {
+      "prefix": "network route-table list --resource-group RG-SPOKE-NET",
+      "file": "az/route-table-list.json"
+    },
+    {
+      "prefix": "network nic list",
+      "file": "az/nic-list.json"
+    },
+    {
+      "prefix": "network private-endpoint list",
+      "file": "az/private-endpoint-list.json"
+    },
+    {
+      "prefix": "vm list",
+      "file": "az/vm-list.json"
+    },
+    {
+      "prefix": "disk list --resource-group RG-SPOKE-APP",
+      "file": "az/disk-list-app.json"
+    },
+    {
+      "prefix": "disk list --resource-group RG-SPOKE-DATA",
+      "file": "az/disk-list-data.json"
+    },
+    {
+      "prefix": "sql vm list",
+      "file": "az/sqlvm-list.json"
+    },
+    {
+      "prefix": "appservice plan list",
+      "file": "az/appservice-plan-list.json"
+    },
+    {
+      "prefix": "webapp list",
+      "file": "az/webapp-list.json"
+    },
+    {
+      "prefix": "sql midb list --managed-instance lab-sqlmi01 --resource-group RG-SPOKE-DATA",
+      "file": "az/sqlmi-db-list.json"
+    },
+    {
+      "prefix": "sql mi list",
+      "file": "az/sqlmi-list.json"
+    },
+    {
+      "prefix": "storage account list",
+      "file": "az/storage-account-list.json"
+    },
+    {
+      "prefix": "keyvault list",
+      "file": "az/keyvault-list.json"
+    },
+    {
+      "prefix": "keyvault show --name LAB-SPOKE-KV01",
+      "file": "az/keyvault-show-spoke.json"
+    },
+    {
+      "prefix": "acr list",
+      "file": "az/acr-list.json"
+    },
+    {
+      "prefix": "identity list",
+      "file": "az/identity-list.json"
+    },
+    {
+      "prefix": "monitor log-analytics workspace list",
+      "file": "az/la-list.json"
+    },
+    {
+      "prefix": "backup vault list",
+      "file": "az/rsv-list.json"
+    },
+    {
+      "prefix": "backup item list --vault-name LAB-SPOKE-RSV01",
+      "file": "az/backup-item-list-spoke.json"
+    },
+    {
+      "prefix": "logic workflow list",
+      "file": "az/logic-list.json"
+    },
+    {
+      "prefix": "monitor action-group list",
+      "file": "az/action-group-list.json"
+    },
+    {
+      "prefix": "monitor metrics alert list",
+      "file": "az/metric-alert-list.json"
+    },
+    {
+      "prefix": "resource list --resource-type Microsoft.Web/connections",
+      "file": "az/listed-apiconn.json"
+    },
+    {
+      "prefix": "resource list --resource-type Microsoft.Insights/autoscalesettings",
+      "file": "az/listed-autoscale.json"
+    },
+    {
+      "prefix": "resource list --resource-type Microsoft.DataFactory/factories",
+      "file": "az/listed-datafactory.json"
+    },
+    {
+      "contains": "| project id, kind, sku, identity",
+      "file": "az/graph-envelopes.json"
+    },
+    {
+      "contains": "| project id, properties",
+      "file": "az/graph-listed-properties.json"
+    },
+    {
+      "contains": "powerState = tostring",
+      "file": "az/graph-vm-power.json"
+    }
+  ]
+}

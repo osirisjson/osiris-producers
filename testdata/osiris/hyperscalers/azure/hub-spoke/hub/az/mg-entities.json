@@ -1,0 +1,65 @@
+[
+  {
+    "displayName": "Tenant Root Group",
+    "id": "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-0000000000aa",
+    "name": "00000000-0000-0000-0000-0000000000aa",
+    "tenantId": "00000000-0000-0000-0000-0000000000aa",
+    "type": "Microsoft.Management/managementGroups"
+  },
+  {
+    "displayName": "LAB-MG-PLATFORM",
+    "id": "/providers/Microsoft.Management/managementGroups/lab-mg-platform",
+    "name": "lab-mg-platform",
+    "parentDisplayNameChain": [
+      "Tenant Root Group"
+    ],
+    "parentNameChain": [
+      "00000000-0000-0000-0000-0000000000aa"
+    ],
+    "tenantId": "00000000-0000-0000-0000-0000000000aa",
+    "type": "Microsoft.Management/managementGroups"
+  },
+  {
+    "displayName": "LAB-MG-LANDINGZONES",
+    "id": "/providers/Microsoft.Management/managementGroups/lab-mg-landingzones",
+    "name": "lab-mg-landingzones",
+    "parentDisplayNameChain": [
+      "Tenant Root Group"
+    ],
+    "parentNameChain": [
+      "00000000-0000-0000-0000-0000000000aa"
+    ],
+    "tenantId": "00000000-0000-0000-0000-0000000000aa",
+    "type": "Microsoft.Management/managementGroups"
+  },
+  {
+    "displayName": "LAB-HUB-SUB",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011",
+    "name": "00000000-0000-0000-0000-000000000011",
+    "parentDisplayNameChain": [
+      "Tenant Root Group",
+      "LAB-MG-PLATFORM"
+    ],
+    "parentNameChain": [
+      "00000000-0000-0000-0000-0000000000aa",
+      "lab-mg-platform"
+    ],
+    "tenantId": "00000000-0000-0000-0000-0000000000aa",
+    "type": "/subscriptions"
+  },
+  {
+    "displayName": "LAB-SPOKE-SUB",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012",
+    "name": "00000000-0000-0000-0000-000000000012",
+    "parentDisplayNameChain": [
+      "Tenant Root Group",
+      "LAB-MG-LANDINGZONES"
+    ],
+    "parentNameChain": [
+      "00000000-0000-0000-0000-0000000000aa",
+      "lab-mg-landingzones"
+    ],
+    "tenantId": "00000000-0000-0000-0000-0000000000aa",
+    "type": "/subscriptions"
+  }
+]

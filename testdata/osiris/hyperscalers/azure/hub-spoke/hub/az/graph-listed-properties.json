@@ -1,0 +1,83 @@
+{
+  "count": 5,
+  "data": [
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourcegroups/rg-hub-mgmt/providers/microsoft.streamanalytics/streamingjobs/lab-hub-asa01",
+      "properties": {
+        "compatibilityLevel": "1.2",
+        "jobState": "Running",
+        "jobType": "Cloud",
+        "provisioningState": "Succeeded",
+        "sku": {
+          "name": "StandardV2"
+        }
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourcegroups/rg-hub-mgmt/providers/microsoft.web/connections/lab-hub-apiconn01",
+      "properties": {
+        "api": {
+          "displayName": "Azure Blob Storage",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/providers/Microsoft.Web/locations/westeurope/managedApis/azureblob",
+          "name": "azureblob",
+          "type": "Microsoft.Web/locations/managedApis"
+        },
+        "connectionState": "Enabled",
+        "displayName": "LAB-HUB-APICONN01",
+        "overallStatus": "Connected",
+        "parameterValues": {
+          "accessKey": "changeme-apiconn",
+          "accountName": "labhubsa01"
+        },
+        "provisioningState": "Succeeded",
+        "statuses": [
+          {
+            "status": "Connected"
+          }
+        ]
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourcegroups/rg-hub-net/providers/microsoft.network/dnsforwardingrulesets/lab-hub-dnsfrs01",
+      "properties": {
+        "dnsResolverOutboundEndpoints": [
+          {
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/dnsResolvers/LAB-HUB-DNSR01/outboundEndpoints/LAB-HUB-DNSOUT"
+          }
+        ],
+        "provisioningState": "Succeeded"
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourcegroups/rg-hub-net/providers/microsoft.network/dnsresolvers/lab-hub-dnsr01",
+      "properties": {
+        "dnsResolverState": "Connected",
+        "provisioningState": "Succeeded",
+        "virtualNetwork": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET"
+        }
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourcegroups/rg-hub-nva/providers/microsoft.insights/autoscalesettings/lab-hub-vmss01-autoscale",
+      "properties": {
+        "enabled": true,
+        "name": "LAB-HUB-VMSS01-AUTOSCALE",
+        "notifications": [],
+        "profiles": [
+          {
+            "capacity": {
+              "default": "2",
+              "maximum": "4",
+              "minimum": "2"
+            },
+            "name": "LAB-DEFAULT-PROFILE",
+            "rules": []
+          }
+        ],
+        "provisioningState": "Succeeded",
+        "targetResourceUri": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachineScaleSets/LAB-HUB-VMSS01"
+      }
+    }
+  ]
+}

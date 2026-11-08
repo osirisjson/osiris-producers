@@ -1,0 +1,12 @@
+[
+  {
+    "collation": "SQL_Latin1_General_CP1_CI_AS",
+    "creationDate": "2026-01-01T00:00:00Z",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Sql/managedInstances/lab-sqlmi01/databases/LAB-DB01",
+    "location": "westeurope",
+    "name": "LAB-DB01",
+    "resourceGroup": "RG-SPOKE-DATA",
+    "status": "Online",
+    "type": "Microsoft.Sql/managedInstances/databases"
+  }
+]

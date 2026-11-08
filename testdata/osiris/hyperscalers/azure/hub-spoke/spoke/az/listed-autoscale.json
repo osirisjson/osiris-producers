@@ -1,0 +1,14 @@
+[
+  {
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/microsoft.insights/autoscalesettings/LAB-ASP01-AUTOSCALE",
+    "location": "westeurope",
+    "name": "LAB-ASP01-AUTOSCALE",
+    "properties": null,
+    "resourceGroup": "RG-SPOKE-APP",
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "microsoft.insights/autoscalesettings"
+  }
+]

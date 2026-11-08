@@ -1,0 +1,224 @@
+[
+  {
+    "backendAddressPools": [
+      {
+        "backendIPConfigurations": [
+          {
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic/ipConfigurations/ipconfig1",
+            "resourceGroup": "RG-HUB-NVA"
+          },
+          {
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA02-nic/ipConfigurations/ipconfig1",
+            "resourceGroup": "RG-HUB-NVA"
+          }
+        ],
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB/backendAddressPools/LAB-POOL-NVA",
+        "loadBalancingRules": [
+          {
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB/loadBalancingRules/LAB-RULE-HAPORTS",
+            "resourceGroup": "RG-HUB-NET"
+          }
+        ],
+        "name": "LAB-POOL-NVA",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-HUB-NET",
+        "type": "Microsoft.Network/loadBalancers/backendAddressPools"
+      }
+    ],
+    "frontendIPConfigurations": [
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB/frontendIPConfigurations/LAB-FE-NVA",
+        "loadBalancingRules": [
+          {
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB/loadBalancingRules/LAB-RULE-HAPORTS",
+            "resourceGroup": "RG-HUB-NET"
+          }
+        ],
+        "name": "LAB-FE-NVA",
+        "privateIPAddress": "192.0.2.10",
+        "privateIPAddressVersion": "IPv4",
+        "privateIPAllocationMethod": "Static",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-HUB-NET",
+        "subnet": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-NVA",
+          "resourceGroup": "RG-HUB-NET"
+        },
+        "type": "Microsoft.Network/loadBalancers/frontendIPConfigurations"
+      }
+    ],
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB",
+    "inboundNatRules": [],
+    "loadBalancingRules": [
+      {
+        "backendAddressPool": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB/backendAddressPools/LAB-POOL-NVA",
+          "resourceGroup": "RG-HUB-NET"
+        },
+        "backendAddressPools": [
+          {
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB/backendAddressPools/LAB-POOL-NVA",
+            "resourceGroup": "RG-HUB-NET"
+          }
+        ],
+        "backendPort": 0,
+        "enableFloatingIP": false,
+        "frontendIPConfiguration": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB/frontendIPConfigurations/LAB-FE-NVA",
+          "resourceGroup": "RG-HUB-NET"
+        },
+        "frontendPort": 0,
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB/loadBalancingRules/LAB-RULE-HAPORTS",
+        "idleTimeoutInMinutes": 4,
+        "loadDistribution": "Default",
+        "name": "LAB-RULE-HAPORTS",
+        "probe": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB/probes/LAB-PROBE-NVA",
+          "resourceGroup": "RG-HUB-NET"
+        },
+        "protocol": "All",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-HUB-NET",
+        "type": "Microsoft.Network/loadBalancers/loadBalancingRules"
+      }
+    ],
+    "location": "westeurope",
+    "name": "LAB-HUB-ILB",
+    "outboundRules": [],
+    "probes": [
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB/probes/LAB-PROBE-NVA",
+        "intervalInSeconds": 5,
+        "loadBalancingRules": [
+          {
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB/loadBalancingRules/LAB-RULE-HAPORTS",
+            "resourceGroup": "RG-HUB-NET"
+          }
+        ],
+        "name": "LAB-PROBE-NVA",
+        "numberOfProbes": 2,
+        "port": 443,
+        "protocol": "Tcp",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-HUB-NET",
+        "type": "Microsoft.Network/loadBalancers/probes"
+      }
+    ],
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-HUB-NET",
+    "sku": {
+      "name": "Standard",
+      "tier": "Regional"
+    },
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Network/loadBalancers"
+  },
+  {
+    "backendAddressPools": [
+      {
+        "backendIPConfigurations": [],
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB/backendAddressPools/LAB-POOL-VMSS",
+        "loadBalancingRules": [
+          {
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB/loadBalancingRules/LAB-RULE-HTTPS",
+            "resourceGroup": "RG-HUB-NET"
+          }
+        ],
+        "name": "LAB-POOL-VMSS",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-HUB-NET",
+        "type": "Microsoft.Network/loadBalancers/backendAddressPools"
+      }
+    ],
+    "frontendIPConfigurations": [
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB/frontendIPConfigurations/LAB-FE-PUBLIC",
+        "loadBalancingRules": [
+          {
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB/loadBalancingRules/LAB-RULE-HTTPS",
+            "resourceGroup": "RG-HUB-NET"
+          }
+        ],
+        "name": "LAB-FE-PUBLIC",
+        "provisioningState": "Succeeded",
+        "publicIPAddress": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-PLB-PIP",
+          "resourceGroup": "RG-HUB-NET"
+        },
+        "resourceGroup": "RG-HUB-NET",
+        "type": "Microsoft.Network/loadBalancers/frontendIPConfigurations"
+      }
+    ],
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB",
+    "inboundNatRules": [],
+    "loadBalancingRules": [
+      {
+        "backendAddressPool": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB/backendAddressPools/LAB-POOL-VMSS",
+          "resourceGroup": "RG-HUB-NET"
+        },
+        "backendAddressPools": [
+          {
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB/backendAddressPools/LAB-POOL-VMSS",
+            "resourceGroup": "RG-HUB-NET"
+          }
+        ],
+        "backendPort": 443,
+        "enableFloatingIP": false,
+        "frontendIPConfiguration": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB/frontendIPConfigurations/LAB-FE-PUBLIC",
+          "resourceGroup": "RG-HUB-NET"
+        },
+        "frontendPort": 443,
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB/loadBalancingRules/LAB-RULE-HTTPS",
+        "idleTimeoutInMinutes": 4,
+        "loadDistribution": "Default",
+        "name": "LAB-RULE-HTTPS",
+        "probe": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB/probes/LAB-PROBE-HTTPS",
+          "resourceGroup": "RG-HUB-NET"
+        },
+        "protocol": "Tcp",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-HUB-NET",
+        "type": "Microsoft.Network/loadBalancers/loadBalancingRules"
+      }
+    ],
+    "location": "westeurope",
+    "name": "LAB-HUB-PLB",
+    "outboundRules": [],
+    "probes": [
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB/probes/LAB-PROBE-HTTPS",
+        "intervalInSeconds": 5,
+        "loadBalancingRules": [
+          {
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB/loadBalancingRules/LAB-RULE-HTTPS",
+            "resourceGroup": "RG-HUB-NET"
+          }
+        ],
+        "name": "LAB-PROBE-HTTPS",
+        "numberOfProbes": 2,
+        "port": 443,
+        "protocol": "Tcp",
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-HUB-NET",
+        "type": "Microsoft.Network/loadBalancers/probes"
+      }
+    ],
+    "provisioningState": "Succeeded",
+    "resourceGroup": "RG-HUB-NET",
+    "sku": {
+      "name": "Standard",
+      "tier": "Regional"
+    },
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.Network/loadBalancers"
+  }
+]

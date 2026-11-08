@@ -1,0 +1,178 @@
+[
+  {
+    "actions": [
+      {
+        "actionGroupId": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/microsoft.insights/actionGroups/LAB-HUB-AG01",
+        "webHookProperties": {}
+      }
+    ],
+    "autoMitigate": true,
+    "criteria": {
+      "allOf": [
+        {
+          "criterionType": "StaticThresholdCriterion",
+          "dimensions": [],
+          "metricName": "DipAvailability",
+          "metricNamespace": "Microsoft.Network/loadBalancers",
+          "name": "LAB-CRITERION",
+          "operator": "LessThan",
+          "skipMetricValidation": false,
+          "threshold": 90,
+          "timeAggregation": "Average"
+        }
+      ],
+      "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+    },
+    "description": "LAB-HUB-ILB-HEALTH threshold",
+    "enabled": true,
+    "evaluationFrequency": "PT1M",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Insights/metricAlerts/LAB-HUB-ILB-HEALTH",
+    "location": "global",
+    "name": "LAB-HUB-ILB-HEALTH",
+    "resourceGroup": "RG-HUB-MGMT",
+    "scopes": [
+      "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB"
+    ],
+    "severity": 2,
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "targetResourceRegion": "",
+    "targetResourceType": "",
+    "type": "Microsoft.Insights/metricAlerts",
+    "windowSize": "PT5M"
+  },
+  {
+    "actions": [
+      {
+        "actionGroupId": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/microsoft.insights/actionGroups/LAB-HUB-AG01",
+        "webHookProperties": {}
+      }
+    ],
+    "autoMitigate": true,
+    "criteria": {
+      "allOf": [
+        {
+          "criterionType": "StaticThresholdCriterion",
+          "dimensions": [],
+          "metricName": "BgpPeerStatus",
+          "metricNamespace": "Microsoft.Network/virtualHubs",
+          "name": "LAB-CRITERION",
+          "operator": "LessThan",
+          "skipMetricValidation": false,
+          "threshold": 90,
+          "timeAggregation": "Average"
+        }
+      ],
+      "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+    },
+    "description": "LAB-HUB-ARS-BGP threshold",
+    "enabled": true,
+    "evaluationFrequency": "PT1M",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Insights/metricAlerts/LAB-HUB-ARS-BGP",
+    "location": "global",
+    "name": "LAB-HUB-ARS-BGP",
+    "resourceGroup": "RG-HUB-MGMT",
+    "scopes": [
+      "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualHubs/LAB-HUB-ARS"
+    ],
+    "severity": 2,
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "targetResourceRegion": "",
+    "targetResourceType": "",
+    "type": "Microsoft.Insights/metricAlerts",
+    "windowSize": "PT5M"
+  },
+  {
+    "actions": [
+      {
+        "actionGroupId": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/microsoft.insights/actionGroups/LAB-HUB-AG01",
+        "webHookProperties": {}
+      }
+    ],
+    "autoMitigate": true,
+    "criteria": {
+      "allOf": [
+        {
+          "criterionType": "StaticThresholdCriterion",
+          "dimensions": [],
+          "metricName": "Availability",
+          "metricNamespace": "Microsoft.Storage/storageAccounts",
+          "name": "LAB-CRITERION",
+          "operator": "LessThan",
+          "skipMetricValidation": false,
+          "threshold": 90,
+          "timeAggregation": "Average"
+        }
+      ],
+      "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+    },
+    "description": "LAB-HUB-SA01-AVAIL threshold",
+    "enabled": true,
+    "evaluationFrequency": "PT1M",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Insights/metricAlerts/LAB-HUB-SA01-AVAIL",
+    "location": "global",
+    "name": "LAB-HUB-SA01-AVAIL",
+    "resourceGroup": "RG-HUB-MGMT",
+    "scopes": [
+      "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Storage/storageAccounts/labhubsa01"
+    ],
+    "severity": 2,
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "targetResourceRegion": "",
+    "targetResourceType": "",
+    "type": "Microsoft.Insights/metricAlerts",
+    "windowSize": "PT5M"
+  },
+  {
+    "actions": [
+      {
+        "actionGroupId": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/microsoft.insights/actionGroups/LAB-HUB-AG01",
+        "webHookProperties": {}
+      }
+    ],
+    "autoMitigate": true,
+    "criteria": {
+      "allOf": [
+        {
+          "criterionType": "StaticThresholdCriterion",
+          "dimensions": [],
+          "metricName": "BackupHealthEvent",
+          "metricNamespace": "Microsoft.RecoveryServices/vaults",
+          "name": "LAB-CRITERION",
+          "operator": "LessThan",
+          "skipMetricValidation": false,
+          "threshold": 90,
+          "timeAggregation": "Average"
+        }
+      ],
+      "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+    },
+    "description": "LAB-HUB-RSV01-HEALTH threshold",
+    "enabled": true,
+    "evaluationFrequency": "PT1M",
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Insights/metricAlerts/LAB-HUB-RSV01-HEALTH",
+    "location": "global",
+    "name": "LAB-HUB-RSV01-HEALTH",
+    "resourceGroup": "RG-HUB-MGMT",
+    "scopes": [
+      "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.RecoveryServices/vaults/LAB-HUB-RSV01"
+    ],
+    "severity": 2,
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "targetResourceRegion": "",
+    "targetResourceType": "",
+    "type": "Microsoft.Insights/metricAlerts",
+    "windowSize": "PT5M"
+  }
+]

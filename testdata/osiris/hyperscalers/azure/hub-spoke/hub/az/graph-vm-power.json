@@ -1,0 +1,13 @@
+{
+  "count": 2,
+  "data": [
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA01",
+      "powerState": "PowerState/running"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA02",
+      "powerState": "PowerState/running"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.KeyVault/vaults/LAB-SPOKE-KV01",
+  "location": "westeurope",
+  "name": "LAB-SPOKE-KV01",
+  "properties": {
+    "accessPolicies": [],
+    "enablePurgeProtection": true,
+    "enableRbacAuthorization": true,
+    "enableSoftDelete": true,
+    "networkAcls": {
+      "bypass": "AzureServices",
+      "defaultAction": "Deny",
+      "ipRules": [],
+      "virtualNetworkRules": []
+    },
+    "privateEndpointConnections": [
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.KeyVault/vaults/LAB-SPOKE-KV01/privateEndpointConnections/LAB-PE-KV01",
+        "privateEndpoint": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-KV01",
+          "resourceGroup": "RG-SPOKE-NET"
+        },
+        "privateLinkServiceConnectionState": {
+          "status": "Approved"
+        }
+      }
+    ],
+    "provisioningState": "Succeeded",
+    "publicNetworkAccess": "Disabled",
+    "sku": {
+      "family": "A",
+      "name": "standard"
+    },
+    "softDeleteRetentionInDays": 90,
+    "tenantId": "00000000-0000-0000-0000-0000000000aa",
+    "vaultUri": "https://lab-spoke-kv01.example.com/"
+  },
+  "resourceGroup": "RG-SPOKE-DATA",
+  "tags": {
+    "env": "LAB",
+    "owner": "LAB-TEAM"
+  },
+  "type": "Microsoft.KeyVault/vaults"
+}

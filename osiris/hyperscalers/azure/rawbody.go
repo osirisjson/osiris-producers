@@ -549,7 +549,7 @@ func (s rawBodyStats) log(l *slog.Logger) {
 //
 // Tags are emitted for every --purpose and are free text set by users
 // and by the Azure portal (which stores an Application Insights
-// connection string in the "hidden-link: /app-insights-conn-string"
+// connection string in the "hidden-link"
 // tag), so they are never trusted to be free of credentials.
 func redactDocumentValues(doc *sdk.Document) int {
 	if doc == nil {

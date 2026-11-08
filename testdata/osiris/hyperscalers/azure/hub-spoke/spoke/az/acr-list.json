@@ -1,0 +1,46 @@
+[
+  {
+    "adminUserEnabled": false,
+    "anonymousPullEnabled": false,
+    "dataEndpointEnabled": false,
+    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.ContainerRegistry/registries/labspokeacr01",
+    "location": "westeurope",
+    "loginServer": "labspokeacr01.example.com",
+    "name": "labspokeacr01",
+    "networkRuleSet": {
+      "defaultAction": "Deny",
+      "ipRules": [],
+      "virtualNetworkRules": []
+    },
+    "privateEndpointConnections": [
+      {
+        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.ContainerRegistry/registries/labspokeacr01/privateEndpointConnections/LAB-PE-ACR01",
+        "name": "LAB-PE-ACR01",
+        "privateEndpoint": {
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-ACR01",
+          "resourceGroup": "RG-SPOKE-NET"
+        },
+        "privateLinkServiceConnectionState": {
+          "description": "Auto-Approved",
+          "status": "Approved"
+        },
+        "provisioningState": "Succeeded",
+        "resourceGroup": "RG-SPOKE-APP",
+        "type": "Microsoft.ContainerRegistry/registries/privateEndpointConnections"
+      }
+    ],
+    "provisioningState": "Succeeded",
+    "publicNetworkAccess": "Disabled",
+    "resourceGroup": "RG-SPOKE-APP",
+    "sku": {
+      "name": "Premium",
+      "tier": "Premium"
+    },
+    "tags": {
+      "env": "LAB",
+      "owner": "LAB-TEAM"
+    },
+    "type": "Microsoft.ContainerRegistry/registries",
+    "zoneRedundancy": "Disabled"
+  }
+]
