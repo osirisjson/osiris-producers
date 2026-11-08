@@ -32,8 +32,8 @@ func TestTransformVNets(t *testing.T) {
 			Name:          "vnet1",
 			Location:      "westeurope",
 			ResourceGroup: "rg1",
-			AddressSpace:  azAddressSpace{AddressPrefixes: []string{"10.0.0.0/16"}},
-			DhcpOptions:   azDHCPOptions{DNSServers: []string{"10.0.0.4"}},
+			AddressSpace:  azAddressSpace{AddressPrefixes: []string{"192.0.2.0/24"}},
+			DhcpOptions:   azDHCPOptions{DNSServers: []string{"192.0.2.4"}},
 		},
 	}
 
@@ -67,8 +67,8 @@ func TestTransformVNets(t *testing.T) {
 		t.Errorf("expected resource_group rg1, got %v", r.Properties["resource_group"])
 	}
 	addrs, ok := r.Properties["address_space"].([]string)
-	if !ok || len(addrs) != 1 || addrs[0] != "10.0.0.0/16" {
-		t.Errorf("expected address_space [10.0.0.0/16], got %v", r.Properties["address_space"])
+	if !ok || len(addrs) != 1 || addrs[0] != "192.0.2.0/24" {
+		t.Errorf("expected address_space [192.0.2.0/24], got %v", r.Properties["address_space"])
 	}
 }
 
@@ -78,7 +78,7 @@ func TestTransformSubnets(t *testing.T) {
 			ID:                   "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/subnet1",
 			Name:                 "subnet1",
 			ResourceGroup:        "rg1",
-			AddressPrefixes:      []string{"10.0.1.0/24"},
+			AddressPrefixes:      []string{"192.0.2.128/25"},
 			NetworkSecurityGroup: &azNSGRef{ID: "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/networkSecurityGroups/nsg1"},
 			RouteTable:           &azRouteTableRef{ID: "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/routeTables/rt1"},
 			ServiceEndpoints:     []azServiceEndpoint{{Service: "Microsoft.Storage", Locations: []string{"*"}}},
@@ -114,7 +114,7 @@ func TestTransformSubnetsSingularAddressPrefix(t *testing.T) {
 			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/s1",
 			Name:          "s1",
 			ResourceGroup: "rg1",
-			AddressPrefix: "10.100.30.60/27",
+			AddressPrefix: "192.0.2.64/27",
 		},
 	}
 
@@ -124,8 +124,8 @@ func TestTransformSubnetsSingularAddressPrefix(t *testing.T) {
 	}
 	r := resources[0]
 	prefixes, ok := r.Properties["address_prefixes"].([]string)
-	if !ok || len(prefixes) != 1 || prefixes[0] != "10.100.30.60/27" {
-		t.Errorf("expected address_prefixes [10.100.30.60/27] from singular addressPrefix, got %v", r.Properties["address_prefixes"])
+	if !ok || len(prefixes) != 1 || prefixes[0] != "192.0.2.64/27" {
+		t.Errorf("expected address_prefixes [192.0.2.64/27] from singular addressPrefix, got %v", r.Properties["address_prefixes"])
 	}
 }
 
@@ -140,7 +140,7 @@ func TestTransformNICs(t *testing.T) {
 				{
 					Name:                      "ipconfig1",
 					Subnet:                    &azSubnetRef{ID: "/subscriptions/11111111-1111-1111-1111-111111111111/.../subnets/subnet1"},
-					PrivateIPAddress:          "10.0.1.4",
+					PrivateIPAddress:          "192.0.2.132",
 					PrivateIPAllocationMethod: "Dynamic",
 				},
 			},
@@ -162,8 +162,8 @@ func TestTransformNICs(t *testing.T) {
 	if !ok || len(ips) != 1 {
 		t.Fatalf("expected 1 ip_configuration, got %v", r.Properties["ip_configurations"])
 	}
-	if ips[0]["private_ip"] != "10.0.1.4" {
-		t.Errorf("expected private_ip 10.0.1.4, got %v", ips[0]["private_ip"])
+	if ips[0]["private_ip"] != "192.0.2.132" {
+		t.Errorf("expected private_ip 192.0.2.132, got %v", ips[0]["private_ip"])
 	}
 
 	if _, ok := idMap[armKey(nics[0].ID)]; !ok {
@@ -526,8 +526,8 @@ func TestTransformNICToSubnetConnections(t *testing.T) {
 			ID:   "/sub/nic1",
 			Name: "nic1",
 			IPConfigurations: []IPConfiguration{
-				{Subnet: &azSubnetRef{ID: "/sub/subnet1"}, PrivateIPAddress: "10.0.1.4"},
-				{Subnet: &azSubnetRef{ID: "/sub/subnet1"}, PrivateIPAddress: "10.0.1.5"}, // same subnet should deduplicate.
+				{Subnet: &azSubnetRef{ID: "/sub/subnet1"}, PrivateIPAddress: "192.0.2.132"},
+				{Subnet: &azSubnetRef{ID: "/sub/subnet1"}, PrivateIPAddress: "192.0.2.133"}, // same subnet should deduplicate.
 			},
 		},
 	}
@@ -542,8 +542,8 @@ func TestTransformNICToSubnetConnections(t *testing.T) {
 	if conns[0].Type != "network" {
 		t.Errorf("expected type network, got %q", conns[0].Type)
 	}
-	if conns[0].Properties["private_ip"] != "10.0.1.4" {
-		t.Errorf("expected private_ip 10.0.1.4, got %v", conns[0].Properties["private_ip"])
+	if conns[0].Properties["private_ip"] != "192.0.2.132" {
+		t.Errorf("expected private_ip 192.0.2.132, got %v", conns[0].Properties["private_ip"])
 	}
 }
 
@@ -756,7 +756,7 @@ func TestTransformWebApps(t *testing.T) {
 			HostNames:           []string{"site1.azurewebsites.net"},
 			HTTPSOnly:           true,
 			ServerFarmID:        "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Web/serverfarms/plan1",
-			OutboundIPAddresses: "20.0.0.1,20.0.0.2,20.0.0.3",
+			OutboundIPAddresses: "203.0.113.1,203.0.113.2,203.0.113.3",
 			Identity: &azSiteIdentity{
 				Type:        "SystemAssigned",
 				PrincipalID: "00000000-0000-0000-0000-000000000001",
@@ -2062,7 +2062,7 @@ func TestTransformRedisCaches(t *testing.T) {
 			SSLPort:             6380,
 			ShardCount:          3,
 			SubnetID:            subnetArm,
-			StaticIP:            "10.0.0.5",
+			StaticIP:            "192.0.2.5",
 			Zones:               []string{"1"},
 			PrivateEndpointConnections: []azPrivateEndpointConnRef{
 				{Properties: struct {
@@ -2204,7 +2204,7 @@ func TestTransformAKSClusters(t *testing.T) {
 				NetworkProfile: &azAKSNetworkProfile{
 					NetworkPlugin:   "azure",
 					NetworkPolicy:   "calico",
-					ServiceCIDR:     "10.0.0.0/16",
+					ServiceCIDR:     "198.51.100.0/24",
 					LoadBalancerSKU: "Standard",
 					OutboundType:    "loadBalancer",
 				},
@@ -2325,7 +2325,7 @@ func TestTransformContainerAppEnvironments(t *testing.T) {
 			Properties: &azContainerEnvProperties{
 				ProvisioningState: "Succeeded",
 				DefaultDomain:     "proudforest-abc.westeurope.azurecontainerapps.io",
-				StaticIP:          "10.0.0.4",
+				StaticIP:          "192.0.2.4",
 				ZoneRedundant:     true,
 				VNetConfiguration: &azContainerEnvVNetConfig{
 					InfrastructureSubnetID: subnetArm,
@@ -2422,7 +2422,7 @@ func TestTransformContainerGroups(t *testing.T) {
 				RestartPolicy:     "Always",
 				Sku:               "Standard",
 				IPAddress: &azContainerGroupIPAddress{
-					IP: "10.0.0.5", Type: "Private", FQDN: "cg1.westeurope.azurecontainer.io",
+					IP: "192.0.2.5", Type: "Private", FQDN: "cg1.westeurope.azurecontainer.io",
 				},
 				SubnetIDs:  []azContainerGroupSubnetRef{{ID: subnetArm}},
 				Containers: []map[string]any{{"name": "web"}, {"name": "sidecar"}},
@@ -2531,8 +2531,8 @@ func TestTransformAPIMServices(t *testing.T) {
 				VirtualNetworkConfiguration: &azAPIMVirtualNetworkConfig{
 					SubnetResourceID: subnetArm,
 				},
-				PublicIPAddresses:  []string{"20.1.2.3"},
-				PrivateIPAddresses: []string{"10.0.0.4"},
+				PublicIPAddresses:  []string{"203.0.113.10"},
+				PrivateIPAddresses: []string{"192.0.2.4"},
 			},
 		},
 	}
@@ -2846,7 +2846,7 @@ func TestTransformPrivateEndpoints_TargetLinkage(t *testing.T) {
 				},
 			},
 			CustomDNSConfigs: []azPrivateEndpointDNSConfig{
-				{FQDN: "mystg.blob.core.windows.net", IPAddresses: []string{"10.0.0.5"}},
+				{FQDN: "mystg.blob.core.windows.net", IPAddresses: []string{"192.0.2.5"}},
 			},
 		},
 		{

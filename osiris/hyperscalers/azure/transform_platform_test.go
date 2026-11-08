@@ -148,8 +148,8 @@ func TestPrivateEndpointToTarget(t *testing.T) {
 func TestLBBackendConnections(t *testing.T) {
 	lbs := decode[[]LoadBalancer](t, `[{"id":"`+tLB+`","name":"LAB-LB01",
 		"backendAddressPools":[
-			{"id":"`+tPoolWeb+`","name":"LAB-POOL-WEB","backendIpConfigurations":[{"id":"`+tNIC1+`/ipConfigurations/ipconfig1"}]},
-			{"id":"`+tPoolOut+`","name":"LAB-POOL-OUT","backendIpConfigurations":[{"id":"`+tNIC2+`/ipConfigurations/ipconfig1"}]}],
+			{"id":"`+tPoolWeb+`","name":"LAB-POOL-WEB","backendIPConfigurations":[{"id":"`+tNIC1+`/ipConfigurations/ipconfig1"}]},
+			{"id":"`+tPoolOut+`","name":"LAB-POOL-OUT","backendIPConfigurations":[{"id":"`+tNIC2+`/ipConfigurations/ipconfig1"}]}],
 		"loadBalancingRules":[{"name":"LAB-RULE-HTTPS","backendAddressPool":{"id":"`+lowerRG(tPoolWeb)+`"}}]}]`)
 	// NIC1 also names the pool from its own side; NIC2 only sits in the
 	// pool without a rule.
