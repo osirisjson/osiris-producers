@@ -40,6 +40,9 @@ secrets/
 *.key
 *.json
 
+# Synthetic test fixtures and golden documents are versioned.
+!/testdata/**/*.json
+
 # Go and test builds
 bin/
 vendor/
