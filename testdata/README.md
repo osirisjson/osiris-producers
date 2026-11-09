@@ -11,7 +11,7 @@ from them.
 > Real device or controller captures may guide a fixture's shape during
 > development, but MUST NOT enter this tree or any other path in the
 > repository.
- 
+
 Every value in every fixture MUST follow the data rules below.
 
 ## OSIRIS JSON Producer approved test data by type
