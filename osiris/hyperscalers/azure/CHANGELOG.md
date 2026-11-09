@@ -261,9 +261,9 @@ bodies are redacted (see Security).
   `parameterValueSet` are redacted. The body is encoded with every
   element on its own line after a space, and a space after each colon,
   so a value pattern cannot match across two fields, also once the body
-  is stored as a JSON string. A body that still matches a secret pattern 
+  is stored as a JSON string. A body that still matches a secret pattern
   after redaction is discarded and the decoded struct is attached
-  instead, with `extensions["osiris.azure.arm"].raw_rejected` naming the 
+  instead, with `extensions["osiris.azure.arm"].raw_rejected` naming the
   matched rule.
   A capture summary (attached, fallback per ARM type, rejected,
   redacted values) is logged to stderr.
@@ -281,7 +281,7 @@ bodies are redacted (see Security).
     `metadata.scope.accounts`, the subscription catalog and the
     subscription group's `subscription_id` use the same lower-case
     form.
-    VNet stubs no longer repeat the owner as 
+    VNet stubs no longer repeat the owner as
     `properties.subscription_id`.
   - `provider.subscription` is no longer emitted (it duplicated
     `provider.account`).
