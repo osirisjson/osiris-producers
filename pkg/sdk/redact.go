@@ -13,9 +13,12 @@
 package sdk
 
 import (
+	"encoding/base64"
 	"fmt"
 	"regexp"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 // SecretFinding reports a detected secret at a specific field path.
@@ -46,20 +49,24 @@ var SensitiveKeyPatterns = []string{
 }
 
 // sensitiveValuePatterns are compiled regexps that match common secret
-// formats. Per OSIRIS-ADG-PR-1.0 section 3.1.2.
+// formats. Per OSIRIS-ADG-PR-1.0 section 3.1.2. When confirm is set, a
+// regexp match is reported only if confirm accepts the submatches of
+// one of the matches, so a pattern that also matches ordinary prose can
+// require the structure a real credential has.
 var sensitiveValuePatterns = []struct {
-	name string
-	re   *regexp.Regexp
+	name    string
+	re      *regexp.Regexp
+	confirm func(submatch []string) bool
 }{
-	{"aws_access_key", regexp.MustCompile(`AKIA[0-9A-Z]{16}`)},
-	{"github_pat", regexp.MustCompile(`ghp_[A-Za-z0-9]{36}`)},
-	{"github_oauth", regexp.MustCompile(`gho_[A-Za-z0-9]{36}`)},
-	{"pem_private_key", regexp.MustCompile(`-----BEGIN [A-Z ]* ?PRIVATE KEY-----`)},
-	{"bearer_token", regexp.MustCompile(`Bearer [A-Za-z0-9\-._~+/]{8,}={0,2}`)},
-	{"basic_auth", regexp.MustCompile(`Basic [A-Za-z0-9+/]{8,}={0,2}`)},
-	{"jwt", regexp.MustCompile(`eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*\.`)},
-	{"slack_token", regexp.MustCompile(`xox[boaprs]-[A-Za-z0-9-]+`)},
-	{"credential_uri", regexp.MustCompile(`://[^/\s]+:[^/\s]+@`)},
+	{"aws_access_key", regexp.MustCompile(`AKIA[0-9A-Z]{16}`), nil},
+	{"github_pat", regexp.MustCompile(`ghp_[A-Za-z0-9]{36}`), nil},
+	{"github_oauth", regexp.MustCompile(`gho_[A-Za-z0-9]{36}`), nil},
+	{"pem_private_key", regexp.MustCompile(`-----BEGIN [A-Z ]* ?PRIVATE KEY-----`), nil},
+	{"bearer_token", regexp.MustCompile(`Bearer [A-Za-z0-9\-._~+/]{8,}={0,2}`), nil},
+	{"basic_auth", regexp.MustCompile(`Basic ([A-Za-z0-9+/]{8,}={0,2})`), isBasicCredential},
+	{"jwt", regexp.MustCompile(`eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*\.`), nil},
+	{"slack_token", regexp.MustCompile(`xox[boaprs]-[A-Za-z0-9-]+`), nil},
+	{"credential_uri", regexp.MustCompile(`://[^/\s]+:[^/\s]+@`), nil},
 }
 
 // IsSensitiveKey returns true if the key name matches a
@@ -78,11 +85,44 @@ func IsSensitiveKey(key string) bool {
 // Returns the rule name that matched, or "" if no match.
 func ScanValue(value string) string {
 	for _, p := range sensitiveValuePatterns {
-		if p.re.MatchString(value) {
-			return p.name
+		if p.confirm == nil {
+			if p.re.MatchString(value) {
+				return p.name
+			}
+			continue
+		}
+		for _, m := range p.re.FindAllStringSubmatch(value, -1) {
+			if p.confirm(m) {
+				return p.name
+			}
 		}
 	}
 	return ""
+}
+
+// isBasicCredential reports whether the token after "Basic " is an HTTP
+// Basic credential (RFC 7617): base64 that decodes to printable
+// "user-id:password" text. Prose such as a certificate issuer named
+// "Basic Assurance Root CA" matches the pattern but is not base64 of a
+// user-id and password, and is not reported.
+func isBasicCredential(m []string) bool {
+	if len(m) < 2 {
+		return false
+	}
+	token := m[1]
+	decoded, err := base64.StdEncoding.DecodeString(token)
+	if err != nil && !strings.Contains(token, "=") {
+		decoded, err = base64.RawStdEncoding.DecodeString(token)
+	}
+	if err != nil || !utf8.Valid(decoded) || !strings.Contains(string(decoded), ":") {
+		return false
+	}
+	for _, r := range string(decoded) {
+		if !unicode.IsPrint(r) {
+			return false
+		}
+	}
+	return true
 }
 
 // ScanProperties scans a properties or extensions map for secrets.
