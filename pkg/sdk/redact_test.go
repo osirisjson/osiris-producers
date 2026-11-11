@@ -56,8 +56,19 @@ func TestScanValue(t *testing.T) {
 		{"-----BEGIN PRIVATE KEY-----", "pem_private_key"},
 		// Bearer token.
 		{"Bearer eyJhbGciOiJIUzI1NiJ9.test", "bearer_token"},
-		// Basic auth.
-		{"Basic dXNlcjpwYXNz", "basic_auth"},
+		// Basic auth: base64 of user-id:password, padded or not,
+		// anywhere in the value.
+		{"Authorization: Basic YWRtaW46Y2hhbmdlbWU=", "basic_auth"},
+		{"Basic YWRtaW46dGVzdA", "basic_auth"},
+		{"Basic Settings then Basic YWRtaW46dGVzdA", "basic_auth"},
+		// Basic followed by prose, or by base64 that is not
+		// user-id:password.
+		{"cn=Cisco Basic Assurance Root CA 2099,o=Cisco", ""},
+		{"Basic Configuration Template", ""},
+		{"Basic ABCDefghij", ""},
+		// An AWS access key after "Basic " is reported by the
+		// earlier aws_access_key rule.
+		{"Basic AKIAIOSFODNN7EXAMPLE", "aws_access_key"},
 		// JWT.
 		{"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.signature", "jwt"},
 		// Slack token.
@@ -66,7 +77,7 @@ func TestScanValue(t *testing.T) {
 		{"postgresql://admin:s3cret@db.prod.internal:5432/app", "credential_uri"},
 		{"https://user:pass@example.com", "credential_uri"},
 		// Safe values - no match.
-		{"192.168.1.1", ""},
+		{"192.0.2.1", ""},
 		{"compute.vm", ""},
 		{"my-resource-name", ""},
 		{"2026-01-15T10:00:00Z", ""},

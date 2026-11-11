@@ -16,7 +16,6 @@ Thumbs.db
 .project
 .settings/
 .classpath
-compliance/
 
 # Temporary files
 *.tmp
