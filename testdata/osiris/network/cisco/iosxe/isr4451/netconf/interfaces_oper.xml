@@ -1,0 +1,8 @@
+<!-- OSIRIS JSON Cisco IOS-XE test fixture: synthetic NETCONF <data> payload for the interfaces-oper discovery operation of the isr4451 scenario. Documentation values only; see ../../README.md. -->
+<interfaces xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-interfaces-oper">
+  <interface><name>GigabitEthernet0/0/0</name><interface-type>iana-iftype-ethernet-csmacd</interface-type><admin-status>if-state-up</admin-status><oper-status>if-oper-state-ready</oper-status><phys-address>00:00:5e:00:53:01</phys-address><speed>1000000000</speed><vrf>CORP</vrf><mtu>1500</mtu></interface>
+  <interface><name>TenGigabitEthernet0/1/0</name><interface-type>iana-iftype-ethernet-csmacd</interface-type><admin-status>if-state-up</admin-status><oper-status>if-oper-state-ready</oper-status><phys-address>00:00:5e:00:53:02</phys-address><speed>10000000000</speed><vrf></vrf><mtu>9216</mtu></interface>
+  <interface><name>Loopback0</name><interface-type>iana-iftype-sw-loopback</interface-type><admin-status>if-state-up</admin-status><oper-status>if-oper-state-ready</oper-status><vrf>CORP</vrf></interface>
+  <interface><name>Port-channel1</name><interface-type>iana-iftype-ieee8023ad-lag</interface-type><admin-status>if-state-up</admin-status><oper-status>if-oper-state-ready</oper-status><vrf></vrf></interface>
+  <interface><name>GigabitEthernet0/0/0.100</name><interface-type>iana-iftype-l3ipvlan</interface-type><admin-status>if-state-up</admin-status><oper-status>if-oper-state-ready</oper-status><vrf></vrf></interface>
+</interfaces>

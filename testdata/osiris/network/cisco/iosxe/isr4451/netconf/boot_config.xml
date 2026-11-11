@@ -1,0 +1,2 @@
+<!-- OSIRIS JSON Cisco IOS-XE test fixture: synthetic NETCONF <data> payload for the boot-config discovery operation of the isr4451 scenario. Documentation values only; see ../../README.md. -->
+<native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native"><boot><system><bootfile><filename-list-ordered-by-user><filename>bootflash:lab-isr4400-universalk9.bin</filename></filename-list-ordered-by-user></bootfile></system></boot></native>

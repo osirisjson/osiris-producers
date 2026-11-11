@@ -1,0 +1,12 @@
+<!-- OSIRIS JSON Cisco IOS-XE test fixture: synthetic NETCONF <data> payload for the static-routes discovery operation. Documentation values only; see ../../README.md. -->
+<native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+  <ip><route>
+    <ip-route-interface-forwarding-list><prefix>0.0.0.0</prefix><mask>0.0.0.0</mask><fwd-list><fwd>198.51.100.254</fwd></fwd-list></ip-route-interface-forwarding-list>
+    <ip-route-interface-forwarding-list><prefix>203.0.113.128</prefix><mask>255.255.255.128</mask><fwd-list><fwd>Null0</fwd><metric>250</metric><name>LAB-DISCARD</name></fwd-list></ip-route-interface-forwarding-list>
+    <vrf><name>LAB-A</name><ip-route-interface-forwarding-list><prefix>203.0.113.64</prefix><mask>255.255.255.192</mask><fwd-list><fwd>GigabitEthernet2.100</fwd><interface-next-hop><ip-address>198.51.100.130</ip-address><name>LAB-TENANT-A</name></interface-next-hop></fwd-list></ip-route-interface-forwarding-list></vrf>
+    <static><bfd><interface><name>GigabitEthernet2</name><gateway_ip>198.51.100.254</gateway_ip></interface></bfd></static>
+  </route></ip>
+  <ipv6><route>
+    <ipv6-route-list><prefix>::/0</prefix><ipv6-fwd-list><fwd>2001:db8:100::fe</fwd></ipv6-fwd-list></ipv6-route-list>
+  </route></ipv6>
+</native>

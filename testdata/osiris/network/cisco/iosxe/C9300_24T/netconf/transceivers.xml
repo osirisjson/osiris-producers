@@ -1,0 +1,6 @@
+<!-- OSIRIS JSON Cisco IOS-XE test fixture: synthetic NETCONF <data> payload for the transceivers discovery operation. Documentation values only; see ../../README.md. -->
+<transceiver-oper-data xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-transceiver-oper">
+  <transceiver><name>Transceiver1/1/1</name><enabled>true</enabled><present>true</present><identifier>SFP/SFP+/SFP28</identifier><connector>LC</connector><ethernet-pmd>10GBASE-SR</ethernet-pmd><vendor>LAB-OPTICS</vendor><vendor-part>SFP-10G-SR</vendor-part><vendor-rev>V01</vendor-rev><serial-no>TST0000SFP1</serial-no><fault-condition>false</fault-condition><date>2026-01-01</date><internal-temp>31.5</internal-temp></transceiver>
+  <transceiver><name>Transceiver1/1/2</name><enabled>true</enabled><present>false</present></transceiver>
+  <transceiver><name>Transceiver2/1/1</name><enabled>true</enabled><present>true</present><identifier>SFP/SFP+/SFP28</identifier><ethernet-pmd>10GBASE-LR</ethernet-pmd><vendor>LAB-OPTICS</vendor><vendor-part>SFP-10G-LR</vendor-part><vendor-rev>V02</vendor-rev><serial-no>TST0000SFP2</serial-no></transceiver>
+</transceiver-oper-data>

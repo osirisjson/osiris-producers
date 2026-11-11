@@ -1,0 +1,6 @@
+<!-- OSIRIS JSON Cisco IOS-XE test fixture: synthetic NETCONF <data> payload for the lldp-neighbors discovery operation. Documentation values only; see ../../README.md. -->
+<lldp-entries xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-lldp-oper">
+  <lldp-state-details><enabled>true</enabled><hello-timer>30</hello-timer><system-name>LAB-SW01</system-name></lldp-state-details>
+  <lldp-intf-details><if-name>TenGigabitEthernet1/1/1</if-name><isenabled>true</isenabled><lldp-neighbor-details><identifier>1</identifier><chassis-id>00:00:5e:00:53:b1</chassis-id><chassis-id-type>chassis-mac-addr</chassis-id-type><port-id>TenGigabitEthernet1/0/48</port-id><port-id-type>port-intf-name</port-id-type><system-name>LAB-DIST01</system-name><mgmt-addrs><mgmt-addr>198.51.100.30</mgmt-addr><mgmt-addr-type>mgmt-addr-ipv4</mgmt-addr-type></mgmt-addrs></lldp-neighbor-details><tx>50</tx><rx>50</rx></lldp-intf-details>
+  <lldp-intf-details><if-name>GigabitEthernet1/0/2</if-name><isenabled>true</isenabled><lldp-neighbor-details><identifier>2</identifier><chassis-id>00:00:5e:00:53:c1</chassis-id><chassis-id-type>chassis-mac-addr</chassis-id-type><port-id>00:00:5e:00:53:c1</port-id><port-id-type>port-mac-addr</port-id-type></lldp-neighbor-details><tx>5</tx><rx>5</rx></lldp-intf-details>
+</lldp-entries>

@@ -1,0 +1,488 @@
+{
+  "$schema": "https://osirisjson.org/schema/v1.0/osiris.schema.json",
+  "version": "1.0.0",
+  "metadata": {
+    "timestamp": "2026-01-15T10:00:00Z",
+    "generator": {
+      "name": "osirisjson-producer-cisco-iosxe",
+      "version": "0.2.0"
+    },
+    "scope": {
+      "name": "LAB-RTR01",
+      "description": "Cisco IOS-XE device LAB-RTR01: 9/25 discovery operations returned data. No instances: native-interfaces, lldp-neighbors, vlans, static-routes, transceivers, aaa, local-accounts, management-services, dns, snmp, logging, ntp, acls, crypto, control-plane, certificates.",
+      "purpose": "audit",
+      "providers": [
+        "cisco.iosxe"
+      ]
+    }
+  },
+  "topology": {
+    "resources": [
+      {
+        "id": "cisco.iosxe::TST0000XE01",
+        "type": "network.router",
+        "name": "LAB-RTR01",
+        "provider": {
+          "name": "cisco.iosxe",
+          "native_id": "TST0000XE01",
+          "type": "ISR4451-X/K9",
+          "version": "17.12.4"
+        },
+        "status": "active",
+        "properties": {
+          "management_ip": "192.0.2.10",
+          "manufacturer": "Cisco",
+          "model": "ISR4451-X/K9",
+          "serial_number": "TST0000XE01",
+          "version": "17.12.4"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "boot_images": [
+              "bootflash:lab-isr4400-universalk9.bin"
+            ],
+            "coverage": [
+              {
+                "count": 1,
+                "operation": "native-system",
+                "status": "succeeded"
+              },
+              {
+                "count": 5,
+                "operation": "interfaces",
+                "status": "succeeded"
+              },
+              {
+                "count": 5,
+                "operation": "interfaces-oper",
+                "status": "succeeded"
+              },
+              {
+                "count": 3,
+                "operation": "hardware-inventory",
+                "status": "succeeded"
+              },
+              {
+                "count": 1,
+                "operation": "boot-config",
+                "status": "succeeded"
+              },
+              {
+                "count": 0,
+                "operation": "native-interfaces",
+                "status": "empty"
+              },
+              {
+                "count": 0,
+                "operation": "lldp-neighbors",
+                "status": "empty"
+              },
+              {
+                "count": 1,
+                "operation": "cdp-neighbors",
+                "status": "succeeded"
+              },
+              {
+                "count": 2,
+                "operation": "vrf-definitions",
+                "status": "succeeded"
+              },
+              {
+                "count": 0,
+                "operation": "vlans",
+                "status": "empty"
+              },
+              {
+                "count": 0,
+                "operation": "static-routes",
+                "status": "empty"
+              },
+              {
+                "count": 0,
+                "operation": "transceivers",
+                "status": "empty"
+              },
+              {
+                "count": 2,
+                "operation": "bgp",
+                "status": "succeeded"
+              },
+              {
+                "count": 1,
+                "operation": "ospf",
+                "status": "succeeded"
+              },
+              {
+                "count": 0,
+                "operation": "aaa",
+                "status": "empty"
+              },
+              {
+                "count": 0,
+                "operation": "local-accounts",
+                "status": "empty"
+              },
+              {
+                "count": 0,
+                "operation": "management-services",
+                "status": "empty"
+              },
+              {
+                "count": 0,
+                "operation": "dns",
+                "status": "empty"
+              },
+              {
+                "count": 0,
+                "operation": "snmp",
+                "status": "empty"
+              },
+              {
+                "count": 0,
+                "operation": "logging",
+                "status": "empty"
+              },
+              {
+                "count": 0,
+                "operation": "ntp",
+                "status": "empty"
+              },
+              {
+                "count": 0,
+                "operation": "acls",
+                "status": "empty"
+              },
+              {
+                "count": 0,
+                "operation": "crypto",
+                "status": "empty"
+              },
+              {
+                "count": 0,
+                "operation": "control-plane",
+                "status": "empty"
+              },
+              {
+                "count": 0,
+                "operation": "certificates",
+                "status": "empty"
+              }
+            ],
+            "inventory": [
+              {
+                "class": "chassis",
+                "description": "ISR4451-X/K9 Chassis",
+                "name": "Chassis",
+                "part_number": "ISR4451-X/K9",
+                "serial": "TST0000XE01"
+              },
+              {
+                "class": "interface-module",
+                "description": "ISR4451-X 4-Port GE NIM",
+                "name": "NIM subslot 0/0",
+                "part_number": "NIM-4GE",
+                "serial": "TST0000NIM1"
+              },
+              {
+                "class": "transceiver",
+                "description": "SFP-10G-SR Transceiver",
+                "name": "TenGigabitEthernet0/1/0 SFP",
+                "part_number": "SFP-10G-SR",
+                "serial": "TST0000SFP1"
+              }
+            ],
+            "ospf_processes": [
+              {
+                "address_family": "address-family-ipv4",
+                "process_id": 100,
+                "router_id": "198.51.100.1"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "cisco.iosxe::TST0000XE01/GigabitEthernet0/0/0",
+        "type": "network.router.port",
+        "name": "GigabitEthernet0/0/0",
+        "provider": {
+          "name": "cisco.iosxe",
+          "native_id": "TST0000XE01/GigabitEthernet0/0/0"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "description": "WAN uplink",
+          "interface_name": "GigabitEthernet0/0/0",
+          "ip_address": "192.0.2.1",
+          "ipv4_addresses": [
+            "192.0.2.1/24"
+          ],
+          "mac_address": "00:00:5e:00:53:01",
+          "mtu": 1500,
+          "oper_status": "up",
+          "speed_mbps": 1000,
+          "subnet_mask": "255.255.255.0"
+        }
+      },
+      {
+        "id": "cisco.iosxe::TST0000XE01/GigabitEthernet0/0/0.100",
+        "type": "network.router.port",
+        "name": "GigabitEthernet0/0/0.100",
+        "provider": {
+          "name": "cisco.iosxe",
+          "native_id": "TST0000XE01/GigabitEthernet0/0/0.100"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "interface_name": "GigabitEthernet0/0/0.100",
+          "oper_status": "up",
+          "parent_interface": "GigabitEthernet0/0/0"
+        }
+      },
+      {
+        "id": "cisco.iosxe::TST0000XE01/Loopback0",
+        "type": "network.router.port",
+        "name": "Loopback0",
+        "provider": {
+          "name": "cisco.iosxe",
+          "native_id": "TST0000XE01/Loopback0"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "interface_name": "Loopback0",
+          "ip_address": "198.51.100.1",
+          "ipv4_addresses": [
+            "198.51.100.1/32"
+          ],
+          "oper_status": "up",
+          "subnet_mask": "255.255.255.255"
+        }
+      },
+      {
+        "id": "cisco.iosxe::TST0000XE01/Port-channel1",
+        "type": "network.interface.lag",
+        "name": "Port-channel1",
+        "provider": {
+          "name": "cisco.iosxe",
+          "native_id": "TST0000XE01/Port-channel1"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "interface_name": "Port-channel1",
+          "oper_status": "up"
+        }
+      },
+      {
+        "id": "cisco.iosxe::TST0000XE01/TenGigabitEthernet0/1/0",
+        "type": "network.router.port",
+        "name": "TenGigabitEthernet0/1/0",
+        "provider": {
+          "name": "cisco.iosxe",
+          "native_id": "TST0000XE01/TenGigabitEthernet0/1/0"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "interface_name": "TenGigabitEthernet0/1/0",
+          "mac_address": "00:00:5e:00:53:02",
+          "mtu": 9216,
+          "oper_status": "up",
+          "speed_mbps": 10000
+        }
+      },
+      {
+        "id": "cisco.iosxe::TST0000XE01/bgp-neighbor/default/203.0.113.1",
+        "type": "network.interface",
+        "name": "bgp-neighbor:203.0.113.1",
+        "provider": {
+          "name": "unknown",
+          "native_id": "bgp|default|203.0.113.1",
+          "source": "bgp"
+        },
+        "status": "unknown",
+        "properties": {
+          "remote_address": "203.0.113.1",
+          "remote_asn": 65001
+        }
+      },
+      {
+        "id": "cisco.iosxe::TST0000XE01/neighbor/LAB-SW01/GigabitEthernet1/0/1",
+        "type": "network.interface",
+        "name": "LAB-SW01:GigabitEthernet1/0/1",
+        "provider": {
+          "name": "unknown",
+          "native_id": "LAB-SW01|GigabitEthernet1/0/1",
+          "source": "cdp"
+        },
+        "status": "unknown",
+        "properties": {
+          "discovered_via": [
+            "cdp"
+          ],
+          "remote_mgmt_addr": "192.0.2.10",
+          "remote_platform": "cisco WS-C3850-48T",
+          "remote_port": "GigabitEthernet1/0/1",
+          "remote_system": "LAB-SW01"
+        }
+      },
+      {
+        "id": "cisco.iosxe::TST0000XE01/ospf-neighbor/198.51.100.2",
+        "type": "network.interface",
+        "name": "ospf-neighbor:198.51.100.2",
+        "provider": {
+          "name": "unknown",
+          "native_id": "ospf|198.51.100.2",
+          "source": "ospf"
+        },
+        "status": "unknown",
+        "properties": {
+          "ospf_router_id": "198.51.100.2",
+          "remote_address": "192.0.2.2"
+        }
+      },
+      {
+        "id": "cisco.iosxe::TST0000XE01/subnet/CORP/192.0.2.0/24",
+        "type": "network.subnet",
+        "name": "192.0.2.0/24",
+        "provider": {
+          "name": "cisco.iosxe",
+          "native_id": "TST0000XE01/subnet/CORP/192.0.2.0/24"
+        },
+        "status": "active",
+        "properties": {
+          "cidr": "192.0.2.0/24",
+          "vrf": "CORP"
+        }
+      }
+    ],
+    "connections": [
+      {
+        "id": "conn-contains.logical-tst0000xe01-to-0-100-04e028782053fcbd",
+        "type": "contains.logical",
+        "source": "cisco.iosxe::TST0000XE01",
+        "target": "cisco.iosxe::TST0000XE01/GigabitEthernet0/0/0.100",
+        "direction": "forward",
+        "name": "LAB-RTR01 contains GigabitEthernet0/0/0.100",
+        "status": "active"
+      },
+      {
+        "id": "conn-contains.logical-tst0000xe01-to-loopback0-d97fcaa02422c5d2",
+        "type": "contains.logical",
+        "source": "cisco.iosxe::TST0000XE01",
+        "target": "cisco.iosxe::TST0000XE01/Loopback0",
+        "direction": "forward",
+        "name": "LAB-RTR01 contains Loopback0",
+        "status": "active"
+      },
+      {
+        "id": "conn-contains.logical-tst0000xe01-to-port-channel1-274da4deb8b17282",
+        "type": "contains.logical",
+        "source": "cisco.iosxe::TST0000XE01",
+        "target": "cisco.iosxe::TST0000XE01/Port-channel1",
+        "direction": "forward",
+        "name": "LAB-RTR01 contains Port-channel1",
+        "status": "active"
+      },
+      {
+        "id": "conn-contains.physical-tst0000xe01-to-0-afe4fbb5e680dfc7",
+        "type": "contains.physical",
+        "source": "cisco.iosxe::TST0000XE01",
+        "target": "cisco.iosxe::TST0000XE01/GigabitEthernet0/0/0",
+        "direction": "forward",
+        "name": "LAB-RTR01 contains GigabitEthernet0/0/0",
+        "status": "active"
+      },
+      {
+        "id": "conn-contains.physical-tst0000xe01-to-0-f0ab24fd8834c6ec",
+        "type": "contains.physical",
+        "source": "cisco.iosxe::TST0000XE01",
+        "target": "cisco.iosxe::TST0000XE01/TenGigabitEthernet0/1/0",
+        "direction": "forward",
+        "name": "LAB-RTR01 contains TenGigabitEthernet0/1/0",
+        "status": "active"
+      },
+      {
+        "id": "conn-network.bgp-tst0000xe01-to-203-0-113-1-d2e7866073e4ba6e",
+        "type": "network.bgp",
+        "source": "cisco.iosxe::TST0000XE01",
+        "target": "cisco.iosxe::TST0000XE01/bgp-neighbor/default/203.0.113.1",
+        "direction": "bidirectional",
+        "name": "BGP -> 203.0.113.1",
+        "status": "active",
+        "properties": {
+          "address_families": [
+            "ipv4-unicast",
+            "ipv6-unicast"
+          ],
+          "state": "established",
+          "vrf": "default"
+        }
+      },
+      {
+        "id": "conn-network.l3-0-to-24-8b5c09ab39d53542",
+        "type": "network.l3",
+        "source": "cisco.iosxe::TST0000XE01/GigabitEthernet0/0/0",
+        "target": "cisco.iosxe::TST0000XE01/subnet/CORP/192.0.2.0/24",
+        "direction": "bidirectional",
+        "name": "GigabitEthernet0/0/0 in 192.0.2.0/24",
+        "status": "active"
+      },
+      {
+        "id": "conn-network.ospf-0-to-198-51-100-2-81ab697823f77446",
+        "type": "network.ospf",
+        "source": "cisco.iosxe::TST0000XE01/GigabitEthernet0/0/0",
+        "target": "cisco.iosxe::TST0000XE01/ospf-neighbor/198.51.100.2",
+        "direction": "bidirectional",
+        "name": "OSPF GigabitEthernet0/0/0 <-> 198.51.100.2",
+        "status": "active",
+        "properties": {
+          "area": 0,
+          "process_id": 100,
+          "state": "full"
+        }
+      },
+      {
+        "id": "conn-physical.ethernet-0-to-1-ffbd020bb7a77148",
+        "type": "physical.ethernet",
+        "source": "cisco.iosxe::TST0000XE01/GigabitEthernet0/0/0",
+        "target": "cisco.iosxe::TST0000XE01/neighbor/LAB-SW01/GigabitEthernet1/0/1",
+        "direction": "bidirectional",
+        "name": "LAB-RTR01:GigabitEthernet0/0/0 <-> LAB-SW01:GigabitEthernet1/0/1",
+        "status": "active",
+        "properties": {
+          "discovered_via": [
+            "cdp"
+          ]
+        }
+      }
+    ],
+    "groups": [
+      {
+        "id": "group-network.vrf-tst0000xe01-vrf-corp-5d3b9b03bf68563f",
+        "type": "network.vrf",
+        "name": "CORP",
+        "members": [
+          "cisco.iosxe::TST0000XE01/GigabitEthernet0/0/0",
+          "cisco.iosxe::TST0000XE01/Loopback0",
+          "cisco.iosxe::TST0000XE01/subnet/CORP/192.0.2.0/24"
+        ],
+        "properties": {
+          "description": "Corporate VRF",
+          "route_distinguisher": "192.0.2.1:100"
+        }
+      },
+      {
+        "id": "group-network.vrf-tst0000xe01-vrf-mgmt-b8a061dc041c61b8",
+        "type": "network.vrf",
+        "name": "MGMT",
+        "properties": {
+          "route_distinguisher": "192.0.2.1:200"
+        }
+      }
+    ]
+  }
+}

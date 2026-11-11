@@ -1,0 +1,7 @@
+<!-- OSIRIS JSON Cisco IOS-XE test fixture: synthetic NETCONF <data> payload for the dns discovery operation. Documentation values only; see ../../README.md. -->
+<native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+  <ip>
+    <domain><name>example.com</name><lookup>true</lookup></domain>
+    <name-server><no-vrf>192.0.2.53</no-vrf><no-vrf>2001:db8::53</no-vrf><vrf><word>Mgmt-vrf</word><server-ip-list>198.51.100.53</server-ip-list></vrf></name-server>
+  </ip>
+</native>

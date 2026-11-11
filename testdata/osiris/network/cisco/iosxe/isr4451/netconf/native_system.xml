@@ -1,0 +1,5 @@
+<!-- OSIRIS JSON Cisco IOS-XE test fixture: synthetic NETCONF <data> payload for the native-system discovery operation of the isr4451 scenario. Documentation values only; see ../../README.md. -->
+<native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+  <version>16.9</version>
+  <hostname>LAB-RTR01</hostname>
+</native>

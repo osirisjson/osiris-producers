@@ -1,0 +1,10 @@
+<!-- OSIRIS JSON Cisco IOS-XE test fixture: synthetic NETCONF <data> payload for the cdp-neighbors discovery operation of the isr4451 scenario. Documentation values only; see ../../README.md. -->
+<cdp-neighbor-details xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-cdp-oper">
+  <cdp-neighbor-detail>
+    <device-name>LAB-SW01</device-name>
+    <local-intf-name>GigabitEthernet0/0/0</local-intf-name>
+    <port-id>GigabitEthernet1/0/1</port-id>
+    <platform-name>cisco WS-C3850-48T</platform-name>
+    <mgmt-address>192.0.2.10</mgmt-address>
+  </cdp-neighbor-detail>
+</cdp-neighbor-details>

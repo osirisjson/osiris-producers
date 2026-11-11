@@ -1,0 +1,667 @@
+{
+  "$schema": "https://osirisjson.org/schema/v1.0/osiris.schema.json",
+  "version": "1.0.0",
+  "metadata": {
+    "timestamp": "2026-01-15T10:00:00Z",
+    "generator": {
+      "name": "osirisjson-producer-cisco-iosxe",
+      "version": "0.2.0"
+    },
+    "scope": {
+      "name": "LAB-SW01",
+      "description": "Cisco IOS-XE device LAB-SW01: 11/25 discovery operations returned data. No instances: boot-config, bgp, ospf, aaa, local-accounts, management-services, dns, snmp, logging, ntp, acls, crypto, control-plane, certificates.",
+      "purpose": "audit",
+      "providers": [
+        "cisco.iosxe"
+      ]
+    }
+  },
+  "topology": {
+    "resources": [
+      {
+        "id": "cisco.iosxe::TST0000SW01A",
+        "type": "network.switch",
+        "name": "LAB-SW01",
+        "provider": {
+          "name": "cisco.iosxe",
+          "native_id": "TST0000SW01A",
+          "type": "C9300-24T",
+          "version": "17.15.1"
+        },
+        "status": "active",
+        "properties": {
+          "management_ip": "192.0.2.10",
+          "manufacturer": "Cisco",
+          "model": "C9300-24T",
+          "serial_number": "TST0000SW01A",
+          "version": "17.15.1"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "coverage": [
+              {
+                "count": 1,
+                "operation": "native-system",
+                "status": "succeeded"
+              },
+              {
+                "count": 6,
+                "operation": "interfaces",
+                "status": "succeeded"
+              },
+              {
+                "count": 6,
+                "operation": "interfaces-oper",
+                "status": "succeeded"
+              },
+              {
+                "count": 5,
+                "operation": "hardware-inventory",
+                "status": "succeeded"
+              },
+              {
+                "count": 0,
+                "operation": "boot-config",
+                "status": "empty"
+              },
+              {
+                "count": 6,
+                "operation": "native-interfaces",
+                "status": "succeeded"
+              },
+              {
+                "count": 2,
+                "operation": "lldp-neighbors",
+                "status": "succeeded"
+              },
+              {
+                "count": 2,
+                "operation": "cdp-neighbors",
+                "status": "succeeded"
+              },
+              {
+                "count": 1,
+                "operation": "vrf-definitions",
+                "status": "succeeded"
+              },
+              {
+                "count": 4,
+                "operation": "vlans",
+                "status": "succeeded"
+              },
+              {
+                "count": 1,
+                "operation": "static-routes",
+                "status": "succeeded"
+              },
+              {
+                "count": 3,
+                "operation": "transceivers",
+                "status": "succeeded"
+              },
+              {
+                "count": 0,
+                "operation": "bgp",
+                "status": "empty"
+              },
+              {
+                "count": 0,
+                "operation": "ospf",
+                "status": "empty"
+              },
+              {
+                "count": 0,
+                "operation": "aaa",
+                "status": "empty"
+              },
+              {
+                "count": 0,
+                "operation": "local-accounts",
+                "status": "empty"
+              },
+              {
+                "count": 0,
+                "operation": "management-services",
+                "status": "empty"
+              },
+              {
+                "count": 0,
+                "operation": "dns",
+                "status": "empty"
+              },
+              {
+                "count": 0,
+                "operation": "snmp",
+                "status": "empty"
+              },
+              {
+                "count": 0,
+                "operation": "logging",
+                "status": "empty"
+              },
+              {
+                "count": 0,
+                "operation": "ntp",
+                "status": "empty"
+              },
+              {
+                "count": 0,
+                "operation": "acls",
+                "status": "empty"
+              },
+              {
+                "count": 0,
+                "operation": "crypto",
+                "status": "empty"
+              },
+              {
+                "count": 0,
+                "operation": "control-plane",
+                "status": "empty"
+              },
+              {
+                "count": 0,
+                "operation": "certificates",
+                "status": "empty"
+              }
+            ],
+            "inventory": [
+              {
+                "class": "chassis",
+                "description": "Cisco Catalyst 9300 24-port data, stack member 2",
+                "field_replaceable": true,
+                "hw_version": "V02",
+                "index": 2,
+                "name": "Switch 2",
+                "part_number": "C9300-24T",
+                "serial": "TST0000SW01B"
+              },
+              {
+                "class": "chassis",
+                "description": "Cisco Catalyst 9300 24-port data, stack member 1",
+                "field_replaceable": true,
+                "hw_version": "V02",
+                "index": 1,
+                "name": "Switch 1",
+                "part_number": "C9300-24T",
+                "serial": "TST0000SW01A"
+              },
+              {
+                "class": "power-entry-module",
+                "description": "LAB 350W AC power supply",
+                "field_replaceable": true,
+                "hw_version": "V01",
+                "index": 1,
+                "name": "Switch 1 - Power Supply A",
+                "part_number": "PWR-C1-350WAC",
+                "serial": "TST0000PSU1"
+              },
+              {
+                "class": "fan-tray",
+                "description": "LAB fan tray",
+                "field_replaceable": true,
+                "hw_version": "V01",
+                "index": 1,
+                "name": "Switch 1 - FAN-T1",
+                "part_number": "FAN-T1",
+                "serial": "TST0000FAN1"
+              },
+              {
+                "class": "transceiver",
+                "description": "LAB 10GBASE-SR SFP+",
+                "field_replaceable": true,
+                "hw_version": "V01",
+                "index": 1,
+                "name": "subslot 1/1 transceiver 1",
+                "part_number": "SFP-10G-SR",
+                "serial": "TST0000SFP1"
+              }
+            ],
+            "static_routes": [
+              {
+                "next_hop": "198.51.100.254",
+                "prefix": "0.0.0.0/0",
+                "vrf": "Mgmt-vrf"
+              }
+            ],
+            "transceivers": [
+              {
+                "ethernet_pmd": "10GBASE-LR",
+                "identifier": "SFP/SFP+/SFP28",
+                "name": "Transceiver2/1/1",
+                "part_number": "SFP-10G-LR",
+                "revision": "V02",
+                "serial_number": "TST0000SFP2",
+                "vendor": "LAB-OPTICS"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "cisco.iosxe::TST0000SW01A/GigabitEthernet0/0",
+        "type": "network.switch.port",
+        "name": "GigabitEthernet0/0",
+        "provider": {
+          "name": "cisco.iosxe",
+          "native_id": "TST0000SW01A/GigabitEthernet0/0"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "description": "LAB management",
+          "duplex": "full",
+          "interface_name": "GigabitEthernet0/0",
+          "ip_address": "198.51.100.20",
+          "ipv4_addresses": [
+            "198.51.100.20/24"
+          ],
+          "mac_address": "00:00:5e:00:53:20",
+          "mtu": 1500,
+          "oper_status": "up",
+          "speed_mbps": 1000,
+          "subnet_mask": "255.255.255.0"
+        }
+      },
+      {
+        "id": "cisco.iosxe::TST0000SW01A/GigabitEthernet1/0/1",
+        "type": "network.switch.port",
+        "name": "GigabitEthernet1/0/1",
+        "provider": {
+          "name": "cisco.iosxe",
+          "native_id": "TST0000SW01A/GigabitEthernet1/0/1"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "description": "LAB user access",
+          "duplex": "full",
+          "interface_name": "GigabitEthernet1/0/1",
+          "mac_address": "00:00:5e:00:53:21",
+          "mtu": 1500,
+          "oper_status": "up",
+          "port_mode": "access",
+          "speed_mbps": 1000
+        }
+      },
+      {
+        "id": "cisco.iosxe::TST0000SW01A/GigabitEthernet1/0/2",
+        "type": "network.switch.port",
+        "name": "GigabitEthernet1/0/2",
+        "provider": {
+          "name": "cisco.iosxe",
+          "native_id": "TST0000SW01A/GigabitEthernet1/0/2"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "description": "LAB voice access",
+          "duplex": "full",
+          "interface_name": "GigabitEthernet1/0/2",
+          "mac_address": "00:00:5e:00:53:22",
+          "mtu": 1500,
+          "oper_status": "up",
+          "port_mode": "access",
+          "speed_mbps": 1000
+        }
+      },
+      {
+        "id": "cisco.iosxe::TST0000SW01A/TenGigabitEthernet1/1/1",
+        "type": "network.switch.port",
+        "name": "TenGigabitEthernet1/1/1",
+        "provider": {
+          "name": "cisco.iosxe",
+          "native_id": "TST0000SW01A/TenGigabitEthernet1/1/1"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "description": "LAB uplink to LAB-DIST01",
+          "duplex": "full",
+          "interface_name": "TenGigabitEthernet1/1/1",
+          "mac_address": "00:00:5e:00:53:23",
+          "mtu": 9198,
+          "native_vlan": 99,
+          "oper_status": "up",
+          "port_mode": "trunk",
+          "speed_mbps": 10000,
+          "transceiver": {
+            "connector": "LC",
+            "ethernet_pmd": "10GBASE-SR",
+            "identifier": "SFP/SFP+/SFP28",
+            "part_number": "SFP-10G-SR",
+            "revision": "V01",
+            "serial_number": "TST0000SFP1",
+            "vendor": "LAB-OPTICS"
+          }
+        }
+      },
+      {
+        "id": "cisco.iosxe::TST0000SW01A/Vlan1",
+        "type": "network.interface",
+        "name": "Vlan1",
+        "provider": {
+          "name": "cisco.iosxe",
+          "native_id": "TST0000SW01A/Vlan1"
+        },
+        "status": "inactive",
+        "properties": {
+          "admin_status": "down",
+          "interface_name": "Vlan1",
+          "mac_address": "00:00:5e:00:53:2f",
+          "mtu": 1500,
+          "oper_status": "down",
+          "speed_mbps": 1000,
+          "vlan_id": 1
+        }
+      },
+      {
+        "id": "cisco.iosxe::TST0000SW01A/Vlan10",
+        "type": "network.interface",
+        "name": "Vlan10",
+        "provider": {
+          "name": "cisco.iosxe",
+          "native_id": "TST0000SW01A/Vlan10"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "description": "LAB users gateway",
+          "interface_name": "Vlan10",
+          "ip_address": "203.0.113.1",
+          "ipv4_addresses": [
+            "203.0.113.1/25"
+          ],
+          "mac_address": "00:00:5e:00:53:2f",
+          "mtu": 1500,
+          "oper_status": "up",
+          "speed_mbps": 1000,
+          "subnet_mask": "255.255.255.128",
+          "vlan_id": 10
+        }
+      },
+      {
+        "id": "cisco.iosxe::TST0000SW01A/neighbor/00:00:5e:00:53:c1/00:00:5e:00:53:c1",
+        "type": "network.interface",
+        "name": "00:00:5e:00:53:c1:00:00:5e:00:53:c1",
+        "provider": {
+          "name": "unknown",
+          "native_id": "00:00:5e:00:53:c1|00:00:5e:00:53:c1",
+          "source": "lldp"
+        },
+        "status": "unknown",
+        "properties": {
+          "discovered_via": [
+            "lldp"
+          ],
+          "remote_port": "00:00:5e:00:53:c1",
+          "remote_system": "00:00:5e:00:53:c1"
+        }
+      },
+      {
+        "id": "cisco.iosxe::TST0000SW01A/neighbor/LAB-DIST01/TenGigabitEthernet1/0/48",
+        "type": "network.interface",
+        "name": "LAB-DIST01:TenGigabitEthernet1/0/48",
+        "provider": {
+          "name": "unknown",
+          "native_id": "LAB-DIST01|TenGigabitEthernet1/0/48",
+          "source": "lldp+cdp"
+        },
+        "status": "unknown",
+        "properties": {
+          "discovered_via": [
+            "lldp",
+            "cdp"
+          ],
+          "remote_mgmt_addr": "198.51.100.30",
+          "remote_platform": "cisco C9500-24Y4C",
+          "remote_port": "TenGigabitEthernet1/0/48",
+          "remote_system": "LAB-DIST01.example.com"
+        }
+      },
+      {
+        "id": "cisco.iosxe::TST0000SW01A/subnet/Mgmt-vrf/198.51.100.0/24",
+        "type": "network.subnet",
+        "name": "198.51.100.0/24",
+        "provider": {
+          "name": "cisco.iosxe",
+          "native_id": "TST0000SW01A/subnet/Mgmt-vrf/198.51.100.0/24"
+        },
+        "status": "active",
+        "properties": {
+          "cidr": "198.51.100.0/24",
+          "vrf": "Mgmt-vrf"
+        }
+      },
+      {
+        "id": "cisco.iosxe::TST0000SW01A/subnet/default/203.0.113.0/25",
+        "type": "network.subnet",
+        "name": "203.0.113.0/25",
+        "provider": {
+          "name": "cisco.iosxe",
+          "native_id": "TST0000SW01A/subnet/default/203.0.113.0/25"
+        },
+        "status": "active",
+        "properties": {
+          "cidr": "203.0.113.0/25"
+        }
+      },
+      {
+        "id": "cisco.iosxe::TST0000SW01A/vlan/1",
+        "type": "network.vlan",
+        "name": "default",
+        "provider": {
+          "name": "cisco.iosxe",
+          "native_id": "TST0000SW01A/vlan/1"
+        },
+        "status": "active",
+        "properties": {
+          "vlan_id": 1,
+          "vlan_name": "default"
+        }
+      },
+      {
+        "id": "cisco.iosxe::TST0000SW01A/vlan/10",
+        "type": "network.vlan",
+        "name": "LAB-USERS",
+        "provider": {
+          "name": "cisco.iosxe",
+          "native_id": "TST0000SW01A/vlan/10"
+        },
+        "status": "active",
+        "properties": {
+          "vlan_id": 10,
+          "vlan_name": "LAB-USERS"
+        }
+      },
+      {
+        "id": "cisco.iosxe::TST0000SW01A/vlan/20",
+        "type": "network.vlan",
+        "name": "LAB-VOICE",
+        "provider": {
+          "name": "cisco.iosxe",
+          "native_id": "TST0000SW01A/vlan/20"
+        },
+        "status": "active",
+        "properties": {
+          "vlan_id": 20,
+          "vlan_name": "LAB-VOICE"
+        }
+      },
+      {
+        "id": "cisco.iosxe::TST0000SW01A/vlan/30",
+        "type": "network.vlan",
+        "name": "LAB-PARKED",
+        "provider": {
+          "name": "cisco.iosxe",
+          "native_id": "TST0000SW01A/vlan/30"
+        },
+        "status": "inactive",
+        "properties": {
+          "vlan_id": 30,
+          "vlan_name": "LAB-PARKED"
+        }
+      }
+    ],
+    "connections": [
+      {
+        "id": "conn-contains.logical-tst0000sw01a-to-vlan1-cfcb07255c8e75f4",
+        "type": "contains.logical",
+        "source": "cisco.iosxe::TST0000SW01A",
+        "target": "cisco.iosxe::TST0000SW01A/Vlan1",
+        "direction": "forward",
+        "name": "LAB-SW01 contains Vlan1",
+        "status": "active"
+      },
+      {
+        "id": "conn-contains.logical-tst0000sw01a-to-vlan10-e2e86fc856ac91a3",
+        "type": "contains.logical",
+        "source": "cisco.iosxe::TST0000SW01A",
+        "target": "cisco.iosxe::TST0000SW01A/Vlan10",
+        "direction": "forward",
+        "name": "LAB-SW01 contains Vlan10",
+        "status": "active"
+      },
+      {
+        "id": "conn-contains.physical-tst0000sw01a-to-0-20eb00566938ee62",
+        "type": "contains.physical",
+        "source": "cisco.iosxe::TST0000SW01A",
+        "target": "cisco.iosxe::TST0000SW01A/GigabitEthernet0/0",
+        "direction": "forward",
+        "name": "LAB-SW01 contains GigabitEthernet0/0",
+        "status": "active"
+      },
+      {
+        "id": "conn-contains.physical-tst0000sw01a-to-1-3240cca59216dd89",
+        "type": "contains.physical",
+        "source": "cisco.iosxe::TST0000SW01A",
+        "target": "cisco.iosxe::TST0000SW01A/GigabitEthernet1/0/1",
+        "direction": "forward",
+        "name": "LAB-SW01 contains GigabitEthernet1/0/1",
+        "status": "active"
+      },
+      {
+        "id": "conn-contains.physical-tst0000sw01a-to-1-896fea9f4beafc2f",
+        "type": "contains.physical",
+        "source": "cisco.iosxe::TST0000SW01A",
+        "target": "cisco.iosxe::TST0000SW01A/TenGigabitEthernet1/1/1",
+        "direction": "forward",
+        "name": "LAB-SW01 contains TenGigabitEthernet1/1/1",
+        "status": "active"
+      },
+      {
+        "id": "conn-contains.physical-tst0000sw01a-to-2-16322dc282fc1127",
+        "type": "contains.physical",
+        "source": "cisco.iosxe::TST0000SW01A",
+        "target": "cisco.iosxe::TST0000SW01A/GigabitEthernet1/0/2",
+        "direction": "forward",
+        "name": "LAB-SW01 contains GigabitEthernet1/0/2",
+        "status": "active"
+      },
+      {
+        "id": "conn-network.l2-1-to-10-718bedd1a0b47907",
+        "type": "network.l2",
+        "source": "cisco.iosxe::TST0000SW01A/GigabitEthernet1/0/1",
+        "target": "cisco.iosxe::TST0000SW01A/vlan/10",
+        "direction": "bidirectional",
+        "name": "GigabitEthernet1/0/1 in VLAN 10",
+        "status": "active"
+      },
+      {
+        "id": "conn-network.l2-1-to-10-90782b05c4378831",
+        "type": "network.l2",
+        "source": "cisco.iosxe::TST0000SW01A/TenGigabitEthernet1/1/1",
+        "target": "cisco.iosxe::TST0000SW01A/vlan/10",
+        "direction": "bidirectional",
+        "name": "TenGigabitEthernet1/1/1 in VLAN 10",
+        "status": "active"
+      },
+      {
+        "id": "conn-network.l2-1-to-20-8b51731d23b32511",
+        "type": "network.l2",
+        "source": "cisco.iosxe::TST0000SW01A/TenGigabitEthernet1/1/1",
+        "target": "cisco.iosxe::TST0000SW01A/vlan/20",
+        "direction": "bidirectional",
+        "name": "TenGigabitEthernet1/1/1 in VLAN 20",
+        "status": "active"
+      },
+      {
+        "id": "conn-network.l2-1-to-30-279c556780c6b7ba",
+        "type": "network.l2",
+        "source": "cisco.iosxe::TST0000SW01A/TenGigabitEthernet1/1/1",
+        "target": "cisco.iosxe::TST0000SW01A/vlan/30",
+        "direction": "bidirectional",
+        "name": "TenGigabitEthernet1/1/1 in VLAN 30",
+        "status": "active"
+      },
+      {
+        "id": "conn-network.l2-2-to-20-2d4fa50c638d0fa7",
+        "type": "network.l2",
+        "source": "cisco.iosxe::TST0000SW01A/GigabitEthernet1/0/2",
+        "target": "cisco.iosxe::TST0000SW01A/vlan/20",
+        "direction": "bidirectional",
+        "name": "GigabitEthernet1/0/2 in VLAN 20",
+        "status": "active"
+      },
+      {
+        "id": "conn-network.l3-0-to-24-49ecb1d0493eaef7",
+        "type": "network.l3",
+        "source": "cisco.iosxe::TST0000SW01A/GigabitEthernet0/0",
+        "target": "cisco.iosxe::TST0000SW01A/subnet/Mgmt-vrf/198.51.100.0/24",
+        "direction": "bidirectional",
+        "name": "GigabitEthernet0/0 in 198.51.100.0/24",
+        "status": "active"
+      },
+      {
+        "id": "conn-network.l3-vlan10-to-25-7f8d5c775737c2de",
+        "type": "network.l3",
+        "source": "cisco.iosxe::TST0000SW01A/Vlan10",
+        "target": "cisco.iosxe::TST0000SW01A/subnet/default/203.0.113.0/25",
+        "direction": "bidirectional",
+        "name": "Vlan10 in 203.0.113.0/25",
+        "status": "active"
+      },
+      {
+        "id": "conn-physical.ethernet-2-to-00-00-5e-00-53-c1-2c35581df6451497",
+        "type": "physical.ethernet",
+        "source": "cisco.iosxe::TST0000SW01A/GigabitEthernet1/0/2",
+        "target": "cisco.iosxe::TST0000SW01A/neighbor/00:00:5e:00:53:c1/00:00:5e:00:53:c1",
+        "direction": "bidirectional",
+        "name": "LAB-SW01:GigabitEthernet1/0/2 <-> 00:00:5e:00:53:c1:00:00:5e:00:53:c1",
+        "status": "active",
+        "properties": {
+          "discovered_via": [
+            "lldp"
+          ]
+        }
+      },
+      {
+        "id": "conn-physical.fiber-1-to-48-4aed755343cf4fcb",
+        "type": "physical.fiber",
+        "source": "cisco.iosxe::TST0000SW01A/TenGigabitEthernet1/1/1",
+        "target": "cisco.iosxe::TST0000SW01A/neighbor/LAB-DIST01/TenGigabitEthernet1/0/48",
+        "direction": "bidirectional",
+        "name": "LAB-SW01:TenGigabitEthernet1/1/1 <-> LAB-DIST01:TenGigabitEthernet1/0/48",
+        "status": "active",
+        "properties": {
+          "discovered_via": [
+            "lldp",
+            "cdp"
+          ],
+          "ethernet_pmd": "10GBASE-SR"
+        }
+      }
+    ],
+    "groups": [
+      {
+        "id": "group-network.vrf-tst0000sw01a-vrf-mgmt-vr-9ef381d2a740e6bd",
+        "type": "network.vrf",
+        "name": "Mgmt-vrf",
+        "members": [
+          "cisco.iosxe::TST0000SW01A/GigabitEthernet0/0",
+          "cisco.iosxe::TST0000SW01A/subnet/Mgmt-vrf/198.51.100.0/24"
+        ]
+      }
+    ]
+  }
+}

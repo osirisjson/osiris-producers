@@ -1,0 +1,7 @@
+<!-- OSIRIS JSON Cisco IOS-XE test fixture: synthetic NETCONF <data> payload for the vlans discovery operation. Documentation values only; see ../../README.md. -->
+<vlans xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-vlan-oper">
+  <vlan><id>1</id><name>default</name><status>active</status></vlan>
+  <vlan><id>10</id><name>LAB-USERS</name><status>active</status><ports><interface>GigabitEthernet1/0/1</interface><subinterface>0</subinterface></ports><vlan-interfaces><interface>GigabitEthernet1/0/1</interface><subinterface>0</subinterface></vlan-interfaces></vlan>
+  <vlan><id>20</id><name>LAB-VOICE</name><status>active</status><vlan-interfaces><interface>GigabitEthernet1/0/2</interface><subinterface>0</subinterface></vlan-interfaces></vlan>
+  <vlan><id>30</id><name>LAB-PARKED</name><status>suspend</status></vlan>
+</vlans>

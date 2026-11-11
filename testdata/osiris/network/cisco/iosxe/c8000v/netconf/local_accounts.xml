@@ -1,0 +1,6 @@
+<!-- OSIRIS JSON Cisco IOS-XE test fixture: synthetic NETCONF <data> payload for the local-accounts discovery operation. Documentation values only; see ../../README.md. -->
+<native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+  <username><name>admin</name><privilege>15</privilege><secret><encryption>9</encryption><secret>changeme</secret></secret></username>
+  <username><name>test</name><privilege>1</privilege><password><encryption>7</encryption><password>changeme</password></password></username>
+  <enable><secret><type>9</type><secret>changeme</secret></secret></enable>
+</native>

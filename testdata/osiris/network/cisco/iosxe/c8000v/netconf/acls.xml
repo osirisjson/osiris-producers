@@ -1,0 +1,32 @@
+<!-- OSIRIS JSON Cisco IOS-XE test fixture: synthetic NETCONF <data> payload for the acls discovery operation. Documentation values only; see ../../README.md. -->
+<native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+  <ip>
+    <access-list>
+      <standard xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-acl"><name>LAB-MGMT</name>
+        <access-list-seq-rule><sequence>10</sequence><permit><std-ace><ipv4-address-prefix>192.0.2.0</ipv4-address-prefix><mask>0.0.0.255</mask></std-ace></permit></access-list-seq-rule>
+        <access-list-seq-rule><sequence>20</sequence><deny><std-ace><any/><log/></std-ace></deny></access-list-seq-rule>
+      </standard>
+      <standard xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-acl"><name>LAB-SNMP</name>
+        <access-list-seq-rule><sequence>10</sequence><permit><std-ace><host-address>192.0.2.60</host-address></std-ace></permit></access-list-seq-rule>
+      </standard>
+      <extended xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-acl"><name>LAB-EDGE-IN</name>
+        <access-list-seq-rule><sequence>5</sequence><remark>LAB edge policy</remark></access-list-seq-rule>
+        <access-list-seq-rule><sequence>10</sequence><ace-rule><action>permit</action><protocol>tcp</protocol><any/><dst-host-address>198.51.100.1</dst-host-address><dst-eq>22</dst-eq><dst-eq-port2>443</dst-eq-port2></ace-rule></access-list-seq-rule>
+        <access-list-seq-rule><sequence>20</sequence><ace-rule><action>permit</action><protocol>tcp</protocol><ipv4-address>203.0.113.0</ipv4-address><mask>0.0.0.255</mask><dst-any/><established/></ace-rule></access-list-seq-rule>
+        <access-list-seq-rule><sequence>30</sequence><ace-rule><action>permit</action><protocol>udp</protocol><host-address>192.0.2.123</host-address><src-eq>123</src-eq><dst-any/></ace-rule></access-list-seq-rule>
+        <access-list-seq-rule><sequence>40</sequence><ace-rule><action>deny</action><protocol>ip</protocol><any/><dst-any/><log/></ace-rule></access-list-seq-rule>
+      </extended>
+      <extended xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-acl"><name>LAB-NTP</name>
+        <access-list-seq-rule><sequence>10</sequence><ace-rule><action>permit</action><protocol>udp</protocol><any/><dst-any/><dst-range1>1024</dst-range1><dst-range2>65535</dst-range2></ace-rule></access-list-seq-rule>
+      </extended>
+    </access-list>
+  </ip>
+  <ipv6>
+    <access-list>
+      <named-acl xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-acl"><name>LAB-V6-IN</name>
+        <access-list-seq-rule><sequence>10</sequence><ace-rule><action>permit</action><protocol>ipv6</protocol><source-prefix>2001:db8:100::/48</source-prefix><destination-any/></ace-rule></access-list-seq-rule>
+        <access-list-seq-rule><sequence>20</sequence><ace-rule><action>deny</action><protocol>ipv6</protocol><any/><destination-any/><log/></ace-rule></access-list-seq-rule>
+      </named-acl>
+    </access-list>
+  </ipv6>
+</native>

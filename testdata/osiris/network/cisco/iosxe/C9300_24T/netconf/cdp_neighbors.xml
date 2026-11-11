@@ -1,0 +1,5 @@
+<!-- OSIRIS JSON Cisco IOS-XE test fixture: synthetic NETCONF <data> payload for the cdp-neighbors discovery operation. Documentation values only; see ../../README.md. -->
+<cdp-neighbor-details xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-cdp-oper">
+  <cdp-neighbor-detail><device-id>1</device-id><device-name>LAB-DIST01.example.com</device-name><local-intf-name>TenGigabitEthernet1/1/1</local-intf-name><port-id>Te1/0/48</port-id><platform-name>cisco C9500-24Y4C</platform-name><ip-address>198.51.100.30</ip-address></cdp-neighbor-detail>
+  <cdp-neighbor-detail><device-id>2</device-id><device-name>LAB-AP01.example.com</device-name><local-intf-name>GigabitEthernet1/0/99</local-intf-name><port-id>GigabitEthernet0</port-id><platform-name>cisco LAB-AP</platform-name></cdp-neighbor-detail>
+</cdp-neighbor-details>

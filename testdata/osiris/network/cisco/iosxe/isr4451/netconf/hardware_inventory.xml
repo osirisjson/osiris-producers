@@ -1,0 +1,26 @@
+<!-- OSIRIS JSON Cisco IOS-XE test fixture: synthetic NETCONF <data> payload for the hardware-inventory discovery operation of the isr4451 scenario. Documentation values only; see ../../README.md. -->
+<device-hardware-data xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-device-hardware-oper">
+  <device-hardware><device-system-data><software-version>Cisco IOS Software [Dublin], ISR Software (X86_64_LINUX_IOSD-UNIVERSALK9-M), Version 17.12.4, RELEASE SOFTWARE (fc1)</software-version></device-system-data>
+    <device-inventory>
+      <hw-type>hw-type-chassis</hw-type>
+      <hw-description>ISR4451-X/K9 Chassis</hw-description>
+      <part-number>ISR4451-X/K9</part-number>
+      <serial-number>TST0000XE01</serial-number>
+      <dev-name>Chassis</dev-name>
+    </device-inventory>
+    <device-inventory>
+      <hw-type>hw-type-pim</hw-type>
+      <hw-description>ISR4451-X 4-Port GE NIM</hw-description>
+      <part-number>NIM-4GE</part-number>
+      <serial-number>TST0000NIM1</serial-number>
+      <dev-name>NIM subslot 0/0</dev-name>
+    </device-inventory>
+    <device-inventory>
+      <hw-type>hw-type-transceiver</hw-type>
+      <hw-description>SFP-10G-SR Transceiver</hw-description>
+      <part-number>SFP-10G-SR</part-number>
+      <serial-number>TST0000SFP1</serial-number>
+      <dev-name>TenGigabitEthernet0/1/0 SFP</dev-name>
+    </device-inventory>
+  </device-hardware>
+</device-hardware-data>
