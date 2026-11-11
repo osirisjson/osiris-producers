@@ -1,0 +1,13 @@
+<!-- OSIRIS JSON Cisco IOS-XE test fixture: synthetic NETCONF <data> payload for the ntp discovery operation. Documentation values only; see ../../README.md. -->
+<native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+  <ntp>
+    <authenticate xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-ntp"/>
+    <authentication-key xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-ntp"><number>1</number><md5-cfg>changeme</md5-cfg><encryption-type>7</encryption-type></authentication-key>
+    <trusted-key xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-ntp"><number>1</number></trusted-key>
+    <server xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-ntp">
+      <server-list><ip-address>192.0.2.123</ip-address><key>1</key><prefer/><source>Loopback0</source></server-list>
+      <vrf><name>Mgmt-vrf</name><server-list><ip-address>198.51.100.123</ip-address><version>4</version></server-list></vrf>
+    </server>
+    <access-group xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-ntp"><ipv4><peer><acl>LAB-NTP</acl></peer></ipv4></access-group>
+  </ntp>
+</native>

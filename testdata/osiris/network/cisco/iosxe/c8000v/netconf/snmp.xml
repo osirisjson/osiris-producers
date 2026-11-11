@@ -1,0 +1,15 @@
+<!-- OSIRIS JSON Cisco IOS-XE test fixture: synthetic NETCONF <data> payload for the snmp discovery operation. Documentation values only; see ../../README.md. -->
+<native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+  <snmp-server>
+    <community-config xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-snmp"><name>changeme</name><permission>ro</permission><access-list-name>LAB-SNMP</access-list-name></community-config>
+    <community-config xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-snmp"><name>changeme</name><permission>rw</permission><view>LAB-VIEW</view><access-list-name>LAB-SNMP</access-list-name></community-config>
+    <contact xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-snmp">LAB network operations</contact>
+    <group xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-snmp"><id>LAB-V3</id><v3><security-level-list-config><security-level>priv</security-level><read>LAB-VIEW</read></security-level-list-config></v3></group>
+    <host-config xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-snmp">
+      <ip-community-port><ip-address>192.0.2.60</ip-address><community-or-user>changeme</community-or-user><udp-port>162</udp-port><version>2c</version></ip-community-port>
+      <ip-vrf-community><ip-address>198.51.100.60</ip-address><vrf>Mgmt-vrf</vrf><community-or-user>LAB-V3USER</community-or-user><version>3</version><security-level>priv</security-level></ip-vrf-community>
+    </host-config>
+    <location xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-snmp">MXP</location>
+    <trap-source xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-snmp"><Loopback>0</Loopback></trap-source>
+  </snmp-server>
+</native>

@@ -1,0 +1,14 @@
+<!-- OSIRIS JSON Cisco IOS-XE test fixture: synthetic NETCONF <data> payload for the management-services discovery operation. Documentation values only; see ../../README.md. -->
+<native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+  <ip>
+    <http xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-http"><server>false</server><secure-server>true</secure-server><secure-trustpoint>LAB-TP</secure-trustpoint><max-connections>4</max-connections></http>
+    <ssh><version>2</version><time-out>60</time-out><authentication-retries>3</authentication-retries><source-interface>Loopback0</source-interface></ssh>
+    <scp><server><enable/></server></scp>
+  </ip>
+  <line>
+    <console><first>0</first><exec-timeout><minutes>0</minutes><seconds>0</seconds></exec-timeout><password><secret>changeme</secret></password></console>
+    <vty><first>0</first><last>4</last><access-class><acccess-list><direction>in</direction><access-list>LAB-MGMT</access-list><vrf-also/></acccess-list></access-class><exec-timeout><minutes>10</minutes><seconds>0</seconds></exec-timeout><login><authentication>default</authentication></login><password><type>7</type><secret>changeme</secret></password><transport><input><input>ssh</input></input><preferred><protocol>none</protocol></preferred></transport></vty>
+    <vty><first>5</first><last>15</last><login><local/></login><transport><input><none/></input></transport></vty>
+  </line>
+  <service><password-encryption/><timestamps><debug-config><datetime><msec/></datetime></debug-config></timestamps></service>
+</native>

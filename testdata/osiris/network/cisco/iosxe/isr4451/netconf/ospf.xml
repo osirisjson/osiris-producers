@@ -1,0 +1,15 @@
+<!-- OSIRIS JSON Cisco IOS-XE test fixture: synthetic NETCONF <data> payload for the ospf discovery operation of the isr4451 scenario. Documentation values only; see ../../README.md. -->
+<ospf-oper-data xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-ospf-oper">
+  <ospf-state>
+    <ospf-instance>
+      <af>address-family-ipv4</af>
+      <router-id>3325256705</router-id>
+      <process-id>100</process-id>
+      <ospf-area><area-id>0</area-id>
+        <ospf-interface><name>GigabitEthernet0/0/0</name>
+          <ospf-neighbor><neighbor-id>198.51.100.2</neighbor-id><address>192.0.2.2</address><state>ospf-nbr-full</state></ospf-neighbor>
+        </ospf-interface>
+      </ospf-area>
+    </ospf-instance>
+  </ospf-state>
+</ospf-oper-data>

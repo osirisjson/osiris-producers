@@ -1,0 +1,12 @@
+<!-- OSIRIS JSON Cisco IOS-XE test fixture: synthetic NETCONF <data> payload for the ospf discovery operation. Documentation values only; see ../../README.md. -->
+<ospf-oper-data xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-ospf-oper"><ospf-state><op-mode>ospf-ships-in-the-night</op-mode>
+  <ospf-instance><af>address-family-ipv4</af><router-id>3405803777</router-id>
+    <ospf-area><area-id>0</area-id><area-type>ospf-area-type-normal</area-type>
+      <ospf-interface><name>GigabitEthernet2</name><network-type>ospf-broadcast</network-type><passive>false</passive>
+        <ospf-neighbor><neighbor-id>198.51.100.2</neighbor-id><address>198.51.100.2</address><dr>198.51.100.2</dr><bdr>198.51.100.1</bdr><state>ospf-nbr-full</state><stats><nbr-event-count>6</nbr-event-count><nbr-retrans-qlen>0</nbr-retrans-qlen></stats></ospf-neighbor>
+      </ospf-interface>
+      <ospf-interface><name>Loopback0</name><network-type>ospf-loopback</network-type><passive>false</passive></ospf-interface>
+    </ospf-area>
+    <process-id>1</process-id>
+  </ospf-instance>
+</ospf-state></ospf-oper-data>

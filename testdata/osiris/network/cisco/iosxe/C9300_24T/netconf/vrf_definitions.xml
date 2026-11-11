@@ -1,0 +1,2 @@
+<!-- OSIRIS JSON Cisco IOS-XE test fixture: synthetic NETCONF <data> payload for the vrf-definitions discovery operation. Documentation values only; see ../../README.md. -->
+<native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native"><vrf><definition><name>Mgmt-vrf</name><address-family><ipv4></ipv4><ipv6></ipv6></address-family></definition></vrf></native>

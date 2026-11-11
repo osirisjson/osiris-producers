@@ -1,0 +1,17 @@
+<!-- OSIRIS JSON Cisco IOS-XE test fixture: synthetic NETCONF <data> payload for the crypto discovery operation. Documentation values only; see ../../README.md. -->
+<native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+  <crypto>
+    <pki xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-crypto">
+      <trustpoint><id>LAB-TP</id><enrollment><selfsigned/></enrollment><revocation-check>none</revocation-check><rsakeypair><key-label>LAB-TP-KEY</key-label></rsakeypair><subject-name>cn=LAB-RTR01.example.com</subject-name><hash>sha256</hash></trustpoint>
+      <trustpoint><id>LAB-CA</id><enrollment><url>https://ca.example.com/scep</url></enrollment><revocation-check>crl</revocation-check><password><encryption>7</encryption><password>changeme</password></password></trustpoint>
+      <certificate><chain><name>LAB-TP</name><certificate><serial>01</serial><certtype>self-signed</certtype></certificate></chain></certificate>
+    </pki>
+    <ikev2 xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-crypto">
+      <keyring><name>LAB-KEYRING</name><peer><name>LAB-PEER</name><address><ipv4><ipv4-address>203.0.113.10</ipv4-address></ipv4></address><pre-shared-key><key>changeme</key></pre-shared-key></peer></keyring>
+      <proposal><name>LAB-IKEV2</name><encryption><aes-gcm-256/></encryption><prf><sha384/></prf><group><twenty/></group></proposal>
+    </ikev2>
+    <ipsec xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-crypto">
+      <transform-set><tag>LAB-TS</tag><esp>esp-gcm</esp><key-bit>256</key-bit><mode><tunnel/></mode></transform-set>
+    </ipsec>
+  </crypto>
+</native>

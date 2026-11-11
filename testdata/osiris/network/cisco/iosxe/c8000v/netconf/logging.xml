@@ -1,0 +1,9 @@
+<!-- OSIRIS JSON Cisco IOS-XE test fixture: synthetic NETCONF <data> payload for the logging discovery operation. Documentation values only; see ../../README.md. -->
+<native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+  <logging>
+    <buffered><size-value>64000</size-value><severity-level>informational</severity-level></buffered>
+    <trap><severity>notifications</severity></trap>
+    <host><ipv4-host-list><ipv4-host>192.0.2.70</ipv4-host></ipv4-host-list><ipv4-host-vrf-transport-list><ipv4-host>198.51.100.70</ipv4-host><vrf>Mgmt-vrf</vrf><transport><tcp><port-config><port-number>601</port-number></port-config></tcp></transport></ipv4-host-vrf-transport-list><ipv6><ipv6-host-list><ipv6-host>2001:db8::70</ipv6-host></ipv6-host-list></ipv6></host>
+    <source-interface-conf><interface-name-non-vrf>Loopback0</interface-name-non-vrf></source-interface-conf>
+  </logging>
+</native>

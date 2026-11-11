@@ -1,0 +1,4 @@
+<!-- OSIRIS JSON Cisco IOS-XE test fixture: synthetic NETCONF <data> payload for the control-plane discovery operation. Documentation values only; see ../../README.md. -->
+<native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+  <control-plane><service-policy xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-policy"><input>LAB-COPP</input></service-policy></control-plane>
+</native>

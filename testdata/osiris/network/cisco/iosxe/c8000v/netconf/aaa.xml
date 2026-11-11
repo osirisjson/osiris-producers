@@ -1,0 +1,30 @@
+<!-- OSIRIS JSON Cisco IOS-XE test fixture: synthetic NETCONF <data> payload for the acls discovery operation. Documentation values only; see ../../README.md. -->
+<native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+  <aaa>
+    <new-model xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-aaa"/>
+    <group xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-aaa"><server>
+      <tacacsplus><name>LAB-TACACS</name><server><name><name>LAB-TAC1</name></name><name><name>LAB-TAC2</name></name></server></tacacsplus>
+      <radius><name>LAB-RADIUS</name><server-private><name>192.0.2.54</name><auth-port>1812</auth-port><acct-port>1813</acct-port><timeout>5</timeout><key><encryption>7</encryption><key>changeme</key></key></server-private></radius>
+    </server></group>
+    <authentication xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-aaa">
+      <login><name>default</name><a1><group>LAB-TACACS</group></a1><a2><local/></a2></login>
+      <login><name>LAB-CONSOLE</name><a1><line/></a1></login>
+    </authentication>
+    <authorization xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-aaa">
+      <commands><level>15</level><list-name>default</list-name><a1><group>LAB-TACACS</group></a1><a2><if-authenticated/></a2></commands>
+      <exec><name>default</name><a1><group>LAB-TACACS</group></a1><a2><local/></a2></exec>
+    </authorization>
+    <accounting xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-aaa">
+      <commands><level>15</level><list-name>default</list-name><commands-config><action-type>start-stop</action-type><group-config><group1><group>LAB-TACACS</group></group1></group-config></commands-config></commands>
+      <exec><name>default</name><start-stop><group1><group>LAB-TACACS</group></group1></start-stop></exec>
+    </accounting>
+    <session-id xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-aaa">common</session-id>
+  </aaa>
+  <tacacs>
+    <server xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-aaa"><name>LAB-TAC1</name><address><ipv4>192.0.2.51</ipv4></address><key><encryption>7</encryption><key>changeme</key></key><timeout>5</timeout></server>
+    <server xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-aaa"><name>LAB-TAC2</name><address><ipv4>192.0.2.52</ipv4></address><port>49</port><key><key>changeme</key></key></server>
+  </tacacs>
+  <radius>
+    <server xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-aaa"><id>LAB-RAD1</id><address><ipv4>192.0.2.53</ipv4><auth-port>1812</auth-port><acct-port>1813</acct-port></address><key><encryption>7</encryption><key>changeme</key></key><retransmit>3</retransmit></server>
+  </radius>
+</native>
