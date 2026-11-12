@@ -29,11 +29,13 @@ import (
 )
 
 // YANG module namespaces of the security and inventory models.
+// Cisco defines them as http URIs. They are XML namespace identifiers
+// that must match the device models exactly and are never fetched.
 const (
-	nsHTTP            = "http://cisco.com/ns/yang/Cisco-IOS-XE-http"
-	nsCrypto          = "http://cisco.com/ns/yang/Cisco-IOS-XE-crypto"
-	nsCryptoPKIOper   = "http://cisco.com/ns/yang/Cisco-IOS-XE-crypto-pki-oper"
-	nsTransceiverOper = "http://cisco.com/ns/yang/Cisco-IOS-XE-transceiver-oper"
+	nsHTTP            = "http://cisco.com/ns/yang/Cisco-IOS-XE-http"             // NOSONAR
+	nsCrypto          = "http://cisco.com/ns/yang/Cisco-IOS-XE-crypto"           // NOSONAR
+	nsCryptoPKIOper   = "http://cisco.com/ns/yang/Cisco-IOS-XE-crypto-pki-oper"  // NOSONAR
+	nsTransceiverOper = "http://cisco.com/ns/yang/Cisco-IOS-XE-transceiver-oper" // NOSONAR
 )
 
 // present is a YANG empty leaf: non-nil when the element is present.

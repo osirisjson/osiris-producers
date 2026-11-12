@@ -31,16 +31,18 @@ import (
 )
 
 // YANG module namespaces of the containers this producer queries.
+// Cisco defines them as http URIs. They are XML namespace identifiers
+// that must match the device models exactly and are never fetched.
 const (
-	nsNative        = "http://cisco.com/ns/yang/Cisco-IOS-XE-native"
+	nsNative        = "http://cisco.com/ns/yang/Cisco-IOS-XE-native" // NOSONAR
 	nsIETFInterface = "urn:ietf:params:xml:ns:yang:ietf-interfaces"
-	nsHardwareOper  = "http://cisco.com/ns/yang/Cisco-IOS-XE-device-hardware-oper"
-	nsCDPOper       = "http://cisco.com/ns/yang/Cisco-IOS-XE-cdp-oper"
-	nsBGPOper       = "http://cisco.com/ns/yang/Cisco-IOS-XE-bgp-oper"
-	nsOSPFOper      = "http://cisco.com/ns/yang/Cisco-IOS-XE-ospf-oper"
-	nsInterfaceOper = "http://cisco.com/ns/yang/Cisco-IOS-XE-interfaces-oper"
-	nsLLDPOper      = "http://cisco.com/ns/yang/Cisco-IOS-XE-lldp-oper"
-	nsVLANOper      = "http://cisco.com/ns/yang/Cisco-IOS-XE-vlan-oper"
+	nsHardwareOper  = "http://cisco.com/ns/yang/Cisco-IOS-XE-device-hardware-oper" // NOSONAR
+	nsCDPOper       = "http://cisco.com/ns/yang/Cisco-IOS-XE-cdp-oper"             // NOSONAR
+	nsBGPOper       = "http://cisco.com/ns/yang/Cisco-IOS-XE-bgp-oper"             // NOSONAR
+	nsOSPFOper      = "http://cisco.com/ns/yang/Cisco-IOS-XE-ospf-oper"            // NOSONAR
+	nsInterfaceOper = "http://cisco.com/ns/yang/Cisco-IOS-XE-interfaces-oper"      // NOSONAR
+	nsLLDPOper      = "http://cisco.com/ns/yang/Cisco-IOS-XE-lldp-oper"            // NOSONAR
+	nsVLANOper      = "http://cisco.com/ns/yang/Cisco-IOS-XE-vlan-oper"            // NOSONAR
 )
 
 var (
