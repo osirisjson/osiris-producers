@@ -41,6 +41,82 @@ OSIRIS JSON core schema itself, see the [OSIRIS JSON Repository](https://github.
 
 ## [Unreleased]
 
+---
+
+## [0.10.0] - 2026-11-12
+
+Cisco IOS-XE OSIRIS JSON producer rebuilt for behavior version 0.2.0:
+secure transport, a second transport (RESTCONF), source-native
+identity, core taxonomy, topology, and an audit-purpose security
+posture. One shared SDK fix. No other OSIRIS JSON producer's behavior
+version changed.
+
+| Producer | Behavior version |
+|----------|------------------|
+| Amazon Web Services OSIRIS JSON producer | 0.1.1 (no change) |
+| Microsoft Azure OSIRIS JSON producer | 0.6.0 (no change) |
+| Cisco APIC OSIRIS JSON producer | 0.2.0 (no change) |
+| Cisco IOS-XE OSIRIS JSON producer | [0.2.0](osiris/network/cisco/iosxe/CHANGELOG.md#020---2026-11-12) |
+| Cisco NX-OS OSIRIS JSON producer | 0.2.0 (no change) |
+| Cisco vManage OSIRIS JSON producer | 0.1.0 (no change) |
+| HPE Aruba Networking Central OSIRIS JSON producer | 0.1.0 (no change) |
+
+### Highlights (Cisco IOS-XE 0.2.0)
+- **Secure, bounded transport:** SSH host keys are verified against
+  `known_hosts` by default (`--insecure` opts out with a warning); no
+  password flag; every network phase has a deadline; NETCONF 1.0 and
+  1.1 framing with size caps, namespace-aware `rpc-reply` parsing and
+  message-id pairing.
+- **RESTCONF and NETCONF:** `--transport auto|netconf|restconf` for
+  devices that keep NETCONF disabled. Both transports emit the same
+  document from the same YANG models.
+- **Truthful, partial-tolerant collection:** typed YANG decoding that
+  never mistakes a malformed reply for an empty one, and a per-operation
+  `coverage` extension plus a `metadata.scope.description` summary of
+  what a document is missing and why.
+- **Identity and taxonomy:** resource IDs are
+  `cisco.iosxe::<chassis-serial>[/...]` and `provider.name` is
+  `cisco.iosxe`, so IDs no longer depend on the target address; the
+  device is `network.router` or `network.switch` from its own software
+  banner; ports are `network.router.port` / `network.switch.port` /
+  `network.interface.lag`; VRFs are `network.vrf` groups.
+- **Topology:** device-to-port containment, LLDP and CDP merged into one
+  link per adjacency (`physical.fiber` only with optical transceiver
+  evidence), VLANs, connected subnets, configured static routes, and at
+  audit purpose BGP and OSPF sessions.
+- **Audit-purpose security posture:** AAA, local accounts, management
+  services, DNS, SNMP, syslog, NTP, PKI/IKEv2/IPsec, control-plane
+  policy, access lists (`osiris.cisco.acl`) and installed certificates
+  (`network.security.certificate`).
+  Credential material is never decoded or emitted.
+- **Inventory and data minimization:** structured hardware inventory and
+  per-port transceivers; CPU, memory and interface counters are no
+  longer emitted; `--include-raw-body` requires `--purpose audit` and
+  attaches only redacted, size-capped operational replies.
+
+**Breaking** to every already-emitted IOS-XE resource and group ID, to
+`provider.name`/`metadata.scope.providers`, to interface, VRF group and
+neighbor stub types, to several device and interface properties, and to
+the audit-purpose BGP/OSPF representation.
+
+See the [Cisco IOS-XE 0.2.0 entry](osiris/network/cisco/iosxe/CHANGELOG.md#020---2026-11-11)
+for the full list of changes.
+
+### Added
+- `testdata/`: Cisco IOS-XE scenarios `c8000v`, `C9300_24T` and
+  `isr4451`, synthetic NETCONF replies with their expected golden
+  documents at both purposes.
+
+### Fixed
+- `pkg/sdk`: the `basic_auth` secret-scanning rule now reports a match
+  only when the token after `Basic ` is base64 that decodes to printable
+  `user-id:password` text (RFC 7617). Prose that merely contains the
+  word `Basic`, such as the certificate DN `Cisco Basic Assurance Root
+  CA 2099` reported by IOS-XE devices, no longer aborts a fail-closed
+  run. Real HTTP Basic credentials, padded or not, are still detected.
+
+---
+
 ## [0.9.0] - 2026-11-08
 
 Microsoft Azure OSIRIS JSON producer topology enrichment, collection
@@ -655,7 +731,8 @@ Initial SDK release. No producers shipped under this tag.
 - Removed empty `common/` stubs (replaced by `pkg/sdk/`).
 - Updated `.gitignore` for Go.
 
-[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/osirisjson/osiris-producers/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/osirisjson/osiris-producers/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/osirisjson/osiris-producers/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/osirisjson/osiris-producers/compare/v0.6.4...v0.7.0
