@@ -22,6 +22,21 @@ the release-level index of which producers shipped under each tag.
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-11-14
+
+Raw-body redaction fix for the stronger document secret scan. Only
+`--purpose audit --include-raw-body` output changes; every other OSIRIS
+JSON documents remain identical as of `0.2.0` apart
+from `metadata.generator.version` bump.
+
+### Changed
+- `--purpose audit --include-raw-body`: a command whose name is itself
+  a sensitive key (`show aaa authentication`) keeps its
+  `raw_commands` entry with the whole body replaced by `[REDACTED]`,
+  the same rule already applied to sensitive keys inside every body.
+  The document secret scan now inspects raw command bodies, and the
+  previous output failed a `fail-closed` run.
+
 ## [0.2.0] - 2026-08-29
 
 ### Added
@@ -632,5 +647,6 @@ changes are listed below with their module-tag context.
   `cisco-nxos-<timestamp>-<hostname>.json`.
 
 [Unreleased]: ../../../../CHANGELOG.md
+[0.2.1]: ../../../../CHANGELOG.md#0110---2026-11-14
 [0.2.0]: ../../../../CHANGELOG.md#070---2026-08-29
 [0.1.0]: ../../../../CHANGELOG.md#010---2026-03-21
