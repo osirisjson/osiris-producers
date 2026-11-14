@@ -1,0 +1,40 @@
+# OSIRIS JSON golden document validation.
+#
+# Validates every expected golden document under testdata/ against the
+# canonical OSIRIS JSON CLI at the strict profile, with the CLI release
+# pinned so a new CLI version cannot change the gate unreviewed.
+# The Go tests (sonarqube.yml) prove the OSIRIS JSON producers emit
+# these exact bytes; this job proves those bytes are valid OSIRIS JSON.
+name: Golden documents
+
+on:
+  push:
+    branches: [main, dev, 'feat/**', 'feature/**']
+
+  pull_request:
+    branches: [main, dev]
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  contents: read
+
+concurrency:
+  group: golden-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate golden documents (strict)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Validate golden documents
+        env:
+          OSIRIS_CLI_VERSION: "0.1.0"
+        run: ./scripts/validate_golden.sh --profile strict testdata
