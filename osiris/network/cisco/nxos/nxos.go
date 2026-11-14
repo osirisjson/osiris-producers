@@ -28,7 +28,7 @@ import (
 
 const (
 	generatorName    = "osirisjson-producer-cisco-nxos"
-	generatorVersion = "0.2.0"
+	generatorVersion = "0.2.1"
 	generatorURL     = "https://docs.osirisjson.org/osiris-producers/network/cisco"
 )
 
@@ -650,11 +650,20 @@ func recordCoverage(coverage *[]map[string]any, commands []string, results []Sho
 // what --purpose audit's own transforms are careful to exclude. A body
 // that cannot be parsed for redaction is dropped, not attached
 // un-redacted.
+//
+// The command text is the map key, so the same key rule redactValue
+// applies inside a body applies to the command itself: a command whose
+// name sdk.IsSensitiveKey flags (e.g. "show aaa authentication") keeps
+// its key, with the whole body replaced by redactRawBodyMarker.
 func rawCommandBodies(batches ...[]ShowResult) map[string]json.RawMessage {
 	raw := make(map[string]json.RawMessage)
 	for _, batch := range batches {
 		for _, r := range batch {
 			if r.Err != nil || len(r.Body) == 0 {
+				continue
+			}
+			if sdk.IsSensitiveKey(r.Command) {
+				raw[r.Command] = redactedRawBody
 				continue
 			}
 			if redacted, ok := redactRawBody(r.Body); ok {
@@ -669,6 +678,10 @@ func rawCommandBodies(batches ...[]ShowResult) map[string]json.RawMessage {
 // a secret. A fixed marker (rather than deletion) keeps the raw body's
 // shape intact for the fields that are safe.
 const redactRawBodyMarker = "[REDACTED]"
+
+// redactedRawBody is redactRawBodyMarker as a raw JSON string value,
+// attached in place of a whole command body.
+var redactedRawBody = json.RawMessage(`"` + redactRawBodyMarker + `"`)
 
 // redactRawBody parses body as arbitrary JSON, replaces every value
 // under a key sdk.IsSensitiveKey flags and every string value

@@ -1291,6 +1291,13 @@ func TestCollect_IncludeRawBody(t *testing.T) {
 				if !strings.Contains(string(tb), redactRawBodyMarker) {
 					t.Errorf("raw show tacacs-server body should carry the redaction marker: %s", tb)
 				}
+				// A command whose name is itself a sensitive key keeps
+				// its key, with the whole body replaced by the marker.
+				if ab, ok := raw["show aaa authentication"]; !ok {
+					t.Error(`raw_commands missing "show aaa authentication"`)
+				} else if string(ab) != `"`+redactRawBodyMarker+`"` {
+					t.Errorf("raw show aaa authentication body = %s, want the redaction marker", ab)
+				}
 				// Document-wide canary.
 				full, mErr := sdk.MarshalDocument(doc)
 				if mErr != nil {
