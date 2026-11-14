@@ -24,6 +24,127 @@ the release-level index of which producers shipped under each tag.
 
 ---
 
+## [0.3.0] - 2026-11-14
+
+Configured policy intent (application profiles, contracts, subjects,
+filters and EPG provide/consume relations) as traversable resources and
+relation edges, plus a corrective baseline: complete secret scanning,
+diagnostics without response content, validated APIC responses, refused
+redirects, honest partial-result accounting and synthetic golden
+documents at both purposes.
+
+All resource and group IDs emitted by `0.2.0` remain unchanged. The
+document gains resources, connections and application groups, and EPG
+groups move under their application group (see Changed).
+
+### Added
+- Configured policy intent, collected in both purposes from `fvAp`,
+  `vzBrCP`, `vzSubj`, `vzFilter`, `fvRsProv`, `fvRsCons` and
+  `vzRsSubjFiltAtt` (all optional classes):
+  - `osiris.cisco.policy.contract`, `osiris.cisco.policy.subject` and
+    `osiris.cisco.policy.filter` resources, identified by their native
+    DN and members of their tenant group. A subject is contained by its
+    contract (`contains`).
+  - `osiris.cisco.policy.epg` and `osiris.cisco.policy.vrf` resource
+    anchors, one per EPG and VRF group, so EPGs and VRFs can be
+    connection endpoints. The group's `osiris.cisco.resource` names its
+    anchor; group membership is unchanged.
+  - Forward relation edges, each qualified by the relation object's DN:
+    `osiris.cisco.contract.provides` and
+    `osiris.cisco.contract.consumes` (EPG -> contract),
+    `osiris.cisco.subject.filter` (subject -> filter),
+    `osiris.cisco.epg.bd` (`fvRsBd`), `osiris.cisco.bd.vrf` (`fvRsCtx`)
+    and `osiris.cisco.l3out.vrf` (`l3extRsEctx`). A target is resolved
+    by `tDn`; without one, by name in the relation's own tenant, then in
+    tenant `common` (`properties.resolved_by`). A relation or subject
+    under an object the model does not cover (external or management
+    EPG, out-of-band contract) emits nothing and is counted as
+    `out_of_scope`; one whose modeled source or target is not in the
+    document emits no edge and is counted as `unresolved`.
+  - `logical.application` groups for application profiles.
+  - At `--purpose audit`, filter entries from `vzEntry` as an ordered,
+    allowlisted `properties.entries` list (protocol, ports, flags),
+    bounded to 256 entries per filter (`entries_truncated`).
+  - `policy_scope` on the controller resources: the model is configured
+    intent and lists the mechanisms it does not model (vzAny, taboo
+    contracts, endpoint security groups, external EPGs, management
+    EPGs, out-of-band contracts, contract inheritance, service graphs,
+    direction-specific subject terms).
+    No edge links two EPGs directly; nothing states that traffic is
+    permitted or flows.
+- `--include-raw-body` (`--purpose audit` only), a fallback for fields
+  this producer does not model: the full attribute set of every
+  collected APIC object is attached under
+  `extensions["osiris.cisco"].raw`, keyed by class and ordered by DN,
+  on the resource or group that owns it (longest DN prefix; a resource
+  wins over a group with the same DN). Objects without an owner go to
+  `raw_unowned` on the controller resources. Every attribute with a
+  sensitive name (the shared patterns plus APIC credential attributes
+  such as `pwd` and `key`) and every secret-shaped value is replaced by
+  `[REDACTED]`. One object is capped at 64 KiB and all objects at
+  32 MiB; withheld objects are counted by class and reason in
+  `raw_omitted`. Removing these keys yields exactly the document
+  without the flag.
+- `metadata.generator.url` is now emitted as
+  (`https://docs.osirisjson.org/osiris-producers/network/cisco`).
+- The per-operation `coverage` record carries `rejected`,
+  `duplicates`, `unresolved` and `out_of_scope` counts when non-zero
+  and `received` with `reported_total` when the APIC `totalCount`
+  disagrees with the objects received. `count` keeps its meaning
+  (objects carried into the transform).
+
+### Changed
+- EPG groups are children of their `logical.application` group, which
+  is a child of the tenant group. An EPG whose application profile was
+  not collected stays a direct child of its tenant, as before.
+- `--safe-failure-mode log-and-redact` is rejected with an error. This
+  producer performs no value replacement, so a document built in that
+  mode could carry a detected secret while its metadata claimed
+  redaction. `fail-closed` (default) and `off` are unchanged.
+- `--include-raw-body` requires `--purpose audit` and now works (see
+  Added). In `0.2.0` it was accepted but had no effect.
+- A run whose `fabricNode` or `topSystem` answer is empty, or whose
+  `fabricNode` answer has no node of a supported role, fails without
+  writing a document. An APIC always reports its own controller, so
+  empty inventory means the account cannot see the fabric (role or
+  security-domain limits); previously an empty-fabric document was
+  written.
+- Class responses are validated. A body without an `imdata` array
+  (`{}`, `"imdata": null`) or with an APIC error object among its
+  elements now fails the query instead of reading as an empty result.
+  An element that is not an object of the requested class with an
+  `attributes` map and a non-empty `dn` is rejected: in an essential
+  or structural class this aborts the run (category
+  `rejected-objects`); in an optional class it is dropped and counted.
+  A valid empty `imdata: []` is still a success with zero objects.
+- Redirects are never followed, for login or collection. A redirect
+  response fails the request as `HTTP 3xx`.
+- `--help` documents the discovery plan, which classes are required
+  and which optional, partial-document behavior and the rejected
+  flags.
+- Diagnostics no longer include APIC response content. Returned errors
+  and log records carry the operation, class, HTTP status and numeric
+  APIC error code only; HTTP error bodies, APIC error-envelope text and
+  JSON decoder detail are discarded.
+
+### Fixed
+- A CDP neighbour whose system name matches a fabric node of an
+  unsupported role no longer produces a connection to a resource the
+  document does not contain (which aborted the document build). The
+  observation is skipped and counted.
+
+### Security
+- Redirects are refused, so a 307/308 can no longer replay the
+  `aaaLogin` request body to another origin or scheme.
+- Secret-shaped values in fault descriptions, tenant, VRF, EPG and
+  bridge-domain descriptions, resource names and other emitted strings
+  are now detected by the document secret scan, so a `fail-closed` run
+  aborts instead of emitting them. Previously fault records held in
+  typed extension slices and top-level `name`/`description` members
+  were not scanned.
+
+---
+
 ## [0.2.0] - 2026-09-01
 
 Resource-model, identity, transport, partial-coverage and topology-graph
@@ -213,5 +334,6 @@ changes are listed below with their module-tag context.
   empty falls back to `topSystem.state` field.
 
 [Unreleased]: ../../../../CHANGELOG.md
+[0.3.0]: ../../../../CHANGELOG.md#0110---2026-11-14
 [0.2.0]: ../../../../CHANGELOG.md#080---2026-09-01
 [0.1.0]: ../../../../CHANGELOG.md#010---2026-03-21
