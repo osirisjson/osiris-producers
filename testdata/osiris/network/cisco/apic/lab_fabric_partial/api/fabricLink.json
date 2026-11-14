@@ -1,0 +1,61 @@
+{
+  "totalCount": "4",
+  "imdata": [
+    {
+      "fabricLink": {
+        "attributes": {
+          "dn": "topology/pod-1/lnkcnt-101/lnk-111-1-49-to-101-1-1",
+          "n1": "111",
+          "s1": "1",
+          "p1": "49",
+          "n2": "101",
+          "s2": "1",
+          "p2": "1",
+          "linkState": "ok"
+        }
+      }
+    },
+    {
+      "fabricLink": {
+        "attributes": {
+          "dn": "topology/pod-1/lnkcnt-102/lnk-111-1-50-to-102-1-1",
+          "n1": "111",
+          "s1": "1",
+          "p1": "50",
+          "n2": "102",
+          "s2": "1",
+          "p2": "1",
+          "linkState": "ok"
+        }
+      }
+    },
+    {
+      "fabricLink": {
+        "attributes": {
+          "dn": "topology/pod-1/lnkcnt-101/lnk-112-1-49-to-101-1-2",
+          "n1": "112",
+          "s1": "1",
+          "p1": "49",
+          "n2": "101",
+          "s2": "1",
+          "p2": "2",
+          "linkState": "ok"
+        }
+      }
+    },
+    {
+      "fabricLink": {
+        "attributes": {
+          "dn": "topology/pod-1/lnkcnt-102/lnk-112-1-50-to-102-1-2",
+          "n1": "112",
+          "s1": "1",
+          "p1": "50",
+          "n2": "102",
+          "s2": "1",
+          "p2": "2",
+          "linkState": "ok"
+        }
+      }
+    }
+  ]
+}

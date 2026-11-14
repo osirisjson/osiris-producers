@@ -1,0 +1,35 @@
+{
+  "totalCount": "3",
+  "imdata": [
+    {
+      "fvSubnet": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/BD-bd_Web/subnet-[203.0.113.1/26]",
+          "ip": "203.0.113.1/26",
+          "scope": "public",
+          "preferred": "yes"
+        }
+      }
+    },
+    {
+      "fvSubnet": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/BD-bd_Web/subnet-[2001:db8:10::1/64]",
+          "ip": "2001:db8:10::1/64",
+          "scope": "private",
+          "preferred": "no"
+        }
+      }
+    },
+    {
+      "fvSubnet": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/BD-bd_Db/subnet-[203.0.113.65/26]",
+          "ip": "203.0.113.65/26",
+          "scope": "private",
+          "preferred": "yes"
+        }
+      }
+    }
+  ]
+}

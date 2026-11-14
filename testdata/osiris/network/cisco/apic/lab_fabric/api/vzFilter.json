@@ -1,0 +1,59 @@
+{
+  "totalCount": "6",
+  "imdata": [
+    {
+      "vzFilter": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/flt-http",
+          "name": "http",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "vzFilter": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/flt-https",
+          "name": "https",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "vzFilter": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/flt-sql",
+          "name": "sql",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "vzFilter": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/flt-ssh",
+          "name": "ssh",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "vzFilter": {
+        "attributes": {
+          "dn": "uni/tn-common/flt-dns",
+          "name": "dns",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "vzFilter": {
+        "attributes": {
+          "dn": "uni/tn-common/flt-default",
+          "name": "default",
+          "descr": "Permit all"
+        }
+      }
+    }
+  ]
+}

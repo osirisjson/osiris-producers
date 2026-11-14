@@ -1,0 +1,215 @@
+{
+  "totalCount": "14",
+  "imdata": [
+    {
+      "l1PhysIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111/sys/phys-[eth1/1]",
+          "id": "eth1/1",
+          "adminSt": "up",
+          "mtu": "9216",
+          "mode": "trunk",
+          "layer": "Layer2",
+          "portT": "leaf",
+          "usage": "epg",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "l1PhysIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111/sys/phys-[eth1/10]",
+          "id": "eth1/10",
+          "adminSt": "up",
+          "mtu": "9216",
+          "mode": "trunk",
+          "layer": "Layer2",
+          "portT": "leaf",
+          "usage": "epg",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "l1PhysIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111/sys/phys-[eth1/11]",
+          "id": "eth1/11",
+          "adminSt": "up",
+          "mtu": "9216",
+          "mode": "trunk",
+          "layer": "Layer2",
+          "portT": "leaf",
+          "usage": "epg",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "l1PhysIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111/sys/phys-[eth1/20]",
+          "id": "eth1/20",
+          "adminSt": "up",
+          "mtu": "9216",
+          "mode": "trunk",
+          "layer": "Layer2",
+          "portT": "leaf",
+          "usage": "epg",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "l1PhysIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111/sys/phys-[eth1/48]",
+          "id": "eth1/48",
+          "adminSt": "up",
+          "mtu": "9216",
+          "mode": "trunk",
+          "layer": "Layer2",
+          "portT": "leaf",
+          "usage": "epg",
+          "descr": "to LAB-EXT-SW1"
+        }
+      }
+    },
+    {
+      "l1PhysIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111/sys/phys-[eth1/49]",
+          "id": "eth1/49",
+          "adminSt": "up",
+          "mtu": "9216",
+          "mode": "trunk",
+          "layer": "Layer2",
+          "portT": "fab",
+          "usage": "fabric",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "l1PhysIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111/sys/phys-[eth1/50]",
+          "id": "eth1/50",
+          "adminSt": "up",
+          "mtu": "9216",
+          "mode": "trunk",
+          "layer": "Layer2",
+          "portT": "fab",
+          "usage": "fabric",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "l1PhysIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-112/sys/phys-[eth1/1]",
+          "id": "eth1/1",
+          "adminSt": "up",
+          "mtu": "9216",
+          "mode": "trunk",
+          "layer": "Layer2",
+          "portT": "leaf",
+          "usage": "epg",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "l1PhysIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-112/sys/phys-[eth1/49]",
+          "id": "eth1/49",
+          "adminSt": "up",
+          "mtu": "9216",
+          "mode": "trunk",
+          "layer": "Layer2",
+          "portT": "fab",
+          "usage": "fabric",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "l1PhysIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-112/sys/phys-[eth1/50]",
+          "id": "eth1/50",
+          "adminSt": "up",
+          "mtu": "9216",
+          "mode": "trunk",
+          "layer": "Layer2",
+          "portT": "fab",
+          "usage": "fabric",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "l1PhysIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-101/sys/phys-[eth1/1]",
+          "id": "eth1/1",
+          "adminSt": "up",
+          "mtu": "9216",
+          "mode": "trunk",
+          "layer": "Layer2",
+          "portT": "fab",
+          "usage": "fabric",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "l1PhysIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-101/sys/phys-[eth1/2]",
+          "id": "eth1/2",
+          "adminSt": "up",
+          "mtu": "9216",
+          "mode": "trunk",
+          "layer": "Layer2",
+          "portT": "fab",
+          "usage": "fabric",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "l1PhysIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-102/sys/phys-[eth1/1]",
+          "id": "eth1/1",
+          "adminSt": "up",
+          "mtu": "9216",
+          "mode": "trunk",
+          "layer": "Layer2",
+          "portT": "fab",
+          "usage": "fabric",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "l1PhysIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-102/sys/phys-[eth1/2]",
+          "id": "eth1/2",
+          "adminSt": "up",
+          "mtu": "9216",
+          "mode": "trunk",
+          "layer": "Layer2",
+          "portT": "fab",
+          "usage": "fabric",
+          "descr": ""
+        }
+      }
+    }
+  ]
+}

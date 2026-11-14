@@ -1,0 +1,31 @@
+{
+  "totalCount": "2",
+  "imdata": [
+    {
+      "fvBD": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/BD-bd_Web",
+          "name": "bd_Web",
+          "descr": "Web bridge domain",
+          "unicastRoute": "yes",
+          "unkMacUcastAct": "proxy",
+          "arpFlood": "no",
+          "mac": "00:00:5E:00:53:F0"
+        }
+      }
+    },
+    {
+      "fvBD": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/BD-bd_Db",
+          "name": "bd_Db",
+          "descr": "",
+          "unicastRoute": "yes",
+          "unkMacUcastAct": "flood",
+          "arpFlood": "yes",
+          "mac": "00:00:5E:00:53:F1"
+        }
+      }
+    }
+  ]
+}

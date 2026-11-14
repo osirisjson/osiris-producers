@@ -1,0 +1,27 @@
+{
+  "totalCount": "2",
+  "imdata": [
+    {
+      "cdpAdjEp": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111/sys/cdp/inst/if-[eth1/48]/adj-1",
+          "sysName": "LAB-EXT-SW1",
+          "devId": "LAB-EXT-SW1(TST0000900)",
+          "portId": "Ethernet1/52",
+          "platId": "N9K-C93180YC-FX",
+          "ver": "Cisco Nexus Operating System (NX-OS) Software"
+        }
+      }
+    },
+    {
+      "cdpAdjEp": {
+        "attributes": {
+          "dn": "topology/pod-1/node-112/sys/cdp/inst/if-[eth1/50]/adj-1",
+          "sysName": "LAB-RLEAF1",
+          "devId": "LAB-RLEAF1(TST0000301)",
+          "portId": "Ethernet1/1"
+        }
+      }
+    }
+  ]
+}

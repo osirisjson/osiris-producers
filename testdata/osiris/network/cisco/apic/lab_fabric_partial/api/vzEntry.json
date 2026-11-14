@@ -1,0 +1,165 @@
+{
+  "totalCount": "8",
+  "imdata": [
+    {
+      "vzEntry": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/flt-http/e-tcp80",
+          "name": "tcp80",
+          "etherT": "ip",
+          "prot": "tcp",
+          "sFromPort": "unspecified",
+          "sToPort": "unspecified",
+          "dFromPort": "http",
+          "dToPort": "http",
+          "stateful": "yes",
+          "applyToFrag": "no",
+          "tcpRules": "",
+          "icmpv4T": "unspecified",
+          "icmpv6T": "unspecified",
+          "arpOpc": "unspecified"
+        }
+      }
+    },
+    {
+      "vzEntry": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/flt-https/e-tcp443",
+          "name": "tcp443",
+          "etherT": "ip",
+          "prot": "tcp",
+          "sFromPort": "unspecified",
+          "sToPort": "unspecified",
+          "dFromPort": "https",
+          "dToPort": "https",
+          "stateful": "yes",
+          "applyToFrag": "no",
+          "tcpRules": "",
+          "icmpv4T": "unspecified",
+          "icmpv6T": "unspecified",
+          "arpOpc": "unspecified"
+        }
+      }
+    },
+    {
+      "vzEntry": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/flt-sql/e-tcp1433",
+          "name": "tcp1433",
+          "etherT": "ip",
+          "prot": "tcp",
+          "sFromPort": "unspecified",
+          "sToPort": "unspecified",
+          "dFromPort": "1433",
+          "dToPort": "1433",
+          "stateful": "no",
+          "applyToFrag": "no",
+          "tcpRules": "",
+          "icmpv4T": "unspecified",
+          "icmpv6T": "unspecified",
+          "arpOpc": "unspecified"
+        }
+      }
+    },
+    {
+      "vzEntry": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/flt-ssh/e-tcp22",
+          "name": "tcp22",
+          "etherT": "ip",
+          "prot": "tcp",
+          "sFromPort": "unspecified",
+          "sToPort": "unspecified",
+          "dFromPort": "22",
+          "dToPort": "22",
+          "stateful": "no",
+          "applyToFrag": "no",
+          "tcpRules": "est",
+          "icmpv4T": "unspecified",
+          "icmpv6T": "unspecified",
+          "arpOpc": "unspecified"
+        }
+      }
+    },
+    {
+      "vzEntry": {
+        "attributes": {
+          "dn": "uni/tn-common/flt-dns/e-udp53",
+          "name": "udp53",
+          "etherT": "ip",
+          "prot": "udp",
+          "sFromPort": "unspecified",
+          "sToPort": "unspecified",
+          "dFromPort": "dns",
+          "dToPort": "dns",
+          "stateful": "no",
+          "applyToFrag": "no",
+          "tcpRules": "",
+          "icmpv4T": "unspecified",
+          "icmpv6T": "unspecified",
+          "arpOpc": "unspecified"
+        }
+      }
+    },
+    {
+      "vzEntry": {
+        "attributes": {
+          "dn": "uni/tn-common/flt-dns/e-tcp53",
+          "name": "tcp53",
+          "etherT": "ip",
+          "prot": "tcp",
+          "sFromPort": "unspecified",
+          "sToPort": "unspecified",
+          "dFromPort": "dns",
+          "dToPort": "dns",
+          "stateful": "no",
+          "applyToFrag": "no",
+          "tcpRules": "",
+          "icmpv4T": "unspecified",
+          "icmpv6T": "unspecified",
+          "arpOpc": "unspecified"
+        }
+      }
+    },
+    {
+      "vzEntry": {
+        "attributes": {
+          "dn": "uni/tn-common/flt-default/e-any",
+          "name": "any",
+          "etherT": "unspecified",
+          "prot": "unspecified",
+          "sFromPort": "unspecified",
+          "sToPort": "unspecified",
+          "dFromPort": "unspecified",
+          "dToPort": "unspecified",
+          "stateful": "no",
+          "applyToFrag": "no",
+          "tcpRules": "",
+          "icmpv4T": "unspecified",
+          "icmpv6T": "unspecified",
+          "arpOpc": "unspecified"
+        }
+      }
+    },
+    {
+      "vzEntry": {
+        "attributes": {
+          "dn": "uni/tn-common/flt-default/e-pim",
+          "name": "pim",
+          "etherT": "ip",
+          "prot": "pim",
+          "sFromPort": "unspecified",
+          "sToPort": "unspecified",
+          "dFromPort": "unspecified",
+          "dToPort": "unspecified",
+          "stateful": "no",
+          "applyToFrag": "no",
+          "tcpRules": "",
+          "icmpv4T": "unspecified",
+          "icmpv6T": "unspecified",
+          "arpOpc": "unspecified"
+        }
+      }
+    }
+  ]
+}

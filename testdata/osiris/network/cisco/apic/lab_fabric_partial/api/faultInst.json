@@ -1,0 +1,69 @@
+{
+  "totalCount": "4",
+  "imdata": [
+    {
+      "faultInst": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111/sys/phys-[eth1/20]/fault-F0532",
+          "code": "F0532",
+          "severity": "minor",
+          "cause": "interface-physical-down",
+          "descr": "Port is down, reason:notconnect",
+          "created": "2026-11-01T08:00:00.000+00:00",
+          "lastTransition": "2026-11-01T08:02:00.000+00:00",
+          "lc": "raised",
+          "domain": "access",
+          "subject": "port-down"
+        }
+      }
+    },
+    {
+      "faultInst": {
+        "attributes": {
+          "dn": "topology/pod-1/node-112/sys/ch/psuslot-2/psu/fault-F1318",
+          "code": "F1318",
+          "severity": "major",
+          "cause": "equipment-psu-missing",
+          "descr": "Power supply missing",
+          "created": "2026-11-02T08:00:00.000+00:00",
+          "lastTransition": "2026-11-02T08:00:00.000+00:00",
+          "lc": "raised",
+          "domain": "infra",
+          "subject": "psu"
+        }
+      }
+    },
+    {
+      "faultInst": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/fault-F0956",
+          "code": "F0956",
+          "severity": "warning",
+          "cause": "config-error",
+          "descr": "Configuration is invalid",
+          "created": "2026-11-03T08:00:00.000+00:00",
+          "lastTransition": "2026-11-03T08:10:00.000+00:00",
+          "lc": "soaking",
+          "domain": "tenant",
+          "subject": "config"
+        }
+      }
+    },
+    {
+      "faultInst": {
+        "attributes": {
+          "dn": "topology/pod-1/node-101/sys/ch/fault-F9999",
+          "code": "F9999",
+          "severity": "cleared",
+          "cause": "resolved",
+          "descr": "Old cleared fault",
+          "created": "2026-10-01T08:00:00.000+00:00",
+          "lastTransition": "2026-10-02T08:00:00.000+00:00",
+          "lc": "cleared",
+          "domain": "infra",
+          "subject": "test"
+        }
+      }
+    }
+  ]
+}

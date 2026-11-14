@@ -1,0 +1,3882 @@
+{
+  "$schema": "https://osirisjson.org/schema/v1.0/osiris.schema.json",
+  "version": "1.0.0",
+  "metadata": {
+    "timestamp": "2026-11-13T12:00:00Z",
+    "generator": {
+      "name": "osirisjson-producer-cisco-apic",
+      "version": "0.3.0",
+      "url": "https://docs.osirisjson.org/osiris-producers/network/cisco"
+    },
+    "scope": {
+      "name": "LAB-APIC1",
+      "description": "Cisco ACI fabric MXP: 30/30 discovery operations returned data.",
+      "purpose": "audit",
+      "providers": [
+        "cisco.apic"
+      ]
+    }
+  },
+  "topology": {
+    "resources": [
+      {
+        "id": "cisco.apic::external/00:00:5e:00:53:b1",
+        "type": "network.switch",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "external/00:00:5e:00:53:b1",
+          "type": "neighbour"
+        },
+        "status": "unknown",
+        "properties": {
+          "chassis_id": "00:00:5E:00:53:B1",
+          "discovered_by": "lldp"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "external": true
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::external/lab-ext-sw1",
+        "type": "network.switch",
+        "name": "LAB-EXT-SW1.example.com",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "external/lab-ext-sw1",
+          "type": "neighbour"
+        },
+        "status": "unknown",
+        "properties": {
+          "chassis_id": "00:00:5E:00:53:A1",
+          "discovered_by": "cdp,lldp",
+          "management_ip": "198.51.100.200",
+          "manufacturer": "Cisco",
+          "model": "N9K-C93180YC-FX",
+          "serial": "TST0000900"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "external": true
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/node-1",
+        "type": "compute.server",
+        "name": "LAB-APIC1",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-1",
+          "type": "fabricNode",
+          "version": "6.0(5h)"
+        },
+        "status": "active",
+        "properties": {
+          "address": "192.0.2.1",
+          "fabric_domain": "MXP",
+          "inb_mgmt_addr": "203.0.113.1",
+          "manufacturer": "Cisco",
+          "model": "APIC-SERVER-M3",
+          "node_id": "1",
+          "oob_mgmt_addr": "198.51.100.1",
+          "pod": "1",
+          "role": "controller",
+          "serial": "TST0000001",
+          "system_state": "in-service",
+          "uptime": "10:02:03:04.000"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "control_plane_mtu": 9000,
+            "coverage": [
+              {
+                "count": 6,
+                "operation": "fabricNode",
+                "status": "succeeded"
+              },
+              {
+                "count": 6,
+                "operation": "topSystem",
+                "status": "succeeded"
+              },
+              {
+                "count": 4,
+                "operation": "firmwareRunning",
+                "status": "succeeded"
+              },
+              {
+                "count": 4,
+                "operation": "fvTenant",
+                "status": "succeeded"
+              },
+              {
+                "count": 2,
+                "operation": "fvCtx",
+                "status": "succeeded"
+              },
+              {
+                "count": 2,
+                "operation": "fvBD",
+                "status": "succeeded"
+              },
+              {
+                "count": 3,
+                "operation": "fvSubnet",
+                "status": "succeeded"
+              },
+              {
+                "count": 3,
+                "operation": "fvAEPg",
+                "status": "succeeded"
+              },
+              {
+                "count": 1,
+                "operation": "l3extOut",
+                "status": "succeeded"
+              },
+              {
+                "count": 2,
+                "operation": "fvRsCtx",
+                "status": "succeeded"
+              },
+              {
+                "count": 2,
+                "operation": "fvRsBd",
+                "status": "succeeded"
+              },
+              {
+                "count": 1,
+                "operation": "l3extRsEctx",
+                "status": "succeeded"
+              },
+              {
+                "count": 4,
+                "operation": "faultInst",
+                "status": "succeeded"
+              },
+              {
+                "count": 2,
+                "operation": "fvAp",
+                "status": "succeeded"
+              },
+              {
+                "count": 5,
+                "operation": "vzBrCP",
+                "status": "succeeded"
+              },
+              {
+                "count": 7,
+                "operation": "vzSubj",
+                "out_of_scope": 1,
+                "status": "succeeded"
+              },
+              {
+                "count": 6,
+                "operation": "vzFilter",
+                "status": "succeeded"
+              },
+              {
+                "count": 4,
+                "operation": "fvRsProv",
+                "status": "succeeded"
+              },
+              {
+                "count": 6,
+                "operation": "fvRsCons",
+                "out_of_scope": 1,
+                "status": "succeeded"
+              },
+              {
+                "count": 7,
+                "operation": "vzRsSubjFiltAtt",
+                "out_of_scope": 1,
+                "status": "succeeded"
+              },
+              {
+                "count": 14,
+                "operation": "l1PhysIf",
+                "status": "succeeded"
+              },
+              {
+                "count": 14,
+                "operation": "ethpmPhysIf",
+                "status": "succeeded"
+              },
+              {
+                "count": 4,
+                "operation": "fabricLink",
+                "status": "succeeded"
+              },
+              {
+                "count": 3,
+                "operation": "lldpAdjEp",
+                "status": "succeeded"
+              },
+              {
+                "count": 1,
+                "operation": "cdpAdjEp",
+                "status": "succeeded"
+              },
+              {
+                "count": 1,
+                "operation": "pcAggrIf",
+                "status": "succeeded"
+              },
+              {
+                "count": 4,
+                "operation": "fvRsPathAtt",
+                "status": "succeeded"
+              },
+              {
+                "count": 8,
+                "operation": "vzEntry",
+                "status": "succeeded"
+              },
+              {
+                "count": 3,
+                "operation": "fvCEp",
+                "status": "succeeded"
+              },
+              {
+                "count": 3,
+                "operation": "fvIp",
+                "status": "succeeded"
+              }
+            ],
+            "fabric_id": 1,
+            "fabric_mac": "00:00:5E:00:53:01",
+            "last_reboot_time": "2026-10-01T08:00:00.000+00:00",
+            "policy_scope": {
+              "not_modeled": [
+                "contract-inheritance",
+                "direction-specific-subject-terms",
+                "endpoint-security-groups",
+                "external-epgs",
+                "management-epgs",
+                "out-of-band-contracts",
+                "service-graphs",
+                "taboo-contracts",
+                "vzany"
+              ],
+              "semantics": "configured-intent"
+            },
+            "raw": {
+              "fabricNode": [
+                {
+                  "address": "192.0.2.1",
+                  "dn": "topology/pod-1/node-1",
+                  "fabricSt": "unknown",
+                  "id": "1",
+                  "model": "APIC-SERVER-M3",
+                  "name": "LAB-APIC1",
+                  "role": "controller",
+                  "serial": "TST0000001",
+                  "version": "6.0(5h)"
+                }
+              ],
+              "topSystem": [
+                {
+                  "controlPlaneMTU": "9000",
+                  "dn": "topology/pod-1/node-1/sys",
+                  "fabricDomain": "MXP",
+                  "fabricId": "1",
+                  "fabricMAC": "00:00:5E:00:53:01",
+                  "inbMgmtAddr": "203.0.113.1",
+                  "lastRebootTime": "2026-10-01T08:00:00.000+00:00",
+                  "name": "LAB-APIC1",
+                  "oobMgmtAddr": "198.51.100.1",
+                  "role": "controller",
+                  "serial": "TST0000001",
+                  "state": "in-service",
+                  "systemUpTime": "10:02:03:04.000",
+                  "virtualMode": "no"
+                }
+              ]
+            },
+            "raw_unowned": {
+              "fabricLink": [
+                {
+                  "dn": "topology/pod-1/lnkcnt-101/lnk-111-1-49-to-101-1-1",
+                  "linkState": "ok",
+                  "n1": "111",
+                  "n2": "101",
+                  "p1": "49",
+                  "p2": "1",
+                  "s1": "1",
+                  "s2": "1"
+                },
+                {
+                  "dn": "topology/pod-1/lnkcnt-101/lnk-112-1-49-to-101-1-2",
+                  "linkState": "ok",
+                  "n1": "112",
+                  "n2": "101",
+                  "p1": "49",
+                  "p2": "2",
+                  "s1": "1",
+                  "s2": "1"
+                },
+                {
+                  "dn": "topology/pod-1/lnkcnt-102/lnk-111-1-50-to-102-1-1",
+                  "linkState": "ok",
+                  "n1": "111",
+                  "n2": "102",
+                  "p1": "50",
+                  "p2": "1",
+                  "s1": "1",
+                  "s2": "1"
+                },
+                {
+                  "dn": "topology/pod-1/lnkcnt-102/lnk-112-1-50-to-102-1-2",
+                  "linkState": "ok",
+                  "n1": "112",
+                  "n2": "102",
+                  "p1": "50",
+                  "p2": "2",
+                  "s1": "1",
+                  "s2": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/node-101",
+        "type": "network.switch",
+        "name": "LAB-SPINE1",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-101",
+          "type": "fabricNode",
+          "version": "6.0(5h)"
+        },
+        "status": "active",
+        "properties": {
+          "address": "192.0.2.101",
+          "fabric_domain": "MXP",
+          "firmware_version": "n9000-16.0(5h)",
+          "manufacturer": "Cisco",
+          "model": "N9K-C9332D-GX2B",
+          "node_id": "101",
+          "oob_mgmt_addr": "198.51.100.101",
+          "pod": "1",
+          "role": "spine",
+          "serial": "TST0000101",
+          "system_state": "in-service",
+          "uptime": "10:02:03:04.000"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "control_plane_mtu": 9000,
+            "fabric_id": 1,
+            "last_reboot_time": "2026-10-01T08:00:00.000+00:00",
+            "raw": {
+              "fabricNode": [
+                {
+                  "address": "192.0.2.101",
+                  "dn": "topology/pod-1/node-101",
+                  "fabricSt": "active",
+                  "id": "101",
+                  "model": "N9K-C9332D-GX2B",
+                  "name": "LAB-SPINE1",
+                  "role": "spine",
+                  "serial": "TST0000101",
+                  "version": "n9000-16.0(5h)"
+                }
+              ],
+              "faultInst": [
+                {
+                  "cause": "resolved",
+                  "code": "F9999",
+                  "created": "2026-10-01T08:00:00.000+00:00",
+                  "descr": "Old cleared fault",
+                  "dn": "topology/pod-1/node-101/sys/ch/fault-F9999",
+                  "domain": "infra",
+                  "lastTransition": "2026-10-02T08:00:00.000+00:00",
+                  "lc": "cleared",
+                  "severity": "cleared",
+                  "subject": "test"
+                }
+              ],
+              "firmwareRunning": [
+                {
+                  "dn": "topology/pod-1/node-101/sys/fwstatuscont/running",
+                  "peVer": "6.0(5h)",
+                  "version": "n9000-16.0(5h)"
+                }
+              ],
+              "topSystem": [
+                {
+                  "controlPlaneMTU": "9000",
+                  "dn": "topology/pod-1/node-101/sys",
+                  "fabricDomain": "MXP",
+                  "fabricId": "1",
+                  "lastRebootTime": "2026-10-01T08:00:00.000+00:00",
+                  "name": "LAB-SPINE1",
+                  "oobMgmtAddr": "198.51.100.101",
+                  "role": "spine",
+                  "serial": "TST0000101",
+                  "state": "in-service",
+                  "systemUpTime": "10:02:03:04.000"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/node-101/sys/phys-[eth1/1]",
+        "type": "network.switch.port",
+        "name": "eth1/1",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-101/sys/phys-[eth1/1]",
+          "type": "l1PhysIf"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "duplex": "full",
+          "interface_name": "eth1/1",
+          "layer": "Layer2",
+          "mtu": "9216",
+          "node_id": "101",
+          "oper_status": "up",
+          "port_mode": "trunk",
+          "speed": "100G",
+          "usage": "fabric"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "port_type": "fab",
+            "raw": {
+              "ethpmPhysIf": [
+                {
+                  "bundleIndex": "unspecified",
+                  "dn": "topology/pod-1/node-101/sys/phys-[eth1/1]/phys",
+                  "operDuplex": "full",
+                  "operSpeed": "100G",
+                  "operSt": "up",
+                  "operStQual": "none"
+                }
+              ],
+              "l1PhysIf": [
+                {
+                  "adminSt": "up",
+                  "descr": "",
+                  "dn": "topology/pod-1/node-101/sys/phys-[eth1/1]",
+                  "id": "eth1/1",
+                  "layer": "Layer2",
+                  "mode": "trunk",
+                  "mtu": "9216",
+                  "portT": "fab",
+                  "usage": "fabric"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/node-101/sys/phys-[eth1/2]",
+        "type": "network.switch.port",
+        "name": "eth1/2",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-101/sys/phys-[eth1/2]",
+          "type": "l1PhysIf"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "duplex": "full",
+          "interface_name": "eth1/2",
+          "layer": "Layer2",
+          "mtu": "9216",
+          "node_id": "101",
+          "oper_status": "up",
+          "port_mode": "trunk",
+          "speed": "100G",
+          "usage": "fabric"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "port_type": "fab",
+            "raw": {
+              "ethpmPhysIf": [
+                {
+                  "bundleIndex": "unspecified",
+                  "dn": "topology/pod-1/node-101/sys/phys-[eth1/2]/phys",
+                  "operDuplex": "full",
+                  "operSpeed": "100G",
+                  "operSt": "up",
+                  "operStQual": "none"
+                }
+              ],
+              "l1PhysIf": [
+                {
+                  "adminSt": "up",
+                  "descr": "",
+                  "dn": "topology/pod-1/node-101/sys/phys-[eth1/2]",
+                  "id": "eth1/2",
+                  "layer": "Layer2",
+                  "mode": "trunk",
+                  "mtu": "9216",
+                  "portT": "fab",
+                  "usage": "fabric"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/node-102",
+        "type": "network.switch",
+        "name": "LAB-SPINE2",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-102",
+          "type": "fabricNode",
+          "version": "6.0(5h)"
+        },
+        "status": "active",
+        "properties": {
+          "address": "192.0.2.102",
+          "fabric_domain": "MXP",
+          "firmware_version": "n9000-16.0(5h)",
+          "manufacturer": "Cisco",
+          "model": "N9K-C9332D-GX2B",
+          "node_id": "102",
+          "oob_mgmt_addr": "198.51.100.102",
+          "pod": "1",
+          "role": "spine",
+          "serial": "TST0000102",
+          "system_state": "in-service",
+          "uptime": "10:02:03:04.000"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "control_plane_mtu": 9000,
+            "fabric_id": 1,
+            "last_reboot_time": "2026-10-01T08:00:00.000+00:00",
+            "raw": {
+              "fabricNode": [
+                {
+                  "address": "192.0.2.102",
+                  "dn": "topology/pod-1/node-102",
+                  "fabricSt": "active",
+                  "id": "102",
+                  "model": "N9K-C9332D-GX2B",
+                  "name": "LAB-SPINE2",
+                  "role": "spine",
+                  "serial": "TST0000102",
+                  "version": "n9000-16.0(5h)"
+                }
+              ],
+              "firmwareRunning": [
+                {
+                  "dn": "topology/pod-1/node-102/sys/fwstatuscont/running",
+                  "peVer": "6.0(5h)",
+                  "version": "n9000-16.0(5h)"
+                }
+              ],
+              "topSystem": [
+                {
+                  "controlPlaneMTU": "9000",
+                  "dn": "topology/pod-1/node-102/sys",
+                  "fabricDomain": "MXP",
+                  "fabricId": "1",
+                  "lastRebootTime": "2026-10-01T08:00:00.000+00:00",
+                  "name": "LAB-SPINE2",
+                  "oobMgmtAddr": "198.51.100.102",
+                  "role": "spine",
+                  "serial": "TST0000102",
+                  "state": "in-service",
+                  "systemUpTime": "10:02:03:04.000"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/node-102/sys/phys-[eth1/1]",
+        "type": "network.switch.port",
+        "name": "eth1/1",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-102/sys/phys-[eth1/1]",
+          "type": "l1PhysIf"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "duplex": "full",
+          "interface_name": "eth1/1",
+          "layer": "Layer2",
+          "mtu": "9216",
+          "node_id": "102",
+          "oper_status": "up",
+          "port_mode": "trunk",
+          "speed": "100G",
+          "usage": "fabric"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "port_type": "fab",
+            "raw": {
+              "ethpmPhysIf": [
+                {
+                  "bundleIndex": "unspecified",
+                  "dn": "topology/pod-1/node-102/sys/phys-[eth1/1]/phys",
+                  "operDuplex": "full",
+                  "operSpeed": "100G",
+                  "operSt": "up",
+                  "operStQual": "none"
+                }
+              ],
+              "l1PhysIf": [
+                {
+                  "adminSt": "up",
+                  "descr": "",
+                  "dn": "topology/pod-1/node-102/sys/phys-[eth1/1]",
+                  "id": "eth1/1",
+                  "layer": "Layer2",
+                  "mode": "trunk",
+                  "mtu": "9216",
+                  "portT": "fab",
+                  "usage": "fabric"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/node-102/sys/phys-[eth1/2]",
+        "type": "network.switch.port",
+        "name": "eth1/2",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-102/sys/phys-[eth1/2]",
+          "type": "l1PhysIf"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "duplex": "full",
+          "interface_name": "eth1/2",
+          "layer": "Layer2",
+          "mtu": "9216",
+          "node_id": "102",
+          "oper_status": "up",
+          "port_mode": "trunk",
+          "speed": "100G",
+          "usage": "fabric"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "port_type": "fab",
+            "raw": {
+              "ethpmPhysIf": [
+                {
+                  "bundleIndex": "unspecified",
+                  "dn": "topology/pod-1/node-102/sys/phys-[eth1/2]/phys",
+                  "operDuplex": "full",
+                  "operSpeed": "100G",
+                  "operSt": "up",
+                  "operStQual": "none"
+                }
+              ],
+              "l1PhysIf": [
+                {
+                  "adminSt": "up",
+                  "descr": "",
+                  "dn": "topology/pod-1/node-102/sys/phys-[eth1/2]",
+                  "id": "eth1/2",
+                  "layer": "Layer2",
+                  "mode": "trunk",
+                  "mtu": "9216",
+                  "portT": "fab",
+                  "usage": "fabric"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/node-111",
+        "type": "network.switch",
+        "name": "LAB-LEAF1",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-111",
+          "type": "fabricNode",
+          "version": "6.0(5h)"
+        },
+        "status": "active",
+        "properties": {
+          "address": "192.0.2.111",
+          "fabric_domain": "MXP",
+          "firmware_version": "n9000-16.0(5h)",
+          "manufacturer": "Cisco",
+          "model": "N9K-C93180YC-FX3",
+          "node_id": "111",
+          "oob_mgmt_addr": "198.51.100.111",
+          "pod": "1",
+          "role": "leaf",
+          "serial": "TST0000111",
+          "system_state": "in-service",
+          "uptime": "10:02:03:04.000"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "control_plane_mtu": 9000,
+            "fabric_id": 1,
+            "faults": [
+              {
+                "code": "F0532",
+                "severity": "minor",
+                "cause": "interface-physical-down",
+                "description": "Port is down, reason:notconnect",
+                "created": "2026-11-01T08:00:00.000+00:00",
+                "last_transition": "2026-11-01T08:02:00.000+00:00",
+                "lifecycle": "raised",
+                "domain": "access",
+                "subject": "port-down"
+              }
+            ],
+            "last_reboot_time": "2026-10-01T08:00:00.000+00:00",
+            "raw": {
+              "cdpAdjEp": [
+                {
+                  "devId": "LAB-EXT-SW1(TST0000900)",
+                  "dn": "topology/pod-1/node-111/sys/cdp/inst/if-[eth1/48]/adj-1",
+                  "platId": "N9K-C93180YC-FX",
+                  "portId": "Ethernet1/52",
+                  "sysName": "LAB-EXT-SW1",
+                  "ver": "Cisco Nexus Operating System (NX-OS) Software"
+                }
+              ],
+              "fabricNode": [
+                {
+                  "address": "192.0.2.111",
+                  "dn": "topology/pod-1/node-111",
+                  "fabricSt": "active",
+                  "id": "111",
+                  "model": "N9K-C93180YC-FX3",
+                  "name": "LAB-LEAF1",
+                  "role": "leaf",
+                  "serial": "TST0000111",
+                  "version": "n9000-16.0(5h)"
+                }
+              ],
+              "firmwareRunning": [
+                {
+                  "dn": "topology/pod-1/node-111/sys/fwstatuscont/running",
+                  "peVer": "6.0(5h)",
+                  "version": "n9000-16.0(5h)"
+                }
+              ],
+              "lldpAdjEp": [
+                {
+                  "chassisIdT": "mac",
+                  "chassisIdV": "00:00:5E:00:53:A1",
+                  "dn": "topology/pod-1/node-111/sys/lldp/inst/if-[eth1/48]/adj-1",
+                  "mgmtIp": "198.51.100.200",
+                  "portIdT": "if-name",
+                  "portIdV": "Ethernet1/52",
+                  "sysDesc": "Cisco Nexus Operating System",
+                  "sysName": "LAB-EXT-SW1.example.com"
+                },
+                {
+                  "chassisIdT": "mac",
+                  "chassisIdV": "00:00:5E:00:53:65",
+                  "dn": "topology/pod-1/node-111/sys/lldp/inst/if-[eth1/49]/adj-1",
+                  "mgmtIp": "198.51.100.101",
+                  "portIdT": "if-name",
+                  "portIdV": "Eth1/1",
+                  "sysDesc": "topology/pod-1/node-101",
+                  "sysName": "LAB-SPINE1"
+                }
+              ],
+              "topSystem": [
+                {
+                  "controlPlaneMTU": "9000",
+                  "dn": "topology/pod-1/node-111/sys",
+                  "fabricDomain": "MXP",
+                  "fabricId": "1",
+                  "lastRebootTime": "2026-10-01T08:00:00.000+00:00",
+                  "name": "LAB-LEAF1",
+                  "oobMgmtAddr": "198.51.100.111",
+                  "role": "leaf",
+                  "serial": "TST0000111",
+                  "state": "in-service",
+                  "systemUpTime": "10:02:03:04.000"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/node-111/sys/aggr-[po1]",
+        "type": "network.switch.port",
+        "name": "po1",
+        "description": "Database server bond",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-111/sys/aggr-[po1]",
+          "type": "pcAggrIf"
+        },
+        "status": "active",
+        "properties": {
+          "active_ports": "2",
+          "admin_status": "up",
+          "aggregate": true,
+          "channel_mode": "active",
+          "interface_name": "po1",
+          "min_links": "1",
+          "mtu": "9216",
+          "node_id": "111",
+          "port_mode": "trunk"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "pcAggrIf": [
+                {
+                  "activePorts": "2",
+                  "adminSt": "up",
+                  "descr": "Database server bond",
+                  "dn": "topology/pod-1/node-111/sys/aggr-[po1]",
+                  "id": "po1",
+                  "layer": "Layer2",
+                  "minLinks": "1",
+                  "mode": "trunk",
+                  "mtu": "9216",
+                  "name": "LAB-PC-DB",
+                  "operSt": "up",
+                  "pcMode": "active"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/10]",
+        "type": "network.switch.port",
+        "name": "eth1/10",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-111/sys/phys-[eth1/10]",
+          "type": "l1PhysIf"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "duplex": "full",
+          "interface_name": "eth1/10",
+          "layer": "Layer2",
+          "mtu": "9216",
+          "node_id": "111",
+          "oper_status": "up",
+          "port_mode": "trunk",
+          "speed": "25G",
+          "usage": "epg"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "port_type": "leaf",
+            "raw": {
+              "ethpmPhysIf": [
+                {
+                  "bundleIndex": "po1",
+                  "dn": "topology/pod-1/node-111/sys/phys-[eth1/10]/phys",
+                  "operDuplex": "full",
+                  "operSpeed": "25G",
+                  "operSt": "up",
+                  "operStQual": "none"
+                }
+              ],
+              "l1PhysIf": [
+                {
+                  "adminSt": "up",
+                  "descr": "",
+                  "dn": "topology/pod-1/node-111/sys/phys-[eth1/10]",
+                  "id": "eth1/10",
+                  "layer": "Layer2",
+                  "mode": "trunk",
+                  "mtu": "9216",
+                  "portT": "leaf",
+                  "usage": "epg"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/11]",
+        "type": "network.switch.port",
+        "name": "eth1/11",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-111/sys/phys-[eth1/11]",
+          "type": "l1PhysIf"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "duplex": "full",
+          "interface_name": "eth1/11",
+          "layer": "Layer2",
+          "mtu": "9216",
+          "node_id": "111",
+          "oper_status": "up",
+          "port_mode": "trunk",
+          "speed": "25G",
+          "usage": "epg"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "port_type": "leaf",
+            "raw": {
+              "ethpmPhysIf": [
+                {
+                  "bundleIndex": "po1",
+                  "dn": "topology/pod-1/node-111/sys/phys-[eth1/11]/phys",
+                  "operDuplex": "full",
+                  "operSpeed": "25G",
+                  "operSt": "up",
+                  "operStQual": "none"
+                }
+              ],
+              "l1PhysIf": [
+                {
+                  "adminSt": "up",
+                  "descr": "",
+                  "dn": "topology/pod-1/node-111/sys/phys-[eth1/11]",
+                  "id": "eth1/11",
+                  "layer": "Layer2",
+                  "mode": "trunk",
+                  "mtu": "9216",
+                  "portT": "leaf",
+                  "usage": "epg"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/1]",
+        "type": "network.switch.port",
+        "name": "eth1/1",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-111/sys/phys-[eth1/1]",
+          "type": "l1PhysIf"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "duplex": "full",
+          "interface_name": "eth1/1",
+          "layer": "Layer2",
+          "mtu": "9216",
+          "node_id": "111",
+          "oper_status": "up",
+          "port_mode": "trunk",
+          "speed": "25G",
+          "usage": "epg"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "port_type": "leaf",
+            "raw": {
+              "ethpmPhysIf": [
+                {
+                  "bundleIndex": "unspecified",
+                  "dn": "topology/pod-1/node-111/sys/phys-[eth1/1]/phys",
+                  "operDuplex": "full",
+                  "operSpeed": "25G",
+                  "operSt": "up",
+                  "operStQual": "none"
+                }
+              ],
+              "l1PhysIf": [
+                {
+                  "adminSt": "up",
+                  "descr": "",
+                  "dn": "topology/pod-1/node-111/sys/phys-[eth1/1]",
+                  "id": "eth1/1",
+                  "layer": "Layer2",
+                  "mode": "trunk",
+                  "mtu": "9216",
+                  "portT": "leaf",
+                  "usage": "epg"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/20]",
+        "type": "network.switch.port",
+        "name": "eth1/20",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-111/sys/phys-[eth1/20]",
+          "type": "l1PhysIf"
+        },
+        "status": "inactive",
+        "properties": {
+          "admin_status": "up",
+          "duplex": "auto",
+          "interface_name": "eth1/20",
+          "layer": "Layer2",
+          "mtu": "9216",
+          "node_id": "111",
+          "oper_status": "down",
+          "port_mode": "trunk",
+          "speed": "inherit",
+          "usage": "epg"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "oper_status_qualifier": "link-not-connected",
+            "port_type": "leaf",
+            "raw": {
+              "ethpmPhysIf": [
+                {
+                  "bundleIndex": "unspecified",
+                  "dn": "topology/pod-1/node-111/sys/phys-[eth1/20]/phys",
+                  "operDuplex": "auto",
+                  "operSpeed": "inherit",
+                  "operSt": "down",
+                  "operStQual": "link-not-connected"
+                }
+              ],
+              "faultInst": [
+                {
+                  "cause": "interface-physical-down",
+                  "code": "F0532",
+                  "created": "2026-11-01T08:00:00.000+00:00",
+                  "descr": "Port is down, reason:notconnect",
+                  "dn": "topology/pod-1/node-111/sys/phys-[eth1/20]/fault-F0532",
+                  "domain": "access",
+                  "lastTransition": "2026-11-01T08:02:00.000+00:00",
+                  "lc": "raised",
+                  "severity": "minor",
+                  "subject": "port-down"
+                }
+              ],
+              "l1PhysIf": [
+                {
+                  "adminSt": "up",
+                  "descr": "",
+                  "dn": "topology/pod-1/node-111/sys/phys-[eth1/20]",
+                  "id": "eth1/20",
+                  "layer": "Layer2",
+                  "mode": "trunk",
+                  "mtu": "9216",
+                  "portT": "leaf",
+                  "usage": "epg"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/48]",
+        "type": "network.switch.port",
+        "name": "eth1/48",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-111/sys/phys-[eth1/48]",
+          "type": "l1PhysIf"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "duplex": "full",
+          "interface_name": "eth1/48",
+          "layer": "Layer2",
+          "mtu": "9216",
+          "node_id": "111",
+          "oper_status": "up",
+          "port_mode": "trunk",
+          "speed": "25G",
+          "usage": "epg"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "port_type": "leaf",
+            "raw": {
+              "ethpmPhysIf": [
+                {
+                  "bundleIndex": "unspecified",
+                  "dn": "topology/pod-1/node-111/sys/phys-[eth1/48]/phys",
+                  "operDuplex": "full",
+                  "operSpeed": "25G",
+                  "operSt": "up",
+                  "operStQual": "none"
+                }
+              ],
+              "l1PhysIf": [
+                {
+                  "adminSt": "up",
+                  "descr": "to LAB-EXT-SW1",
+                  "dn": "topology/pod-1/node-111/sys/phys-[eth1/48]",
+                  "id": "eth1/48",
+                  "layer": "Layer2",
+                  "mode": "trunk",
+                  "mtu": "9216",
+                  "portT": "leaf",
+                  "usage": "epg"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/49]",
+        "type": "network.switch.port",
+        "name": "eth1/49",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-111/sys/phys-[eth1/49]",
+          "type": "l1PhysIf"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "duplex": "full",
+          "interface_name": "eth1/49",
+          "layer": "Layer2",
+          "mtu": "9216",
+          "node_id": "111",
+          "oper_status": "up",
+          "port_mode": "trunk",
+          "speed": "100G",
+          "usage": "fabric"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "port_type": "fab",
+            "raw": {
+              "ethpmPhysIf": [
+                {
+                  "bundleIndex": "unspecified",
+                  "dn": "topology/pod-1/node-111/sys/phys-[eth1/49]/phys",
+                  "operDuplex": "full",
+                  "operSpeed": "100G",
+                  "operSt": "up",
+                  "operStQual": "none"
+                }
+              ],
+              "l1PhysIf": [
+                {
+                  "adminSt": "up",
+                  "descr": "",
+                  "dn": "topology/pod-1/node-111/sys/phys-[eth1/49]",
+                  "id": "eth1/49",
+                  "layer": "Layer2",
+                  "mode": "trunk",
+                  "mtu": "9216",
+                  "portT": "fab",
+                  "usage": "fabric"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/50]",
+        "type": "network.switch.port",
+        "name": "eth1/50",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-111/sys/phys-[eth1/50]",
+          "type": "l1PhysIf"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "duplex": "full",
+          "interface_name": "eth1/50",
+          "layer": "Layer2",
+          "mtu": "9216",
+          "node_id": "111",
+          "oper_status": "up",
+          "port_mode": "trunk",
+          "speed": "100G",
+          "usage": "fabric"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "port_type": "fab",
+            "raw": {
+              "ethpmPhysIf": [
+                {
+                  "bundleIndex": "unspecified",
+                  "dn": "topology/pod-1/node-111/sys/phys-[eth1/50]/phys",
+                  "operDuplex": "full",
+                  "operSpeed": "100G",
+                  "operSt": "up",
+                  "operStQual": "none"
+                }
+              ],
+              "l1PhysIf": [
+                {
+                  "adminSt": "up",
+                  "descr": "",
+                  "dn": "topology/pod-1/node-111/sys/phys-[eth1/50]",
+                  "id": "eth1/50",
+                  "layer": "Layer2",
+                  "mode": "trunk",
+                  "mtu": "9216",
+                  "portT": "fab",
+                  "usage": "fabric"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/node-112",
+        "type": "network.switch",
+        "name": "LAB-LEAF2",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-112",
+          "type": "fabricNode",
+          "version": "6.0(5h)"
+        },
+        "status": "inactive",
+        "properties": {
+          "address": "192.0.2.112",
+          "fabric_domain": "MXP",
+          "firmware_version": "n9000-16.0(5h)",
+          "manufacturer": "Cisco",
+          "model": "N9K-C93180YC-FX3",
+          "node_id": "112",
+          "oob_mgmt_addr": "198.51.100.112",
+          "pod": "1",
+          "role": "leaf",
+          "serial": "TST0000112",
+          "system_state": "in-service",
+          "uptime": "10:02:03:04.000"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "control_plane_mtu": 9000,
+            "fabric_id": 1,
+            "faults": [
+              {
+                "code": "F1318",
+                "severity": "major",
+                "cause": "equipment-psu-missing",
+                "description": "Power supply missing",
+                "created": "2026-11-02T08:00:00.000+00:00",
+                "last_transition": "2026-11-02T08:00:00.000+00:00",
+                "lifecycle": "raised",
+                "domain": "infra",
+                "subject": "psu"
+              }
+            ],
+            "last_reboot_time": "2026-10-01T08:00:00.000+00:00",
+            "raw": {
+              "fabricNode": [
+                {
+                  "address": "192.0.2.112",
+                  "dn": "topology/pod-1/node-112",
+                  "fabricSt": "inactive",
+                  "id": "112",
+                  "model": "N9K-C93180YC-FX3",
+                  "name": "LAB-LEAF2",
+                  "role": "leaf",
+                  "serial": "TST0000112",
+                  "version": "n9000-16.0(5h)"
+                }
+              ],
+              "faultInst": [
+                {
+                  "cause": "equipment-psu-missing",
+                  "code": "F1318",
+                  "created": "2026-11-02T08:00:00.000+00:00",
+                  "descr": "Power supply missing",
+                  "dn": "topology/pod-1/node-112/sys/ch/psuslot-2/psu/fault-F1318",
+                  "domain": "infra",
+                  "lastTransition": "2026-11-02T08:00:00.000+00:00",
+                  "lc": "raised",
+                  "severity": "major",
+                  "subject": "psu"
+                }
+              ],
+              "firmwareRunning": [
+                {
+                  "dn": "topology/pod-1/node-112/sys/fwstatuscont/running",
+                  "peVer": "6.0(5h)",
+                  "version": "n9000-16.0(5h)"
+                }
+              ],
+              "lldpAdjEp": [
+                {
+                  "chassisIdT": "mac",
+                  "chassisIdV": "00:00:5E:00:53:B1",
+                  "dn": "topology/pod-1/node-112/sys/lldp/inst/if-[eth1/1]/adj-1",
+                  "mgmtIp": "unspecified",
+                  "portIdT": "mac",
+                  "portIdV": "00:00:5E:00:53:B2",
+                  "sysDesc": "LAB host",
+                  "sysName": ""
+                }
+              ],
+              "topSystem": [
+                {
+                  "controlPlaneMTU": "9000",
+                  "dn": "topology/pod-1/node-112/sys",
+                  "fabricDomain": "MXP",
+                  "fabricId": "1",
+                  "lastRebootTime": "2026-10-01T08:00:00.000+00:00",
+                  "name": "LAB-LEAF2",
+                  "oobMgmtAddr": "198.51.100.112",
+                  "role": "leaf",
+                  "serial": "TST0000112",
+                  "state": "in-service",
+                  "systemUpTime": "10:02:03:04.000"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/node-112/sys/phys-[eth1/1]",
+        "type": "network.switch.port",
+        "name": "eth1/1",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-112/sys/phys-[eth1/1]",
+          "type": "l1PhysIf"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "duplex": "full",
+          "interface_name": "eth1/1",
+          "layer": "Layer2",
+          "mtu": "9216",
+          "node_id": "112",
+          "oper_status": "up",
+          "port_mode": "trunk",
+          "speed": "25G",
+          "usage": "epg"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "port_type": "leaf",
+            "raw": {
+              "ethpmPhysIf": [
+                {
+                  "bundleIndex": "unspecified",
+                  "dn": "topology/pod-1/node-112/sys/phys-[eth1/1]/phys",
+                  "operDuplex": "full",
+                  "operSpeed": "25G",
+                  "operSt": "up",
+                  "operStQual": "none"
+                }
+              ],
+              "l1PhysIf": [
+                {
+                  "adminSt": "up",
+                  "descr": "",
+                  "dn": "topology/pod-1/node-112/sys/phys-[eth1/1]",
+                  "id": "eth1/1",
+                  "layer": "Layer2",
+                  "mode": "trunk",
+                  "mtu": "9216",
+                  "portT": "leaf",
+                  "usage": "epg"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/node-112/sys/phys-[eth1/49]",
+        "type": "network.switch.port",
+        "name": "eth1/49",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-112/sys/phys-[eth1/49]",
+          "type": "l1PhysIf"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "duplex": "full",
+          "interface_name": "eth1/49",
+          "layer": "Layer2",
+          "mtu": "9216",
+          "node_id": "112",
+          "oper_status": "up",
+          "port_mode": "trunk",
+          "speed": "100G",
+          "usage": "fabric"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "port_type": "fab",
+            "raw": {
+              "ethpmPhysIf": [
+                {
+                  "bundleIndex": "unspecified",
+                  "dn": "topology/pod-1/node-112/sys/phys-[eth1/49]/phys",
+                  "operDuplex": "full",
+                  "operSpeed": "100G",
+                  "operSt": "up",
+                  "operStQual": "none"
+                }
+              ],
+              "l1PhysIf": [
+                {
+                  "adminSt": "up",
+                  "descr": "",
+                  "dn": "topology/pod-1/node-112/sys/phys-[eth1/49]",
+                  "id": "eth1/49",
+                  "layer": "Layer2",
+                  "mode": "trunk",
+                  "mtu": "9216",
+                  "portT": "fab",
+                  "usage": "fabric"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/node-112/sys/phys-[eth1/50]",
+        "type": "network.switch.port",
+        "name": "eth1/50",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-112/sys/phys-[eth1/50]",
+          "type": "l1PhysIf"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "duplex": "full",
+          "interface_name": "eth1/50",
+          "layer": "Layer2",
+          "mtu": "9216",
+          "node_id": "112",
+          "oper_status": "up",
+          "port_mode": "trunk",
+          "speed": "100G",
+          "usage": "fabric"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "port_type": "fab",
+            "raw": {
+              "ethpmPhysIf": [
+                {
+                  "bundleIndex": "unspecified",
+                  "dn": "topology/pod-1/node-112/sys/phys-[eth1/50]/phys",
+                  "operDuplex": "full",
+                  "operSpeed": "100G",
+                  "operSt": "up",
+                  "operStQual": "none"
+                }
+              ],
+              "l1PhysIf": [
+                {
+                  "adminSt": "up",
+                  "descr": "",
+                  "dn": "topology/pod-1/node-112/sys/phys-[eth1/50]",
+                  "id": "eth1/50",
+                  "layer": "Layer2",
+                  "mode": "trunk",
+                  "mtu": "9216",
+                  "portT": "fab",
+                  "usage": "fabric"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/node-2",
+        "type": "compute.vm",
+        "name": "LAB-APIC2",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-2",
+          "type": "fabricNode",
+          "version": "6.0(5h)"
+        },
+        "status": "active",
+        "properties": {
+          "address": "192.0.2.2",
+          "fabric_domain": "MXP",
+          "manufacturer": "Cisco",
+          "model": "APIC-VIRTUAL",
+          "node_id": "2",
+          "oob_mgmt_addr": "198.51.100.2",
+          "pod": "1",
+          "role": "controller",
+          "serial": "TST0000002",
+          "system_state": "in-service",
+          "uptime": "10:02:03:04.000"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "control_plane_mtu": 9000,
+            "coverage": [
+              {
+                "count": 6,
+                "operation": "fabricNode",
+                "status": "succeeded"
+              },
+              {
+                "count": 6,
+                "operation": "topSystem",
+                "status": "succeeded"
+              },
+              {
+                "count": 4,
+                "operation": "firmwareRunning",
+                "status": "succeeded"
+              },
+              {
+                "count": 4,
+                "operation": "fvTenant",
+                "status": "succeeded"
+              },
+              {
+                "count": 2,
+                "operation": "fvCtx",
+                "status": "succeeded"
+              },
+              {
+                "count": 2,
+                "operation": "fvBD",
+                "status": "succeeded"
+              },
+              {
+                "count": 3,
+                "operation": "fvSubnet",
+                "status": "succeeded"
+              },
+              {
+                "count": 3,
+                "operation": "fvAEPg",
+                "status": "succeeded"
+              },
+              {
+                "count": 1,
+                "operation": "l3extOut",
+                "status": "succeeded"
+              },
+              {
+                "count": 2,
+                "operation": "fvRsCtx",
+                "status": "succeeded"
+              },
+              {
+                "count": 2,
+                "operation": "fvRsBd",
+                "status": "succeeded"
+              },
+              {
+                "count": 1,
+                "operation": "l3extRsEctx",
+                "status": "succeeded"
+              },
+              {
+                "count": 4,
+                "operation": "faultInst",
+                "status": "succeeded"
+              },
+              {
+                "count": 2,
+                "operation": "fvAp",
+                "status": "succeeded"
+              },
+              {
+                "count": 5,
+                "operation": "vzBrCP",
+                "status": "succeeded"
+              },
+              {
+                "count": 7,
+                "operation": "vzSubj",
+                "out_of_scope": 1,
+                "status": "succeeded"
+              },
+              {
+                "count": 6,
+                "operation": "vzFilter",
+                "status": "succeeded"
+              },
+              {
+                "count": 4,
+                "operation": "fvRsProv",
+                "status": "succeeded"
+              },
+              {
+                "count": 6,
+                "operation": "fvRsCons",
+                "out_of_scope": 1,
+                "status": "succeeded"
+              },
+              {
+                "count": 7,
+                "operation": "vzRsSubjFiltAtt",
+                "out_of_scope": 1,
+                "status": "succeeded"
+              },
+              {
+                "count": 14,
+                "operation": "l1PhysIf",
+                "status": "succeeded"
+              },
+              {
+                "count": 14,
+                "operation": "ethpmPhysIf",
+                "status": "succeeded"
+              },
+              {
+                "count": 4,
+                "operation": "fabricLink",
+                "status": "succeeded"
+              },
+              {
+                "count": 3,
+                "operation": "lldpAdjEp",
+                "status": "succeeded"
+              },
+              {
+                "count": 1,
+                "operation": "cdpAdjEp",
+                "status": "succeeded"
+              },
+              {
+                "count": 1,
+                "operation": "pcAggrIf",
+                "status": "succeeded"
+              },
+              {
+                "count": 4,
+                "operation": "fvRsPathAtt",
+                "status": "succeeded"
+              },
+              {
+                "count": 8,
+                "operation": "vzEntry",
+                "status": "succeeded"
+              },
+              {
+                "count": 3,
+                "operation": "fvCEp",
+                "status": "succeeded"
+              },
+              {
+                "count": 3,
+                "operation": "fvIp",
+                "status": "succeeded"
+              }
+            ],
+            "fabric_id": 1,
+            "fabric_mac": "00:00:5E:00:53:02",
+            "last_reboot_time": "2026-10-01T08:00:00.000+00:00",
+            "policy_scope": {
+              "not_modeled": [
+                "contract-inheritance",
+                "direction-specific-subject-terms",
+                "endpoint-security-groups",
+                "external-epgs",
+                "management-epgs",
+                "out-of-band-contracts",
+                "service-graphs",
+                "taboo-contracts",
+                "vzany"
+              ],
+              "semantics": "configured-intent"
+            },
+            "raw": {
+              "fabricNode": [
+                {
+                  "address": "192.0.2.2",
+                  "dn": "topology/pod-1/node-2",
+                  "fabricSt": "unknown",
+                  "id": "2",
+                  "model": "APIC-VIRTUAL",
+                  "name": "LAB-APIC2",
+                  "role": "controller",
+                  "serial": "TST0000002",
+                  "version": "6.0(5h)"
+                }
+              ],
+              "topSystem": [
+                {
+                  "controlPlaneMTU": "9000",
+                  "dn": "topology/pod-1/node-2/sys",
+                  "fabricDomain": "MXP",
+                  "fabricId": "1",
+                  "fabricMAC": "00:00:5E:00:53:02",
+                  "lastRebootTime": "2026-10-01T08:00:00.000+00:00",
+                  "name": "LAB-APIC2",
+                  "oobMgmtAddr": "198.51.100.2",
+                  "role": "controller",
+                  "serial": "TST0000002",
+                  "state": "in-service",
+                  "systemUpTime": "10:02:03:04.000",
+                  "virtualMode": "yes"
+                }
+              ]
+            },
+            "raw_unowned": {
+              "fabricLink": [
+                {
+                  "dn": "topology/pod-1/lnkcnt-101/lnk-111-1-49-to-101-1-1",
+                  "linkState": "ok",
+                  "n1": "111",
+                  "n2": "101",
+                  "p1": "49",
+                  "p2": "1",
+                  "s1": "1",
+                  "s2": "1"
+                },
+                {
+                  "dn": "topology/pod-1/lnkcnt-101/lnk-112-1-49-to-101-1-2",
+                  "linkState": "ok",
+                  "n1": "112",
+                  "n2": "101",
+                  "p1": "49",
+                  "p2": "2",
+                  "s1": "1",
+                  "s2": "1"
+                },
+                {
+                  "dn": "topology/pod-1/lnkcnt-102/lnk-111-1-50-to-102-1-1",
+                  "linkState": "ok",
+                  "n1": "111",
+                  "n2": "102",
+                  "p1": "50",
+                  "p2": "1",
+                  "s1": "1",
+                  "s2": "1"
+                },
+                {
+                  "dn": "topology/pod-1/lnkcnt-102/lnk-112-1-50-to-102-1-2",
+                  "linkState": "ok",
+                  "n1": "112",
+                  "n2": "102",
+                  "p1": "50",
+                  "p2": "2",
+                  "s1": "1",
+                  "s2": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-common/brc-dns",
+        "type": "osiris.cisco.policy.contract",
+        "name": "dns",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-common/brc-dns",
+          "type": "vzBrCP"
+        },
+        "properties": {
+          "scope": "global"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "vzBrCP": [
+                {
+                  "descr": "",
+                  "dn": "uni/tn-common/brc-dns",
+                  "name": "dns",
+                  "prio": "unspecified",
+                  "scope": "global"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-common/brc-dns/subj-dns",
+        "type": "osiris.cisco.policy.subject",
+        "name": "dns",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-common/brc-dns/subj-dns",
+          "type": "vzSubj"
+        },
+        "properties": {
+          "reverse_filter_ports": "yes"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "vzRsSubjFiltAtt": [
+                {
+                  "action": "permit",
+                  "directives": "",
+                  "dn": "uni/tn-common/brc-dns/subj-dns/rssubjFiltAtt-dns",
+                  "state": "formed",
+                  "tDn": "uni/tn-common/flt-dns",
+                  "tnVzFilterName": "dns"
+                }
+              ],
+              "vzSubj": [
+                {
+                  "descr": "",
+                  "dn": "uni/tn-common/brc-dns/subj-dns",
+                  "name": "dns",
+                  "prio": "unspecified",
+                  "revFltPorts": "yes"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-common/ctx-default",
+        "type": "osiris.cisco.policy.vrf",
+        "name": "default",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-common/ctx-default",
+          "type": "fvCtx"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "fvCtx": [
+                {
+                  "descr": "",
+                  "dn": "uni/tn-common/ctx-default",
+                  "name": "default",
+                  "pcEnfPref": "unenforced"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-common/flt-default",
+        "type": "osiris.cisco.policy.filter",
+        "name": "default",
+        "description": "Permit all",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-common/flt-default",
+          "type": "vzFilter"
+        },
+        "properties": {
+          "entries": [
+            {
+              "apply_to_fragments": "no",
+              "name": "any",
+              "stateful": "no"
+            },
+            {
+              "apply_to_fragments": "no",
+              "ether_type": "ip",
+              "ip_protocol": "pim",
+              "name": "pim",
+              "stateful": "no"
+            }
+          ]
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "vzEntry": [
+                {
+                  "applyToFrag": "no",
+                  "arpOpc": "unspecified",
+                  "dFromPort": "unspecified",
+                  "dToPort": "unspecified",
+                  "dn": "uni/tn-common/flt-default/e-any",
+                  "etherT": "unspecified",
+                  "icmpv4T": "unspecified",
+                  "icmpv6T": "unspecified",
+                  "name": "any",
+                  "prot": "unspecified",
+                  "sFromPort": "unspecified",
+                  "sToPort": "unspecified",
+                  "stateful": "no",
+                  "tcpRules": ""
+                },
+                {
+                  "applyToFrag": "no",
+                  "arpOpc": "unspecified",
+                  "dFromPort": "unspecified",
+                  "dToPort": "unspecified",
+                  "dn": "uni/tn-common/flt-default/e-pim",
+                  "etherT": "ip",
+                  "icmpv4T": "unspecified",
+                  "icmpv6T": "unspecified",
+                  "name": "pim",
+                  "prot": "pim",
+                  "sFromPort": "unspecified",
+                  "sToPort": "unspecified",
+                  "stateful": "no",
+                  "tcpRules": ""
+                }
+              ],
+              "vzFilter": [
+                {
+                  "descr": "Permit all",
+                  "dn": "uni/tn-common/flt-default",
+                  "name": "default"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-common/flt-dns",
+        "type": "osiris.cisco.policy.filter",
+        "name": "dns",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-common/flt-dns",
+          "type": "vzFilter"
+        },
+        "properties": {
+          "entries": [
+            {
+              "apply_to_fragments": "no",
+              "destination_from_port": "dns",
+              "destination_to_port": "dns",
+              "ether_type": "ip",
+              "ip_protocol": "tcp",
+              "name": "tcp53",
+              "stateful": "no"
+            },
+            {
+              "apply_to_fragments": "no",
+              "destination_from_port": "dns",
+              "destination_to_port": "dns",
+              "ether_type": "ip",
+              "ip_protocol": "udp",
+              "name": "udp53",
+              "stateful": "no"
+            }
+          ]
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "vzEntry": [
+                {
+                  "applyToFrag": "no",
+                  "arpOpc": "unspecified",
+                  "dFromPort": "dns",
+                  "dToPort": "dns",
+                  "dn": "uni/tn-common/flt-dns/e-tcp53",
+                  "etherT": "ip",
+                  "icmpv4T": "unspecified",
+                  "icmpv6T": "unspecified",
+                  "name": "tcp53",
+                  "prot": "tcp",
+                  "sFromPort": "unspecified",
+                  "sToPort": "unspecified",
+                  "stateful": "no",
+                  "tcpRules": ""
+                },
+                {
+                  "applyToFrag": "no",
+                  "arpOpc": "unspecified",
+                  "dFromPort": "dns",
+                  "dToPort": "dns",
+                  "dn": "uni/tn-common/flt-dns/e-udp53",
+                  "etherT": "ip",
+                  "icmpv4T": "unspecified",
+                  "icmpv6T": "unspecified",
+                  "name": "udp53",
+                  "prot": "udp",
+                  "sFromPort": "unspecified",
+                  "sToPort": "unspecified",
+                  "stateful": "no",
+                  "tcpRules": ""
+                }
+              ],
+              "vzFilter": [
+                {
+                  "descr": "",
+                  "dn": "uni/tn-common/flt-dns",
+                  "name": "dns"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/BD-bd_Db",
+        "type": "osiris.cisco.domain.bridge",
+        "name": "bd_Db",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/BD-bd_Db"
+        },
+        "status": "active",
+        "properties": {
+          "arp_flood": "yes",
+          "l2_unknown_unicast": "flood",
+          "mac": "00:00:5E:00:53:F1",
+          "unicast_routing": "yes"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "fvBD": [
+                {
+                  "arpFlood": "yes",
+                  "descr": "",
+                  "dn": "uni/tn-tn_Example/BD-bd_Db",
+                  "mac": "00:00:5E:00:53:F1",
+                  "name": "bd_Db",
+                  "unicastRoute": "yes",
+                  "unkMacUcastAct": "flood"
+                }
+              ],
+              "fvRsCtx": [
+                {
+                  "dn": "uni/tn-tn_Example/BD-bd_Db/rsctx",
+                  "state": "formed",
+                  "tDn": "uni/tn-tn_Example/ctx-vrf_Prod"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/BD-bd_Db/subnet-[203.0.113.65/26]",
+        "type": "network.subnet",
+        "name": "203.0.113.64/26",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/BD-bd_Db/subnet-[203.0.113.65/26]"
+        },
+        "status": "active",
+        "properties": {
+          "cidr": "203.0.113.64/26",
+          "gateway_ip": "203.0.113.65"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "aci_scope": "private",
+            "preferred": "yes",
+            "raw": {
+              "fvSubnet": [
+                {
+                  "dn": "uni/tn-tn_Example/BD-bd_Db/subnet-[203.0.113.65/26]",
+                  "ip": "203.0.113.65/26",
+                  "preferred": "yes",
+                  "scope": "private"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/BD-bd_Web",
+        "type": "osiris.cisco.domain.bridge",
+        "name": "bd_Web",
+        "description": "Web bridge domain",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/BD-bd_Web"
+        },
+        "status": "active",
+        "properties": {
+          "arp_flood": "no",
+          "l2_unknown_unicast": "proxy",
+          "mac": "00:00:5E:00:53:F0",
+          "unicast_routing": "yes"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "fvBD": [
+                {
+                  "arpFlood": "no",
+                  "descr": "Web bridge domain",
+                  "dn": "uni/tn-tn_Example/BD-bd_Web",
+                  "mac": "00:00:5E:00:53:F0",
+                  "name": "bd_Web",
+                  "unicastRoute": "yes",
+                  "unkMacUcastAct": "proxy"
+                }
+              ],
+              "fvRsCtx": [
+                {
+                  "dn": "uni/tn-tn_Example/BD-bd_Web/rsctx",
+                  "state": "formed",
+                  "tDn": "uni/tn-tn_Example/ctx-vrf_Prod"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/BD-bd_Web/subnet-[2001:db8:10::1/64]",
+        "type": "network.subnet",
+        "name": "2001:db8:10::/64",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/BD-bd_Web/subnet-[2001:db8:10::1/64]"
+        },
+        "status": "active",
+        "properties": {
+          "cidr": "2001:db8:10::/64",
+          "gateway_ip": "2001:db8:10::1"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "aci_scope": "private",
+            "preferred": "no",
+            "raw": {
+              "fvSubnet": [
+                {
+                  "dn": "uni/tn-tn_Example/BD-bd_Web/subnet-[2001:db8:10::1/64]",
+                  "ip": "2001:db8:10::1/64",
+                  "preferred": "no",
+                  "scope": "private"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/BD-bd_Web/subnet-[203.0.113.1/26]",
+        "type": "network.subnet",
+        "name": "203.0.113.0/26",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/BD-bd_Web/subnet-[203.0.113.1/26]"
+        },
+        "status": "active",
+        "properties": {
+          "cidr": "203.0.113.0/26",
+          "gateway_ip": "203.0.113.1"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "aci_scope": "public",
+            "preferred": "yes",
+            "raw": {
+              "fvSubnet": [
+                {
+                  "dn": "uni/tn-tn_Example/BD-bd_Web/subnet-[203.0.113.1/26]",
+                  "ip": "203.0.113.1/26",
+                  "preferred": "yes",
+                  "scope": "public"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Db",
+        "type": "osiris.cisco.policy.epg",
+        "name": "epg_Db",
+        "description": "Database tier",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/ap-app1/epg-epg_Db",
+          "type": "fvAEPg"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "fvAEPg": [
+                {
+                  "descr": "Database tier",
+                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Db",
+                  "name": "epg_Db"
+                }
+              ],
+              "fvRsBd": [
+                {
+                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Db/rsbd",
+                  "state": "formed",
+                  "tDn": "uni/tn-tn_Example/BD-bd_Db"
+                }
+              ],
+              "fvRsCons": [
+                {
+                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Db/rscons-dns",
+                  "prio": "unspecified",
+                  "state": "formed",
+                  "tDn": "uni/tn-common/brc-dns",
+                  "tnVzBrCPName": "dns"
+                }
+              ],
+              "fvRsPathAtt": [
+                {
+                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Db/rspathAtt-[topology/pod-1/paths-111/pathep-[po1]]",
+                  "encap": "vlan-200",
+                  "mode": "regular",
+                  "state": "formed",
+                  "tDn": "topology/pod-1/paths-111/pathep-[po1]"
+                },
+                {
+                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Db/rspathAtt-[topology/pod-1/protpaths-111-112/pathep-[LAB-VPC-1]]",
+                  "encap": "vlan-200",
+                  "mode": "regular",
+                  "state": "formed",
+                  "tDn": "topology/pod-1/protpaths-111-112/pathep-[LAB-VPC-1]"
+                }
+              ],
+              "fvRsProv": [
+                {
+                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Db/rsprov-db",
+                  "matchT": "AtleastOne",
+                  "prio": "unspecified",
+                  "state": "formed",
+                  "tDn": "uni/tn-tn_Example/brc-db",
+                  "tnVzBrCPName": "db"
+                },
+                {
+                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Db/rsprov-mgmt",
+                  "matchT": "AtleastOne",
+                  "prio": "unspecified",
+                  "state": "formed",
+                  "tDn": "uni/tn-tn_Example/brc-mgmt",
+                  "tnVzBrCPName": "mgmt"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Db/cep-00:00:5E:00:53:21",
+        "type": "network.interface",
+        "name": "00:00:5E:00:53:21",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/ap-app1/epg-epg_Db/cep-00:00:5E:00:53:21"
+        },
+        "status": "active",
+        "properties": {
+          "ip_addresses": [
+            "203.0.113.70"
+          ],
+          "mac_address": "00:00:5e:00:53:21"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "encap": "vlan-200",
+            "fabric_path": "topology/pod-1/paths-111/pathep-[po1]",
+            "raw": {
+              "fvCEp": [
+                {
+                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Db/cep-00:00:5E:00:53:21",
+                  "encap": "vlan-200",
+                  "fabricPathDn": "topology/pod-1/paths-111/pathep-[po1]",
+                  "mac": "00:00:5E:00:53:21"
+                }
+              ],
+              "fvIp": [
+                {
+                  "addr": "203.0.113.70",
+                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Db/cep-00:00:5E:00:53:21/ip-[203.0.113.70]"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Db/cep-00:00:5E:00:53:22",
+        "type": "network.interface",
+        "name": "00:00:5E:00:53:22",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/ap-app1/epg-epg_Db/cep-00:00:5E:00:53:22"
+        },
+        "status": "active",
+        "properties": {
+          "mac_address": "00:00:5e:00:53:22"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "encap": "vlan-200",
+            "fabric_path": "topology/pod-1/protpaths-111-112/pathep-[LAB-VPC-1]",
+            "raw": {
+              "fvCEp": [
+                {
+                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Db/cep-00:00:5E:00:53:22",
+                  "encap": "vlan-200",
+                  "fabricPathDn": "topology/pod-1/protpaths-111-112/pathep-[LAB-VPC-1]",
+                  "mac": "00:00:5E:00:53:22"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Web",
+        "type": "osiris.cisco.policy.epg",
+        "name": "epg_Web",
+        "description": "Web tier",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/ap-app1/epg-epg_Web",
+          "type": "fvAEPg"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "fvAEPg": [
+                {
+                  "descr": "Web tier",
+                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Web",
+                  "name": "epg_Web"
+                }
+              ],
+              "fvRsBd": [
+                {
+                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Web/rsbd",
+                  "state": "formed",
+                  "tDn": "uni/tn-tn_Example/BD-bd_Web"
+                }
+              ],
+              "fvRsCons": [
+                {
+                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Web/rscons-db",
+                  "prio": "unspecified",
+                  "state": "formed",
+                  "tDn": "uni/tn-tn_Example/brc-db",
+                  "tnVzBrCPName": "db"
+                },
+                {
+                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Web/rscons-dns",
+                  "prio": "unspecified",
+                  "state": "formed",
+                  "tnVzBrCPName": "dns"
+                },
+                {
+                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Web/rscons-mgmt",
+                  "prio": "unspecified",
+                  "state": "formed",
+                  "tnVzBrCPName": "mgmt"
+                }
+              ],
+              "fvRsPathAtt": [
+                {
+                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Web/rspathAtt-[topology/pod-1/paths-111/pathep-[eth1/1]]",
+                  "encap": "vlan-100",
+                  "mode": "regular",
+                  "state": "formed",
+                  "tDn": "topology/pod-1/paths-111/pathep-[eth1/1]"
+                },
+                {
+                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Web/rspathAtt-[topology/pod-1/paths-112/pathep-[eth1/1]]",
+                  "encap": "vlan-100",
+                  "mode": "regular",
+                  "state": "formed",
+                  "tDn": "topology/pod-1/paths-112/pathep-[eth1/1]"
+                }
+              ],
+              "fvRsProv": [
+                {
+                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Web/rsprov-web",
+                  "matchT": "AtleastOne",
+                  "prio": "unspecified",
+                  "state": "formed",
+                  "tDn": "uni/tn-tn_Example/brc-web",
+                  "tnVzBrCPName": "web"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Web/cep-00:00:5E:00:53:11",
+        "type": "network.interface",
+        "name": "00:00:5E:00:53:11",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/ap-app1/epg-epg_Web/cep-00:00:5E:00:53:11"
+        },
+        "status": "active",
+        "properties": {
+          "ip_addresses": [
+            "2001:db8:10::10",
+            "203.0.113.10"
+          ],
+          "mac_address": "00:00:5e:00:53:11"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "encap": "vlan-100",
+            "fabric_path": "topology/pod-1/paths-111/pathep-[eth1/1]",
+            "raw": {
+              "fvCEp": [
+                {
+                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Web/cep-00:00:5E:00:53:11",
+                  "encap": "vlan-100",
+                  "fabricPathDn": "topology/pod-1/paths-111/pathep-[eth1/1]",
+                  "mac": "00:00:5E:00:53:11"
+                }
+              ],
+              "fvIp": [
+                {
+                  "addr": "2001:db8:10::10",
+                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Web/cep-00:00:5E:00:53:11/ip-[2001:db8:10::10]"
+                },
+                {
+                  "addr": "203.0.113.10",
+                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Web/cep-00:00:5E:00:53:11/ip-[203.0.113.10]"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/brc-db",
+        "type": "osiris.cisco.policy.contract",
+        "name": "db",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/brc-db",
+          "type": "vzBrCP"
+        },
+        "properties": {
+          "priority": "level1",
+          "scope": "tenant"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "vzBrCP": [
+                {
+                  "descr": "",
+                  "dn": "uni/tn-tn_Example/brc-db",
+                  "name": "db",
+                  "prio": "level1",
+                  "scope": "tenant"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/brc-db/subj-sql",
+        "type": "osiris.cisco.policy.subject",
+        "name": "sql",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/brc-db/subj-sql",
+          "type": "vzSubj"
+        },
+        "properties": {
+          "priority": "level2",
+          "reverse_filter_ports": "yes"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "vzRsSubjFiltAtt": [
+                {
+                  "action": "permit",
+                  "directives": "",
+                  "dn": "uni/tn-tn_Example/brc-db/subj-sql/rssubjFiltAtt-sql",
+                  "state": "formed",
+                  "tDn": "uni/tn-tn_Example/flt-sql",
+                  "tnVzFilterName": "sql"
+                }
+              ],
+              "vzSubj": [
+                {
+                  "descr": "",
+                  "dn": "uni/tn-tn_Example/brc-db/subj-sql",
+                  "name": "sql",
+                  "prio": "level2",
+                  "revFltPorts": "yes"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/brc-mgmt",
+        "type": "osiris.cisco.policy.contract",
+        "name": "mgmt",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/brc-mgmt",
+          "type": "vzBrCP"
+        },
+        "properties": {
+          "scope": "context"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "vzBrCP": [
+                {
+                  "descr": "",
+                  "dn": "uni/tn-tn_Example/brc-mgmt",
+                  "name": "mgmt",
+                  "prio": "unspecified",
+                  "scope": "context"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/brc-mgmt/subj-ssh",
+        "type": "osiris.cisco.policy.subject",
+        "name": "ssh",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/brc-mgmt/subj-ssh",
+          "type": "vzSubj"
+        },
+        "properties": {
+          "reverse_filter_ports": "no"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "vzRsSubjFiltAtt": [
+                {
+                  "action": "permit",
+                  "directives": "",
+                  "dn": "uni/tn-tn_Example/brc-mgmt/subj-ssh/rssubjFiltAtt-ssh",
+                  "state": "formed",
+                  "tnVzFilterName": "ssh"
+                }
+              ],
+              "vzSubj": [
+                {
+                  "descr": "",
+                  "dn": "uni/tn-tn_Example/brc-mgmt/subj-ssh",
+                  "name": "ssh",
+                  "prio": "unspecified",
+                  "revFltPorts": "no"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/brc-web",
+        "type": "osiris.cisco.policy.contract",
+        "name": "web",
+        "description": "Web access",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/brc-web",
+          "type": "vzBrCP"
+        },
+        "properties": {
+          "scope": "context"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "vzBrCP": [
+                {
+                  "descr": "Web access",
+                  "dn": "uni/tn-tn_Example/brc-web",
+                  "name": "web",
+                  "prio": "unspecified",
+                  "scope": "context"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/brc-web/subj-http",
+        "type": "osiris.cisco.policy.subject",
+        "name": "http",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/brc-web/subj-http",
+          "type": "vzSubj"
+        },
+        "properties": {
+          "reverse_filter_ports": "yes"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "vzRsSubjFiltAtt": [
+                {
+                  "action": "permit",
+                  "directives": "",
+                  "dn": "uni/tn-tn_Example/brc-web/subj-http/rssubjFiltAtt-http",
+                  "state": "formed",
+                  "tDn": "uni/tn-tn_Example/flt-http",
+                  "tnVzFilterName": "http"
+                }
+              ],
+              "vzSubj": [
+                {
+                  "descr": "",
+                  "dn": "uni/tn-tn_Example/brc-web/subj-http",
+                  "name": "http",
+                  "prio": "unspecified",
+                  "revFltPorts": "yes"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/brc-web/subj-https",
+        "type": "osiris.cisco.policy.subject",
+        "name": "https",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/brc-web/subj-https",
+          "type": "vzSubj"
+        },
+        "properties": {
+          "reverse_filter_ports": "yes"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "vzRsSubjFiltAtt": [
+                {
+                  "action": "permit",
+                  "directives": "",
+                  "dn": "uni/tn-tn_Example/brc-web/subj-https/rssubjFiltAtt-https",
+                  "state": "formed",
+                  "tDn": "uni/tn-tn_Example/flt-https",
+                  "tnVzFilterName": "https"
+                }
+              ],
+              "vzSubj": [
+                {
+                  "descr": "",
+                  "dn": "uni/tn-tn_Example/brc-web/subj-https",
+                  "name": "https",
+                  "prio": "unspecified",
+                  "revFltPorts": "yes"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/ctx-vrf_Prod",
+        "type": "osiris.cisco.policy.vrf",
+        "name": "vrf_Prod",
+        "description": "Production VRF",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/ctx-vrf_Prod",
+          "type": "fvCtx"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "fvCtx": [
+                {
+                  "descr": "Production VRF",
+                  "dn": "uni/tn-tn_Example/ctx-vrf_Prod",
+                  "name": "vrf_Prod",
+                  "pcEnfPref": "enforced"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/flt-http",
+        "type": "osiris.cisco.policy.filter",
+        "name": "http",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/flt-http",
+          "type": "vzFilter"
+        },
+        "properties": {
+          "entries": [
+            {
+              "apply_to_fragments": "no",
+              "destination_from_port": "http",
+              "destination_to_port": "http",
+              "ether_type": "ip",
+              "ip_protocol": "tcp",
+              "name": "tcp80",
+              "stateful": "yes"
+            }
+          ]
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "vzEntry": [
+                {
+                  "applyToFrag": "no",
+                  "arpOpc": "unspecified",
+                  "dFromPort": "http",
+                  "dToPort": "http",
+                  "dn": "uni/tn-tn_Example/flt-http/e-tcp80",
+                  "etherT": "ip",
+                  "icmpv4T": "unspecified",
+                  "icmpv6T": "unspecified",
+                  "name": "tcp80",
+                  "prot": "tcp",
+                  "sFromPort": "unspecified",
+                  "sToPort": "unspecified",
+                  "stateful": "yes",
+                  "tcpRules": ""
+                }
+              ],
+              "vzFilter": [
+                {
+                  "descr": "",
+                  "dn": "uni/tn-tn_Example/flt-http",
+                  "name": "http"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/flt-https",
+        "type": "osiris.cisco.policy.filter",
+        "name": "https",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/flt-https",
+          "type": "vzFilter"
+        },
+        "properties": {
+          "entries": [
+            {
+              "apply_to_fragments": "no",
+              "destination_from_port": "https",
+              "destination_to_port": "https",
+              "ether_type": "ip",
+              "ip_protocol": "tcp",
+              "name": "tcp443",
+              "stateful": "yes"
+            }
+          ]
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "vzEntry": [
+                {
+                  "applyToFrag": "no",
+                  "arpOpc": "unspecified",
+                  "dFromPort": "https",
+                  "dToPort": "https",
+                  "dn": "uni/tn-tn_Example/flt-https/e-tcp443",
+                  "etherT": "ip",
+                  "icmpv4T": "unspecified",
+                  "icmpv6T": "unspecified",
+                  "name": "tcp443",
+                  "prot": "tcp",
+                  "sFromPort": "unspecified",
+                  "sToPort": "unspecified",
+                  "stateful": "yes",
+                  "tcpRules": ""
+                }
+              ],
+              "vzFilter": [
+                {
+                  "descr": "",
+                  "dn": "uni/tn-tn_Example/flt-https",
+                  "name": "https"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/flt-sql",
+        "type": "osiris.cisco.policy.filter",
+        "name": "sql",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/flt-sql",
+          "type": "vzFilter"
+        },
+        "properties": {
+          "entries": [
+            {
+              "apply_to_fragments": "no",
+              "destination_from_port": "1433",
+              "destination_to_port": "1433",
+              "ether_type": "ip",
+              "ip_protocol": "tcp",
+              "name": "tcp1433",
+              "stateful": "no"
+            }
+          ]
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "vzEntry": [
+                {
+                  "applyToFrag": "no",
+                  "arpOpc": "unspecified",
+                  "dFromPort": "1433",
+                  "dToPort": "1433",
+                  "dn": "uni/tn-tn_Example/flt-sql/e-tcp1433",
+                  "etherT": "ip",
+                  "icmpv4T": "unspecified",
+                  "icmpv6T": "unspecified",
+                  "name": "tcp1433",
+                  "prot": "tcp",
+                  "sFromPort": "unspecified",
+                  "sToPort": "unspecified",
+                  "stateful": "no",
+                  "tcpRules": ""
+                }
+              ],
+              "vzFilter": [
+                {
+                  "descr": "",
+                  "dn": "uni/tn-tn_Example/flt-sql",
+                  "name": "sql"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/flt-ssh",
+        "type": "osiris.cisco.policy.filter",
+        "name": "ssh",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/flt-ssh",
+          "type": "vzFilter"
+        },
+        "properties": {
+          "entries": [
+            {
+              "apply_to_fragments": "no",
+              "destination_from_port": "22",
+              "destination_to_port": "22",
+              "ether_type": "ip",
+              "ip_protocol": "tcp",
+              "name": "tcp22",
+              "stateful": "no",
+              "tcp_flags": "est"
+            }
+          ]
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "vzEntry": [
+                {
+                  "applyToFrag": "no",
+                  "arpOpc": "unspecified",
+                  "dFromPort": "22",
+                  "dToPort": "22",
+                  "dn": "uni/tn-tn_Example/flt-ssh/e-tcp22",
+                  "etherT": "ip",
+                  "icmpv4T": "unspecified",
+                  "icmpv6T": "unspecified",
+                  "name": "tcp22",
+                  "prot": "tcp",
+                  "sFromPort": "unspecified",
+                  "sToPort": "unspecified",
+                  "stateful": "no",
+                  "tcpRules": "est"
+                }
+              ],
+              "vzFilter": [
+                {
+                  "descr": "",
+                  "dn": "uni/tn-tn_Example/flt-ssh",
+                  "name": "ssh"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/out-l3out_Core",
+        "type": "osiris.cisco.l3out",
+        "name": "l3out_Core",
+        "description": "Core routing",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/out-l3out_Core"
+        },
+        "status": "active",
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "l3extOut": [
+                {
+                  "descr": "Core routing",
+                  "dn": "uni/tn-tn_Example/out-l3out_Core",
+                  "name": "l3out_Core"
+                }
+              ],
+              "l3extRsEctx": [
+                {
+                  "dn": "uni/tn-tn_Example/out-l3out_Core/rsectx",
+                  "state": "formed",
+                  "tDn": "uni/tn-tn_Example/ctx-vrf_Prod"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Other/ap-shared/epg-epg_Shared",
+        "type": "osiris.cisco.policy.epg",
+        "name": "epg_Shared",
+        "description": "Shared services",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Other/ap-shared/epg-epg_Shared",
+          "type": "fvAEPg"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "fvAEPg": [
+                {
+                  "descr": "Shared services",
+                  "dn": "uni/tn-tn_Other/ap-shared/epg-epg_Shared",
+                  "name": "epg_Shared"
+                }
+              ],
+              "fvRsCons": [
+                {
+                  "dn": "uni/tn-tn_Other/ap-shared/epg-epg_Shared/rscons-web",
+                  "prio": "unspecified",
+                  "state": "formed",
+                  "tnVzBrCPName": "web"
+                }
+              ],
+              "fvRsProv": [
+                {
+                  "dn": "uni/tn-tn_Other/ap-shared/epg-epg_Shared/rsprov-web",
+                  "matchT": "AtleastOne",
+                  "prio": "unspecified",
+                  "state": "formed",
+                  "tDn": "uni/tn-tn_Other/brc-web",
+                  "tnVzBrCPName": "web"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Other/brc-web",
+        "type": "osiris.cisco.policy.contract",
+        "name": "web",
+        "description": "Same name, other tenant",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Other/brc-web",
+          "type": "vzBrCP"
+        },
+        "properties": {
+          "scope": "global"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "vzBrCP": [
+                {
+                  "descr": "Same name, other tenant",
+                  "dn": "uni/tn-tn_Other/brc-web",
+                  "name": "web",
+                  "prio": "unspecified",
+                  "scope": "global"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Other/brc-web/subj-any",
+        "type": "osiris.cisco.policy.subject",
+        "name": "any",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Other/brc-web/subj-any",
+          "type": "vzSubj"
+        },
+        "properties": {
+          "reverse_filter_ports": "yes"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "vzRsSubjFiltAtt": [
+                {
+                  "action": "permit",
+                  "directives": "",
+                  "dn": "uni/tn-tn_Other/brc-web/subj-any/rssubjFiltAtt-default",
+                  "state": "formed",
+                  "tnVzFilterName": "default"
+                }
+              ],
+              "vzSubj": [
+                {
+                  "descr": "",
+                  "dn": "uni/tn-tn_Other/brc-web/subj-any",
+                  "name": "any",
+                  "prio": "unspecified",
+                  "revFltPorts": "yes"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "connections": [
+      {
+        "id": "conn-contains-1-to-cep-00-00-5e-00-53-11-38d36dc2edf01e90",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/1]",
+        "target": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Web/cep-00:00:5E:00:53:11",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-aggr-po1-to-10-1ec494316677049a",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-111/sys/aggr-[po1]",
+        "target": "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/10]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-aggr-po1-to-11-33addab919173ca2",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-111/sys/aggr-[po1]",
+        "target": "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/11]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-aggr-po1-to-cep-00-00-5e-00-53-21-c8ec63a765e10184",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-111/sys/aggr-[po1]",
+        "target": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Db/cep-00:00:5E:00:53:21",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-bd-bd-db-to-26-152a1a9a97c44fe1",
+        "type": "contains",
+        "source": "cisco.apic::uni/tn-tn_Example/BD-bd_Db",
+        "target": "cisco.apic::uni/tn-tn_Example/BD-bd_Db/subnet-[203.0.113.65/26]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-bd-bd-web-to-26-82490269819211bf",
+        "type": "contains",
+        "source": "cisco.apic::uni/tn-tn_Example/BD-bd_Web",
+        "target": "cisco.apic::uni/tn-tn_Example/BD-bd_Web/subnet-[203.0.113.1/26]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-bd-bd-web-to-64-784c65b15bb33394",
+        "type": "contains",
+        "source": "cisco.apic::uni/tn-tn_Example/BD-bd_Web",
+        "target": "cisco.apic::uni/tn-tn_Example/BD-bd_Web/subnet-[2001:db8:10::1/64]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-brc-db-to-subj-sql-a736b1339d35bfff",
+        "type": "contains",
+        "source": "cisco.apic::uni/tn-tn_Example/brc-db",
+        "target": "cisco.apic::uni/tn-tn_Example/brc-db/subj-sql",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-brc-dns-to-subj-dns-8b91307b7945adf7",
+        "type": "contains",
+        "source": "cisco.apic::uni/tn-common/brc-dns",
+        "target": "cisco.apic::uni/tn-common/brc-dns/subj-dns",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-brc-mgmt-to-subj-ssh-1c88313bf7aa2db1",
+        "type": "contains",
+        "source": "cisco.apic::uni/tn-tn_Example/brc-mgmt",
+        "target": "cisco.apic::uni/tn-tn_Example/brc-mgmt/subj-ssh",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-brc-web-to-subj-any-935e7a21d31bba5f",
+        "type": "contains",
+        "source": "cisco.apic::uni/tn-tn_Other/brc-web",
+        "target": "cisco.apic::uni/tn-tn_Other/brc-web/subj-any",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-brc-web-to-subj-http-b8e84448df8542e9",
+        "type": "contains",
+        "source": "cisco.apic::uni/tn-tn_Example/brc-web",
+        "target": "cisco.apic::uni/tn-tn_Example/brc-web/subj-http",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-brc-web-to-subj-https-19c6cbf6a495060a",
+        "type": "contains",
+        "source": "cisco.apic::uni/tn-tn_Example/brc-web",
+        "target": "cisco.apic::uni/tn-tn_Example/brc-web/subj-https",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-node-101-to-1-43854aba2ed4761f",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-101",
+        "target": "cisco.apic::topology/pod-1/node-101/sys/phys-[eth1/1]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-node-101-to-2-d4a257858af5fd0c",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-101",
+        "target": "cisco.apic::topology/pod-1/node-101/sys/phys-[eth1/2]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-node-102-to-1-f926c5474b2a2fbc",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-102",
+        "target": "cisco.apic::topology/pod-1/node-102/sys/phys-[eth1/1]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-node-102-to-2-d443bbba7241f014",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-102",
+        "target": "cisco.apic::topology/pod-1/node-102/sys/phys-[eth1/2]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-node-111-to-1-e19ae20dd840c5c7",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-111",
+        "target": "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/1]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-node-111-to-10-71f8d35d6583014e",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-111",
+        "target": "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/10]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-node-111-to-11-a6ae8b532eee31c3",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-111",
+        "target": "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/11]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-node-111-to-20-f6af3e020516836b",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-111",
+        "target": "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/20]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-node-111-to-48-085018d118699dfb",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-111",
+        "target": "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/48]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-node-111-to-49-5ddb210a2761a06e",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-111",
+        "target": "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/49]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-node-111-to-50-822b93248fa8e0ac",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-111",
+        "target": "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/50]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-node-111-to-aggr-po1-21db11d6fb22caa7",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-111",
+        "target": "cisco.apic::topology/pod-1/node-111/sys/aggr-[po1]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-node-112-to-1-d576b6c80de2d865",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-112",
+        "target": "cisco.apic::topology/pod-1/node-112/sys/phys-[eth1/1]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-node-112-to-49-6ac35b6e6f084443",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-112",
+        "target": "cisco.apic::topology/pod-1/node-112/sys/phys-[eth1/49]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-node-112-to-50-761a9d2eee42f365",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-112",
+        "target": "cisco.apic::topology/pod-1/node-112/sys/phys-[eth1/50]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-osiris.cisco.bd.vrf-bd-bd-db-to-ctx-vrf-prod-ea9dad56068d3beb",
+        "type": "osiris.cisco.bd.vrf",
+        "source": "cisco.apic::uni/tn-tn_Example/BD-bd_Db",
+        "target": "cisco.apic::uni/tn-tn_Example/ctx-vrf_Prod",
+        "direction": "forward",
+        "properties": {
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.bd.vrf-bd-bd-web-to-ctx-vrf-prod-d5a47ed8f93901a9",
+        "type": "osiris.cisco.bd.vrf",
+        "source": "cisco.apic::uni/tn-tn_Example/BD-bd_Web",
+        "target": "cisco.apic::uni/tn-tn_Example/ctx-vrf_Prod",
+        "direction": "forward",
+        "properties": {
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.contract.consumes-epg-epg-db-to-brc-dns-9ce42d66eaa1ac7c",
+        "type": "osiris.cisco.contract.consumes",
+        "source": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Db",
+        "target": "cisco.apic::uni/tn-common/brc-dns",
+        "direction": "forward",
+        "properties": {
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.contract.consumes-epg-epg-shared-to-brc-web-37e8942ffee300e3",
+        "type": "osiris.cisco.contract.consumes",
+        "source": "cisco.apic::uni/tn-tn_Other/ap-shared/epg-epg_Shared",
+        "target": "cisco.apic::uni/tn-tn_Other/brc-web",
+        "direction": "forward",
+        "properties": {
+          "resolved_by": "name-local",
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.contract.consumes-epg-epg-web-to-brc-db-2a803d6affa3bb7d",
+        "type": "osiris.cisco.contract.consumes",
+        "source": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Web",
+        "target": "cisco.apic::uni/tn-tn_Example/brc-db",
+        "direction": "forward",
+        "properties": {
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.contract.consumes-epg-epg-web-to-brc-dns-98b0fb882f998264",
+        "type": "osiris.cisco.contract.consumes",
+        "source": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Web",
+        "target": "cisco.apic::uni/tn-common/brc-dns",
+        "direction": "forward",
+        "properties": {
+          "resolved_by": "name-common",
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.contract.consumes-epg-epg-web-to-brc-mgmt-3f12d369adc2af26",
+        "type": "osiris.cisco.contract.consumes",
+        "source": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Web",
+        "target": "cisco.apic::uni/tn-tn_Example/brc-mgmt",
+        "direction": "forward",
+        "properties": {
+          "resolved_by": "name-local",
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.contract.provides-epg-epg-db-to-brc-db-532c170cbe0a9d48",
+        "type": "osiris.cisco.contract.provides",
+        "source": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Db",
+        "target": "cisco.apic::uni/tn-tn_Example/brc-db",
+        "direction": "forward",
+        "properties": {
+          "match_type": "AtleastOne",
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.contract.provides-epg-epg-db-to-brc-mgmt-6df3c11e6d224cbd",
+        "type": "osiris.cisco.contract.provides",
+        "source": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Db",
+        "target": "cisco.apic::uni/tn-tn_Example/brc-mgmt",
+        "direction": "forward",
+        "properties": {
+          "match_type": "AtleastOne",
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.contract.provides-epg-epg-shared-to-brc-web-855a8e936f7e8520",
+        "type": "osiris.cisco.contract.provides",
+        "source": "cisco.apic::uni/tn-tn_Other/ap-shared/epg-epg_Shared",
+        "target": "cisco.apic::uni/tn-tn_Other/brc-web",
+        "direction": "forward",
+        "properties": {
+          "match_type": "AtleastOne",
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.contract.provides-epg-epg-web-to-brc-web-68b700130130da09",
+        "type": "osiris.cisco.contract.provides",
+        "source": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Web",
+        "target": "cisco.apic::uni/tn-tn_Example/brc-web",
+        "direction": "forward",
+        "properties": {
+          "match_type": "AtleastOne",
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.epg.bd-epg-epg-db-to-bd-bd-db-31b106136c7ebed9",
+        "type": "osiris.cisco.epg.bd",
+        "source": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Db",
+        "target": "cisco.apic::uni/tn-tn_Example/BD-bd_Db",
+        "direction": "forward",
+        "properties": {
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.epg.bd-epg-epg-web-to-bd-bd-web-a0c737cb9ceca962",
+        "type": "osiris.cisco.epg.bd",
+        "source": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Web",
+        "target": "cisco.apic::uni/tn-tn_Example/BD-bd_Web",
+        "direction": "forward",
+        "properties": {
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.l3out.vrf-out-l3out-core-to-ctx-vrf-prod-dfd1122315c2d01a",
+        "type": "osiris.cisco.l3out.vrf",
+        "source": "cisco.apic::uni/tn-tn_Example/out-l3out_Core",
+        "target": "cisco.apic::uni/tn-tn_Example/ctx-vrf_Prod",
+        "direction": "forward",
+        "properties": {
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.subject.filter-subj-any-to-flt-default-bb620574a8a5cdd1",
+        "type": "osiris.cisco.subject.filter",
+        "source": "cisco.apic::uni/tn-tn_Other/brc-web/subj-any",
+        "target": "cisco.apic::uni/tn-common/flt-default",
+        "direction": "forward",
+        "properties": {
+          "action": "permit",
+          "resolved_by": "name-common",
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.subject.filter-subj-dns-to-flt-dns-0eb183cdf1321f65",
+        "type": "osiris.cisco.subject.filter",
+        "source": "cisco.apic::uni/tn-common/brc-dns/subj-dns",
+        "target": "cisco.apic::uni/tn-common/flt-dns",
+        "direction": "forward",
+        "properties": {
+          "action": "permit",
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.subject.filter-subj-http-to-flt-http-9840da7b88460ae1",
+        "type": "osiris.cisco.subject.filter",
+        "source": "cisco.apic::uni/tn-tn_Example/brc-web/subj-http",
+        "target": "cisco.apic::uni/tn-tn_Example/flt-http",
+        "direction": "forward",
+        "properties": {
+          "action": "permit",
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.subject.filter-subj-https-to-flt-https-a292887611815412",
+        "type": "osiris.cisco.subject.filter",
+        "source": "cisco.apic::uni/tn-tn_Example/brc-web/subj-https",
+        "target": "cisco.apic::uni/tn-tn_Example/flt-https",
+        "direction": "forward",
+        "properties": {
+          "action": "permit",
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.subject.filter-subj-sql-to-flt-sql-d7faf07f6a655784",
+        "type": "osiris.cisco.subject.filter",
+        "source": "cisco.apic::uni/tn-tn_Example/brc-db/subj-sql",
+        "target": "cisco.apic::uni/tn-tn_Example/flt-sql",
+        "direction": "forward",
+        "properties": {
+          "action": "permit",
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.subject.filter-subj-ssh-to-flt-ssh-5b1b3dec34a372ec",
+        "type": "osiris.cisco.subject.filter",
+        "source": "cisco.apic::uni/tn-tn_Example/brc-mgmt/subj-ssh",
+        "target": "cisco.apic::uni/tn-tn_Example/flt-ssh",
+        "direction": "forward",
+        "properties": {
+          "action": "permit",
+          "resolved_by": "name-local",
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-physical.ethernet-00-00-5e-00-53-b1-to-node-112-7820d26d1823a306",
+        "type": "physical.ethernet",
+        "source": "cisco.apic::external/00:00:5e:00:53:b1",
+        "target": "cisco.apic::topology/pod-1/node-112",
+        "direction": "bidirectional",
+        "properties": {
+          "discovered_by": "lldp",
+          "target_port": "eth1/1"
+        }
+      },
+      {
+        "id": "conn-physical.ethernet-lab-ext-sw1-to-node-111-7ce0efeec30e64d1",
+        "type": "physical.ethernet",
+        "source": "cisco.apic::external/lab-ext-sw1",
+        "target": "cisco.apic::topology/pod-1/node-111",
+        "direction": "bidirectional",
+        "properties": {
+          "discovered_by": "cdp,lldp",
+          "source_port": "eth1/52",
+          "target_port": "eth1/48"
+        }
+      },
+      {
+        "id": "conn-physical.ethernet-node-101-to-node-111-e1df316f086ebb3d",
+        "type": "physical.ethernet",
+        "source": "cisco.apic::topology/pod-1/node-101",
+        "target": "cisco.apic::topology/pod-1/node-111",
+        "direction": "bidirectional",
+        "properties": {
+          "discovered_by": "fabricLink,lldp",
+          "link_state": "ok",
+          "source_port": "eth1/1",
+          "target_port": "eth1/49"
+        }
+      },
+      {
+        "id": "conn-physical.ethernet-node-101-to-node-112-330c1a54cb6da8e4",
+        "type": "physical.ethernet",
+        "source": "cisco.apic::topology/pod-1/node-101",
+        "target": "cisco.apic::topology/pod-1/node-112",
+        "direction": "bidirectional",
+        "properties": {
+          "discovered_by": "fabricLink",
+          "link_state": "ok",
+          "source_port": "eth1/2",
+          "target_port": "eth1/49"
+        }
+      },
+      {
+        "id": "conn-physical.ethernet-node-102-to-node-111-c255b71cda524894",
+        "type": "physical.ethernet",
+        "source": "cisco.apic::topology/pod-1/node-102",
+        "target": "cisco.apic::topology/pod-1/node-111",
+        "direction": "bidirectional",
+        "properties": {
+          "discovered_by": "fabricLink",
+          "link_state": "ok",
+          "source_port": "eth1/1",
+          "target_port": "eth1/50"
+        }
+      },
+      {
+        "id": "conn-physical.ethernet-node-102-to-node-112-6da393eda0b24051",
+        "type": "physical.ethernet",
+        "source": "cisco.apic::topology/pod-1/node-102",
+        "target": "cisco.apic::topology/pod-1/node-112",
+        "direction": "bidirectional",
+        "properties": {
+          "discovered_by": "fabricLink",
+          "link_state": "ok",
+          "source_port": "eth1/2",
+          "target_port": "eth1/50"
+        }
+      }
+    ],
+    "groups": [
+      {
+        "id": "group-logical.application-ap-app1-08676ea071760c91",
+        "type": "logical.application",
+        "name": "app1",
+        "description": "Three-tier application",
+        "children": [
+          "group-osiris.cisco.epg-epg-epg-db-d300dd9b4ac017f1",
+          "group-osiris.cisco.epg-epg-epg-web-28cdb5fe53c2d9fe"
+        ],
+        "extensions": {
+          "osiris.cisco": {
+            "dn": "uni/tn-tn_Example/ap-app1",
+            "raw": {
+              "fvAp": [
+                {
+                  "descr": "Three-tier application",
+                  "dn": "uni/tn-tn_Example/ap-app1",
+                  "name": "app1",
+                  "prio": "unspecified"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "group-logical.application-ap-shared-b91dd43f698bc45f",
+        "type": "logical.application",
+        "name": "shared",
+        "children": [
+          "group-osiris.cisco.epg-epg-epg-shared-edc33972bb59ea2c"
+        ],
+        "extensions": {
+          "osiris.cisco": {
+            "dn": "uni/tn-tn_Other/ap-shared",
+            "raw": {
+              "fvAp": [
+                {
+                  "descr": "",
+                  "dn": "uni/tn-tn_Other/ap-shared",
+                  "name": "shared"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "group-logical.tenant-tn-common-833b8cd37f704a48",
+        "type": "logical.tenant",
+        "name": "common",
+        "members": [
+          "cisco.apic::uni/tn-common/brc-dns",
+          "cisco.apic::uni/tn-common/brc-dns/subj-dns",
+          "cisco.apic::uni/tn-common/flt-default",
+          "cisco.apic::uni/tn-common/flt-dns"
+        ],
+        "children": [
+          "group-logical.vrf-ctx-default-b8575b3f4e0ebd0c"
+        ],
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "fvTenant": [
+                {
+                  "descr": "",
+                  "dn": "uni/tn-common",
+                  "name": "common"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "group-logical.tenant-tn-mgmt-46516a8ec4d554d4",
+        "type": "logical.tenant",
+        "name": "mgmt",
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "fvRsCons": [
+                {
+                  "dn": "uni/tn-mgmt/mgmtp-default/inb-inb_Mgmt/rscons-dns",
+                  "prio": "unspecified",
+                  "state": "formed",
+                  "tDn": "uni/tn-common/brc-dns",
+                  "tnVzBrCPName": "dns"
+                }
+              ],
+              "fvTenant": [
+                {
+                  "descr": "",
+                  "dn": "uni/tn-mgmt",
+                  "name": "mgmt"
+                }
+              ],
+              "vzRsSubjFiltAtt": [
+                {
+                  "action": "permit",
+                  "directives": "",
+                  "dn": "uni/tn-mgmt/oobbrc-oob_Mgmt/subj-ssh/rssubjFiltAtt-ssh",
+                  "state": "formed",
+                  "tDn": "uni/tn-tn_Example/flt-ssh",
+                  "tnVzFilterName": "ssh"
+                }
+              ],
+              "vzSubj": [
+                {
+                  "descr": "",
+                  "dn": "uni/tn-mgmt/oobbrc-oob_Mgmt/subj-ssh",
+                  "name": "ssh",
+                  "prio": "unspecified",
+                  "revFltPorts": "yes"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "group-logical.tenant-tn-tn-example-a1f8415444c2643f",
+        "type": "logical.tenant",
+        "name": "tn_Example",
+        "description": "Example tenant",
+        "members": [
+          "cisco.apic::uni/tn-tn_Example/BD-bd_Db",
+          "cisco.apic::uni/tn-tn_Example/BD-bd_Db/subnet-[203.0.113.65/26]",
+          "cisco.apic::uni/tn-tn_Example/BD-bd_Web",
+          "cisco.apic::uni/tn-tn_Example/BD-bd_Web/subnet-[2001:db8:10::1/64]",
+          "cisco.apic::uni/tn-tn_Example/BD-bd_Web/subnet-[203.0.113.1/26]",
+          "cisco.apic::uni/tn-tn_Example/brc-db",
+          "cisco.apic::uni/tn-tn_Example/brc-db/subj-sql",
+          "cisco.apic::uni/tn-tn_Example/brc-mgmt",
+          "cisco.apic::uni/tn-tn_Example/brc-mgmt/subj-ssh",
+          "cisco.apic::uni/tn-tn_Example/brc-web",
+          "cisco.apic::uni/tn-tn_Example/brc-web/subj-http",
+          "cisco.apic::uni/tn-tn_Example/brc-web/subj-https",
+          "cisco.apic::uni/tn-tn_Example/flt-http",
+          "cisco.apic::uni/tn-tn_Example/flt-https",
+          "cisco.apic::uni/tn-tn_Example/flt-sql",
+          "cisco.apic::uni/tn-tn_Example/flt-ssh",
+          "cisco.apic::uni/tn-tn_Example/out-l3out_Core"
+        ],
+        "children": [
+          "group-logical.application-ap-app1-08676ea071760c91",
+          "group-logical.vrf-ctx-vrf-prod-bf6af64c22889aef"
+        ],
+        "extensions": {
+          "osiris.cisco": {
+            "faults": [
+              {
+                "code": "F0956",
+                "severity": "warning",
+                "cause": "config-error",
+                "description": "Configuration is invalid",
+                "created": "2026-11-03T08:00:00.000+00:00",
+                "last_transition": "2026-11-03T08:10:00.000+00:00",
+                "lifecycle": "soaking",
+                "domain": "tenant",
+                "subject": "config"
+              }
+            ],
+            "raw": {
+              "faultInst": [
+                {
+                  "cause": "config-error",
+                  "code": "F0956",
+                  "created": "2026-11-03T08:00:00.000+00:00",
+                  "descr": "Configuration is invalid",
+                  "dn": "uni/tn-tn_Example/fault-F0956",
+                  "domain": "tenant",
+                  "lastTransition": "2026-11-03T08:10:00.000+00:00",
+                  "lc": "soaking",
+                  "severity": "warning",
+                  "subject": "config"
+                }
+              ],
+              "fvTenant": [
+                {
+                  "descr": "Example tenant",
+                  "dn": "uni/tn-tn_Example",
+                  "name": "tn_Example"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "group-logical.tenant-tn-tn-other-63f4a83a92b45bfa",
+        "type": "logical.tenant",
+        "name": "tn_Other",
+        "description": "Second tenant",
+        "members": [
+          "cisco.apic::uni/tn-tn_Other/brc-web",
+          "cisco.apic::uni/tn-tn_Other/brc-web/subj-any"
+        ],
+        "children": [
+          "group-logical.application-ap-shared-b91dd43f698bc45f"
+        ],
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "fvTenant": [
+                {
+                  "descr": "Second tenant",
+                  "dn": "uni/tn-tn_Other",
+                  "name": "tn_Other"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "group-logical.vrf-ctx-default-b8575b3f4e0ebd0c",
+        "type": "logical.vrf",
+        "name": "default",
+        "properties": {
+          "enforcement": "unenforced"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "resource": "cisco.apic::uni/tn-common/ctx-default"
+          }
+        }
+      },
+      {
+        "id": "group-logical.vrf-ctx-vrf-prod-bf6af64c22889aef",
+        "type": "logical.vrf",
+        "name": "vrf_Prod",
+        "description": "Production VRF",
+        "members": [
+          "cisco.apic::uni/tn-tn_Example/BD-bd_Db",
+          "cisco.apic::uni/tn-tn_Example/BD-bd_Web",
+          "cisco.apic::uni/tn-tn_Example/out-l3out_Core"
+        ],
+        "properties": {
+          "enforcement": "enforced"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "resource": "cisco.apic::uni/tn-tn_Example/ctx-vrf_Prod"
+          }
+        }
+      },
+      {
+        "id": "group-osiris.cisco.epg-epg-epg-db-d300dd9b4ac017f1",
+        "type": "osiris.cisco.epg",
+        "name": "epg_Db",
+        "description": "Database tier",
+        "members": [
+          "cisco.apic::topology/pod-1/node-111/sys/aggr-[po1]",
+          "cisco.apic::uni/tn-tn_Example/BD-bd_Db",
+          "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Db/cep-00:00:5E:00:53:21",
+          "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Db/cep-00:00:5E:00:53:22"
+        ],
+        "extensions": {
+          "osiris.cisco": {
+            "resource": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Db"
+          }
+        }
+      },
+      {
+        "id": "group-osiris.cisco.epg-epg-epg-shared-edc33972bb59ea2c",
+        "type": "osiris.cisco.epg",
+        "name": "epg_Shared",
+        "description": "Shared services",
+        "extensions": {
+          "osiris.cisco": {
+            "resource": "cisco.apic::uni/tn-tn_Other/ap-shared/epg-epg_Shared"
+          }
+        }
+      },
+      {
+        "id": "group-osiris.cisco.epg-epg-epg-web-28cdb5fe53c2d9fe",
+        "type": "osiris.cisco.epg",
+        "name": "epg_Web",
+        "description": "Web tier",
+        "members": [
+          "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/1]",
+          "cisco.apic::topology/pod-1/node-112/sys/phys-[eth1/1]",
+          "cisco.apic::uni/tn-tn_Example/BD-bd_Web",
+          "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Web/cep-00:00:5E:00:53:11"
+        ],
+        "extensions": {
+          "osiris.cisco": {
+            "resource": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Web"
+          }
+        }
+      }
+    ]
+  }
+}

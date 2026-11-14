@@ -1,0 +1,23 @@
+{
+  "totalCount": "1",
+  "imdata": [
+    {
+      "pcAggrIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111/sys/aggr-[po1]",
+          "id": "po1",
+          "name": "LAB-PC-DB",
+          "descr": "Database server bond",
+          "pcMode": "active",
+          "adminSt": "up",
+          "operSt": "up",
+          "activePorts": "2",
+          "minLinks": "1",
+          "mtu": "9216",
+          "layer": "Layer2",
+          "mode": "trunk"
+        }
+      }
+    }
+  ]
+}

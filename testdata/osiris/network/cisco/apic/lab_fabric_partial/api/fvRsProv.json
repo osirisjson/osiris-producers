@@ -1,0 +1,65 @@
+{
+  "totalCount": "5",
+  "imdata": [
+    {
+      "fvRsProv": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Web/rsprov-web",
+          "tnVzBrCPName": "web",
+          "matchT": "AtleastOne",
+          "prio": "unspecified",
+          "state": "formed",
+          "tDn": "uni/tn-tn_Example/brc-web"
+        }
+      }
+    },
+    {
+      "fvRsProv": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Db/rsprov-db",
+          "tnVzBrCPName": "db",
+          "matchT": "AtleastOne",
+          "prio": "unspecified",
+          "state": "formed",
+          "tDn": "uni/tn-tn_Example/brc-db"
+        }
+      }
+    },
+    {
+      "fvRsProv": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Db/rsprov-mgmt",
+          "tnVzBrCPName": "mgmt",
+          "matchT": "AtleastOne",
+          "prio": "unspecified",
+          "state": "formed",
+          "tDn": "uni/tn-tn_Example/brc-mgmt"
+        }
+      }
+    },
+    {
+      "fvRsProv": {
+        "attributes": {
+          "dn": "uni/tn-tn_Other/ap-shared/epg-epg_Shared/rsprov-web",
+          "tnVzBrCPName": "web",
+          "matchT": "AtleastOne",
+          "prio": "unspecified",
+          "state": "formed",
+          "tDn": "uni/tn-tn_Other/brc-web"
+        }
+      }
+    },
+    {
+      "fvRsProv": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/out-l3out_Core/instP-ext/rsprov-web",
+          "tnVzBrCPName": "web",
+          "matchT": "AtleastOne",
+          "prio": "unspecified",
+          "state": "formed",
+          "tDn": "uni/tn-tn_Example/brc-web"
+        }
+      }
+    }
+  ]
+}

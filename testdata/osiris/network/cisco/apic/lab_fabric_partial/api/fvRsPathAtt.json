@@ -1,0 +1,49 @@
+{
+  "totalCount": "4",
+  "imdata": [
+    {
+      "fvRsPathAtt": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Web/rspathAtt-[topology/pod-1/paths-111/pathep-[eth1/1]]",
+          "tDn": "topology/pod-1/paths-111/pathep-[eth1/1]",
+          "encap": "vlan-100",
+          "mode": "regular",
+          "state": "formed"
+        }
+      }
+    },
+    {
+      "fvRsPathAtt": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Web/rspathAtt-[topology/pod-1/paths-112/pathep-[eth1/1]]",
+          "tDn": "topology/pod-1/paths-112/pathep-[eth1/1]",
+          "encap": "vlan-100",
+          "mode": "regular",
+          "state": "formed"
+        }
+      }
+    },
+    {
+      "fvRsPathAtt": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Db/rspathAtt-[topology/pod-1/paths-111/pathep-[po1]]",
+          "tDn": "topology/pod-1/paths-111/pathep-[po1]",
+          "encap": "vlan-200",
+          "mode": "regular",
+          "state": "formed"
+        }
+      }
+    },
+    {
+      "fvRsPathAtt": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Db/rspathAtt-[topology/pod-1/protpaths-111-112/pathep-[LAB-VPC-1]]",
+          "tDn": "topology/pod-1/protpaths-111-112/pathep-[LAB-VPC-1]",
+          "encap": "vlan-200",
+          "mode": "regular",
+          "state": "formed"
+        }
+      }
+    }
+  ]
+}

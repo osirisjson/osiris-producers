@@ -1,0 +1,95 @@
+{
+  "totalCount": "6",
+  "imdata": [
+    {
+      "fabricNode": {
+        "attributes": {
+          "dn": "topology/pod-1/node-1",
+          "id": "1",
+          "name": "LAB-APIC1",
+          "role": "controller",
+          "model": "APIC-SERVER-M3",
+          "serial": "TST0000001",
+          "version": "6.0(5h)",
+          "address": "192.0.2.1",
+          "fabricSt": "unknown"
+        }
+      }
+    },
+    {
+      "fabricNode": {
+        "attributes": {
+          "dn": "topology/pod-1/node-2",
+          "id": "2",
+          "name": "LAB-APIC2",
+          "role": "controller",
+          "model": "APIC-VIRTUAL",
+          "serial": "TST0000002",
+          "version": "6.0(5h)",
+          "address": "192.0.2.2",
+          "fabricSt": "unknown"
+        }
+      }
+    },
+    {
+      "fabricNode": {
+        "attributes": {
+          "dn": "topology/pod-1/node-101",
+          "id": "101",
+          "name": "LAB-SPINE1",
+          "role": "spine",
+          "model": "N9K-C9332D-GX2B",
+          "serial": "TST0000101",
+          "version": "n9000-16.0(5h)",
+          "address": "192.0.2.101",
+          "fabricSt": "active"
+        }
+      }
+    },
+    {
+      "fabricNode": {
+        "attributes": {
+          "dn": "topology/pod-1/node-102",
+          "id": "102",
+          "name": "LAB-SPINE2",
+          "role": "spine",
+          "model": "N9K-C9332D-GX2B",
+          "serial": "TST0000102",
+          "version": "n9000-16.0(5h)",
+          "address": "192.0.2.102",
+          "fabricSt": "active"
+        }
+      }
+    },
+    {
+      "fabricNode": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111",
+          "id": "111",
+          "name": "LAB-LEAF1",
+          "role": "leaf",
+          "model": "N9K-C93180YC-FX3",
+          "serial": "TST0000111",
+          "version": "n9000-16.0(5h)",
+          "address": "192.0.2.111",
+          "fabricSt": "active"
+        }
+      }
+    },
+    {
+      "fabricNode": {
+        "attributes": {
+          "dn": "topology/pod-1/node-112",
+          "id": "112",
+          "name": "LAB-LEAF2",
+          "role": "leaf",
+          "model": "N9K-C93180YC-FX3",
+          "serial": "TST0000112",
+          "version": "n9000-16.0(5h)",
+          "address": "192.0.2.112",
+          "fabricSt": "inactive"
+        }
+      }
+    }
+  ]
+}

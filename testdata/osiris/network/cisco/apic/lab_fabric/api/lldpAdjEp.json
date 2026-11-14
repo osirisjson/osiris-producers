@@ -1,0 +1,47 @@
+{
+  "totalCount": "3",
+  "imdata": [
+    {
+      "lldpAdjEp": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111/sys/lldp/inst/if-[eth1/49]/adj-1",
+          "sysName": "LAB-SPINE1",
+          "sysDesc": "topology/pod-1/node-101",
+          "portIdT": "if-name",
+          "portIdV": "Eth1/1",
+          "chassisIdT": "mac",
+          "chassisIdV": "00:00:5E:00:53:65",
+          "mgmtIp": "198.51.100.101"
+        }
+      }
+    },
+    {
+      "lldpAdjEp": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111/sys/lldp/inst/if-[eth1/48]/adj-1",
+          "sysName": "LAB-EXT-SW1.example.com",
+          "sysDesc": "Cisco Nexus Operating System",
+          "portIdT": "if-name",
+          "portIdV": "Ethernet1/52",
+          "chassisIdT": "mac",
+          "chassisIdV": "00:00:5E:00:53:A1",
+          "mgmtIp": "198.51.100.200"
+        }
+      }
+    },
+    {
+      "lldpAdjEp": {
+        "attributes": {
+          "dn": "topology/pod-1/node-112/sys/lldp/inst/if-[eth1/1]/adj-1",
+          "sysName": "",
+          "sysDesc": "LAB host",
+          "portIdT": "mac",
+          "portIdV": "00:00:5E:00:53:B2",
+          "chassisIdT": "mac",
+          "chassisIdV": "00:00:5E:00:53:B1",
+          "mgmtIp": "unspecified"
+        }
+      }
+    }
+  ]
+}

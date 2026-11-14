@@ -1,0 +1,25 @@
+{
+  "totalCount": "2",
+  "imdata": [
+    {
+      "fvCtx": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/ctx-vrf_Prod",
+          "name": "vrf_Prod",
+          "descr": "Production VRF",
+          "pcEnfPref": "enforced"
+        }
+      }
+    },
+    {
+      "fvCtx": {
+        "attributes": {
+          "dn": "uni/tn-common/ctx-default",
+          "name": "default",
+          "descr": "",
+          "pcEnfPref": "unenforced"
+        }
+      }
+    }
+  ]
+}
