@@ -1,8 +1,8 @@
-// discover.go - APIC discovery plan and per-domain failure policy. Each
-// class query has a declared criticality: an essential or structural
-// failure aborts the whole document; an optional failure degrades to
-// partial output. The coverage record that reports which operations
-// actually returned data lives in coverage.go.
+// discover.go - APIC discovery plan and per-domain failure policy.
+// Each class query has a declared criticality: an essential or
+// structural failure aborts the whole document; an optional failure
+// degrades to partial output. The coverage record that reports which
+// operations actually returned data lives in coverage.go.
 //
 // OSIRIS JSON Producer for Cisco introduction:
 // [OSIRIS-JSON-CISCO]: https://docs.osirisjson.org/osiris-producers/network/cisco
@@ -57,7 +57,8 @@ type discoveryClass struct {
 // both purposes: the physical fabric graph is emitted regardless of
 // --purpose, bounded in documentation mode to ports that participate in
 // topology. Endpoint inventory (fvCEp) and its per-endpoint IP
-// addresses (fvIp) are collected only for --purpose audit.
+// addresses (fvIp) and filter entries (vzEntry) are collected only for
+// --purpose audit.
 func discoveryPlan(audit bool) []discoveryClass {
 	plan := []discoveryClass{
 		{"fabricNode", critEssential},
@@ -74,6 +75,18 @@ func discoveryPlan(audit bool) []discoveryClass {
 		{"l3extRsEctx", critOptional},
 		{"faultInst", critOptional},
 
+		// Configured policy intent (application profiles, contracts,
+		// subjects, filters and their relations). All optional: a
+		// failure leaves the policy slice incomplete, recorded in the
+		// coverage record and never implies "no policy".
+		{"fvAp", critOptional},
+		{"vzBrCP", critOptional},
+		{"vzSubj", critOptional},
+		{"vzFilter", critOptional},
+		{"fvRsProv", critOptional},
+		{"fvRsCons", critOptional},
+		{"vzRsSubjFiltAtt", critOptional},
+
 		// Physical + logical fabric topology. All optional: a
 		// failure leaves the document without that slice of the graph
 		// and adds a coverage entry, it never aborts the producer run.
@@ -87,6 +100,7 @@ func discoveryPlan(audit bool) []discoveryClass {
 	}
 	if audit {
 		plan = append(plan,
+			discoveryClass{"vzEntry", critOptional}, // filter entries (ports, protocols)
 			discoveryClass{"fvCEp", critOptional},
 			discoveryClass{"fvIp", critOptional},
 		)

@@ -585,3 +585,123 @@ func TestNewClient_DefaultPort(t *testing.T) {
 		t.Errorf("unexpected baseURL: %s", c.baseURL)
 	}
 }
+
+// TestQueryClass_EnvelopeContract proves: every response shape has a
+// defined outcome. A missing, null or non-array imdata and an error
+// object anywhere among the elements fail the query; a valid empty
+// imdata succeeds with zero objects; elements of another class, without
+// attributes, or without a non-empty string dn are rejected and counted
+// rather than emitted; a totalCount that disagrees with what was
+// received is reported.
+func TestQueryClass_EnvelopeContract(t *testing.T) {
+	bd := `{"fvBD":{"attributes":{"dn":"uni/tn-A/BD-b","name":"b"}}}`
+	cases := []struct {
+		name         string
+		body         string
+		wantErr      error // nil: success
+		wantAPIErr   bool
+		wantObjs     int
+		wantRejected int
+		wantTotal    int
+	}{
+		{"empty object", `{}`, errInvalidEnvelope, false, 0, 0, -1},
+		{"null imdata", `{"imdata":null}`, errInvalidEnvelope, false, 0, 0, -1},
+		{"object imdata", `{"imdata":{}}`, errInvalidEnvelope, false, 0, 0, -1},
+		{"top-level array", `[]`, errInvalidJSON, false, 0, 0, -1},
+		{"top-level null", `null`, errInvalidJSON, false, 0, 0, -1},
+		{"valid empty", `{"totalCount":"0","imdata":[]}`, nil, false, 0, 0, 0},
+		{"mixed data and error", `{"imdata":[` + bd + `,{"error":{"attributes":{"code":"403","text":"x"}}}]}`, nil, true, 0, 0, -1},
+		{"wrong class", `{"imdata":[{"fvCtx":{"attributes":{"dn":"uni/tn-A/ctx-v"}}}]}`, nil, false, 0, 1, -1},
+		{"two class keys", `{"imdata":[{"fvBD":{"attributes":{"dn":"uni/tn-A/BD-b"}},"fvCtx":{"attributes":{"dn":"x"}}}]}`, nil, false, 0, 1, -1},
+		{"missing dn", `{"imdata":[{"fvBD":{"attributes":{"name":"b"}}}]}`, nil, false, 0, 1, -1},
+		{"empty dn", `{"imdata":[{"fvBD":{"attributes":{"dn":""}}}]}`, nil, false, 0, 1, -1},
+		{"number dn", `{"imdata":[{"fvBD":{"attributes":{"dn":42}}}]}`, nil, false, 0, 1, -1},
+		{"no attributes", `{"imdata":[{"fvBD":{}}]}`, nil, false, 0, 1, -1},
+		{"scalar element", `{"imdata":["x"]}`, nil, false, 0, 1, -1},
+		{"one good one bad", `{"totalCount":"2","imdata":[` + bd + `,{"fvBD":{"attributes":{}}}]}`, nil, false, 1, 1, 2},
+		{"totalCount mismatch", `{"totalCount":"5","imdata":[` + bd + `]}`, nil, false, 1, 0, 5},
+		{"numeric totalCount", `{"totalCount":1,"imdata":[` + bd + `]}`, nil, false, 1, 0, 1},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				io.WriteString(w, tc.body)
+			}))
+			defer ts.Close()
+
+			q, err := newTestClient(ts).queryClass("fvBD")
+			switch {
+			case tc.wantAPIErr:
+				var apiErr *apicAPIError
+				if !errors.As(err, &apiErr) || apiErr.code != "403" {
+					t.Fatalf("want APIC error 403, got %v", err)
+				}
+				return
+			case tc.wantErr != nil:
+				if !errors.Is(err, tc.wantErr) {
+					t.Fatalf("want %v, got %v", tc.wantErr, err)
+				}
+				return
+			case err != nil:
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if len(q.objs) != tc.wantObjs || q.rejected != tc.wantRejected || q.reportedTotal != tc.wantTotal {
+				t.Errorf("objs=%d rejected=%d total=%d, want %d/%d/%d",
+					len(q.objs), q.rejected, q.reportedTotal, tc.wantObjs, tc.wantRejected, tc.wantTotal)
+			}
+		})
+	}
+}
+
+// TestNewClient_RefusesRedirects proves: neither login nor a class
+// query follows a redirect. A 307 would replay the aaaLogin body (the
+// password) to the Location target; that target must receive nothing,
+// and the error must not echo the Location.
+func TestNewClient_RefusesRedirects(t *testing.T) {
+	var elsewhere atomic.Int32
+	other := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		elsewhere.Add(1)
+		io.WriteString(w, `{"imdata":[]}`)
+	}))
+	defer other.Close()
+
+	for _, code := range []int{301, 302, 307, 308} {
+		apic := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, other.URL+r.URL.Path, code)
+		}))
+		c := NewClient(context.Background(), run.TargetConfig{Host: "192.0.2.1"}, true, testLogger())
+		c.baseURL = apic.URL
+		c.retryBase = time.Millisecond
+
+		lErr := c.Login("admin", "CANARY-REDIRECT-PW")
+		_, qErr := c.QueryClass("fvBD")
+		apic.Close()
+
+		for name, err := range map[string]error{"login": lErr, "query": qErr} {
+			want := fmt.Sprintf("HTTP %d", code)
+			if err == nil || !strings.Contains(err.Error(), want) {
+				t.Errorf("%d %s: want error containing %q, got %v", code, name, want, err)
+				continue
+			}
+			if strings.Contains(err.Error(), other.URL) {
+				t.Errorf("%d %s: error echoes the redirect target: %v", code, name, err)
+			}
+		}
+	}
+	if n := elsewhere.Load(); n != 0 {
+		t.Fatalf("redirect target received %d request(s); want 0", n)
+	}
+}
+
+// TestNumericCode proves: only a short decimal APIC error code survives
+// into a diagnostic; any other value is dropped.
+func TestNumericCode(t *testing.T) {
+	for in, want := range map[string]string{"403": "403", "": "", "1234567": "", "40x": "", "Bearer x": ""} {
+		if got := numericCode(in); got != want {
+			t.Errorf("numericCode(%q) = %q, want %q", in, got, want)
+		}
+	}
+	if got := (&apicAPIError{}).Error(); got != "APIC error envelope" {
+		t.Errorf("empty code Error() = %q", got)
+	}
+}

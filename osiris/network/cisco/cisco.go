@@ -99,7 +99,8 @@ All four share the same broad shape:
   						response (requires --purpose audit).
 						For development purpose.
   --safe-failure-mode   Secret handling: fail-closed, log-and-redact, or
-  						off (default: fail-closed)
+						off (default: fail-closed). apic accepts
+						fail-closed or off only.
   --insecure            Skip TLS/SSH host-key verification
 
 apic/nxos/iosxe additionally support CSV batch mode (-s/--source,

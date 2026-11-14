@@ -58,8 +58,8 @@ func registerFlags(fs *flag.FlagSet) *apicFlagValues {
 	fs.StringVar(&v.output, "o", "", "output directory for batch mode")
 	fs.StringVar(&v.output, "output", "", "output directory for batch mode, see -o")
 	fs.StringVar(&v.purposeStr, "purpose", "", osirismeta.PurposeHelp())
-	fs.BoolVar(&v.includeRawBody, "include-raw-body", false, "attach each collected command's full, unmodified response body under extensions[\"osiris.cisco\"] on the owning resource (requires --purpose audit; a lossless fallback for fields not yet modeled by this producer)")
-	fs.StringVar(&v.safeFail, "safe-failure-mode", "fail-closed", "secret handling: fail-closed, log-and-redact, or off")
+	fs.BoolVar(&v.includeRawBody, "include-raw-body", false, "attach the full, redacted attribute set of every collected APIC object under extensions[\"osiris.cisco\"].raw on the entity that owns it (requires --purpose audit; a fallback for fields not yet modeled by this producer)")
+	fs.StringVar(&v.safeFail, "safe-failure-mode", "fail-closed", "secret handling: fail-closed or off (log-and-redact is not supported by the APIC producer)")
 	fs.BoolVar(&v.insecure, "insecure", false, "skip TLS certificate verification")
 
 	// Overriding fs.Usage (rather than leaving flag.Parse's default,
@@ -259,11 +259,23 @@ func ParseFlags(args []string, promptVisible, promptHidden func(string) (string,
 		return nil, err
 	}
 
+	// log-and-redact is rejected rather than accepted: the APIC
+	// producer performs no value replacement, so a document built under
+	// it would carry any detected secret while its metadata claimed
+	// redaction. fail-closed aborts on a finding instead.
 	switch v.safeFail {
-	case "fail-closed", "log-and-redact", "off":
+	case "fail-closed", "off":
 		// valid
+	case "log-and-redact":
+		return nil, fmt.Errorf("--safe-failure-mode log-and-redact is not supported by the APIC producer: use fail-closed (default) or off")
 	default:
-		return nil, fmt.Errorf("invalid --safe-failure-mode value %q: must be fail-closed, log-and-redact, or off", v.safeFail)
+		return nil, fmt.Errorf("invalid --safe-failure-mode value %q: must be fail-closed or off", v.safeFail)
+	}
+
+	// Raw attributes are audit-purpose data; accepting the flag in
+	// documentation purpose would silently do nothing.
+	if v.includeRawBody && purpose.String() != "audit" {
+		return nil, fmt.Errorf("--include-raw-body requires --purpose audit")
 	}
 
 	if v.host != "" && v.source != "" {

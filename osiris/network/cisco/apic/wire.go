@@ -188,14 +188,16 @@ type adjacency struct {
 }
 
 // adjacencyGraph accumulates fabricLink, LLDP and CDP observations into
-// one physical.ethernet connection per distinct link, and collects a
+// one physical.ethernet connection per distinct link and collects a
 // minimal resource for every neighbour that is not an APIC fabric node.
 type adjacencyGraph struct {
-	numToDN   map[string]string
-	nodeIDs   map[string]bool
-	nameToID  map[string]string
-	links     map[string]*adjacency
-	externals map[string]*sdk.Resource
+	numToDN     map[string]string
+	nodeIDs     map[string]bool
+	nameToID    map[string]string // emitted fabric node name -> resource IDì
+	hiddenNames map[string]bool   // hiddenNames are fabric node names with no emitted resource.
+	links       map[string]*adjacency
+	externals   map[string]*sdk.Resource
+	unresolved  int // unresolved counts CDP observations skipped because they name a fabric node without an emitted resource.
 }
 
 // WireFabricAdjacencies merges the fabricLink, lldpAdjEp and cdpAdjEp
@@ -205,17 +207,30 @@ type adjacencyGraph struct {
 // deterministic minimal network.switch resource
 // (id "cisco.apic::external/<name>") so the connection resolves;
 // manufacturer/model are set only when CDP explicitly reports them.
-func WireFabricAdjacencies(fabricLinks, lldp, cdp, nodes []map[string]any, nodeResources []sdk.Resource) ([]sdk.Resource, []sdk.Connection) {
+//
+// A CDP neighbour whose system name matches a fabric node that is not
+// in nodeResources (an unsupported role) is never wired: the edge would
+// reference a resource the document does not contain and the node is
+// not an external device either. Such observations are skipped and
+// returned as the unresolved count.
+func WireFabricAdjacencies(fabricLinks, lldp, cdp, nodes []map[string]any, nodeResources []sdk.Resource) ([]sdk.Resource, []sdk.Connection, int) {
 	g := &adjacencyGraph{
-		numToDN:   nodeNumIndex(nodes),
-		nodeIDs:   resourceIDSet(nodeResources),
-		nameToID:  make(map[string]string, len(nodes)),
-		links:     make(map[string]*adjacency),
-		externals: make(map[string]*sdk.Resource),
+		numToDN:     nodeNumIndex(nodes),
+		nodeIDs:     resourceIDSet(nodeResources),
+		nameToID:    make(map[string]string, len(nodes)),
+		hiddenNames: make(map[string]bool),
+		links:       make(map[string]*adjacency),
+		externals:   make(map[string]*sdk.Resource),
 	}
 	for _, n := range nodes {
-		if nm := str(n, "name"); nm != "" {
-			g.nameToID[nm] = resourceID(str(n, "dn"))
+		nm := str(n, "name")
+		if nm == "" {
+			continue
+		}
+		if id := resourceID(str(n, "dn")); g.nodeIDs[id] {
+			g.nameToID[nm] = id
+		} else {
+			g.hiddenNames[nm] = true
 		}
 	}
 
@@ -261,7 +276,7 @@ func WireFabricAdjacencies(fabricLinks, lldp, cdp, nodes []map[string]any, nodeR
 		c.Properties = props
 		conns = append(conns, c)
 	}
-	return extResources, conns
+	return extResources, conns, g.unresolved
 }
 
 // add records one observation of a link between two endpoints.
@@ -451,6 +466,10 @@ func (g *adjacencyGraph) remoteFromCDP(a map[string]any) (id, port string) {
 	}
 	if rid, ok := g.nameToID[baseSysName(name)]; ok {
 		return rid, remotePort
+	}
+	if g.hiddenNames[name] || g.hiddenNames[baseSysName(name)] {
+		g.unresolved++
+		return "", ""
 	}
 
 	key := baseSysName(name)

@@ -11,6 +11,7 @@ package apic
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -34,6 +35,14 @@ func fixtureServer(t *testing.T) *httptest.Server {
 // class name -> HTTP status the class query should fail with, so a
 // test can exercise the discovery failure policy.
 func fixtureServerWithFailures(t *testing.T, failCodes map[string]int) *httptest.Server {
+	t.Helper()
+	return fixtureServerWith(t, failCodes, nil)
+}
+
+// fixtureServerWith is fixtureServerWithFailures plus a map of
+// class name -> imdata slice that replaces that class's canned
+// response, so a test can inject specific APIC objects.
+func fixtureServerWith(t *testing.T, failCodes map[string]int, overrides map[string]any) *httptest.Server {
 	t.Helper()
 
 	fixtures := map[string]any{
@@ -91,6 +100,10 @@ func fixtureServerWithFailures(t *testing.T, failCodes map[string]int) *httptest
 			apicObj("faultInst", map[string]any{"dn": "uni/tn-tn_Example/fault-F2222", "code": "F2222", "severity": "critical", "cause": "config-failure", "descr": "Configuration deployment failed", "created": "2026-02-25T10:00:00.000+00:00", "lastTransition": "2026-02-25T10:15:00.000+00:00", "lc": "raised", "domain": "tenant", "subject": "config"}),
 			apicObj("faultInst", map[string]any{"dn": "topology/pod-1/node-101/sys/old/fault-F9999", "code": "F9999", "severity": "cleared", "cause": "resolved", "descr": "Old cleared fault", "created": "2026-01-01T00:00:00.000+00:00", "lastTransition": "2026-02-01T00:00:00.000+00:00", "lc": "cleared", "domain": "infra", "subject": "test"}),
 		},
+	}
+
+	for class, data := range overrides {
+		fixtures[class] = data
 	}
 
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -195,9 +208,10 @@ func TestCollect_Minimal(t *testing.T) {
 		t.Errorf("generator: %s", doc.Metadata.Generator.Name)
 	}
 
-	// Minimal: 3 nodes + 1 BD + 1 subnet + 1 L3Out = 6 resources.
-	if len(doc.Topology.Resources) != 6 {
-		t.Errorf("expected 6 resources, got %d", len(doc.Topology.Resources))
+	// Minimal: 3 nodes + 1 BD + 1 subnet + 1 L3Out + the EPG and VRF
+	// policy anchors = 8 resources.
+	if len(doc.Topology.Resources) != 8 {
+		t.Errorf("expected 8 resources, got %d", len(doc.Topology.Resources))
 		for _, r := range doc.Topology.Resources {
 			t.Logf("  resource: %s (%s)", r.ID, r.Type)
 		}
@@ -210,18 +224,29 @@ func TestCollect_Minimal(t *testing.T) {
 	assertCount(t, typeCounts, "network.subnet", 1)
 	assertCount(t, typeCounts, "osiris.cisco.l3out", 1)
 	assertCount(t, typeCounts, "network.interface", 0) // minimal = no endpoints
+	assertCount(t, typeCounts, policyEPGType, 1)
+	assertCount(t, typeCounts, policyVRFType, 1)
 
-	// The only connection with this minimal fixture
-	// (no physical-topology classes) is the bridge-domain -> subnet
-	// containment edge. Physical links, ports and neighbours are
-	// exercised in transform_topology_test.go and wire_test.go.
-	if len(doc.Topology.Connections) != 1 {
-		t.Fatalf("expected 1 connection (BD contains subnet), got %d", len(doc.Topology.Connections))
+	// With this minimal fixture (no physical-topology or contract
+	// classes) the connections are the bridge-domain -> subnet
+	// containment edge and the three configured relation edges
+	// (fvRsBd, fvRsCtx, l3extRsEctx). Physical links, ports and
+	// neighbours are exercised in transform_topology_test.go and
+	// wire_test.go; contracts in transform_policy_test.go.
+	type edge struct{ typ, src, tgt string }
+	want := map[edge]bool{
+		{"contains", resourceID("uni/tn-tn_Example/BD-bd_App"), resourceID("uni/tn-tn_Example/BD-bd_App/subnet-[203.0.113.1/24]")}: true,
+		{connEPGToBD, resourceID("uni/tn-tn_Example/ap-app1/epg-epg_WEB"), resourceID("uni/tn-tn_Example/BD-bd_App")}:              true,
+		{connBDToVRF, resourceID("uni/tn-tn_Example/BD-bd_App"), resourceID("uni/tn-tn_Example/ctx-vrf_Prod_1")}:                   true,
+		{connL3OutToVRF, resourceID("uni/tn-tn_Example/out-l3out_Prod_1"), resourceID("uni/tn-tn_Example/ctx-vrf_Prod_1")}:         true,
 	}
-	if c := doc.Topology.Connections[0]; c.Type != "contains" ||
-		c.Source != resourceID("uni/tn-tn_Example/BD-bd_App") ||
-		c.Target != resourceID("uni/tn-tn_Example/BD-bd_App/subnet-[203.0.113.1/24]") {
-		t.Errorf("unexpected connection: type=%s source=%s target=%s", c.Type, c.Source, c.Target)
+	if len(doc.Topology.Connections) != len(want) {
+		t.Fatalf("expected %d connections, got %d", len(want), len(doc.Topology.Connections))
+	}
+	for _, c := range doc.Topology.Connections {
+		if !want[edge{c.Type, c.Source, c.Target}] {
+			t.Errorf("unexpected connection: type=%s source=%s target=%s", c.Type, c.Source, c.Target)
+		}
 	}
 
 	// Groups: 2 tenants + 1 VRF + 1 EPG = 4.
@@ -262,9 +287,10 @@ func TestCollect_Detailed(t *testing.T) {
 		t.Fatalf("Collect failed: %v", err)
 	}
 
-	// Detailed: 3 nodes + 1 BD + 1 subnet + 1 L3Out + 1 endpoint = 7.
-	if len(doc.Topology.Resources) != 7 {
-		t.Errorf("expected 7 resources, got %d", len(doc.Topology.Resources))
+	// Detailed: 3 nodes + 1 BD + 1 subnet + 1 L3Out + 1 endpoint + the
+	// EPG and VRF policy anchors = 9.
+	if len(doc.Topology.Resources) != 9 {
+		t.Errorf("expected 9 resources, got %d", len(doc.Topology.Resources))
 		for _, r := range doc.Topology.Resources {
 			t.Logf("  resource: %s (%s)", r.ID, r.Type)
 		}
@@ -606,9 +632,10 @@ func TestCollect_OptionalDiscoveryFailureDegrades(t *testing.T) {
 		t.Fatalf("optional-domain failure must not abort the run: %v", err)
 	}
 
-	// Core resources are still there.
-	if len(doc.Topology.Resources) != 6 {
-		t.Errorf("expected 6 resources despite faultInst failure, got %d", len(doc.Topology.Resources))
+	// Core resources (including the EPG and VRF policy anchors) are
+	// still there.
+	if len(doc.Topology.Resources) != 8 {
+		t.Errorf("expected 8 resources despite faultInst failure, got %d", len(doc.Topology.Resources))
 	}
 
 	var sawFailed bool
@@ -657,5 +684,157 @@ func TestCollect_EssentialDiscoveryFailureAborts(t *testing.T) {
 	producer, ctx := newTestProducer(t, ts, "minimal")
 	if _, err := producer.Collect(ctx); err == nil {
 		t.Fatal("fabricNode failure must abort the document")
+	}
+}
+
+// TestCollect_GeneratorMetadata proves: metadata.generator carries the
+// producer name, behavior version and documentation URL.
+func TestCollect_GeneratorMetadata(t *testing.T) {
+	ts := fixtureServer(t)
+	defer ts.Close()
+
+	data, err, _ := collectWith(t, ts.URL, ts.Client(), "documentation", sdk.FailClosed)
+	if err != nil {
+		t.Fatalf("Collect failed: %v", err)
+	}
+	var doc sdk.Document
+	if err := json.Unmarshal(data, &doc); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	g := doc.Metadata.Generator
+	if g.Name != generatorName || g.Version != generatorVersion || g.URL != generatorURL {
+		t.Errorf("generator = %+v, want {%s %s %s}", g, generatorName, generatorVersion, generatorURL)
+	}
+}
+
+// TestCollect_EmptyFabricInventoryFails proves: an empty fabricNode or
+// topSystem answer, or a fabricNode answer with no supported role,
+// produces no document in either purpose. An APIC always reports its
+// own controller, so empty inventory means the account cannot see the
+// fabric and an "empty fabric" document would be false.
+func TestCollect_EmptyFabricInventoryFails(t *testing.T) {
+	cases := map[string]map[string]any{
+		"no fabricNode": {"fabricNode": []any{}},
+		"no topSystem":  {"topSystem": []any{}},
+		"no supported role": {"fabricNode": []any{
+			apicObj("fabricNode", map[string]any{"dn": "topology/pod-1/node-201", "name": "LAB-X1", "role": "unsupported-role", "id": "201"}),
+		}},
+	}
+	for name, override := range cases {
+		for _, purpose := range []string{"documentation", "audit"} {
+			t.Run(name+"/"+purpose, func(t *testing.T) {
+				ts := fixtureServerWith(t, nil, override)
+				defer ts.Close()
+				data, err, _ := collectWith(t, ts.URL, ts.Client(), purpose, sdk.FailClosed)
+				if !errors.Is(err, errNoFabricInventory) {
+					t.Fatalf("want errNoFabricInventory, got err=%v doc=%d bytes", err, len(data))
+				}
+			})
+		}
+	}
+}
+
+// TestCollect_RejectedObjectsPolicy proves: an unidentifiable element
+// in a structural class aborts the run (no document, sanitized
+// rejected-objects error), while in an optional class it is dropped,
+// the run succeeds and the coverage record carries the rejected count.
+// A valid empty optional class stays a success with count 0.
+func TestCollect_RejectedObjectsPolicy(t *testing.T) {
+	t.Run("structural aborts", func(t *testing.T) {
+		ts := fixtureServerWith(t, nil, map[string]any{"fvBD": []any{
+			apicObj("fvBD", map[string]any{"dn": "uni/tn-tn_Example/BD-bd_App", "name": "bd_App"}),
+			apicObj("fvBD", map[string]any{"name": "no-dn"}),
+		}})
+		defer ts.Close()
+		_, err, _ := collectWith(t, ts.URL, ts.Client(), "documentation", sdk.FailClosed)
+		if !errors.Is(err, errRejectedObjects) {
+			t.Fatalf("want errRejectedObjects, got %v", err)
+		}
+		if got := sanitizeFailureCategory(err); got != "rejected-objects" {
+			t.Errorf("category = %q", got)
+		}
+	})
+
+	t.Run("optional is partial", func(t *testing.T) {
+		ts := fixtureServerWith(t, nil, map[string]any{
+			"faultInst": []any{
+				apicObj("faultInst", map[string]any{"dn": "topology/pod-1/node-101/sys/fault-F1", "code": "F1", "severity": "minor", "lc": "raised"}),
+				apicObj("eventRecord", map[string]any{"dn": "topology/pod-1/node-101/sys/ev-1"}),
+			},
+			"fabricLink": []any{},
+		})
+		defer ts.Close()
+		data, err, _ := collectWith(t, ts.URL, ts.Client(), "documentation", sdk.FailClosed)
+		if err != nil {
+			t.Fatalf("Collect: %v", err)
+		}
+		ops := coverageOps(t, data)
+		if f := ops["faultInst"]; f["status"] != "succeeded" || f["count"] != float64(1) || f["rejected"] != float64(1) {
+			t.Errorf("faultInst coverage = %v", f)
+		}
+		if l := ops["fabricLink"]; l["status"] != "succeeded" || l["count"] != float64(0) || l["rejected"] != nil {
+			t.Errorf("fabricLink coverage = %v", l)
+		}
+	})
+}
+
+// coverageOps returns the controller's coverage record keyed by
+// operation.
+func coverageOps(t *testing.T, data []byte) map[string]map[string]any {
+	t.Helper()
+	var doc struct {
+		Topology struct {
+			Resources []struct {
+				Properties map[string]any            `json:"properties"`
+				Extensions map[string]map[string]any `json:"extensions"`
+			} `json:"resources"`
+		} `json:"topology"`
+	}
+	if err := json.Unmarshal(data, &doc); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	for _, r := range doc.Topology.Resources {
+		cov, ok := r.Extensions[extensionNamespace]["coverage"].([]any)
+		if !ok {
+			continue
+		}
+		out := map[string]map[string]any{}
+		for _, e := range cov {
+			m := e.(map[string]any)
+			out[m["operation"].(string)] = m
+		}
+		return out
+	}
+	t.Fatal("no coverage record in document")
+	return nil
+}
+
+// TestCollect_CDPToUnemittedNodeIsUnresolved proves: a CDP neighbour
+// named like a fabric node that has no emitted resource (unsupported
+// role) produces neither a dangling connection nor a fake external
+// device; the build succeeds and the cdpAdjEp coverage entry carries
+// the unresolved count.
+func TestCollect_CDPToUnemittedNodeIsUnresolved(t *testing.T) {
+	ts := fixtureServerWith(t, nil, map[string]any{
+		"fabricNode": []any{
+			apicObj("fabricNode", map[string]any{"dn": "topology/pod-1/node-1", "name": "LAB-APIC1", "role": "controller", "id": "1"}),
+			apicObj("fabricNode", map[string]any{"dn": "topology/pod-1/node-111", "name": "LAB-LEAF1", "role": "leaf", "id": "111"}),
+			apicObj("fabricNode", map[string]any{"dn": "topology/pod-1/node-201", "name": "LAB-HIDDEN1", "role": "unsupported-role", "id": "201"}),
+		},
+		"cdpAdjEp": []any{
+			apicObj("cdpAdjEp", map[string]any{"dn": "topology/pod-1/node-111/sys/cdp/inst/if-[eth1/1]/adj-1", "sysName": "LAB-HIDDEN1", "portId": "Ethernet1/1"}),
+		},
+	})
+	defer ts.Close()
+
+	data, err, _ := collectWith(t, ts.URL, ts.Client(), "audit", sdk.FailClosed)
+	if err != nil {
+		t.Fatalf("Collect: %v", err)
+	}
+	if strings.Contains(string(data), "node-201") || strings.Contains(string(data), "external/lab-hidden1") {
+		t.Error("document references the un-emitted node")
+	}
+	if u := coverageOps(t, data)["cdpAdjEp"]["unresolved"]; u != float64(1) {
+		t.Errorf("cdpAdjEp unresolved = %v, want 1", u)
 	}
 }

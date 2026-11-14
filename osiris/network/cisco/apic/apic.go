@@ -7,7 +7,7 @@
 // --help, template generation) alongside the Producer type and its
 // Collect, the same one-file shape. The per-domain APIC ->
 // OSIRIS mapping lives in the transform_<area>.go files; relationship
-// wiring is in wire.go, the discovery plan in discover.go, and the
+// wiring is in wire.go, the discovery plan in discover.go and the
 // typed response envelope in client.go.
 //
 // OSIRIS JSON Producer for Cisco introduction:
@@ -17,6 +17,7 @@ package apic
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -31,7 +32,8 @@ import (
 
 const (
 	generatorName    = "osirisjson-producer-cisco-apic"
-	generatorVersion = "0.2.0"
+	generatorVersion = "0.3.0"
+	generatorURL     = "https://docs.osirisjson.org/osiris-producers/network/cisco"
 )
 
 type Producer struct {
@@ -79,13 +81,16 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 
 	// Run the discovery plan. An essential or structural failure aborts
 	// the document; an optional failure is logged, recorded in the
-	// coverage report, and the run continues with a partial document.
+	// coverage report and the run continues with a partial document.
 	cov := &coverageRecorder{}
 	raw := make(map[string][]map[string]any)
 	for i, dc := range plan {
 		ctx.Logger.Info("querying APIC class",
 			"step", fmt.Sprintf("%d/%d", i+1, len(plan)), "class", dc.name, "criticality", dc.crit.String())
-		objs, qErr := client.QueryClass(dc.name)
+		q, qErr := client.queryClass(dc.name)
+		if qErr == nil && q.rejected > 0 && dc.crit.aborts() {
+			qErr = fmt.Errorf("%d object(s): %w", q.rejected, errRejectedObjects)
+		}
 		if qErr != nil {
 			if dc.crit.aborts() {
 				return nil, fmt.Errorf("APIC discovery %q (%s) failed: %w", dc.name, dc.crit, qErr)
@@ -96,11 +101,12 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 			cov.failed(dc.name, cat)
 			continue
 		}
-		objs = dedupeByDN(objs, dc.name, ctx.Logger)
+		objs := dedupeByDN(append([]map[string]any(nil), q.objs...), dc.name, ctx.Logger)
 		raw[dc.name] = objs
-		cov.succeeded(dc.name, len(objs))
+		cov.succeededQuery(dc.name, q, len(objs))
 	}
 	if !audit {
+		cov.skipped("vzEntry")
 		cov.skipped("fvCEp")
 		cov.skipped("fvIp")
 	}
@@ -110,6 +116,15 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 
 	nodes := raw["fabricNode"]
 	systems := raw["topSystem"]
+
+	// Minimum visible inventory. An APIC always reports at least its
+	// own controller in fabricNode and topSystem; an empty answer means
+	// the account cannot see the fabric (security-domain or role
+	// limits) and a document claiming an empty fabric would be false.
+	if len(nodes) == 0 || len(systems) == 0 {
+		return nil, fmt.Errorf("APIC discovery returned no fabric inventory (fabricNode=%d, topSystem=%d): %w",
+			len(nodes), len(systems), errNoFabricInventory)
+	}
 	firmware := raw["firmwareRunning"]
 	tenantAttrs := raw["fvTenant"]
 	vrfAttrs := raw["fvCtx"]
@@ -136,12 +151,17 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	// Transform APIC data to OSIRIS types.
 	ctx.Logger.Info("transforming ACI objects to OSIRIS resources and groups")
 	nodeResources := TransformNodes(nodes, systems, firmware)
+	if len(nodeResources) == 0 {
+		return nil, fmt.Errorf("APIC fabricNode returned %d object(s) but none has a supported role: %w",
+			len(nodes), errNoFabricInventory)
+	}
 	tenantGroups, tenantDNToID := TransformTenants(tenantAttrs)
 	vrfGroups, vrfDNToID := TransformVRFs(vrfAttrs)
 	bdResources, bdDNToID := TransformBridgeDomains(bdAttrs)
 	subnetResources := TransformSubnets(subnetAttrs)
 	epgGroups, epgDNToID := TransformEPGs(epgAttrs)
 	l3outResources, l3outDNToID := TransformL3Outs(l3outAttrs)
+	appGroups, appDNToID := TransformAppProfiles(raw["fvAp"])
 
 	// Physical fabric: switch ports (bounded to topology-participating
 	// ports in documentation mode, every port under --purpose audit)
@@ -160,7 +180,16 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	// Tenant children: VRFs and EPGs are child groups of
 	// their parent tenant.
 	WireVRFsToTenants(vrfAttrs, vrfDNToID, tenantDNToID, tenantGroups)
-	WireEPGsToTenants(epgAttrs, epgDNToID, tenantDNToID, tenantGroups)
+	// EPGs nest under their application-profile group when it was
+	// collected, otherwise directly under their tenant.
+	placed := WireAppProfiles(raw["fvAp"], appDNToID, appGroups, epgAttrs, epgDNToID, tenantDNToID, tenantGroups)
+	var unplacedEPGs []map[string]any
+	for _, e := range epgAttrs {
+		if !placed[str(e, "dn")] {
+			unplacedEPGs = append(unplacedEPGs, e)
+		}
+	}
+	WireEPGsToTenants(unplacedEPGs, epgDNToID, tenantDNToID, tenantGroups)
 
 	// Tenant members: BDs, subnets and L3Outs are resource
 	// members of their tenant.
@@ -182,10 +211,15 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	}
 
 	// Wire physical topology: node contains port, port-channel contains
-	// member, bridge-domain contains subnet, and the merged
+	// member, bridge-domain contains subnet and the merged
 	// fabricLink/LLDP/CDP adjacency graph.
 	ctx.Logger.Info("wiring physical fabric topology (ports, links, neighbours)")
-	extNeighbourResources, adjacencyConns := WireFabricAdjacencies(fabricLinkAttrs, lldpAttrs, cdpAttrs, nodes, nodeResources)
+	extNeighbourResources, adjacencyConns, cdpUnresolved := WireFabricAdjacencies(fabricLinkAttrs, lldpAttrs, cdpAttrs, nodes, nodeResources)
+	if cdpUnresolved > 0 {
+		ctx.Logger.Warn("CDP neighbours name a fabric node that is not in the document; adjacency skipped",
+			"count", cdpUnresolved)
+		cov.unresolved("cdpAdjEp", cdpUnresolved)
+	}
 	var topoConns []sdk.Connection
 	topoConns = append(topoConns, WireNodePorts(portDNToID, nodeIDs)...)
 	topoConns = append(topoConns, WireNodePorts(pcDNToID, nodeIDs)...)
@@ -200,6 +234,47 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		WireEPGPathAttachments(pathAttAttrs, epgDNToID, epgGroups, portDNToID, pcDNToID, numToDN)
 	}
 
+	// Configured policy intent: EPG/VRF resource anchors, contracts,
+	// subjects and filters and forward relation edges between them.
+	ctx.Logger.Info("transforming configured policy intent (contracts, subjects, filters)")
+	anchorResources, epgAnchors, vrfAnchors := TransformPolicyAnchors(epgAttrs, epgDNToID, epgGroups, vrfAttrs, vrfDNToID, vrfGroups)
+	contractResources, contractIdx := TransformContracts(raw["vzBrCP"])
+	tally := newPolicyTally()
+	subjectResources, subjectDNToID, subjectConns := TransformSubjects(raw["vzSubj"], contractIdx, tally)
+	filterResources, filterIdx := TransformFilters(raw["vzFilter"], raw["vzEntry"])
+	policyConns := WirePolicyRelations(raw, policyRefs{
+		epgAnchors:  epgAnchors,
+		vrfAnchors:  vrfAnchors,
+		bdDNToID:    bdDNToID,
+		l3outDNToID: l3outDNToID,
+		contracts:   contractIdx,
+		subjects:    subjectDNToID,
+		filters:     filterIdx,
+	}, tally)
+	topoConns = append(topoConns, subjectConns...)
+	topoConns = append(topoConns, policyConns...)
+	for _, class := range sortedKeys(tally.unresolved) {
+		ctx.Logger.Warn("APIC relations without an emitted source or target; no edge emitted",
+			"class", class, "count", tally.unresolved[class])
+		cov.unresolved(class, tally.unresolved[class])
+	}
+	for _, class := range sortedKeys(tally.outOfScope) {
+		total := 0
+		for _, scope := range sortedKeys(tally.outOfScope[class]) {
+			n := tally.outOfScope[class][scope]
+			total += n
+			ctx.Logger.Info("APIC policy objects outside the modeled scope; not emitted",
+				"class", class, "scope", scope, "count", n)
+		}
+		cov.outOfScope(class, total)
+	}
+	var policyResources []sdk.Resource
+	policyResources = append(policyResources, anchorResources...)
+	policyResources = append(policyResources, contractResources...)
+	policyResources = append(policyResources, subjectResources...)
+	policyResources = append(policyResources, filterResources...)
+	WirePolicyToTenants(policyResources, tenantDNToID, tenantGroups)
+
 	// Wire fault extensions.
 	faultsByDN := TransformFaults(faultAttrs)
 	WireFaultsToNodes(nodeResources, faultsByDN)
@@ -209,6 +284,9 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	// resources (the controllers) so a consumer holding only the
 	// document can see which optional domains are absent and why.
 	attachCoverage(nodeResources, cov.asSlice())
+	if cov.anySucceeded("fvAp", "vzBrCP", "vzSubj", "vzFilter", "fvRsProv", "fvRsCons", "vzRsSubjFiltAtt") {
+		attachControllerExtension(nodeResources, "policy_scope", policyScope)
+	}
 
 	scopePurpose := ""
 	if ctx.Config != nil {
@@ -224,7 +302,7 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	}
 	coverageSummary := cov.summary(firstFabricDomain(systems))
 	builder := sdk.NewDocumentBuilder(ctx).
-		WithGenerator(generatorName, generatorVersion).
+		WithGenerator(generatorName, generatorVersion, generatorURL).
 		WithScope(sdk.Scope{
 			Name:        scopeName,
 			Providers:   []string{providerName},
@@ -232,45 +310,44 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 			Description: coverageSummary,
 		})
 
-	for _, r := range nodeResources {
-		builder.AddResource(r)
-	}
-	for _, r := range bdResources {
-		builder.AddResource(r)
-	}
-	for _, r := range subnetResources {
-		builder.AddResource(r)
-	}
-	for _, r := range l3outResources {
-		builder.AddResource(r)
-	}
-	for _, r := range portResources {
-		builder.AddResource(r)
-	}
-	for _, r := range pcResources {
-		builder.AddResource(r)
-	}
-	for _, r := range extNeighbourResources {
-		builder.AddResource(r)
-	}
-
+	var resources []sdk.Resource
+	resources = append(resources, nodeResources...)
+	resources = append(resources, bdResources...)
+	resources = append(resources, subnetResources...)
+	resources = append(resources, l3outResources...)
+	resources = append(resources, portResources...)
+	resources = append(resources, pcResources...)
+	resources = append(resources, extNeighbourResources...)
+	resources = append(resources, policyResources...)
 	if len(endpointAttrs) > 0 {
-		for _, r := range TransformEndpoints(endpointAttrs, endpointIPAttrs) {
-			builder.AddResource(r)
+		resources = append(resources, TransformEndpoints(endpointAttrs, endpointIPAttrs)...)
+	}
+	var groups []sdk.Group
+	groups = append(groups, tenantGroups...)
+	groups = append(groups, vrfGroups...)
+	groups = append(groups, epgGroups...)
+	groups = append(groups, appGroups...)
+
+	// --include-raw-body (audit purpose only): attach every collected
+	// object's redacted attributes to the entity that owns it.
+	if audit && ctx.Config.IncludeRawBody {
+		ctx.Logger.Info("attaching raw APIC object attributes (--include-raw-body)")
+		groupDNs := map[string]string{}
+		for _, m := range []map[string]string{tenantDNToID, vrfDNToID, epgDNToID, appDNToID} {
+			for dn, gid := range m {
+				groupDNs[gid] = dn
+			}
 		}
+		attachRawBodies(raw, resources, groups, groupDNs)
 	}
 
+	for _, r := range resources {
+		builder.AddResource(r)
+	}
 	for _, c := range topoConns {
 		builder.AddConnection(c)
 	}
-
-	for _, g := range tenantGroups {
-		builder.AddGroup(g)
-	}
-	for _, g := range vrfGroups {
-		builder.AddGroup(g)
-	}
-	for _, g := range epgGroups {
+	for _, g := range groups {
 		builder.AddGroup(g)
 	}
 
@@ -291,6 +368,14 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 
 	return doc, nil
 }
+
+// errNoFabricInventory reports that the essential fabric inventory was
+// empty or contained no supported node: no document is produced.
+var errNoFabricInventory = errors.New("no visible fabric inventory; check the account's role and security domains")
+
+// errRejectedObjects reports that an essential or structural class
+// returned elements that could not be identified (see queryClass).
+var errRejectedObjects = errors.New("rejected: not an identified object of the requested class")
 
 // dedupeByDN removes objects whose dn already appeared earlier in the
 // same class response, preserving order. APIC class-query pagination
@@ -524,7 +609,7 @@ func newSDKContext(cfg *Config) *sdk.Context {
 // it cannot drift from what ParseFlags actually accepts. Only the
 // narrative sections below are prose.
 func printHelp() {
-	fmt.Print(`osirisjson-producer cisco apic - Cisco ACI/APIC fabric topology OSIRIS JSON producer
+	fmt.Print(`osirisjson-producer cisco apic - OSIRIS JSON producer for Cisco ACI/APIC
 
 Usage:
   osirisjson-producer cisco apic [flags]
@@ -548,6 +633,38 @@ Flags:
                                     "default" fallback for anything unmatched
 The file must be a regular file (not a symlink) readable only by its
 owner (e.g. chmod 0600); a looser file is rejected.
+
+Discovery and failure behavior:
+  Every class is read with paged GET /api/class/<class>.json queries.
+  The producer never writes to the APIC. fvCEp and fvIp (endpoints) and
+  vzEntry (filter entries: protocols and ports) are read only with
+  --purpose audit flag.
+  fabricNode and topSystem (fabric inventory) and the tenant, VRF,
+  bridge-domain, subnet, EPG and L3Out classes are required: if one
+  fails, returns a malformed response or an object without a dn, or the
+  fabric inventory is empty (the account cannot see the fabric), no
+  document is written and the run exits non-zero.
+  Every other class is optional: a failure is logged and the document
+  is written as partial. The per-class coverage record on the controller
+  resources and metadata.scope.description name what is missing.
+  Policy is configured intent only: application profiles, contracts,
+  subjects, filters and which EPGs provide or consume each contract. It
+  never states that traffic is permitted or flows. vzAny, taboo
+  contracts, endpoint security groups, external and management EPGs,
+  out-of-band contracts, contract inheritance, service graphs and
+  direction-specific subject terms are not modeled (policy_scope on the
+  controller resources lists them; coverage counts them as
+  out_of_scope).
+  Redirects are never followed. Errors and logs carry the class, HTTP
+  status and APIC error code only, never response content.
+  A secret-shaped value anywhere in the document aborts the run
+  (--safe-failure-mode fail-closed). log-and-redact is not supported
+  and is rejected.
+  --include-raw-body (with --purpose audit only) attaches the full
+  attribute set of every collected object, redacted, under
+  extensions["osiris.cisco"].raw on the resource or group that owns it
+  (longest DN prefix); objects without an owner go to raw_unowned and
+  withheld objects are counted in raw_omitted on the controllers.
 
 Batch mode (-s/--source): a CSV file with columns
 datacenter,floor,room,rack,hostname,management_ip,port

@@ -112,7 +112,7 @@ func TestWireFabricAdjacencies_MergesSources(t *testing.T) {
 	cdp := []map[string]any{
 		{"dn": "topology/pod-1/node-101/sys/cdp/inst/if-[eth1/1]/adj-1", "sysName": "LAB-LEAF1", "portId": "Ethernet1/53"},
 	}
-	ext, conns := WireFabricAdjacencies(fabricLinks, lldp, cdp, nodes, nodeResources)
+	ext, conns, _ := WireFabricAdjacencies(fabricLinks, lldp, cdp, nodes, nodeResources)
 	if len(ext) != 0 {
 		t.Fatalf("expected no external resources, got %d", len(ext))
 	}
@@ -147,7 +147,7 @@ func TestWireFabricAdjacencies_ExternalNeighbour(t *testing.T) {
 	cdp := []map[string]any{
 		{"dn": "topology/pod-1/node-111/sys/cdp/inst/if-[eth1/1]/adj-1", "sysName": "LAB-EXT-SW1", "portId": "Ethernet1/48", "platId": "N9K-C93180YC-FX", "ver": "Cisco Nexus Operating System (NX-OS)", "devId": "LAB-EXT-SW1(TST0000009)"},
 	}
-	ext, conns := WireFabricAdjacencies(nil, lldp, cdp, nodes, nodeResources)
+	ext, conns, _ := WireFabricAdjacencies(nil, lldp, cdp, nodes, nodeResources)
 	if len(ext) != 1 {
 		t.Fatalf("expected 1 external neighbour resource, got %d", len(ext))
 	}

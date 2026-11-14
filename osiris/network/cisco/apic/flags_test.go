@@ -85,3 +85,41 @@ func TestParseFlags_SingleModeBuildsOneTarget(t *testing.T) {
 		t.Fatalf("unexpected targets: %+v", cfg.Targets)
 	}
 }
+
+// TestParseFlags_RejectsLogAndRedact proves: log-and-redact is refused,
+// because the APIC producer performs no value replacement and the
+// document metadata would otherwise claim a redaction that never
+// happened. fail-closed and off remain accepted.
+func TestParseFlags_RejectsLogAndRedact(t *testing.T) {
+	_, err := ParseFlags([]string{"-h", "192.0.2.1", "-u", "admin", "--safe-failure-mode", "log-and-redact"}, nil, nil)
+	if err == nil || !strings.Contains(err.Error(), "not supported") {
+		t.Fatalf("expected log-and-redact rejection, got: %v", err)
+	}
+	for _, mode := range []string{"fail-closed", "off"} {
+		cfg, err := ParseFlags([]string{"-h", "192.0.2.1", "-u", "admin", "--safe-failure-mode", mode}, nil, nil)
+		if err != nil {
+			t.Fatalf("mode %s: %v", mode, err)
+		}
+		if cfg.SafeFailureMode != mode {
+			t.Errorf("SafeFailureMode = %q, want %q", cfg.SafeFailureMode, mode)
+		}
+	}
+}
+
+// TestParseFlags_IncludeRawBodyRequiresAudit proves: --include-raw-body
+// is refused without --purpose audit (it would silently do nothing) and
+// accepted with it.
+func TestParseFlags_IncludeRawBodyRequiresAudit(t *testing.T) {
+	for _, args := range [][]string{
+		{"-h", "192.0.2.1", "-u", "admin", "--include-raw-body"},
+		{"-h", "192.0.2.1", "-u", "admin", "--purpose", "documentation", "--include-raw-body"},
+	} {
+		if _, err := ParseFlags(args, nil, nil); err == nil || !strings.Contains(err.Error(), "requires --purpose audit") {
+			t.Errorf("%v: expected rejection, got %v", args, err)
+		}
+	}
+	cfg, err := ParseFlags([]string{"-h", "192.0.2.1", "-u", "admin", "--purpose", "audit", "--include-raw-body"}, nil, nil)
+	if err != nil || !cfg.IncludeRawBody {
+		t.Fatalf("audit + --include-raw-body: cfg=%+v err=%v", cfg, err)
+	}
+}

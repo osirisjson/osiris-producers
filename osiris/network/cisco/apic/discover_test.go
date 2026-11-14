@@ -1,5 +1,5 @@
 // discover_test.go - Tests for the APIC discovery plan, per-domain
-// failure policy, failure-category sanitization, and the coverage
+// failure policy, failure-category sanitization and the coverage
 // record.
 //
 // OSIRIS JSON Producer for Cisco introduction:
@@ -40,6 +40,14 @@ func TestDiscoveryPlan_FailurePolicy(t *testing.T) {
 		"cdpAdjEp":        false,
 		"pcAggrIf":        false,
 		"fvRsPathAtt":     false,
+		"fvAp":            false,
+		"vzBrCP":          false,
+		"vzSubj":          false,
+		"vzFilter":        false,
+		"fvRsProv":        false,
+		"fvRsCons":        false,
+		"vzRsSubjFiltAtt": false,
+		"vzEntry":         false,
 		"fvCEp":           false,
 		"fvIp":            false,
 	}
@@ -60,7 +68,7 @@ func TestDiscoveryPlan_FailurePolicy(t *testing.T) {
 }
 
 func TestDiscoveryPlan_EndpointClassesAreAuditOnly(t *testing.T) {
-	auditOnly := map[string]bool{"fvCEp": true, "fvIp": true}
+	auditOnly := map[string]bool{"fvCEp": true, "fvIp": true, "vzEntry": true}
 
 	for _, dc := range discoveryPlan(false) {
 		if auditOnly[dc.name] {
@@ -87,9 +95,9 @@ func TestSanitizeFailureCategory(t *testing.T) {
 		want string
 	}{
 		{"nil", nil, ""},
-		{"api client error", &apicAPIError{code: "400", text: "bad"}, "api-client-error"},
-		{"api server error", &apicAPIError{code: "599", text: "x"}, "api-server-error"},
-		{"api error no code", &apicAPIError{code: "", text: "x"}, "api-error"},
+		{"api client error", &apicAPIError{code: "400"}, "api-client-error"},
+		{"api server error", &apicAPIError{code: "599"}, "api-server-error"},
+		{"api error no code", &apicAPIError{code: ""}, "api-error"},
 		{"http 5xx", fmt.Errorf("APIC query fvBD: gave up after 4 attempts: HTTP 503: x"), "http-5xx"},
 		{"http 401", fmt.Errorf("HTTP 401: forbidden"), "auth"},
 		{"http 404", fmt.Errorf("HTTP 404: not found"), "not-found"},

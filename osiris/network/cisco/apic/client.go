@@ -1,10 +1,16 @@
 // client.go - APIC REST API client for the Cisco ACI producer.
 // Implements authentication via aaaLogin, class-based queries with
-// pagination, and best-effort aaaLogout session cleanup. Every request
+// pagination and best-effort aaaLogout session cleanup. Every request
 // runs under a caller-supplied context with a per-request timeout, a
-// bounded response body, and classified retry of transient failures
+// bounded response body and classified retry of transient failures
 // (network errors, HTTP 429, HTTP 5xx). The underlying http.Client
 // cookie jar carries the APIC session token automatically.
+//
+// Errors returned by this client carry stable diagnostic categories
+// only: the operation, APIC class, HTTP status and numeric APIC error
+// code. Response bodies and APIC error text are never included, because
+// they are untrusted controller data that can reach stderr, batch logs
+// and CI output.
 //
 // OSIRIS JSON Producer for Cisco introduction:
 // [OSIRIS-JSON-CISCO]: https://docs.osirisjson.org/osiris-producers/network/cisco
@@ -16,10 +22,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"time"
 
 	"go.osirisjson.org/producers/osiris/network/cisco/run"
@@ -76,12 +84,24 @@ type Client struct {
 // context.Background() when there is nothing to cancel on.
 func NewClient(ctx context.Context, target run.TargetConfig, insecure bool, logger *slog.Logger) *Client {
 	addr := run.ResolveAddr(target, defaultAPICPort)
+	hc := run.NewHTTPClient(insecure)
+	hc.CheckRedirect = refuseRedirect
 	return &Client{
 		baseURL:    "https://" + addr,
-		httpClient: run.NewHTTPClient(insecure),
+		httpClient: hc,
 		logger:     logger,
 		ctx:        ctx,
 	}
+}
+
+// refuseRedirect is the client's redirect policy: no redirect is ever
+// followed, for login or collection. A 307/308 would replay the
+// aaaLogin body (the password) to whatever the Location names and no
+// APIC REST endpoint this producer uses legitimately redirects.
+// The 3xx response is returned as-is and fails the request as
+// "HTTP 3xx"; its Location is never echoed into a diagnostic.
+func refuseRedirect(*http.Request, []*http.Request) error {
+	return http.ErrUseLastResponse
 }
 
 func (c *Client) rootCtx() context.Context {
@@ -151,15 +171,15 @@ func (c *Client) Login(username, password string) error {
 
 	// Extract token from response for logging; the cookie jar handles
 	// the session automatically for subsequent requests.
-	var env imdataEnvelope
-	if err := json.Unmarshal(body, &env); err != nil {
-		return fmt.Errorf("APIC login: failed to parse response: %w", err)
+	env, err := decodeEnvelope(body)
+	if err != nil {
+		return fmt.Errorf("APIC login: decode response: %w", err)
 	}
 	if apiErr := env.asError(); apiErr != nil {
 		return fmt.Errorf("APIC login failed: %w", apiErr)
 	}
 	if len(env.ImData) > 0 {
-		if attrs, ok := extractOneAttributes(env.ImData[0]); ok {
+		if attrs, ok := extractOneAttributes(env.ImData[0], "aaaLogin"); ok {
 			if tok, _ := attrs["token"].(string); tok != "" {
 				c.token = tok
 			}
@@ -200,17 +220,45 @@ func (c *Client) Logout() error {
 	return nil
 }
 
+// classQuery is the outcome of one paginated class query.
+type classQuery struct {
+	// objs holds the attribute map of every accepted object.
+	objs []map[string]any
+	// received counts imdata elements across all pages.
+	received int
+	// rejected counts elements that were not an object of the requested
+	// class with an attributes map and a non-empty string dn.
+	rejected int
+	// reportedTotal is the totalCount the APIC reported on the first
+	// page, or -1 when it was absent or not a number.
+	reportedTotal int
+}
+
 // QueryClass fetches all objects of a given APIC class, handling
-// pagination. Returns a slice of attribute maps (one per object).
+// pagination. Returns a slice of attribute maps (one per accepted
+// object). See queryClass for the validation applied.
+func (c *Client) QueryClass(class string) ([]map[string]any, error) {
+	q, err := c.queryClass(class)
+	if err != nil {
+		return nil, err
+	}
+	return q.objs, nil
+}
+
+// queryClass fetches all objects of a given APIC class, handling
+// pagination and reports how many elements were received and rejected.
 //
-// The response is decoded through a typed imdata envelope. A transport
-// failure, a body that is not a valid imdata envelope, or an APIC error
-// envelope (which can arrive with HTTP 200) all return an error a
-// caller can therefore distinguish a failed query from a legitimately
-// empty one. Pagination advances on the count of source objects the
-// page carried, not on how many survived attribute extraction, so a
-// single malformed object cannot look like a short final page and
-// truncate the pages after it.
+// Every page must be a JSON object carrying an imdata array; an absent
+// or null imdata, or any APIC error object among the elements (the APIC
+// can return one with HTTP 200), fails the query. A transport failure
+// also fails it, so a caller can distinguish a failed query from a
+// legitimately empty one (imdata: []). An element is accepted only when
+// it is an object of exactly the requested class with an attributes map
+// and a non-empty string dn; any other element is rejected and counted,
+// never turned into an unidentified resource. Pagination advances on
+// the count of elements the page carried, not on how many were
+// accepted, so a malformed element cannot look like a short final page
+// and truncate the pages after it.
 //
 // The query is ordered by "dn" (unique on every managed object). APIC
 // does not guarantee a stable row order across separate page requests,
@@ -218,9 +266,10 @@ func (c *Client) Logout() error {
 // be skipped) when the managed-object tree changes mid-query, which for
 // a churny class such as fvCEp is routine on a live fabric. A stable
 // order makes the pages disjoint and complete; dedupeByDN in the caller
-// is the backstop.
-func (c *Client) QueryClass(class string) ([]map[string]any, error) {
-	var all []map[string]any
+// is the backstop. Pages are still read over a time window, not as an
+// atomic snapshot.
+func (c *Client) queryClass(class string) (classQuery, error) {
+	q := classQuery{reportedTotal: -1}
 	page := 0
 
 	for {
@@ -229,30 +278,34 @@ func (c *Client) QueryClass(class string) ([]map[string]any, error) {
 
 		body, _, err := c.doRequest(http.MethodGet, url, nil)
 		if err != nil {
-			return nil, fmt.Errorf("APIC query %s: %w", class, err)
+			return classQuery{}, fmt.Errorf("APIC query %s: %w", class, err)
 		}
 
-		var env imdataEnvelope
-		if err := json.Unmarshal(body, &env); err != nil {
-			return nil, fmt.Errorf("APIC query %s: decode envelope: %w", class, err)
+		env, err := decodeEnvelope(body)
+		if err != nil {
+			return classQuery{}, fmt.Errorf("APIC query %s: decode envelope: %w", class, err)
 		}
 		if apiErr := env.asError(); apiErr != nil {
-			return nil, fmt.Errorf("APIC query %s: %w", class, apiErr)
+			return classQuery{}, fmt.Errorf("APIC query %s: %w", class, apiErr)
+		}
+		if page == 0 {
+			q.reportedTotal = env.totalCount()
 		}
 
 		received := len(env.ImData)
-		var extracted int
+		q.received += received
+		var accepted int
 		for _, item := range env.ImData {
-			attrs, ok := extractOneAttributes(item)
-			if !ok {
-				c.logger.Warn("APIC object skipped: unexpected shape", "class", class, "page", page)
+			attrs, ok := extractOneAttributes(item, class)
+			if !ok || str(attrs, "dn") == "" {
+				q.rejected++
 				continue
 			}
-			all = append(all, attrs)
-			extracted++
+			q.objs = append(q.objs, attrs)
+			accepted++
 		}
 
-		c.logger.Debug("APIC query", "class", class, "page", page, "received", received, "extracted", extracted)
+		c.logger.Debug("APIC query", "class", class, "page", page, "received", received, "accepted", accepted)
 
 		if received < pageSize {
 			break
@@ -262,11 +315,19 @@ func (c *Client) QueryClass(class string) ([]map[string]any, error) {
 		// fabric is many pages at several seconds each): without this
 		// the run looks frozen between the "querying" line and the
 		// eventual "query complete".
-		c.logger.Info("APIC query in progress", "class", class, "page", page, "objects_so_far", len(all))
+		c.logger.Info("APIC query in progress", "class", class, "page", page, "objects_so_far", len(q.objs))
 	}
 
-	c.logger.Info("APIC query complete", "class", class, "total", len(all))
-	return all, nil
+	if q.rejected > 0 {
+		c.logger.Warn("APIC objects rejected: not an identified object of the requested class",
+			"class", class, "rejected", q.rejected)
+	}
+	if q.reportedTotal >= 0 && q.reportedTotal != q.received {
+		c.logger.Warn("APIC totalCount differs from objects received (the tree may have changed during the query)",
+			"class", class, "total_count", q.reportedTotal, "received", q.received)
+	}
+	c.logger.Info("APIC query complete", "class", class, "total", len(q.objs))
+	return q, nil
 }
 
 // doRequest performs one logical HTTP request. Each attempt run under a
@@ -346,97 +407,144 @@ func (c *Client) attempt(method, url string, reqBody []byte) (body []byte, statu
 	case resp.StatusCode == http.StatusOK:
 		return data, resp.StatusCode, false, nil
 	case resp.StatusCode == http.StatusTooManyRequests, resp.StatusCode >= 500:
-		return data, resp.StatusCode, true, fmt.Errorf("HTTP %d: %s", resp.StatusCode, truncateBody(data))
+		return data, resp.StatusCode, true, fmt.Errorf("HTTP %d", resp.StatusCode)
 	default:
-		return data, resp.StatusCode, false, fmt.Errorf("HTTP %d: %s", resp.StatusCode, truncateBody(data))
+		return data, resp.StatusCode, false, fmt.Errorf("HTTP %d", resp.StatusCode)
 	}
 }
 
 // imdataEnvelope is the common APIC JSON response envelope.
 // Elements are kept as raw messages so one malformed element cannot
 // fail the decode of the whole page
-// (see QueryClass and extractOneAttributes).
+// (see queryClass and extractOneAttributes).
 type imdataEnvelope struct {
-	TotalCount string            `json:"totalCount"`
+	TotalCount json.RawMessage   `json:"totalCount"`
 	ImData     []json.RawMessage `json:"imdata"`
 }
 
-// asError reports an APIC error envelope
-// ({"imdata":[{"error":{"attributes":{"code","text"}}}]}), which the
-// APIC can return with HTTP 200. Returns nil for any normal response.
+// decodeEnvelope decodes an APIC response body. It fails with
+// errInvalidJSON when the body is not a JSON object and with
+// errInvalidEnvelope when imdata is absent, null or not an array, so
+// "{}" or {"imdata":null} can never pass as an empty result.
+func decodeEnvelope(body []byte) (imdataEnvelope, error) {
+	var top map[string]json.RawMessage
+	if err := json.Unmarshal(body, &top); err != nil || top == nil {
+		return imdataEnvelope{}, errInvalidJSON
+	}
+	rawIm, ok := top["imdata"]
+	if !ok || bytes.Equal(bytes.TrimSpace(rawIm), []byte("null")) {
+		return imdataEnvelope{}, errInvalidEnvelope
+	}
+	var env imdataEnvelope
+	if err := json.Unmarshal(rawIm, &env.ImData); err != nil {
+		return imdataEnvelope{}, errInvalidEnvelope
+	}
+	env.TotalCount = top["totalCount"]
+	return env, nil
+}
+
+// totalCount returns the envelope's totalCount (the APIC sends it as a
+// decimal string) or -1 when it is absent or not a non-negative number.
+func (e imdataEnvelope) totalCount() int {
+	var s string
+	if err := json.Unmarshal(e.TotalCount, &s); err != nil {
+		var n json.Number
+		if err := json.Unmarshal(e.TotalCount, &n); err != nil {
+			return -1
+		}
+		s = n.String()
+	}
+	n, err := strconv.Atoi(s)
+	if err != nil || n < 0 {
+		return -1
+	}
+	return n
+}
+
+// asError reports an APIC error object
+// ({"error":{"attributes":{"code","text"}}}) anywhere among the imdata
+// elements, which the APIC can return with HTTP 200. A page mixing data
+// with an error object is treated as failed. Returns nil for a normal
+// response. Only a numeric code is retained; the error text is
+// discarded (see the file comment).
 func (e imdataEnvelope) asError() *apicAPIError {
-	if len(e.ImData) != 1 {
-		return nil
+	for _, item := range e.ImData {
+		var obj map[string]json.RawMessage
+		if err := json.Unmarshal(item, &obj); err != nil {
+			continue
+		}
+		errBody, ok := obj["error"]
+		if !ok {
+			continue
+		}
+		var wrap struct {
+			Attributes struct {
+				Code json.RawMessage `json:"code"`
+			} `json:"attributes"`
+		}
+		_ = json.Unmarshal(errBody, &wrap)
+		var code string
+		_ = json.Unmarshal(wrap.Attributes.Code, &code)
+		return &apicAPIError{code: numericCode(code)}
 	}
-	var obj map[string]json.RawMessage
-	if err := json.Unmarshal(e.ImData[0], &obj); err != nil {
-		return nil
-	}
-	errBody, ok := obj["error"]
-	if !ok {
-		return nil
-	}
-	var wrap struct {
-		Attributes struct {
-			Code string `json:"code"`
-			Text string `json:"text"`
-		} `json:"attributes"`
-	}
-	_ = json.Unmarshal(errBody, &wrap)
-	return &apicAPIError{code: wrap.Attributes.Code, text: truncateText(wrap.Attributes.Text)}
+	return nil
 }
 
 // apicAPIError is an error carried in an APIC imdata error envelope.
+// code is the APIC error code when it is a short decimal number, or
+// empty otherwise.
 type apicAPIError struct {
 	code string
-	text string
 }
 
 func (e *apicAPIError) Error() string {
 	if e.code == "" {
-		return "APIC error envelope: " + e.text
+		return "APIC error envelope"
 	}
-	return fmt.Sprintf("APIC error %s: %s", e.code, e.text)
+	return "APIC error " + e.code
+}
+
+// errInvalidJSON replaces a JSON decoder error in a returned error,
+// whose message can quote bytes of the untrusted response.
+var errInvalidJSON = errors.New("response is not valid JSON")
+
+// errInvalidEnvelope reports a JSON response without an imdata array.
+var errInvalidEnvelope = errors.New("response has no imdata array")
+
+// numericCode returns code when it is 1 to 6 ASCII digits, the shape of
+// an APIC error code and "" otherwise, so an unexpected value is never
+// echoed into a diagnostic.
+func numericCode(code string) string {
+	if len(code) == 0 || len(code) > 6 {
+		return ""
+	}
+	for _, r := range code {
+		if r < '0' || r > '9' {
+			return ""
+		}
+	}
+	return code
 }
 
 // extractOneAttributes pulls the attributes map from a single imdata
-// element ({"className":{"attributes":{...}}}). Returns ok=false when
-// the element is not a JSON object or carries no attributes map, so the
-// caller can skip it and keep going.
-func extractOneAttributes(raw json.RawMessage) (map[string]any, bool) {
+// element ({"<class>":{"attributes":{...}}}). Returns ok=false unless
+// the element is a JSON object whose only key is class and whose body
+// carries an attributes object, so an element of an unexpected class is
+// rejected rather than read as the requested one.
+func extractOneAttributes(raw json.RawMessage, class string) (map[string]any, bool) {
 	var obj map[string]json.RawMessage
-	if err := json.Unmarshal(raw, &obj); err != nil {
+	if err := json.Unmarshal(raw, &obj); err != nil || len(obj) != 1 {
 		return nil, false
 	}
-	for _, classBody := range obj {
-		var inner struct {
-			Attributes map[string]any `json:"attributes"`
-		}
-		if err := json.Unmarshal(classBody, &inner); err != nil {
-			continue
-		}
-		if inner.Attributes != nil {
-			return inner.Attributes, true
-		}
+	classBody, ok := obj[class]
+	if !ok {
+		return nil, false
 	}
-	return nil, false
-}
-
-// truncateBody returns the first 200 bytes of a response body for error
-// messages. APIC error envelopes carry a code and text, no credentials.
-func truncateBody(body []byte) string {
-	if len(body) > 200 {
-		return string(body[:200]) + "..."
+	var inner struct {
+		Attributes map[string]any `json:"attributes"`
 	}
-	return string(body)
-}
-
-// truncateText bounds an APIC-supplied error string before it goes into
-// a Go error.
-func truncateText(s string) string {
-	const max = 200
-	if len(s) > max {
-		return s[:max] + "..."
+	if err := json.Unmarshal(classBody, &inner); err != nil || inner.Attributes == nil {
+		return nil, false
 	}
-	return s
+	return inner.Attributes, true
 }
