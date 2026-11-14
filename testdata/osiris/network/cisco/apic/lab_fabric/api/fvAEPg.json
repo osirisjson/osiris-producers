@@ -1,0 +1,32 @@
+{
+  "totalCount": "3",
+  "imdata": [
+    {
+      "fvAEPg": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Web",
+          "name": "epg_Web",
+          "descr": "Web tier"
+        }
+      }
+    },
+    {
+      "fvAEPg": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Db",
+          "name": "epg_Db",
+          "descr": "Database tier"
+        }
+      }
+    },
+    {
+      "fvAEPg": {
+        "attributes": {
+          "dn": "uni/tn-tn_Other/ap-shared/epg-epg_Shared",
+          "name": "epg_Shared",
+          "descr": "Shared services"
+        }
+      }
+    }
+  ]
+}

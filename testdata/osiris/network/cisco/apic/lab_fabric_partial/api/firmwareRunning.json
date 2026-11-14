@@ -1,0 +1,41 @@
+{
+  "totalCount": "4",
+  "imdata": [
+    {
+      "firmwareRunning": {
+        "attributes": {
+          "dn": "topology/pod-1/node-101/sys/fwstatuscont/running",
+          "version": "n9000-16.0(5h)",
+          "peVer": "6.0(5h)"
+        }
+      }
+    },
+    {
+      "firmwareRunning": {
+        "attributes": {
+          "dn": "topology/pod-1/node-102/sys/fwstatuscont/running",
+          "version": "n9000-16.0(5h)",
+          "peVer": "6.0(5h)"
+        }
+      }
+    },
+    {
+      "firmwareRunning": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111/sys/fwstatuscont/running",
+          "version": "n9000-16.0(5h)",
+          "peVer": "6.0(5h)"
+        }
+      }
+    },
+    {
+      "firmwareRunning": {
+        "attributes": {
+          "dn": "topology/pod-1/node-112/sys/fwstatuscont/running",
+          "version": "n9000-16.0(5h)",
+          "peVer": "6.0(5h)"
+        }
+      }
+    }
+  ]
+}

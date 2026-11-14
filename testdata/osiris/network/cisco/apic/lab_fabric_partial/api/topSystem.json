@@ -1,0 +1,112 @@
+{
+  "totalCount": "6",
+  "imdata": [
+    {
+      "topSystem": {
+        "attributes": {
+          "dn": "topology/pod-1/node-1/sys",
+          "name": "LAB-APIC1",
+          "role": "controller",
+          "state": "in-service",
+          "fabricDomain": "MXP",
+          "fabricId": "1",
+          "oobMgmtAddr": "198.51.100.1",
+          "controlPlaneMTU": "9000",
+          "systemUpTime": "10:02:03:04.000",
+          "lastRebootTime": "2026-10-01T08:00:00.000+00:00",
+          "serial": "TST0000001",
+          "inbMgmtAddr": "203.0.113.1",
+          "fabricMAC": "00:00:5E:00:53:01",
+          "virtualMode": "no"
+        }
+      }
+    },
+    {
+      "topSystem": {
+        "attributes": {
+          "dn": "topology/pod-1/node-2/sys",
+          "name": "LAB-APIC2",
+          "role": "controller",
+          "state": "in-service",
+          "fabricDomain": "MXP",
+          "fabricId": "1",
+          "oobMgmtAddr": "198.51.100.2",
+          "controlPlaneMTU": "9000",
+          "systemUpTime": "10:02:03:04.000",
+          "lastRebootTime": "2026-10-01T08:00:00.000+00:00",
+          "serial": "TST0000002",
+          "fabricMAC": "00:00:5E:00:53:02",
+          "virtualMode": "yes"
+        }
+      }
+    },
+    {
+      "topSystem": {
+        "attributes": {
+          "dn": "topology/pod-1/node-101/sys",
+          "name": "LAB-SPINE1",
+          "role": "spine",
+          "state": "in-service",
+          "fabricDomain": "MXP",
+          "fabricId": "1",
+          "oobMgmtAddr": "198.51.100.101",
+          "controlPlaneMTU": "9000",
+          "systemUpTime": "10:02:03:04.000",
+          "lastRebootTime": "2026-10-01T08:00:00.000+00:00",
+          "serial": "TST0000101"
+        }
+      }
+    },
+    {
+      "topSystem": {
+        "attributes": {
+          "dn": "topology/pod-1/node-102/sys",
+          "name": "LAB-SPINE2",
+          "role": "spine",
+          "state": "in-service",
+          "fabricDomain": "MXP",
+          "fabricId": "1",
+          "oobMgmtAddr": "198.51.100.102",
+          "controlPlaneMTU": "9000",
+          "systemUpTime": "10:02:03:04.000",
+          "lastRebootTime": "2026-10-01T08:00:00.000+00:00",
+          "serial": "TST0000102"
+        }
+      }
+    },
+    {
+      "topSystem": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111/sys",
+          "name": "LAB-LEAF1",
+          "role": "leaf",
+          "state": "in-service",
+          "fabricDomain": "MXP",
+          "fabricId": "1",
+          "oobMgmtAddr": "198.51.100.111",
+          "controlPlaneMTU": "9000",
+          "systemUpTime": "10:02:03:04.000",
+          "lastRebootTime": "2026-10-01T08:00:00.000+00:00",
+          "serial": "TST0000111"
+        }
+      }
+    },
+    {
+      "topSystem": {
+        "attributes": {
+          "dn": "topology/pod-1/node-112/sys",
+          "name": "LAB-LEAF2",
+          "role": "leaf",
+          "state": "in-service",
+          "fabricDomain": "MXP",
+          "fabricId": "1",
+          "oobMgmtAddr": "198.51.100.112",
+          "controlPlaneMTU": "9000",
+          "systemUpTime": "10:02:03:04.000",
+          "lastRebootTime": "2026-10-01T08:00:00.000+00:00",
+          "serial": "TST0000112"
+        }
+      }
+    }
+  ]
+}

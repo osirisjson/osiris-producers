@@ -1,0 +1,60 @@
+{
+  "totalCount": "5",
+  "imdata": [
+    {
+      "vzBrCP": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/brc-web",
+          "name": "web",
+          "scope": "context",
+          "prio": "unspecified",
+          "descr": "Web access"
+        }
+      }
+    },
+    {
+      "vzBrCP": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/brc-db",
+          "name": "db",
+          "scope": "tenant",
+          "prio": "level1",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "vzBrCP": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/brc-mgmt",
+          "name": "mgmt",
+          "scope": "context",
+          "prio": "unspecified",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "vzBrCP": {
+        "attributes": {
+          "dn": "uni/tn-tn_Other/brc-web",
+          "name": "web",
+          "scope": "global",
+          "prio": "unspecified",
+          "descr": "Same name, other tenant"
+        }
+      }
+    },
+    {
+      "vzBrCP": {
+        "attributes": {
+          "dn": "uni/tn-common/brc-dns",
+          "name": "dns",
+          "scope": "global",
+          "prio": "unspecified",
+          "descr": ""
+        }
+      }
+    }
+  ]
+}

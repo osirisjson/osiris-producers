@@ -1,0 +1,39 @@
+{
+  "totalCount": "4",
+  "imdata": [
+    {
+      "fvRsBd": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Web/rsbd",
+          "tDn": "uni/tn-tn_Example/BD-bd_Web",
+          "state": "formed"
+        }
+      }
+    },
+    {
+      "fvRsBd": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Db/rsbd",
+          "tDn": "uni/tn-tn_Example/BD-bd_Db",
+          "state": "formed"
+        }
+      }
+    },
+    {
+      "fvRsBd": {
+        "attributes": {
+          "tDn": "uni/tn-tn_Example/BD-bd_Db",
+          "state": "formed"
+        }
+      }
+    },
+    {
+      "fvRsCtx": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/BD-bd_Db/rsctx",
+          "tDn": "uni/tn-tn_Example/ctx-vrf_Prod"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "totalCount": "7",
+  "imdata": [
+    {
+      "vzRsSubjFiltAtt": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/brc-web/subj-http/rssubjFiltAtt-http",
+          "tnVzFilterName": "http",
+          "action": "permit",
+          "directives": "",
+          "state": "formed",
+          "tDn": "uni/tn-tn_Example/flt-http"
+        }
+      }
+    },
+    {
+      "vzRsSubjFiltAtt": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/brc-web/subj-https/rssubjFiltAtt-https",
+          "tnVzFilterName": "https",
+          "action": "permit",
+          "directives": "",
+          "state": "formed",
+          "tDn": "uni/tn-tn_Example/flt-https"
+        }
+      }
+    },
+    {
+      "vzRsSubjFiltAtt": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/brc-db/subj-sql/rssubjFiltAtt-sql",
+          "tnVzFilterName": "sql",
+          "action": "permit",
+          "directives": "",
+          "state": "formed",
+          "tDn": "uni/tn-tn_Example/flt-sql"
+        }
+      }
+    },
+    {
+      "vzRsSubjFiltAtt": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/brc-mgmt/subj-ssh/rssubjFiltAtt-ssh",
+          "tnVzFilterName": "ssh",
+          "action": "permit",
+          "directives": "",
+          "state": "formed"
+        }
+      }
+    },
+    {
+      "vzRsSubjFiltAtt": {
+        "attributes": {
+          "dn": "uni/tn-tn_Other/brc-web/subj-any/rssubjFiltAtt-default",
+          "tnVzFilterName": "default",
+          "action": "permit",
+          "directives": "",
+          "state": "formed"
+        }
+      }
+    },
+    {
+      "vzRsSubjFiltAtt": {
+        "attributes": {
+          "dn": "uni/tn-common/brc-dns/subj-dns/rssubjFiltAtt-dns",
+          "tnVzFilterName": "dns",
+          "action": "permit",
+          "directives": "",
+          "state": "formed",
+          "tDn": "uni/tn-common/flt-dns"
+        }
+      }
+    },
+    {
+      "vzRsSubjFiltAtt": {
+        "attributes": {
+          "dn": "uni/tn-mgmt/oobbrc-oob_Mgmt/subj-ssh/rssubjFiltAtt-ssh",
+          "tnVzFilterName": "ssh",
+          "action": "permit",
+          "directives": "",
+          "state": "formed",
+          "tDn": "uni/tn-tn_Example/flt-ssh"
+        }
+      }
+    }
+  ]
+}

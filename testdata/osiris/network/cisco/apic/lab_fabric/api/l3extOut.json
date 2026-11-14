@@ -1,0 +1,14 @@
+{
+  "totalCount": "1",
+  "imdata": [
+    {
+      "l3extOut": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/out-l3out_Core",
+          "name": "l3out_Core",
+          "descr": "Core routing"
+        }
+      }
+    }
+  ]
+}

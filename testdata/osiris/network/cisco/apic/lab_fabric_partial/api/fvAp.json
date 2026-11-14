@@ -1,0 +1,24 @@
+{
+  "totalCount": "2",
+  "imdata": [
+    {
+      "fvAp": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/ap-app1",
+          "name": "app1",
+          "descr": "Three-tier application",
+          "prio": "unspecified"
+        }
+      }
+    },
+    {
+      "fvAp": {
+        "attributes": {
+          "dn": "uni/tn-tn_Other/ap-shared",
+          "name": "shared",
+          "descr": ""
+        }
+      }
+    }
+  ]
+}

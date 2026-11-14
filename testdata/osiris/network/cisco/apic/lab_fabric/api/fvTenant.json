@@ -1,0 +1,41 @@
+{
+  "totalCount": "4",
+  "imdata": [
+    {
+      "fvTenant": {
+        "attributes": {
+          "dn": "uni/tn-common",
+          "name": "common",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "fvTenant": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example",
+          "name": "tn_Example",
+          "descr": "Example tenant"
+        }
+      }
+    },
+    {
+      "fvTenant": {
+        "attributes": {
+          "dn": "uni/tn-tn_Other",
+          "name": "tn_Other",
+          "descr": "Second tenant"
+        }
+      }
+    },
+    {
+      "fvTenant": {
+        "attributes": {
+          "dn": "uni/tn-mgmt",
+          "name": "mgmt",
+          "descr": ""
+        }
+      }
+    }
+  ]
+}

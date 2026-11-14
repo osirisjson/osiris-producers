@@ -1,0 +1,23 @@
+{
+  "totalCount": "2",
+  "imdata": [
+    {
+      "fvRsCtx": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/BD-bd_Web/rsctx",
+          "tDn": "uni/tn-tn_Example/ctx-vrf_Prod",
+          "state": "formed"
+        }
+      }
+    },
+    {
+      "fvRsCtx": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/BD-bd_Db/rsctx",
+          "tDn": "uni/tn-tn_Example/ctx-vrf_Prod",
+          "state": "formed"
+        }
+      }
+    }
+  ]
+}

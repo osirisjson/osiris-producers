@@ -1,0 +1,82 @@
+{
+  "totalCount": "7",
+  "imdata": [
+    {
+      "vzSubj": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/brc-web/subj-http",
+          "name": "http",
+          "revFltPorts": "yes",
+          "prio": "unspecified",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "vzSubj": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/brc-web/subj-https",
+          "name": "https",
+          "revFltPorts": "yes",
+          "prio": "unspecified",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "vzSubj": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/brc-db/subj-sql",
+          "name": "sql",
+          "revFltPorts": "yes",
+          "prio": "level2",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "vzSubj": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/brc-mgmt/subj-ssh",
+          "name": "ssh",
+          "revFltPorts": "no",
+          "prio": "unspecified",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "vzSubj": {
+        "attributes": {
+          "dn": "uni/tn-tn_Other/brc-web/subj-any",
+          "name": "any",
+          "revFltPorts": "yes",
+          "prio": "unspecified",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "vzSubj": {
+        "attributes": {
+          "dn": "uni/tn-common/brc-dns/subj-dns",
+          "name": "dns",
+          "revFltPorts": "yes",
+          "prio": "unspecified",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "vzSubj": {
+        "attributes": {
+          "dn": "uni/tn-mgmt/oobbrc-oob_Mgmt/subj-ssh",
+          "name": "ssh",
+          "revFltPorts": "yes",
+          "prio": "unspecified",
+          "descr": ""
+        }
+      }
+    }
+  ]
+}

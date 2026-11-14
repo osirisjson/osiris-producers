@@ -1,0 +1,35 @@
+{
+  "totalCount": "3",
+  "imdata": [
+    {
+      "fvCEp": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Web/cep-00:00:5E:00:53:11",
+          "mac": "00:00:5E:00:53:11",
+          "encap": "vlan-100",
+          "fabricPathDn": "topology/pod-1/paths-111/pathep-[eth1/1]"
+        }
+      }
+    },
+    {
+      "fvCEp": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Db/cep-00:00:5E:00:53:21",
+          "mac": "00:00:5E:00:53:21",
+          "encap": "vlan-200",
+          "fabricPathDn": "topology/pod-1/paths-111/pathep-[po1]"
+        }
+      }
+    },
+    {
+      "fvCEp": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Db/cep-00:00:5E:00:53:22",
+          "mac": "00:00:5E:00:53:22",
+          "encap": "vlan-200",
+          "fabricPathDn": "topology/pod-1/protpaths-111-112/pathep-[LAB-VPC-1]"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "totalCount": "1",
+  "imdata": [
+    {
+      "l3extRsEctx": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/out-l3out_Core/rsectx",
+          "tDn": "uni/tn-tn_Example/ctx-vrf_Prod",
+          "state": "formed"
+        }
+      }
+    }
+  ]
+}
