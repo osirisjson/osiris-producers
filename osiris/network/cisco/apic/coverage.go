@@ -1,7 +1,7 @@
 // coverage.go - Discovery-coverage record surfaced in the emitted
 // document. Accumulates one outcome per discovery operation (succeeded
 // failed / skipped, object count, sanitized failure category), renders
-// the extension slice and the metadata.scope.description summary, and
+// the extension slice and the metadata.scope.description summary and
 // attaches the record to the controller resource(s).
 //
 // OSIRIS JSON Producer for Cisco introduction:
@@ -13,17 +13,29 @@ package apic
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
 // opOutcome is one discovery operation's result in the coverage record.
+// Count keeps its meaning: objects of the class carried into the
+// transform. The other counters are emitted only when non-zero (or, for
+// ReportedTotal, only when it disagrees with Received), so a consumer
+// can tell query success apart from what actually reached the graph.
 type opOutcome struct {
 	Operation string `json:"operation"`
 	Status    string `json:"status"` // "succeeded" | "failed" | "skipped"
 	Count     int    `json:"count"`
 	Category  string `json:"category,omitempty"` // sanitized; set only when Status == "failed"
+
+	Received      int // imdata elements received across all pages
+	Rejected      int // elements without class/attributes/dn, dropped
+	Duplicates    int // repeated dn across pages, dropped
+	ReportedTotal int // APIC totalCount, -1 when unknown
+	Unresolved    int // observations the graph could not resolve (set after wiring)
+	OutOfScope    int // objects under a parent the model does not cover (set after wiring)
 }
 
 // coverageRecorder accumulates per-operation outcomes for the run.
@@ -32,7 +44,45 @@ type coverageRecorder struct {
 }
 
 func (r *coverageRecorder) succeeded(op string, n int) {
-	r.ops = append(r.ops, opOutcome{Operation: op, Status: "succeeded", Count: n})
+	r.ops = append(r.ops, opOutcome{Operation: op, Status: "succeeded", Count: n, Received: n, ReportedTotal: -1})
+}
+
+// succeededQuery records a succeeded class query with its counters.
+// kept is the object count after deduplication.
+func (r *coverageRecorder) succeededQuery(op string, q classQuery, kept int) {
+	r.ops = append(r.ops, opOutcome{
+		Operation:     op,
+		Status:        "succeeded",
+		Count:         kept,
+		Received:      q.received,
+		Rejected:      q.rejected,
+		Duplicates:    len(q.objs) - kept,
+		ReportedTotal: q.reportedTotal,
+	})
+}
+
+// unresolved adds n unresolved observations to op's succeeded outcome.
+func (r *coverageRecorder) unresolved(op string, n int) {
+	if o := r.succeededOp(op); o != nil && n > 0 {
+		o.Unresolved += n
+	}
+}
+
+// outOfScope adds n out-of-scope objects to op's succeeded outcome.
+func (r *coverageRecorder) outOfScope(op string, n int) {
+	if o := r.succeededOp(op); o != nil && n > 0 {
+		o.OutOfScope += n
+	}
+}
+
+// succeededOp returns op's succeeded outcome, or nil.
+func (r *coverageRecorder) succeededOp(op string) *opOutcome {
+	for i := range r.ops {
+		if r.ops[i].Operation == op && r.ops[i].Status == "succeeded" {
+			return &r.ops[i]
+		}
+	}
+	return nil
 }
 
 func (r *coverageRecorder) failed(op, category string) {
@@ -67,13 +117,29 @@ func (r *coverageRecorder) asSlice() []map[string]any {
 		if o.Category != "" {
 			m["category"] = o.Category
 		}
+		if o.Rejected > 0 {
+			m["rejected"] = o.Rejected
+		}
+		if o.Duplicates > 0 {
+			m["duplicates"] = o.Duplicates
+		}
+		if o.Unresolved > 0 {
+			m["unresolved"] = o.Unresolved
+		}
+		if o.OutOfScope > 0 {
+			m["out_of_scope"] = o.OutOfScope
+		}
+		if o.Status == "succeeded" && o.ReportedTotal >= 0 && o.ReportedTotal != o.Received {
+			m["received"] = o.Received
+			m["reported_total"] = o.ReportedTotal
+		}
 		out = append(out, m)
 	}
 	return out
 }
 
 // summary is the one-line prose form for metadata.scope.description. It
-// names the fabric domain (when known), the succeeded/total ratio, and
+// names the fabric domain (when known), the succeeded/total ratio and
 // every operation not represented in the document.
 func (r *coverageRecorder) summary(fabricDomain string) string {
 	var ok int
@@ -98,6 +164,53 @@ func (r *coverageRecorder) summary(fabricDomain string) string {
 		b += " Not represented: " + strings.Join(gaps, ", ") + "."
 	}
 	return b
+}
+
+// anySucceeded reports whether any of ops succeeded.
+func (r *coverageRecorder) anySucceeded(ops ...string) bool {
+	for _, o := range r.ops {
+		if o.Status != "succeeded" {
+			continue
+		}
+		for _, op := range ops {
+			if o.Operation == op {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// sortedKeys returns the keys of m in sorted order.
+func sortedKeys[V any](m map[string]V) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+// attachControllerExtension sets key in the osiris.cisco extension of
+// every controller resource, falling back to the first resource as
+// attachCoverage does.
+func attachControllerExtension(resources []sdk.Resource, key string, value any) {
+	if len(resources) == 0 {
+		return
+	}
+	attached := false
+	for i := range resources {
+		if role, _ := resources[i].Properties["role"].(string); role != "controller" {
+			continue
+		}
+		ensureCiscoExtension(&resources[i].Extensions)
+		resources[i].Extensions[extensionNamespace].(map[string]any)[key] = value
+		attached = true
+	}
+	if !attached {
+		ensureCiscoExtension(&resources[0].Extensions)
+		resources[0].Extensions[extensionNamespace].(map[string]any)[key] = value
+	}
 }
 
 // attachCoverage records the coverage slice on every controller
@@ -143,6 +256,12 @@ func sanitizeFailureCategory(err error) string {
 		return ""
 	}
 
+	if errors.Is(err, errRejectedObjects) {
+		return "rejected-objects"
+	}
+	if errors.Is(err, errInvalidEnvelope) {
+		return "invalid-envelope"
+	}
 	var apiErr *apicAPIError
 	if errors.As(err, &apiErr) {
 		switch {

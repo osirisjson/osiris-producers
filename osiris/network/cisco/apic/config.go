@@ -16,7 +16,7 @@ type Config struct {
 	OutputDir      string // batch only; empty = single-mode local file.
 	Timestamp      string // filesystem-safe UTC timestamp for output filenames.
 	Purpose        string
-	IncludeRawBody bool
+	IncludeRawBody bool // IncludeRawBody attaches every collected object's redacted attributes (audit purpose only; see raw.go).
 
 	SafeFailureMode string
 	InsecureTLS     bool
