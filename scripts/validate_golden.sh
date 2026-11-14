@@ -16,7 +16,8 @@
 #
 # Requirements:
 #   Node.js (for npx) and @osirisjson/cli (fetched automatically by npx
-#   if not installed).
+#   if not installed). Set OSIRIS_CLI_VERSION (e.g. 0.1.0) to validate
+#   with that exact CLI release instead of the latest; CI pins it.
 #
 # Exit codes:
 #   0 - all golden files pass validation
@@ -65,9 +66,12 @@ COUNT=$(echo "$GOLDEN_FILES" | wc -l)
 echo "Validating ${COUNT} golden file(s) at profile=${PROFILE}..."
 echo ""
 
+CLI="@osirisjson/cli${OSIRIS_CLI_VERSION:+@${OSIRIS_CLI_VERSION}}"
+echo "Using ${CLI}"
+
 FAILED=0
 for f in $GOLDEN_FILES; do
-  if npx @osirisjson/cli validate --profile "$PROFILE" "$f" 2>&1; then
+  if npx "$CLI" validate --profile "$PROFILE" "$f" 2>&1; then
     echo "  PASS  $f"
   else
     echo "  FAIL  $f"
