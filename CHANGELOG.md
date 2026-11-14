@@ -43,6 +43,91 @@ OSIRIS JSON core schema itself, see the [OSIRIS JSON Repository](https://github.
 
 ---
 
+## [0.11.0] - 2026-11-14
+
+Cisco APIC OSIRIS JSON producer behavior version 0.3.0: configured
+policy intent, raw attribute fallback and a corrective security and
+completeness baseline. Cisco NX-OS 0.2.1 raw-body redaction fix. One
+shared SDK change: the document secret scan now covers the whole
+serialized document. A canonical-validation CI gate for golden
+documents.
+
+| Producer | Behavior version |
+|----------|------------------|
+| Amazon Web Services OSIRIS JSON producer | 0.1.1 (no change) |
+| Microsoft Azure OSIRIS JSON producer | 0.6.0 (no change) |
+| Cisco APIC OSIRIS JSON producer | [0.3.0](osiris/network/cisco/apic/CHANGELOG.md#030---2026-11-14) |
+| Cisco IOS-XE OSIRIS JSON producer | 0.2.0 (no change) |
+| Cisco NX-OS OSIRIS JSON producer | [0.2.1](osiris/network/cisco/nxos/CHANGELOG.md#021---2026-11-14) |
+| Cisco vManage OSIRIS JSON producer | 0.1.0 (no change) |
+| HPE Aruba Networking Central OSIRIS JSON producer | 0.1.0 (no change) |
+
+### Highlights (Cisco APIC 0.3.0)
+- **Configured policy intent:** application profiles as
+  `logical.application` groups; contracts, subjects and filters as
+  resources; EPG and VRF resource anchors; forward relation edges
+  (EPG provides/consumes contract, subject -> filter, EPG -> BD,
+  BD -> VRF, L3Out -> VRF), resolved by `tDn`, local tenant, then
+  tenant `common`. Intent only: no edge states that traffic flows.
+- **Raw attribute fallback:** `--include-raw-body` (`--purpose audit`)
+  attaches every collected object's redacted attributes to the entity
+  that owns it, with size caps and an omitted-object record.
+- **Collection:** validated APIC responses, rejected and
+  duplicate object counts, unresolved and out-of-scope relation counts,
+  and no document for an empty fabric inventory.
+- **Security:** complete secret scanning, diagnostics without APIC
+  response content, refused redirects, `log-and-redact` rejected.
+
+All resource and group IDs emitted by APIC `0.2.0` are unchanged.
+
+**Breaking** to the APIC CLI (`log-and-redact` rejected,
+`--include-raw-body` requires `--purpose audit`, empty inventory fails)
+and to the tenant hierarchy (EPG groups nest under their application
+group).
+
+### Added
+- `testdata/`: Cisco APIC scenarios `lab_fabric` (complete synthetic
+  fabric) and `lab_fabric_partial` (failed, malformed and unresolvable
+  optional data), synthetic APIC class responses with their expected
+  golden documents at both purposes.
+- CI: the `Golden documents` workflow validates every golden document
+  under `testdata/` with the canonical OSIRIS JSON CLI at the strict
+  profile, CLI release pinned to `0.1.0`.
+- `scripts/validate_golden.sh`: `OSIRIS_CLI_VERSION` selects an exact
+  CLI release.
+
+### Changed
+- `pkg/sdk`: the document secret scan (`ScanDocument`, run by
+  `DocumentBuilder.Build`) now inspects the OSIRIS JSON document in its
+  serialized form.
+  Every string value is checked against the value patterns,
+  including resource, connection and group `name`, `description` and
+  `provider` members, `metadata.scope`, `metadata.coverage` and
+  namespaced metadata members, and values held in typed slices,
+  structs and raw JSON. Key names are checked at every depth inside
+  `properties`, `extensions`, `tags` and namespaced metadata members.
+  A sensitive key whose value is exactly `[REDACTED]`
+  (`sdk.RedactedValue`), empty or null is treated as already redacted.
+  A value that cannot be serialized is reported as a finding. Findings
+  are reported in a stable order. A `fail-closed` run can now abort on
+  data that previously passed unscanned.
+- Cisco APIC: configured policy intent (application profiles,
+  contracts, subjects, filters, EPG provide/consume relations) as
+  resources and relation edges.
+- Cisco APIC: `--include-raw-body` attaches every collected object's
+  redacted attributes to its owning entity; `log-and-redact` is
+  rejected; diagnostics no longer include APIC response content;
+  redirects are refused; malformed class responses and empty fabric
+  inventory fail instead of producing a misleading document.
+- Cisco NX-OS: the raw body of a sensitive-named command is
+  replaced by `[REDACTED]` under `--include-raw-body`.
+
+See the [Cisco APIC 0.3.0 entry](osiris/network/cisco/apic/CHANGELOG.md#030---2026-11-14)
+and the [Cisco NX-OS 0.2.1 entry](osiris/network/cisco/nxos/CHANGELOG.md#021---2026-11-14)
+for the full list of changes.
+
+---
+
 ## [0.10.0] - 2026-11-12
 
 Cisco IOS-XE OSIRIS JSON producer rebuilt for behavior version 0.2.0:
@@ -731,7 +816,8 @@ Initial SDK release. No producers shipped under this tag.
 - Removed empty `common/` stubs (replaced by `pkg/sdk/`).
 - Updated `.gitignore` for Go.
 
-[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/osirisjson/osiris-producers/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/osirisjson/osiris-producers/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/osirisjson/osiris-producers/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/osirisjson/osiris-producers/compare/v0.7.0...v0.8.0
