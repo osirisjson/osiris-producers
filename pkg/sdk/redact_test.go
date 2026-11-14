@@ -8,6 +8,8 @@
 package sdk
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -233,5 +235,133 @@ func TestScanPropertiesEmpty(t *testing.T) {
 	findings := ScanProperties(nil, "test")
 	if findings != nil {
 		t.Errorf("expected nil for empty map, got %v", findings)
+	}
+}
+
+// typedFinding is a typed value as a producer might place it in an
+// extension: a struct inside a slice, which a scan of map[string]any
+// values alone would never reach.
+type typedFinding struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+// TestScanDocumentSerializedTree proves: the document scan covers the
+// serialized form of every member, not only properties, extensions and
+// tags maps of string values.
+func TestScanDocumentSerializedTree(t *testing.T) {
+	const bearer = "Bearer CANARYsdkTOKEN0001"
+	tests := []struct {
+		name string
+		doc  Document
+		path string
+		rule string
+	}{
+		{"typed slice in extensions", Document{Topology: Topology{Resources: []Resource{{ID: "r", Type: "t",
+			Extensions: map[string]any{"osiris.test": map[string]any{"records": []typedFinding{{Code: "R1", Message: bearer}}}}}}}},
+			"topology.resources[0].extensions.osiris.test.records[0].message", "value_pattern:bearer_token"},
+		{"slice of maps in properties", Document{Topology: Topology{Resources: []Resource{{ID: "r", Type: "t",
+			Properties: map[string]any{"items": []any{map[string]any{"api_key": "x"}}}}}}},
+			"topology.resources[0].properties.items[0].api_key", "key_name:api_key"},
+		{"resource name", Document{Topology: Topology{Resources: []Resource{{ID: "r", Type: "t", Name: bearer}}}},
+			"topology.resources[0].name", "value_pattern:bearer_token"},
+		{"group description", Document{Topology: Topology{Resources: []Resource{}, Groups: []Group{{ID: "g", Type: "t", Description: bearer}}}},
+			"topology.groups[0].description", "value_pattern:bearer_token"},
+		{"connection name", Document{Topology: Topology{Resources: []Resource{}, Connections: []Connection{{ID: "c", Type: "t", Source: "a", Target: "b", Name: bearer}}}},
+			"topology.connections[0].name", "value_pattern:bearer_token"},
+		{"provider field", Document{Topology: Topology{Resources: []Resource{{ID: "r", Type: "t", Provider: Provider{Name: "p", NativeID: bearer}}}}},
+			"topology.resources[0].provider.native_id", "value_pattern:bearer_token"},
+		{"metadata scope", Document{Metadata: Metadata{Scope: &Scope{Description: bearer}}, Topology: Topology{Resources: []Resource{}}},
+			"metadata.scope.description", "value_pattern:bearer_token"},
+		{"metadata extension key", Document{Metadata: Metadata{Extensions: map[string]any{"osiris.test": map[string]any{"token": "x"}}}, Topology: Topology{Resources: []Resource{}}},
+			"metadata.osiris.test.token", "key_name:token"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			findings := ScanDocument(&tt.doc)
+			if len(findings) != 1 || findings[0].Path != tt.path || findings[0].Rule != tt.rule {
+				t.Fatalf("findings = %v, want one at %s (%s)", findings, tt.path, tt.rule)
+			}
+			if strings.Contains(findings[0].String(), "CANARY") {
+				t.Error("finding echoes the secret value")
+			}
+		})
+	}
+}
+
+// TestScanDocumentSchemaMembersNoKeyRule proves: schema-defined member
+// names outside properties, extensions and tags are not subject to the
+// key-name rule, so a clean document with every member set is clean.
+func TestScanDocumentSchemaMembersNoKeyRule(t *testing.T) {
+	doc := &Document{
+		Metadata: Metadata{Generator: Generator{Name: "g", Version: "1"}, Scope: &Scope{Name: "s", Purpose: "audit"},
+			Coverage: &CoverageBlock{Errors: []CoverageError{{Region: "r", Resource: "auth", ErrorMessage: "denied"}}}},
+		Topology: Topology{Resources: []Resource{{ID: "r", Type: "t", Name: "n", Provider: Provider{Name: "p", Tenant: "t"}}}},
+	}
+	if findings := ScanDocument(doc); len(findings) != 0 {
+		t.Fatalf("expected no findings, got %v", findings)
+	}
+}
+
+// TestScanRedactedPlaceholder proves: a sensitive key whose value was
+// already replaced (RedactedValue, empty or null) is not reported,
+// while any other value under it still is.
+func TestScanRedactedPlaceholder(t *testing.T) {
+	m := map[string]any{
+		"password":   RedactedValue,
+		"secret_ref": "",
+		"token":      nil,
+		"nested":     []any{map[string]any{"api_key": RedactedValue}},
+	}
+	if findings := ScanProperties(m, "p"); len(findings) != 0 {
+		t.Fatalf("expected no findings for redacted values, got %v", findings)
+	}
+	m["auth"] = map[string]any{"user": "u", "pw": "x"}
+	findings := ScanProperties(m, "p")
+	if len(findings) != 1 || findings[0].Path != "p.auth" {
+		t.Fatalf("expected one finding at p.auth, got %v", findings)
+	}
+}
+
+// TestScanUnscannableFailsClosed proves: a value that cannot be
+// serialized is reported rather than silently skipped.
+func TestScanUnscannableFailsClosed(t *testing.T) {
+	doc := &Document{Topology: Topology{Resources: []Resource{{ID: "r", Type: "t",
+		Properties: map[string]any{"bad": make(chan int)}}}}}
+	findings := ScanDocument(doc)
+	if len(findings) != 1 || findings[0].Rule != unscannableRule {
+		t.Fatalf("expected one unscannable finding, got %v", findings)
+	}
+}
+
+// TestScanDocumentDeterministicOrder proves: findings are reported in
+// a stable order across runs.
+func TestScanDocumentDeterministicOrder(t *testing.T) {
+	doc := &Document{Topology: Topology{Resources: []Resource{{ID: "r", Type: "t",
+		Properties: map[string]any{"z_token": "a", "a_secret": "b", "m_password": "c"}}}}}
+	first := fmt.Sprint(ScanDocument(doc))
+	for range 20 {
+		if got := fmt.Sprint(ScanDocument(doc)); got != first {
+			t.Fatalf("order changed: %s vs %s", got, first)
+		}
+	}
+}
+
+// TestScanConnectionAndGroup proves: the per-element scanners cover
+// top-level members and key names in properties, extensions and tags
+// for connections and groups, as ScanResource does for resources.
+func TestScanConnectionAndGroup(t *testing.T) {
+	c := Connection{ID: "c", Type: "t", Source: "a", Target: "b", Description: "Bearer CANARYconnTOKEN01",
+		Tags: map[string]string{"api_key": "x"}}
+	if f := ScanConnection(&c, 3); len(f) != 2 || f[0].Path != "topology.connections[3].description" || f[1].Path != "topology.connections[3].tags.api_key" {
+		t.Errorf("ScanConnection = %v", f)
+	}
+	g := Group{ID: "g", Type: "t", Name: "Bearer CANARYgroupTOKEN01",
+		Extensions: map[string]any{"osiris.x": []any{map[string]any{"password": "x"}}}}
+	if f := ScanGroup(&g, 1); len(f) != 2 || f[0].Path != "topology.groups[1].extensions.osiris.x[0].password" || f[1].Path != "topology.groups[1].name" {
+		t.Errorf("ScanGroup = %v", f)
+	}
+	if f := ScanTags(nil, "p"); f != nil {
+		t.Errorf("ScanTags(nil) = %v", f)
 	}
 }

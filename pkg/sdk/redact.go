@@ -13,9 +13,12 @@
 package sdk
 
 import (
+	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -125,43 +128,154 @@ func isBasicCredential(m []string) bool {
 	return true
 }
 
+// RedactedValue is the placeholder a producer substitutes for a secret
+// value before Build. A value under a sensitive key that is exactly
+// RedactedValue, an empty string or null is treated as already
+// redacted and is not reported, so a producer can keep a redacted
+// field's key and shape without failing the scan.
+const RedactedValue = "[REDACTED]"
+
+// unscannableRule is reported when a value cannot be converted to its
+// JSON form for scanning. Such a value cannot be proven secret-free, so
+// it is reported as a finding and a fail-closed build aborts.
+const unscannableRule = "unscannable:json"
+
+// elementScopedKeys are the members of a resource, connection or group
+// whose content is producer-defined. Inside them the key-name rule
+// applies at every depth; elsewhere only the value rule applies, so
+// schema-defined member names never match a sensitive key pattern.
+var elementScopedKeys = map[string]bool{
+	"properties": true,
+	"extensions": true,
+	"tags":       true,
+}
+
+// jsonTree returns the JSON form of v as decoded generic values
+// (map[string]any, []any, string, json.Number, bool, nil). Scanning the
+// JSON form rather than the Go value covers typed slices, structs and
+// custom marshalers exactly as they are serialized.
+func jsonTree(v any) (any, error) {
+	data, err := json.Marshal(v)
+	if err != nil {
+		return nil, err
+	}
+	dec := json.NewDecoder(bytes.NewReader(data))
+	dec.UseNumber()
+	var tree any
+	if err := dec.Decode(&tree); err != nil {
+		return nil, err
+	}
+	return tree, nil
+}
+
+// scanTree reports every secret found in a decoded JSON value. Every
+// string value is checked against the value patterns. When keyRule is
+// set, every object key at any depth is also checked against
+// SensitiveKeyPatterns; a matching key is reported unless its value is
+// already redacted (see [RedactedValue]), and the value under it is
+// never inspected further so it is never echoed into a finding.
+// Object keys are visited in sorted order so finding are deterministic.
+func scanTree(v any, path string, keyRule bool) []SecretFinding {
+	switch t := v.(type) {
+	case map[string]any:
+		keys := make([]string, 0, len(t))
+		for k := range t {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		var findings []SecretFinding
+		for _, k := range keys {
+			fieldPath := path + "." + k
+			if keyRule && IsSensitiveKey(k) {
+				if isRedacted(t[k]) {
+					continue
+				}
+				findings = append(findings, SecretFinding{
+					Path: fieldPath,
+					Rule: "key_name:" + matchedKeyPattern(k),
+				})
+				continue
+			}
+			findings = append(findings, scanTree(t[k], fieldPath, keyRule)...)
+		}
+		return findings
+	case []any:
+		var findings []SecretFinding
+		for i, item := range t {
+			findings = append(findings, scanTree(item, fmt.Sprintf("%s[%d]", path, i), keyRule)...)
+		}
+		return findings
+	case string:
+		if rule := ScanValue(t); rule != "" {
+			return []SecretFinding{{Path: path, Rule: "value_pattern:" + rule}}
+		}
+	}
+	return nil
+}
+
+// isRedacted reports whether a decoded value under a sensitive key
+// carries no secret: null, an empty string or exactly RedactedValue.
+func isRedacted(v any) bool {
+	switch t := v.(type) {
+	case nil:
+		return true
+	case string:
+		return t == "" || t == RedactedValue
+	}
+	return false
+}
+
+// scanValueTree converts v to its JSON form and scans it with scanTree.
+// A value that cannot be converted is reported as one unscannable
+// finding at path.
+func scanValueTree(v any, path string, keyRule bool) []SecretFinding {
+	tree, err := jsonTree(v)
+	if err != nil {
+		return []SecretFinding{{Path: path, Rule: unscannableRule}}
+	}
+	return scanTree(tree, path, keyRule)
+}
+
+// scanElement scans a decoded resource, connection or group object.
+// Every member is value-scanned; properties, extensions and tags are
+// also key-scanned at every depth.
+func scanElement(elem any, prefix string) []SecretFinding {
+	m, ok := elem.(map[string]any)
+	if !ok {
+		return scanTree(elem, prefix, false)
+	}
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	var findings []SecretFinding
+	for _, k := range keys {
+		findings = append(findings, scanTree(m[k], prefix+"."+k, elementScopedKeys[k])...)
+	}
+	return findings
+}
+
+// scanElementValue converts a resource, connection or group to its
+// JSON form and scans it with scanElement.
+func scanElementValue(v any, prefix string) []SecretFinding {
+	tree, err := jsonTree(v)
+	if err != nil {
+		return []SecretFinding{{Path: prefix, Rule: unscannableRule}}
+	}
+	return scanElement(tree, prefix)
+}
+
 // ScanProperties scans a properties or extensions map for secrets.
-// It checks both key names and string values. Returns all findings.
-// The path parameter is the JSON Pointer prefix
-// (e.g. "topology.resources[0].properties").
+// It checks key names and string values at every depth, including
+// values nested in slices and typed values such as structs, as they
+// will be serialized. Returns all findings. The path parameter is the
+// JSON Pointer prefix (e.g. "topology.resources[0].properties").
 func ScanProperties(m map[string]any, path string) []SecretFinding {
 	if len(m) == 0 {
 		return nil
 	}
-	var findings []SecretFinding
-	for key, val := range m {
-		fieldPath := path + "." + key
-
-		// Check key name.
-		if IsSensitiveKey(key) {
-			findings = append(findings, SecretFinding{
-				Path: fieldPath,
-				Rule: "key_name:" + matchedKeyPattern(key),
-			})
-			continue // Key itself is sensitive; skip value scan to avoid logging the value.
-		}
-
-		// Check string values for secret patterns.
-		if sv, ok := val.(string); ok {
-			if rule := ScanValue(sv); rule != "" {
-				findings = append(findings, SecretFinding{
-					Path: fieldPath,
-					Rule: "value_pattern:" + rule,
-				})
-			}
-		}
-
-		// Recurse into nested maps.
-		if nested, ok := val.(map[string]any); ok {
-			findings = append(findings, ScanProperties(nested, fieldPath)...)
-		}
-	}
-	return findings
+	return scanValueTree(m, path, true)
 }
 
 // ScanTags scans a tags map for secrets (both keys and values).
@@ -169,73 +283,105 @@ func ScanTags(m map[string]string, path string) []SecretFinding {
 	if len(m) == 0 {
 		return nil
 	}
-	var findings []SecretFinding
-	for key, val := range m {
-		fieldPath := path + "." + key
+	return scanValueTree(m, path, true)
+}
 
-		if IsSensitiveKey(key) {
-			findings = append(findings, SecretFinding{
-				Path: fieldPath,
-				Rule: "key_name:" + matchedKeyPattern(key),
-			})
+// ScanResource scans a single resource for secrets. Every serialized
+// member is value-scanned (id, name, description, provider, status and
+// so on); properties, extensions and tags are also key-scanned.
+func ScanResource(r *Resource, index int) []SecretFinding {
+	return scanElementValue(r, fmt.Sprintf("topology.resources[%d]", index))
+}
+
+// ScanConnection scans a single connection for secrets with the same
+// coverage as [ScanResource].
+func ScanConnection(c *Connection, index int) []SecretFinding {
+	return scanElementValue(c, fmt.Sprintf("topology.connections[%d]", index))
+}
+
+// ScanGroup scans a single group for secrets with the same coverage as
+// [ScanResource].
+func ScanGroup(g *Group, index int) []SecretFinding {
+	return scanElementValue(g, fmt.Sprintf("topology.groups[%d]", index))
+}
+
+// ScanDocument scans an entire OSIRIS JSON document for secrets, in
+// the form it will be serialized. Every string value in the document
+// is checked against the value patterns, including metadata (scope,
+// coverage, namespaced metadata extensions) and the top-level members
+// of every resource, connection and group. Key names are checked inside
+// element properties, extensions and tags and inside namespaced
+// ("osiris.<ns>") metadata members. A document that cannot be
+// serialized is reported as one unscannable finding.
+func ScanDocument(doc *Document) []SecretFinding {
+	tree, err := jsonTree(doc)
+	if err != nil {
+		return []SecretFinding{{Path: "document", Rule: unscannableRule}}
+	}
+	root, ok := tree.(map[string]any)
+	if !ok {
+		return []SecretFinding{{Path: "document", Rule: unscannableRule}}
+	}
+	keys := make([]string, 0, len(root))
+	for k := range root {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	var findings []SecretFinding
+	for _, k := range keys {
+		switch k {
+		case "metadata":
+			findings = append(findings, scanMetadata(root[k])...)
+		case "topology":
+			findings = append(findings, scanTopology(root[k])...)
+		default:
+			findings = append(findings, scanTree(root[k], k, false)...)
+		}
+	}
+	return findings
+}
+
+// scanMetadata scans the decoded metadata object. Namespaced members
+// ("osiris.<ns>") are producer-defined and also key-scanned.
+func scanMetadata(v any) []SecretFinding {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return scanTree(v, "metadata", false)
+	}
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	var findings []SecretFinding
+	for _, k := range keys {
+		findings = append(findings, scanTree(m[k], "metadata."+k, strings.HasPrefix(k, "osiris."))...)
+	}
+	return findings
+}
+
+// scanTopology scans the decoded topology object. Each element of the
+// resources, connections and groups arrays is scanned with scanElement.
+func scanTopology(v any) []SecretFinding {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return scanTree(v, "topology", false)
+	}
+	var findings []SecretFinding
+	for _, k := range []string{"resources", "connections", "groups"} {
+		items, ok := m[k].([]any)
+		if !ok {
+			findings = append(findings, scanTree(m[k], "topology."+k, false)...)
 			continue
 		}
-
-		if rule := ScanValue(val); rule != "" {
-			findings = append(findings, SecretFinding{
-				Path: fieldPath,
-				Rule: "value_pattern:" + rule,
-			})
+		for i, item := range items {
+			findings = append(findings, scanElement(item, fmt.Sprintf("topology.%s[%d]", k, i))...)
 		}
 	}
-	return findings
-}
-
-// ScanResource scans a single resource for secrets in properties,
-// extensions and tags.
-func ScanResource(r *Resource, index int) []SecretFinding {
-	prefix := fmt.Sprintf("topology.resources[%d]", index)
-	var findings []SecretFinding
-	findings = append(findings, ScanProperties(r.Properties, prefix+".properties")...)
-	findings = append(findings, ScanProperties(r.Extensions, prefix+".extensions")...)
-	findings = append(findings, ScanTags(r.Tags, prefix+".tags")...)
-	return findings
-}
-
-// ScanConnection scans a single connection for secrets in properties,
-// extensions and tags.
-func ScanConnection(c *Connection, index int) []SecretFinding {
-	prefix := fmt.Sprintf("topology.connections[%d]", index)
-	var findings []SecretFinding
-	findings = append(findings, ScanProperties(c.Properties, prefix+".properties")...)
-	findings = append(findings, ScanProperties(c.Extensions, prefix+".extensions")...)
-	findings = append(findings, ScanTags(c.Tags, prefix+".tags")...)
-	return findings
-}
-
-// ScanGroup scans a single group for secrets in properties,
-// extensions and tags.
-func ScanGroup(g *Group, index int) []SecretFinding {
-	prefix := fmt.Sprintf("topology.groups[%d]", index)
-	var findings []SecretFinding
-	findings = append(findings, ScanProperties(g.Properties, prefix+".properties")...)
-	findings = append(findings, ScanProperties(g.Extensions, prefix+".extensions")...)
-	findings = append(findings, ScanTags(g.Tags, prefix+".tags")...)
-	return findings
-}
-
-// ScanDocument scans an entire OSIRIS JSON document for secrets.
-// Returns all findings across resources, connections and groups.
-func ScanDocument(doc *Document) []SecretFinding {
-	var findings []SecretFinding
-	for i := range doc.Topology.Resources {
-		findings = append(findings, ScanResource(&doc.Topology.Resources[i], i)...)
-	}
-	for i := range doc.Topology.Connections {
-		findings = append(findings, ScanConnection(&doc.Topology.Connections[i], i)...)
-	}
-	for i := range doc.Topology.Groups {
-		findings = append(findings, ScanGroup(&doc.Topology.Groups[i], i)...)
+	for k, val := range m {
+		if k != "resources" && k != "connections" && k != "groups" {
+			findings = append(findings, scanTree(val, "topology."+k, false)...)
+		}
 	}
 	return findings
 }
