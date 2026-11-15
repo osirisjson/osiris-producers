@@ -48,7 +48,7 @@ func TestCollect_NoCredentialLeak(t *testing.T) {
 				client: &Client{
 					baseURL:    ts.URL,
 					httpClient: ts.Client(),
-					token:      "test-token",
+					token:      "test",
 					username:   canaryUser,
 					logger:     logger,
 					ctx:        context.Background(),
@@ -88,7 +88,7 @@ func TestCollect_NoCredentialLeak(t *testing.T) {
 const (
 	canaryBearer = "Bearer CANARYfaultTOKEN0001"
 	canaryAWSKey = "AKIACANARY000000TEST"
-	canaryURI    = "https://canaryuser:canarypw@example.com/x"
+	canaryURI    = "https://admin:secret@example.com/x"
 	canaryBody   = "CANARY-BODY-7e1d0c"
 )
 
@@ -117,7 +117,7 @@ func collect(t *testing.T, srv string, client *http.Client, cfg *sdk.ProducerCon
 		target: run.TargetConfig{Host: "test"},
 		cfg:    &Config{Purpose: purpose},
 		ctx:    context.Background(),
-		client: &Client{baseURL: srv, httpClient: client, token: "test-token", username: "admin", logger: logger, ctx: context.Background()},
+		client: &Client{baseURL: srv, httpClient: client, token: "test", username: "admin", logger: logger, ctx: context.Background()},
 	}
 	ctx := testharness.NewTestContext(t, testharness.WithConfig(cfg))
 	ctx.Logger = logger
@@ -235,7 +235,7 @@ func TestClient_ErrorBodiesNeverInDiagnostics(t *testing.T) {
 		{"query 500", 500, canaryBody, func(c *Client) error { _, err := c.QueryClass("fvBD"); return err }, "HTTP 500"},
 		{"query 200 error envelope", 200, errEnvelope, func(c *Client) error { _, err := c.QueryClass("fvBD"); return err }, "APIC error 403"},
 		{"query 200 malformed", 200, `{"imdata":[` + canaryBody, func(c *Client) error { _, err := c.QueryClass("fvBD"); return err }, "decode"},
-		{"logout 500", 500, canaryBody, func(c *Client) error { c.token, c.username = "test-token", "admin"; return c.Logout() }, "HTTP 500"},
+		{"logout 500", 500, canaryBody, func(c *Client) error { c.token, c.username = "test", "admin"; return c.Logout() }, "HTTP 500"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
