@@ -97,7 +97,7 @@ profiles, routing protocol state).
 
 - Fabric: two pods, fabric domain `MXP`; a physical controller
   (`LAB-APIC1`) and a virtual one (`LAB-APIC2`, `virtualMode=yes`), two
-  spines and two leaves in pod 1, one leaf `inactive`, and a spine and
+  spines and two leaves in pod 1, one leaf `inactive` and a spine and
   a leaf in pod 2 (`physical.pod` groups `pod-1` and `pod-2`).
 - Tenants: `common` and `tn_Example` with a VRF, two bridge domains
   (IPv4 and IPv6 subnets), two EPGs, an L3Out and their `fvRsCtx`,
@@ -107,7 +107,7 @@ profiles, routing protocol state).
   port-channel (`pcRsMbrIfs` and `bundleIndex` agree), vPC leg members
   reported only by `pcRsMbrIfs` (one bundle down), six spine-leaf
   `fabricLink` links including two parallel links between the same
-  spine and leaf, an LLDP adjacency that confirms one of them, an 
+  spine and leaf, an LLDP adjacency that confirms one of them, an
   off-fabric switch seen by both LLDP and CDP (merged into one external
   neighbour) and a host seen by LLDP with a MAC-only port id.
 - More off-fabric neighbours: a second switch with the same short name
