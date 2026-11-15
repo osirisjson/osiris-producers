@@ -44,7 +44,7 @@ func fixtureHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	case "/dataservice/client/token":
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"token":"test-xsrf-token"}`)
+		fmt.Fprint(w, `{"token":"test"}`)
 	case "/dataservice/device":
 		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprint(w, devicesJSON)
@@ -360,7 +360,7 @@ func TestRunExport_DeviceFetchFailureIsFatal(t *testing.T) {
 			w.WriteHeader(http.StatusOK)
 		case "/dataservice/client/token":
 			w.Header().Set("Content-Type", "application/json")
-			fmt.Fprint(w, `{"token":"test-xsrf-token"}`)
+			fmt.Fprint(w, `{"token":"test"}`)
 		case "/dataservice/device":
 			w.WriteHeader(http.StatusInternalServerError)
 		default:
