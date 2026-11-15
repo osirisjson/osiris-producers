@@ -76,8 +76,8 @@ func TestScanValue(t *testing.T) {
 		// Slack token.
 		{"xoxb-123456789-abcdefgh", "slack_token"},
 		// Credential URI.
-		{"postgresql://admin:s3cret@db.prod.internal:5432/app", "credential_uri"},
-		{"https://user:pass@example.com", "credential_uri"},
+		{"postgresql://admin:secret@db.example.com:5432/app", "credential_uri"},
+		{"https://admin:password@example.com", "credential_uri"},
 		// Safe values - no match.
 		{"192.0.2.1", ""},
 		{"compute.vm", ""},
@@ -95,10 +95,10 @@ func TestScanValue(t *testing.T) {
 
 func TestScanProperties(t *testing.T) {
 	m := map[string]any{
-		"hostname":    "web-01",
+		"hostname":    "LAB-WEB01",
 		"memory_gb":   64,
-		"db_password": "hunter2",
-		"endpoint":    "https://user:pass@db.internal:5432",
+		"db_password": "secret",
+		"endpoint":    "https://admin:secret@db.example.com:5432",
 	}
 	findings := ScanProperties(m, "test")
 	if len(findings) != 2 {
@@ -121,7 +121,7 @@ func TestScanProperties(t *testing.T) {
 func TestScanPropertiesNested(t *testing.T) {
 	m := map[string]any{
 		"config": map[string]any{
-			"api_key": "some-key",
+			"api_key": "secret",
 		},
 	}
 	findings := ScanProperties(m, "test")
@@ -136,7 +136,7 @@ func TestScanPropertiesNested(t *testing.T) {
 func TestScanTags(t *testing.T) {
 	m := map[string]string{
 		"env":      "production",
-		"password": "oops",
+		"password": "secret",
 	}
 	findings := ScanTags(m, "test")
 	if len(findings) != 1 {
@@ -152,11 +152,11 @@ func TestScanResource(t *testing.T) {
 		ID:   "test-resource",
 		Type: "compute.vm",
 		Properties: map[string]any{
-			"hostname": "web-01",
+			"hostname": "LAB-WEB01",
 		},
 		Extensions: map[string]any{
 			"osiris.vendor": map[string]any{
-				"secret_key": "AKIAIOSFODNN7EXAMPLE",
+				"secret_key": "secret",
 			},
 		},
 		Tags: map[string]string{
@@ -180,7 +180,7 @@ func TestScanDocumentClean(t *testing.T) {
 					ID:   "res-1",
 					Type: "compute.vm",
 					Properties: map[string]any{
-						"hostname":  "web-01",
+						"hostname":  "LAB-WEB01",
 						"memory_gb": 64,
 					},
 				},
@@ -201,7 +201,7 @@ func TestScanDocumentWithSecrets(t *testing.T) {
 					ID:   "res-1",
 					Type: "compute.vm",
 					Properties: map[string]any{
-						"connection_string": "postgresql://admin:s3cret@db:5432/app",
+						"connection_string": "postgresql://admin:secret@db:5432/app",
 					},
 				},
 			},
@@ -210,7 +210,7 @@ func TestScanDocumentWithSecrets(t *testing.T) {
 					ID:   "conn-1",
 					Type: "network",
 					Properties: map[string]any{
-						"auth_token": "Bearer abc123",
+						"auth_token": "Bearer secret",
 					},
 				},
 			},
@@ -219,7 +219,7 @@ func TestScanDocumentWithSecrets(t *testing.T) {
 					ID:   "grp-1",
 					Type: "physical.site",
 					Tags: map[string]string{
-						"api_key": "should-not-be-here",
+						"api_key": "secret",
 					},
 				},
 			},
@@ -261,7 +261,7 @@ func TestScanDocumentSerializedTree(t *testing.T) {
 			Extensions: map[string]any{"osiris.test": map[string]any{"records": []typedFinding{{Code: "R1", Message: bearer}}}}}}}},
 			"topology.resources[0].extensions.osiris.test.records[0].message", "value_pattern:bearer_token"},
 		{"slice of maps in properties", Document{Topology: Topology{Resources: []Resource{{ID: "r", Type: "t",
-			Properties: map[string]any{"items": []any{map[string]any{"api_key": "x"}}}}}}},
+			Properties: map[string]any{"items": []any{map[string]any{"api_key": "secret"}}}}}}},
 			"topology.resources[0].properties.items[0].api_key", "key_name:api_key"},
 		{"resource name", Document{Topology: Topology{Resources: []Resource{{ID: "r", Type: "t", Name: bearer}}}},
 			"topology.resources[0].name", "value_pattern:bearer_token"},
@@ -273,7 +273,7 @@ func TestScanDocumentSerializedTree(t *testing.T) {
 			"topology.resources[0].provider.native_id", "value_pattern:bearer_token"},
 		{"metadata scope", Document{Metadata: Metadata{Scope: &Scope{Description: bearer}}, Topology: Topology{Resources: []Resource{}}},
 			"metadata.scope.description", "value_pattern:bearer_token"},
-		{"metadata extension key", Document{Metadata: Metadata{Extensions: map[string]any{"osiris.test": map[string]any{"token": "x"}}}, Topology: Topology{Resources: []Resource{}}},
+		{"metadata extension key", Document{Metadata: Metadata{Extensions: map[string]any{"osiris.test": map[string]any{"token": "secret"}}}, Topology: Topology{Resources: []Resource{}}},
 			"metadata.osiris.test.token", "key_name:token"},
 	}
 	for _, tt := range tests {
@@ -338,7 +338,7 @@ func TestScanUnscannableFailsClosed(t *testing.T) {
 // a stable order across runs.
 func TestScanDocumentDeterministicOrder(t *testing.T) {
 	doc := &Document{Topology: Topology{Resources: []Resource{{ID: "r", Type: "t",
-		Properties: map[string]any{"z_token": "a", "a_secret": "b", "m_password": "c"}}}}}
+		Properties: map[string]any{"z_token": "secret-1", "a_secret": "secret-2", "m_password": "secret-3"}}}}}
 	first := fmt.Sprint(ScanDocument(doc))
 	for range 20 {
 		if got := fmt.Sprint(ScanDocument(doc)); got != first {
@@ -352,12 +352,12 @@ func TestScanDocumentDeterministicOrder(t *testing.T) {
 // for connections and groups, as ScanResource does for resources.
 func TestScanConnectionAndGroup(t *testing.T) {
 	c := Connection{ID: "c", Type: "t", Source: "a", Target: "b", Description: "Bearer CANARYconnTOKEN01",
-		Tags: map[string]string{"api_key": "x"}}
+		Tags: map[string]string{"api_key": "secret"}}
 	if f := ScanConnection(&c, 3); len(f) != 2 || f[0].Path != "topology.connections[3].description" || f[1].Path != "topology.connections[3].tags.api_key" {
 		t.Errorf("ScanConnection = %v", f)
 	}
 	g := Group{ID: "g", Type: "t", Name: "Bearer CANARYgroupTOKEN01",
-		Extensions: map[string]any{"osiris.x": []any{map[string]any{"password": "x"}}}}
+		Extensions: map[string]any{"osiris.x": []any{map[string]any{"password": "secret"}}}}
 	if f := ScanGroup(&g, 1); len(f) != 2 || f[0].Path != "topology.groups[1].extensions.osiris.x[0].password" || f[1].Path != "topology.groups[1].name" {
 		t.Errorf("ScanGroup = %v", f)
 	}

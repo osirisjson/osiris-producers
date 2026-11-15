@@ -18,10 +18,10 @@ func newSampleDoc() *sdk.Document {
 					Type: "network.subnet",
 					Name: "subnet-a",
 					Properties: map[string]any{
-						"address_prefix": "10.0.0.0/24",
+						"address_prefix": "192.0.2.0/24",
 					},
 					Extensions: map[string]any{
-						"osiris.azure": map[string]any{"nsg_id": "/subscriptions/x"},
+						"osiris.azure": map[string]any{"nsg_id": "/subscriptions/00000000-0000-4000-8000-000000000091"},
 					},
 					Tags: map[string]string{"env": "dv"},
 				},
