@@ -11,6 +11,18 @@ See the root [`CHANGELOG.md`](../../../../CHANGELOG.md) for the release-level in
 
 ---
 
+## [Unreleased]
+
+### Changed
+
+- CLI help and package documentation use the reserved example start
+  URL `https://example.awsapps.com/start`. Emitted documents are
+  unchanged; the behavior version stays `0.1.1`.
+- The account CSV template and code examples use the approved example
+  accounts `123456789012` and `111122223333` and a zero-padded VPC ID.
+
+---
+
 ## [0.1.1] - 2026-06-24
 
 ### Fixed

@@ -4,7 +4,7 @@
 //
 // Usage:
 //
-//	osirisjson-producer aws setup-sso --start-url https://myorg.awsapps.com/start --region eu-west-1
+//	osirisjson-producer aws setup-sso --start-url https://example.awsapps.com/start --region eu-west-1
 //
 // This eliminates the need to manually run "aws configure sso" for each
 // account. A single invocation discovers all accounts and roles, writes
@@ -616,7 +616,7 @@ Usage:
   osirisjson-producer aws setup-sso --start-url <URL> [--region <region>]
 
 Required flags:
-  --start-url    IAM Identity Center start URL (e.g. https://myorg.awsapps.com/start)
+  --start-url    IAM Identity Center start URL (e.g. https://example.awsapps.com/start)
 
 Optional flags:
   --region       AWS region where IAM Identity Center is configured
