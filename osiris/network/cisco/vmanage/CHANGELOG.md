@@ -157,8 +157,8 @@ Initial Cisco vManage producer release.
   not 7.6.5's fuller resource shape
   (`room_number`/`room_sqft`/`room_type`/`cooling_capacity_tons`)
   vManage has none of that data. `properties.geo_location`
-  (`{latitude, longitude}`, matching OSIRIS-JSON-v1.0 6.5.1.1 own
-  group example shape) is sourced from the first site device with
+  (`{latitude, longitude}`, matching OSIRIS-JSON-v1.0 section 6.5.1.1
+  own group example shape) is sourced from the first site device with
   resolvable coordinates vManage reports identical latitude/longitude
   for every device at a site, so this is set once on the group rather
   than duplicated per device. Not purpose-gated unlike

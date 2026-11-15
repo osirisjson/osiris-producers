@@ -229,9 +229,9 @@ func TestParseFlags_SecretsFileRulesShapeResolvesByHost(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "cisco-vmanage-secrets.json")
 	content := `{
-  "default": {"username": "default-user", "password": "default-pass"},
+  "default": {"username": "default-user", "password": "secret-1"},
   "rules": [
-    {"hosts": "vmanage.example.com", "username": "user", "password": "pass"}
+    {"hosts": "vmanage.example.com", "username": "user", "password": "secret-2"}
   ]
 }`
 	if err := os.WriteFile(path, []byte(content), 0600); err != nil {
@@ -243,8 +243,8 @@ func TestParseFlags_SecretsFileRulesShapeResolvesByHost(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ParseFlags failed: %v", err)
 	}
-	if cfg.Username != "user" || cfg.Password != "pass" {
-		t.Errorf("Username/Password = %q/%q, want user/pass", cfg.Username, cfg.Password)
+	if cfg.Username != "user" || cfg.Password != "secret-2" {
+		t.Errorf("Username/Password = %q/%q, want user/secret-2", cfg.Username, cfg.Password)
 	}
 
 	// A different host falls back to default.
@@ -252,8 +252,8 @@ func TestParseFlags_SecretsFileRulesShapeResolvesByHost(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ParseFlags failed: %v", err)
 	}
-	if cfg.Username != "default-user" || cfg.Password != "default-pass" {
-		t.Errorf("Username/Password = %q/%q, want default-user/default-pass (Default fallback)", cfg.Username, cfg.Password)
+	if cfg.Username != "default-user" || cfg.Password != "secret-1" {
+		t.Errorf("Username/Password = %q/%q, want default-user/secret-1 (Default fallback)", cfg.Username, cfg.Password)
 	}
 }
 
@@ -269,7 +269,7 @@ func TestParseFlags_FlagOverridesSecretsFile(t *testing.T) {
 	contents := run.CredentialFile{
 		Host:     "vmanage.example.com",
 		Username: "from-file-user",
-		Password: "from-file-password",
+		Password: "secret-3",
 	}
 	data, err := json.Marshal(contents)
 	if err != nil {

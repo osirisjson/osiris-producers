@@ -62,20 +62,20 @@ func TestTransformDevices_RouterIDUsesSerial(t *testing.T) {
 	// vEdge/cEdge platforms, not an actual UUID. That string is
 	// preserved separately as extensions.chassis_number.
 	devices := []Device{
-		{UUID: "C8200L-1N-4T-S123456789L", HostName: "TEST-CEDGE1", SiteID: "100", Personality: "cedge", BoardSerial: "S123456789L"},
+		{UUID: "C8200L-1N-4T-TST123456789L", HostName: "TEST-CEDGE1", SiteID: "100", Personality: "cedge", BoardSerial: "TST123456789L"},
 	}
 	resources, _ := TransformDevices(devices, "documentation")
 
-	want := "cisco.vmanage::S123456789L"
+	want := "cisco.vmanage::TST123456789L"
 	if resources[0].ID != want {
 		t.Errorf("resource ID = %q, want %q", resources[0].ID, want)
 	}
-	if resources[0].Provider.NativeID != "S123456789L" {
-		t.Errorf("provider.native_id = %q, want %q", resources[0].Provider.NativeID, "S123456789L")
+	if resources[0].Provider.NativeID != "TST123456789L" {
+		t.Errorf("provider.native_id = %q, want %q", resources[0].Provider.NativeID, "TST123456789L")
 	}
 	ext := resources[0].Extensions[extensionKey].(map[string]any)
-	if ext["chassis_number"] != "C8200L-1N-4T-S123456789L" {
-		t.Errorf("extensions.chassis_number = %v, want %q", ext["chassis_number"], "C8200L-1N-4T-S123456789L")
+	if ext["chassis_number"] != "C8200L-1N-4T-TST123456789L" {
+		t.Errorf("extensions.chassis_number = %v, want %q", ext["chassis_number"], "C8200L-1N-4T-TST123456789L")
 	}
 }
 
@@ -102,7 +102,7 @@ func TestTransformDevices_ControllerIDIgnoresSerial(t *testing.T) {
 	// Controllers (vmanage/vsmart/vbond) keep the uuid/deviceId key
 	// the serial substitution only applies to network.router.
 	devices := []Device{
-		{UUID: "11111111-1111-1111-1111-111111111111", HostName: "TEST-VMANAGE1", SiteID: "100", Personality: "vmanage", BoardSerial: "12345678"},
+		{UUID: "11111111-1111-1111-1111-111111111111", HostName: "TEST-VMANAGE1", SiteID: "100", Personality: "vmanage", BoardSerial: "TST12345678"},
 	}
 	resources, _ := TransformDevices(devices, "documentation")
 
@@ -123,10 +123,10 @@ func TestDeviceNativeKey(t *testing.T) {
 		resType string
 		want    string
 	}{
-		{"router with serial", Device{UUID: "u", DeviceID: "did", BoardSerial: "serial"}, "network.router", "serial"},
+		{"router with serial", Device{UUID: "u", DeviceID: "did", BoardSerial: "TST0000001"}, "network.router", "TST0000001"},
 		{"router without serial falls to uuid", Device{UUID: "u", DeviceID: "did"}, "network.router", "u"},
 		{"router without serial or uuid falls to deviceId", Device{DeviceID: "did"}, "network.router", "did"},
-		{"controller ignores serial", Device{UUID: "u", BoardSerial: "serial"}, "osiris.cisco.controller", "u"},
+		{"controller ignores serial", Device{UUID: "u", BoardSerial: "TST0000001"}, "osiris.cisco.controller", "u"},
 	}
 	for _, c := range cases {
 		if got := deviceNativeKey(c.d, c.resType); got != c.want {
@@ -397,10 +397,10 @@ func TestGroupDevicesBySiteID(t *testing.T) {
 }
 
 func TestToFloat(t *testing.T) {
-	if v, ok := toFloat("45.5454"); !ok || v != 45.5454 {
+	if v, ok := toFloat("45.5433411"); !ok || v != 45.5433411 {
 		t.Errorf("toFloat(string) = %v, %v", v, ok)
 	}
-	if v, ok := toFloat(10.2251); !ok || v != 10.2251 {
+	if v, ok := toFloat(10.2241237); !ok || v != 10.2241237 {
 		t.Errorf("toFloat(float64) = %v, %v", v, ok)
 	}
 	if _, ok := toFloat(nil); ok {
@@ -481,8 +481,8 @@ func TestTransformSiteGroup_GeoLocation(t *testing.T) {
 	// purpose-gated: a site's coordinates are not sensitive the way a
 	// serial number or certificate validity is.
 	devices := []Device{
-		{Latitude: "45.5454", Longitude: 10.2251},
-		{Latitude: "45.5454", Longitude: 10.2251},
+		{Latitude: "45.5433411", Longitude: 10.2241237},
+		{Latitude: "45.5433411", Longitude: 10.2241237},
 	}
 
 	g, _ := TransformSiteGroup("100", "MXP", devices, []string{"cisco.vmanage::a"})
@@ -490,11 +490,11 @@ func TestTransformSiteGroup_GeoLocation(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected properties.geo_location to be an object, got %T", g.Properties["geo_location"])
 	}
-	if geo["latitude"] != 45.5454 {
-		t.Errorf("geo_location.latitude = %v, want 45.5454", geo["latitude"])
+	if geo["latitude"] != 45.5433411 {
+		t.Errorf("geo_location.latitude = %v, want 45.5433411", geo["latitude"])
 	}
-	if geo["longitude"] != 10.2251 {
-		t.Errorf("geo_location.longitude = %v, want 10.2251", geo["longitude"])
+	if geo["longitude"] != 10.2241237 {
+		t.Errorf("geo_location.longitude = %v, want 10.2241237", geo["longitude"])
 	}
 }
 

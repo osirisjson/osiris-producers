@@ -41,7 +41,7 @@ func TestLogin_Success(t *testing.T) {
 			w.WriteHeader(http.StatusOK)
 		case "/dataservice/client/token":
 			w.Header().Set("Content-Type", "application/json")
-			fmt.Fprint(w, `{"token":"test-xsrf-token"}`)
+			fmt.Fprint(w, `{"token":"test"}`)
 		default:
 			w.WriteHeader(http.StatusNotFound)
 		}
@@ -52,8 +52,8 @@ func TestLogin_Success(t *testing.T) {
 	if err := c.Login("user", "changeme"); err != nil {
 		t.Fatalf("Login failed: %v", err)
 	}
-	if c.xsrfToken != "test-xsrf-token" {
-		t.Errorf("xsrfToken = %q, want %q", c.xsrfToken, "test-xsrf-token")
+	if c.xsrfToken != "test" {
+		t.Errorf("xsrfToken = %q, want %q", c.xsrfToken, "test")
 	}
 }
 
@@ -113,7 +113,7 @@ func TestGetDevices_HealthAndInventoryFields(t *testing.T) {
 	// documented "Devices List" example for GET /dataservice/device.
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"data":[{"deviceId":"192.0.2.20","system-ip":"192.0.2.20","host-name":"vm200","personality":"vmanage","board-serial":"12345789","state":"green","state_description":"All daemons up","uptime-date":1634626320000,"lastupdated":1634627015139,"connectedVManages":["192.0.2.20"]}]}`)
+		fmt.Fprint(w, `{"data":[{"deviceId":"192.0.2.20","system-ip":"192.0.2.20","host-name":"LAB-VM200","personality":"vmanage","board-serial":"TST12345789","state":"green","state_description":"All daemons up","uptime-date":1634626320000,"lastupdated":1634627015139,"connectedVManages":["192.0.2.20"]}]}`)
 	}))
 	defer ts.Close()
 
@@ -126,8 +126,8 @@ func TestGetDevices_HealthAndInventoryFields(t *testing.T) {
 		t.Fatalf("expected 1 device, got %d", len(devices))
 	}
 	d := devices[0]
-	if d.BoardSerial != "12345789" {
-		t.Errorf("BoardSerial = %q, want %q", d.BoardSerial, "12345789")
+	if d.BoardSerial != "TST12345789" {
+		t.Errorf("BoardSerial = %q, want %q", d.BoardSerial, "TST12345789")
 	}
 	if d.HealthState != "green" {
 		t.Errorf("HealthState = %q, want %q", d.HealthState, "green")
@@ -453,11 +453,11 @@ func TestGetDevices_SendsXSRFHeader(t *testing.T) {
 	defer ts.Close()
 
 	c := newTestClient(t, ts)
-	c.xsrfToken = "test-xsrf-token"
+	c.xsrfToken = "test"
 	if _, err := c.GetDevices(); err != nil {
 		t.Fatalf("GetDevices failed: %v", err)
 	}
-	if gotHeader != "test-xsrf-token" {
-		t.Errorf("X-XSRF-TOKEN header = %q, want %q", gotHeader, "test-xsrf-token")
+	if gotHeader != "test" {
+		t.Errorf("X-XSRF-TOKEN header = %q, want %q", gotHeader, "test")
 	}
 }
