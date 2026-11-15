@@ -17,7 +17,7 @@
           "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Db/cep-00:00:5E:00:53:21",
           "mac": "00:00:5E:00:53:21",
           "encap": "vlan-200",
-          "fabricPathDn": "topology/pod-1/paths-111/pathep-[po1]"
+          "fabricPathDn": "topology/pod-1/paths-111/pathep-[LAB-PC-DB]"
         }
       }
     },

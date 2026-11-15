@@ -1,5 +1,5 @@
 {
-  "totalCount": "6",
+  "totalCount": "7",
   "imdata": [
     {
       "fvRsCons": {
@@ -61,6 +61,17 @@
           "prio": "unspecified",
           "state": "formed",
           "tDn": "uni/tn-common/brc-dns"
+        }
+      }
+    },
+    {
+      "fvRsCons": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/out-l3out_Core/instP-ext/rscons-dns",
+          "tDn": "",
+          "tnVzBrCPName": "dns",
+          "state": "formed",
+          "prio": "unspecified"
         }
       }
     }

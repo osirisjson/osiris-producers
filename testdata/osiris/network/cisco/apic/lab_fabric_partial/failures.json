@@ -1,5 +1,7 @@
 {
   "faultInst": 500,
+  "l3extRsPathL3OutAtt": 403,
   "lldpAdjEp": 403,
+  "vpcRsVpcConf": 403,
   "vzFilter": 403
 }

@@ -1,0 +1,14 @@
+{
+  "totalCount": "1",
+  "imdata": [
+    {
+      "fvRsBDToOut": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/BD-bd_Web/rsBDToOut-l3out_Core",
+          "tnL3extOutName": "l3out_Core",
+          "state": "formed"
+        }
+      }
+    }
+  ]
+}

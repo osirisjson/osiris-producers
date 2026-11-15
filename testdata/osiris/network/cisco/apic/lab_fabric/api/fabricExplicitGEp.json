@@ -1,0 +1,16 @@
+{
+  "totalCount": "1",
+  "imdata": [
+    {
+      "fabricExplicitGEp": {
+        "attributes": {
+          "dn": "uni/fabric/protpol/expgep-LAB-VPC-111-112",
+          "name": "LAB-VPC-111-112",
+          "id": "10",
+          "configSt": "deployed",
+          "virtualIp": "192.0.2.250/32"
+        }
+      }
+    }
+  ]
+}

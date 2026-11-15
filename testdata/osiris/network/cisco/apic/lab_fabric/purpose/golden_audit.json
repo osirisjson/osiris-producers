@@ -5,12 +5,12 @@
     "timestamp": "2026-11-13T12:00:00Z",
     "generator": {
       "name": "osirisjson-producer-cisco-apic",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "url": "https://docs.osirisjson.org/osiris-producers/network/cisco"
     },
     "scope": {
       "name": "LAB-APIC1",
-      "description": "Cisco ACI fabric MXP: 30/30 discovery operations returned data.",
+      "description": "Cisco ACI fabric MXP: 43/43 discovery operations returned data.",
       "purpose": "audit",
       "providers": [
         "cisco.apic"
@@ -20,37 +20,51 @@
   "topology": {
     "resources": [
       {
-        "id": "cisco.apic::external/00:00:5e:00:53:b1",
+        "id": "cisco.apic::external/cdp/lab-ext-sw3_tst0000903_",
         "type": "network.switch",
+        "name": "LAB-EXT-SW3",
         "provider": {
           "name": "cisco.apic",
-          "native_id": "external/00:00:5e:00:53:b1",
+          "native_id": "external/cdp/lab-ext-sw3_tst0000903_",
           "type": "neighbour"
         },
         "status": "unknown",
         "properties": {
-          "chassis_id": "00:00:5E:00:53:B1",
-          "discovered_by": "lldp"
+          "cdp_device_id": "LAB-EXT-SW3(TST0000903)",
+          "discovered_by": "cdp",
+          "identity_basis": "cdp-device-id",
+          "manufacturer": "Cisco",
+          "model": "N9K-C93180YC-FX",
+          "serial": "TST0000903"
         },
         "extensions": {
           "osiris.cisco": {
-            "external": true
+            "external": true,
+            "identity_conflict": [
+              "cisco.apic::external/lldp/mac/00:00:5e:00:53:c1"
+            ],
+            "legacy_ids": [
+              "cisco.apic::external/lab-ext-sw3"
+            ]
           }
         }
       },
       {
-        "id": "cisco.apic::external/lab-ext-sw1",
+        "id": "cisco.apic::external/lldp/mac/00:00:5e:00:53:a1",
         "type": "network.switch",
         "name": "LAB-EXT-SW1.example.com",
         "provider": {
           "name": "cisco.apic",
-          "native_id": "external/lab-ext-sw1",
+          "native_id": "external/lldp/mac/00:00:5e:00:53:a1",
           "type": "neighbour"
         },
         "status": "unknown",
         "properties": {
+          "cdp_device_id": "LAB-EXT-SW1(TST0000900)",
           "chassis_id": "00:00:5E:00:53:A1",
+          "chassis_id_type": "mac",
           "discovered_by": "cdp,lldp",
+          "identity_basis": "lldp-chassis-id",
           "management_ip": "198.51.100.200",
           "manufacturer": "Cisco",
           "model": "N9K-C93180YC-FX",
@@ -58,7 +72,89 @@
         },
         "extensions": {
           "osiris.cisco": {
-            "external": true
+            "external": true,
+            "legacy_ids": [
+              "cisco.apic::external/lab-ext-sw1"
+            ]
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::external/lldp/mac/00:00:5e:00:53:a2",
+        "type": "network.switch",
+        "name": "LAB-EXT-SW1.example.net",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "external/lldp/mac/00:00:5e:00:53:a2",
+          "type": "neighbour"
+        },
+        "status": "unknown",
+        "properties": {
+          "chassis_id": "00:00:5E:00:53:A2",
+          "chassis_id_type": "mac",
+          "discovered_by": "lldp",
+          "identity_basis": "lldp-chassis-id",
+          "management_ip": "198.51.100.201"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "external": true,
+            "legacy_ids": [
+              "cisco.apic::external/lab-ext-sw1"
+            ]
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::external/lldp/mac/00:00:5e:00:53:b1",
+        "type": "network.switch",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "external/lldp/mac/00:00:5e:00:53:b1",
+          "type": "neighbour"
+        },
+        "status": "unknown",
+        "properties": {
+          "chassis_id": "00:00:5E:00:53:B1",
+          "chassis_id_type": "mac",
+          "discovered_by": "lldp",
+          "identity_basis": "lldp-chassis-id"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "external": true,
+            "legacy_ids": [
+              "cisco.apic::external/00:00:5e:00:53:b1"
+            ]
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::external/lldp/mac/00:00:5e:00:53:c1",
+        "type": "network.switch",
+        "name": "LAB-EXT-SW2",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "external/lldp/mac/00:00:5e:00:53:c1",
+          "type": "neighbour"
+        },
+        "status": "unknown",
+        "properties": {
+          "chassis_id": "00:00:5E:00:53:C1",
+          "chassis_id_type": "mac",
+          "discovered_by": "lldp",
+          "identity_basis": "lldp-chassis-id",
+          "management_ip": "198.51.100.202"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "external": true,
+            "identity_conflict": [
+              "cisco.apic::external/cdp/lab-ext-sw3_tst0000903_"
+            ],
+            "legacy_ids": [
+              "cisco.apic::external/lab-ext-sw2"
+            ]
           }
         }
       },
@@ -92,12 +188,12 @@
             "control_plane_mtu": 9000,
             "coverage": [
               {
-                "count": 6,
+                "count": 8,
                 "operation": "fabricNode",
                 "status": "succeeded"
               },
               {
-                "count": 6,
+                "count": 8,
                 "operation": "topSystem",
                 "status": "succeeded"
               },
@@ -112,7 +208,7 @@
                 "status": "succeeded"
               },
               {
-                "count": 2,
+                "count": 3,
                 "operation": "fvCtx",
                 "status": "succeeded"
               },
@@ -132,7 +228,7 @@
                 "status": "succeeded"
               },
               {
-                "count": 1,
+                "count": 2,
                 "operation": "l3extOut",
                 "status": "succeeded"
               },
@@ -147,7 +243,7 @@
                 "status": "succeeded"
               },
               {
-                "count": 1,
+                "count": 2,
                 "operation": "l3extRsEctx",
                 "status": "succeeded"
               },
@@ -178,12 +274,12 @@
                 "status": "succeeded"
               },
               {
-                "count": 4,
+                "count": 5,
                 "operation": "fvRsProv",
                 "status": "succeeded"
               },
               {
-                "count": 6,
+                "count": 7,
                 "operation": "fvRsCons",
                 "out_of_scope": 1,
                 "status": "succeeded"
@@ -195,38 +291,103 @@
                 "status": "succeeded"
               },
               {
-                "count": 14,
+                "count": 21,
                 "operation": "l1PhysIf",
                 "status": "succeeded"
               },
               {
-                "count": 14,
+                "count": 21,
                 "operation": "ethpmPhysIf",
                 "status": "succeeded"
               },
               {
-                "count": 4,
+                "count": 6,
                 "operation": "fabricLink",
                 "status": "succeeded"
               },
               {
-                "count": 3,
+                "count": 5,
                 "operation": "lldpAdjEp",
                 "status": "succeeded"
               },
               {
-                "count": 1,
+                "count": 2,
                 "operation": "cdpAdjEp",
                 "status": "succeeded"
               },
               {
-                "count": 1,
+                "count": 3,
                 "operation": "pcAggrIf",
                 "status": "succeeded"
               },
               {
                 "count": 4,
+                "operation": "pcRsMbrIfs",
+                "status": "succeeded"
+              },
+              {
+                "count": 7,
                 "operation": "fvRsPathAtt",
+                "status": "succeeded"
+              },
+              {
+                "count": 2,
+                "operation": "fabricPod",
+                "status": "succeeded"
+              },
+              {
+                "count": 10,
+                "operation": "fabricPathEp",
+                "status": "succeeded"
+              },
+              {
+                "count": 2,
+                "operation": "vpcIf",
+                "status": "succeeded"
+              },
+              {
+                "count": 1,
+                "operation": "vpcRsVpcConf",
+                "status": "succeeded"
+              },
+              {
+                "count": 1,
+                "operation": "fabricExplicitGEp",
+                "status": "succeeded"
+              },
+              {
+                "count": 2,
+                "operation": "fabricNodePEp",
+                "status": "succeeded"
+              },
+              {
+                "count": 2,
+                "operation": "l3extInstP",
+                "status": "succeeded"
+              },
+              {
+                "count": 4,
+                "operation": "l3extSubnet",
+                "status": "succeeded"
+              },
+              {
+                "count": 3,
+                "operation": "l3extRsNodeL3OutAtt",
+                "status": "succeeded"
+              },
+              {
+                "count": 3,
+                "operation": "l3extRsPathL3OutAtt",
+                "status": "succeeded"
+              },
+              {
+                "count": 1,
+                "operation": "fvRsBDToOut",
+                "status": "succeeded"
+              },
+              {
+                "count": 2,
+                "operation": "vpcDom",
                 "status": "succeeded"
               },
               {
@@ -247,13 +408,21 @@
             ],
             "fabric_id": 1,
             "fabric_mac": "00:00:5E:00:53:01",
+            "l3out_scope": {
+              "not_modeled": [
+                "bgp-ospf-eigrp-peers",
+                "installed-routes",
+                "route-control-profiles",
+                "vpc-svi-side-addresses"
+              ],
+              "semantics": "configured-intent"
+            },
             "last_reboot_time": "2026-10-01T08:00:00.000+00:00",
             "policy_scope": {
               "not_modeled": [
                 "contract-inheritance",
                 "direction-specific-subject-terms",
                 "endpoint-security-groups",
-                "external-epgs",
                 "management-epgs",
                 "out-of-band-contracts",
                 "service-graphs",
@@ -292,50 +461,6 @@
                   "state": "in-service",
                   "systemUpTime": "10:02:03:04.000",
                   "virtualMode": "no"
-                }
-              ]
-            },
-            "raw_unowned": {
-              "fabricLink": [
-                {
-                  "dn": "topology/pod-1/lnkcnt-101/lnk-111-1-49-to-101-1-1",
-                  "linkState": "ok",
-                  "n1": "111",
-                  "n2": "101",
-                  "p1": "49",
-                  "p2": "1",
-                  "s1": "1",
-                  "s2": "1"
-                },
-                {
-                  "dn": "topology/pod-1/lnkcnt-101/lnk-112-1-49-to-101-1-2",
-                  "linkState": "ok",
-                  "n1": "112",
-                  "n2": "101",
-                  "p1": "49",
-                  "p2": "2",
-                  "s1": "1",
-                  "s2": "1"
-                },
-                {
-                  "dn": "topology/pod-1/lnkcnt-102/lnk-111-1-50-to-102-1-1",
-                  "linkState": "ok",
-                  "n1": "111",
-                  "n2": "102",
-                  "p1": "50",
-                  "p2": "1",
-                  "s1": "1",
-                  "s2": "1"
-                },
-                {
-                  "dn": "topology/pod-1/lnkcnt-102/lnk-112-1-50-to-102-1-2",
-                  "linkState": "ok",
-                  "n1": "112",
-                  "n2": "102",
-                  "p1": "50",
-                  "p2": "2",
-                  "s1": "1",
-                  "s2": "1"
                 }
               ]
             }
@@ -525,6 +650,58 @@
                   "mode": "trunk",
                   "mtu": "9216",
                   "portT": "fab",
+                  "usage": "fabric"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/node-101/sys/phys-[eth1/3]",
+        "type": "network.switch.port",
+        "name": "eth1/3",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-101/sys/phys-[eth1/3]",
+          "type": "l1PhysIf"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "duplex": "full",
+          "interface_name": "eth1/3",
+          "layer": "Layer3",
+          "mtu": "9216",
+          "node_id": "101",
+          "oper_status": "up",
+          "port_mode": "trunk",
+          "speed": "25G",
+          "usage": "fabric"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "port_type": "leaf",
+            "raw": {
+              "ethpmPhysIf": [
+                {
+                  "bundleIndex": "unspecified",
+                  "dn": "topology/pod-1/node-101/sys/phys-[eth1/3]/phys",
+                  "operDuplex": "full",
+                  "operSpeed": "25G",
+                  "operSt": "up",
+                  "operStQual": "none"
+                }
+              ],
+              "l1PhysIf": [
+                {
+                  "adminSt": "up",
+                  "dn": "topology/pod-1/node-101/sys/phys-[eth1/3]",
+                  "id": "eth1/3",
+                  "layer": "Layer3",
+                  "mode": "trunk",
+                  "mtu": "9216",
+                  "portT": "leaf",
                   "usage": "fabric"
                 }
               ]
@@ -818,6 +995,31 @@
                   "state": "in-service",
                   "systemUpTime": "10:02:03:04.000"
                 }
+              ],
+              "vpcDom": [
+                {
+                  "dn": "topology/pod-1/node-111/sys/vpc/inst/dom-10",
+                  "id": "10",
+                  "operRole": "primary",
+                  "peerSt": "up",
+                  "peerStQual": "success"
+                }
+              ],
+              "vpcIf": [
+                {
+                  "dn": "topology/pod-1/node-111/sys/vpc/inst/dom-10/if-1",
+                  "fabricPathDn": "topology/pod-1/protpaths-111-112/pathep-[LAB-VPC-1]",
+                  "id": "1",
+                  "localOperSt": "up",
+                  "remoteOperSt": "down"
+                }
+              ],
+              "vpcRsVpcConf": [
+                {
+                  "dn": "topology/pod-1/node-111/sys/vpc/inst/dom-10/if-1/rsvpcConf",
+                  "state": "formed",
+                  "tDn": "sys/aggr-[po2]"
+                }
               ]
             }
           }
@@ -862,6 +1064,72 @@
                   "name": "LAB-PC-DB",
                   "operSt": "up",
                   "pcMode": "active"
+                }
+              ],
+              "pcRsMbrIfs": [
+                {
+                  "dn": "topology/pod-1/node-111/sys/aggr-[po1]/rsmbrIfs-[eth1/10]",
+                  "state": "formed",
+                  "tDn": "sys/phys-[eth1/10]",
+                  "tSKey": "eth1/10"
+                },
+                {
+                  "dn": "topology/pod-1/node-111/sys/aggr-[po1]/rsmbrIfs-[eth1/11]",
+                  "state": "formed",
+                  "tDn": "sys/phys-[eth1/11]",
+                  "tSKey": "eth1/11"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/node-111/sys/aggr-[po2]",
+        "type": "network.switch.port",
+        "name": "po2",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-111/sys/aggr-[po2]",
+          "type": "pcAggrIf"
+        },
+        "status": "active",
+        "properties": {
+          "active_ports": "1",
+          "admin_status": "up",
+          "aggregate": true,
+          "channel_mode": "active",
+          "interface_name": "po2",
+          "min_links": "1",
+          "mtu": "9216",
+          "node_id": "111",
+          "port_mode": "trunk"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "pcAggrIf": [
+                {
+                  "activePorts": "1",
+                  "adminSt": "up",
+                  "descr": "",
+                  "dn": "topology/pod-1/node-111/sys/aggr-[po2]",
+                  "id": "po2",
+                  "layer": "Layer2",
+                  "minLinks": "1",
+                  "mode": "trunk",
+                  "mtu": "9216",
+                  "name": "LAB-VPC-1",
+                  "operSt": "up",
+                  "pcMode": "active"
+                }
+              ],
+              "pcRsMbrIfs": [
+                {
+                  "dn": "topology/pod-1/node-111/sys/aggr-[po2]/rsmbrIfs-[eth1/20]",
+                  "state": "formed",
+                  "tDn": "sys/phys-[eth1/20]",
+                  "tSKey": "eth1/20"
                 }
               ]
             }
@@ -1096,6 +1364,58 @@
         }
       },
       {
+        "id": "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/30]",
+        "type": "network.switch.port",
+        "name": "eth1/30",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-111/sys/phys-[eth1/30]",
+          "type": "l1PhysIf"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "duplex": "full",
+          "interface_name": "eth1/30",
+          "layer": "Layer3",
+          "mtu": "9216",
+          "node_id": "111",
+          "oper_status": "up",
+          "port_mode": "trunk",
+          "speed": "25G",
+          "usage": "discovery"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "port_type": "leaf",
+            "raw": {
+              "ethpmPhysIf": [
+                {
+                  "bundleIndex": "unspecified",
+                  "dn": "topology/pod-1/node-111/sys/phys-[eth1/30]/phys",
+                  "operDuplex": "full",
+                  "operSpeed": "25G",
+                  "operSt": "up",
+                  "operStQual": "none"
+                }
+              ],
+              "l1PhysIf": [
+                {
+                  "adminSt": "up",
+                  "dn": "topology/pod-1/node-111/sys/phys-[eth1/30]",
+                  "id": "eth1/30",
+                  "layer": "Layer3",
+                  "mode": "trunk",
+                  "mtu": "9216",
+                  "portT": "leaf",
+                  "usage": "discovery"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
         "id": "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/48]",
         "type": "network.switch.port",
         "name": "eth1/48",
@@ -1255,6 +1575,58 @@
         }
       },
       {
+        "id": "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/51]",
+        "type": "network.switch.port",
+        "name": "eth1/51",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-111/sys/phys-[eth1/51]",
+          "type": "l1PhysIf"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "duplex": "full",
+          "interface_name": "eth1/51",
+          "layer": "Layer3",
+          "mtu": "9216",
+          "node_id": "111",
+          "oper_status": "up",
+          "port_mode": "trunk",
+          "speed": "25G",
+          "usage": "fabric"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "port_type": "leaf",
+            "raw": {
+              "ethpmPhysIf": [
+                {
+                  "bundleIndex": "unspecified",
+                  "dn": "topology/pod-1/node-111/sys/phys-[eth1/51]/phys",
+                  "operDuplex": "full",
+                  "operSpeed": "25G",
+                  "operSt": "up",
+                  "operStQual": "none"
+                }
+              ],
+              "l1PhysIf": [
+                {
+                  "adminSt": "up",
+                  "dn": "topology/pod-1/node-111/sys/phys-[eth1/51]",
+                  "id": "eth1/51",
+                  "layer": "Layer3",
+                  "mode": "trunk",
+                  "mtu": "9216",
+                  "portT": "leaf",
+                  "usage": "fabric"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
         "id": "cisco.apic::topology/pod-1/node-112",
         "type": "network.switch",
         "name": "LAB-LEAF2",
@@ -1298,6 +1670,16 @@
             ],
             "last_reboot_time": "2026-10-01T08:00:00.000+00:00",
             "raw": {
+              "cdpAdjEp": [
+                {
+                  "devId": "LAB-EXT-SW3(TST0000903)",
+                  "dn": "topology/pod-1/node-112/sys/cdp/inst/if-[eth1/46]/adj-1",
+                  "platId": "N9K-C93180YC-FX",
+                  "portId": "Ethernet1/1",
+                  "sysName": "LAB-EXT-SW3",
+                  "ver": "Cisco Nexus Operating System (NX-OS) Software"
+                }
+              ],
               "fabricNode": [
                 {
                   "address": "192.0.2.112",
@@ -1342,6 +1724,26 @@
                   "portIdV": "00:00:5E:00:53:B2",
                   "sysDesc": "LAB host",
                   "sysName": ""
+                },
+                {
+                  "chassisIdT": "mac",
+                  "chassisIdV": "00:00:5E:00:53:C1",
+                  "dn": "topology/pod-1/node-112/sys/lldp/inst/if-[eth1/46]/adj-1",
+                  "mgmtIp": "198.51.100.202",
+                  "portIdT": "if-name",
+                  "portIdV": "Ethernet1/1",
+                  "sysDesc": "Cisco Nexus Operating System",
+                  "sysName": "LAB-EXT-SW2"
+                },
+                {
+                  "chassisIdT": "mac",
+                  "chassisIdV": "00:00:5E:00:53:A2",
+                  "dn": "topology/pod-1/node-112/sys/lldp/inst/if-[eth1/48]/adj-1",
+                  "mgmtIp": "198.51.100.201",
+                  "portIdT": "if-name",
+                  "portIdV": "Ethernet1/52",
+                  "sysDesc": "Cisco Nexus Operating System",
+                  "sysName": "LAB-EXT-SW1.example.net"
                 }
               ],
               "topSystem": [
@@ -1357,6 +1759,76 @@
                   "serial": "TST0000112",
                   "state": "in-service",
                   "systemUpTime": "10:02:03:04.000"
+                }
+              ],
+              "vpcDom": [
+                {
+                  "dn": "topology/pod-1/node-112/sys/vpc/inst/dom-10",
+                  "id": "10",
+                  "operRole": "secondary",
+                  "peerSt": "down",
+                  "peerStQual": "peer-not-reachable"
+                }
+              ],
+              "vpcIf": [
+                {
+                  "dn": "topology/pod-1/node-112/sys/vpc/inst/dom-10/if-1",
+                  "fabricPathDn": "topology/pod-1/protpaths-111-112/pathep-[LAB-VPC-1]",
+                  "id": "1",
+                  "localOperSt": "down",
+                  "remoteOperSt": "up"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/node-112/sys/aggr-[po2]",
+        "type": "network.switch.port",
+        "name": "po2",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-112/sys/aggr-[po2]",
+          "type": "pcAggrIf"
+        },
+        "status": "active",
+        "properties": {
+          "active_ports": "1",
+          "admin_status": "up",
+          "aggregate": true,
+          "channel_mode": "active",
+          "interface_name": "po2",
+          "min_links": "1",
+          "mtu": "9216",
+          "node_id": "112",
+          "port_mode": "trunk"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "pcAggrIf": [
+                {
+                  "activePorts": "1",
+                  "adminSt": "up",
+                  "descr": "",
+                  "dn": "topology/pod-1/node-112/sys/aggr-[po2]",
+                  "id": "po2",
+                  "layer": "Layer2",
+                  "minLinks": "1",
+                  "mode": "trunk",
+                  "mtu": "9216",
+                  "name": "LAB-VPC-1",
+                  "operSt": "up",
+                  "pcMode": "active"
+                }
+              ],
+              "pcRsMbrIfs": [
+                {
+                  "dn": "topology/pod-1/node-112/sys/aggr-[po2]/rsmbrIfs-[eth1/20]",
+                  "state": "formed",
+                  "tDn": "sys/phys-[eth1/20]",
+                  "tSKey": "eth1/20"
                 }
               ]
             }
@@ -1405,6 +1877,58 @@
                   "descr": "",
                   "dn": "topology/pod-1/node-112/sys/phys-[eth1/1]",
                   "id": "eth1/1",
+                  "layer": "Layer2",
+                  "mode": "trunk",
+                  "mtu": "9216",
+                  "portT": "leaf",
+                  "usage": "epg"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/node-112/sys/phys-[eth1/20]",
+        "type": "network.switch.port",
+        "name": "eth1/20",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/node-112/sys/phys-[eth1/20]",
+          "type": "l1PhysIf"
+        },
+        "status": "inactive",
+        "properties": {
+          "admin_status": "up",
+          "duplex": "full",
+          "interface_name": "eth1/20",
+          "layer": "Layer2",
+          "mtu": "9216",
+          "node_id": "112",
+          "oper_status": "down",
+          "port_mode": "trunk",
+          "speed": "25G",
+          "usage": "epg"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "port_type": "leaf",
+            "raw": {
+              "ethpmPhysIf": [
+                {
+                  "bundleIndex": "unspecified",
+                  "dn": "topology/pod-1/node-112/sys/phys-[eth1/20]/phys",
+                  "operDuplex": "full",
+                  "operSpeed": "25G",
+                  "operSt": "down",
+                  "operStQual": "none"
+                }
+              ],
+              "l1PhysIf": [
+                {
+                  "adminSt": "up",
+                  "dn": "topology/pod-1/node-112/sys/phys-[eth1/20]",
+                  "id": "eth1/20",
                   "layer": "Layer2",
                   "mode": "trunk",
                   "mtu": "9216",
@@ -1551,12 +2075,12 @@
             "control_plane_mtu": 9000,
             "coverage": [
               {
-                "count": 6,
+                "count": 8,
                 "operation": "fabricNode",
                 "status": "succeeded"
               },
               {
-                "count": 6,
+                "count": 8,
                 "operation": "topSystem",
                 "status": "succeeded"
               },
@@ -1571,7 +2095,7 @@
                 "status": "succeeded"
               },
               {
-                "count": 2,
+                "count": 3,
                 "operation": "fvCtx",
                 "status": "succeeded"
               },
@@ -1591,7 +2115,7 @@
                 "status": "succeeded"
               },
               {
-                "count": 1,
+                "count": 2,
                 "operation": "l3extOut",
                 "status": "succeeded"
               },
@@ -1606,7 +2130,7 @@
                 "status": "succeeded"
               },
               {
-                "count": 1,
+                "count": 2,
                 "operation": "l3extRsEctx",
                 "status": "succeeded"
               },
@@ -1637,12 +2161,12 @@
                 "status": "succeeded"
               },
               {
-                "count": 4,
+                "count": 5,
                 "operation": "fvRsProv",
                 "status": "succeeded"
               },
               {
-                "count": 6,
+                "count": 7,
                 "operation": "fvRsCons",
                 "out_of_scope": 1,
                 "status": "succeeded"
@@ -1654,38 +2178,103 @@
                 "status": "succeeded"
               },
               {
-                "count": 14,
+                "count": 21,
                 "operation": "l1PhysIf",
                 "status": "succeeded"
               },
               {
-                "count": 14,
+                "count": 21,
                 "operation": "ethpmPhysIf",
                 "status": "succeeded"
               },
               {
-                "count": 4,
+                "count": 6,
                 "operation": "fabricLink",
                 "status": "succeeded"
               },
               {
-                "count": 3,
+                "count": 5,
                 "operation": "lldpAdjEp",
                 "status": "succeeded"
               },
               {
-                "count": 1,
+                "count": 2,
                 "operation": "cdpAdjEp",
                 "status": "succeeded"
               },
               {
-                "count": 1,
+                "count": 3,
                 "operation": "pcAggrIf",
                 "status": "succeeded"
               },
               {
                 "count": 4,
+                "operation": "pcRsMbrIfs",
+                "status": "succeeded"
+              },
+              {
+                "count": 7,
                 "operation": "fvRsPathAtt",
+                "status": "succeeded"
+              },
+              {
+                "count": 2,
+                "operation": "fabricPod",
+                "status": "succeeded"
+              },
+              {
+                "count": 10,
+                "operation": "fabricPathEp",
+                "status": "succeeded"
+              },
+              {
+                "count": 2,
+                "operation": "vpcIf",
+                "status": "succeeded"
+              },
+              {
+                "count": 1,
+                "operation": "vpcRsVpcConf",
+                "status": "succeeded"
+              },
+              {
+                "count": 1,
+                "operation": "fabricExplicitGEp",
+                "status": "succeeded"
+              },
+              {
+                "count": 2,
+                "operation": "fabricNodePEp",
+                "status": "succeeded"
+              },
+              {
+                "count": 2,
+                "operation": "l3extInstP",
+                "status": "succeeded"
+              },
+              {
+                "count": 4,
+                "operation": "l3extSubnet",
+                "status": "succeeded"
+              },
+              {
+                "count": 3,
+                "operation": "l3extRsNodeL3OutAtt",
+                "status": "succeeded"
+              },
+              {
+                "count": 3,
+                "operation": "l3extRsPathL3OutAtt",
+                "status": "succeeded"
+              },
+              {
+                "count": 1,
+                "operation": "fvRsBDToOut",
+                "status": "succeeded"
+              },
+              {
+                "count": 2,
+                "operation": "vpcDom",
                 "status": "succeeded"
               },
               {
@@ -1706,13 +2295,21 @@
             ],
             "fabric_id": 1,
             "fabric_mac": "00:00:5E:00:53:02",
+            "l3out_scope": {
+              "not_modeled": [
+                "bgp-ospf-eigrp-peers",
+                "installed-routes",
+                "route-control-profiles",
+                "vpc-svi-side-addresses"
+              ],
+              "semantics": "configured-intent"
+            },
             "last_reboot_time": "2026-10-01T08:00:00.000+00:00",
             "policy_scope": {
               "not_modeled": [
                 "contract-inheritance",
                 "direction-specific-subject-terms",
                 "endpoint-security-groups",
-                "external-epgs",
                 "management-epgs",
                 "out-of-band-contracts",
                 "service-graphs",
@@ -1752,48 +2349,585 @@
                   "virtualMode": "yes"
                 }
               ]
-            },
-            "raw_unowned": {
-              "fabricLink": [
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/paths-111/pathep-[LAB-PC-DB]",
+        "type": "osiris.cisco.path",
+        "name": "LAB-PC-DB",
+        "description": "Database server bond",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/paths-111/pathep-[LAB-PC-DB]",
+          "type": "fabricPathEp"
+        },
+        "properties": {
+          "aggregation": "link",
+          "node_ids": [
+            "111"
+          ],
+          "path_type": "leaf",
+          "pod": "1"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "fabricPathEp": [
                 {
-                  "dn": "topology/pod-1/lnkcnt-101/lnk-111-1-49-to-101-1-1",
-                  "linkState": "ok",
-                  "n1": "111",
-                  "n2": "101",
-                  "p1": "49",
-                  "p2": "1",
-                  "s1": "1",
-                  "s2": "1"
+                  "descr": "Database server bond",
+                  "dn": "topology/pod-1/paths-111/pathep-[LAB-PC-DB]",
+                  "lagT": "link",
+                  "name": "LAB-PC-DB",
+                  "pathT": "leaf"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/paths-111/pathep-[eth1/1]",
+        "type": "osiris.cisco.path",
+        "name": "eth1/1",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/paths-111/pathep-[eth1/1]",
+          "type": "fabricPathEp"
+        },
+        "properties": {
+          "aggregation": "not-aggregated",
+          "node_ids": [
+            "111"
+          ],
+          "path_type": "leaf",
+          "pod": "1"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "fabricPathEp": [
+                {
+                  "descr": "",
+                  "dn": "topology/pod-1/paths-111/pathep-[eth1/1]",
+                  "lagT": "not-aggregated",
+                  "name": "eth1/1",
+                  "pathT": "leaf"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/paths-111/pathep-[eth1/30]",
+        "type": "osiris.cisco.path",
+        "name": "eth1/30",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/paths-111/pathep-[eth1/30]",
+          "type": "fabricPathEp"
+        },
+        "properties": {
+          "aggregation": "not-aggregated",
+          "node_ids": [
+            "111"
+          ],
+          "path_type": "leaf",
+          "pod": "1"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "fabricPathEp": [
+                {
+                  "descr": "",
+                  "dn": "topology/pod-1/paths-111/pathep-[eth1/30]",
+                  "lagT": "not-aggregated",
+                  "name": "eth1/30",
+                  "pathT": "leaf"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/paths-112/extpaths-150/pathep-[eth1/7]",
+        "type": "osiris.cisco.path",
+        "name": "eth1/7",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/paths-112/extpaths-150/pathep-[eth1/7]",
+          "type": "fabricPathEp"
+        },
+        "properties": {
+          "aggregation": "not-aggregated",
+          "fex_ids": [
+            "150"
+          ],
+          "node_ids": [
+            "112"
+          ],
+          "path_type": "fex",
+          "pod": "1"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "fabricPathEp": [
+                {
+                  "descr": "",
+                  "dn": "topology/pod-1/paths-112/extpaths-150/pathep-[eth1/7]",
+                  "lagT": "not-aggregated",
+                  "name": "eth1/7",
+                  "pathT": "fex"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/paths-112/pathep-[eth1/1]",
+        "type": "osiris.cisco.path",
+        "name": "eth1/1",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/paths-112/pathep-[eth1/1]",
+          "type": "fabricPathEp"
+        },
+        "properties": {
+          "aggregation": "not-aggregated",
+          "node_ids": [
+            "112"
+          ],
+          "path_type": "leaf",
+          "pod": "1"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "fabricPathEp": [
+                {
+                  "descr": "",
+                  "dn": "topology/pod-1/paths-112/pathep-[eth1/1]",
+                  "lagT": "not-aggregated",
+                  "name": "eth1/1",
+                  "pathT": "leaf"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/protpaths-111-112/extprotpaths-150-151/pathep-[LAB-VPC-FEX]",
+        "type": "osiris.cisco.path",
+        "name": "LAB-VPC-FEX",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/protpaths-111-112/extprotpaths-150-151/pathep-[LAB-VPC-FEX]",
+          "type": "fabricPathEp"
+        },
+        "properties": {
+          "aggregation": "node",
+          "fex_ids": [
+            "150",
+            "151"
+          ],
+          "node_ids": [
+            "111",
+            "112"
+          ],
+          "path_type": "fex",
+          "pod": "1",
+          "vpc_domain_id": "10"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "fabricPathEp": [
+                {
+                  "descr": "",
+                  "dn": "topology/pod-1/protpaths-111-112/extprotpaths-150-151/pathep-[LAB-VPC-FEX]",
+                  "lagT": "node",
+                  "name": "LAB-VPC-FEX",
+                  "pathT": "fex"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-1/protpaths-111-112/pathep-[LAB-VPC-1]",
+        "type": "osiris.cisco.path",
+        "name": "LAB-VPC-1",
+        "description": "Hypervisor uplink",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-1/protpaths-111-112/pathep-[LAB-VPC-1]",
+          "type": "fabricPathEp"
+        },
+        "properties": {
+          "aggregation": "node",
+          "node_ids": [
+            "111",
+            "112"
+          ],
+          "path_type": "leaf",
+          "pod": "1",
+          "vpc_domain_id": "10"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "fabricPathEp": [
+                {
+                  "descr": "Hypervisor uplink",
+                  "dn": "topology/pod-1/protpaths-111-112/pathep-[LAB-VPC-1]",
+                  "lagT": "node",
+                  "name": "LAB-VPC-1",
+                  "pathT": "leaf"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-2/node-201",
+        "type": "network.switch",
+        "name": "LAB-SPINE3",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-2/node-201",
+          "type": "fabricNode",
+          "version": "n9000-16.0(5h)"
+        },
+        "status": "active",
+        "properties": {
+          "address": "192.0.2.231",
+          "fabric_domain": "MXP",
+          "manufacturer": "Cisco",
+          "model": "N9K-C9332D-GX2B",
+          "node_id": "201",
+          "oob_mgmt_addr": "198.51.100.231",
+          "pod": "2",
+          "role": "spine",
+          "serial": "TST0000201",
+          "system_state": "in-service"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "fabricNode": [
+                {
+                  "address": "192.0.2.231",
+                  "dn": "topology/pod-2/node-201",
+                  "fabricSt": "active",
+                  "id": "201",
+                  "model": "N9K-C9332D-GX2B",
+                  "name": "LAB-SPINE3",
+                  "role": "spine",
+                  "serial": "TST0000201",
+                  "version": "n9000-16.0(5h)"
+                }
+              ],
+              "topSystem": [
+                {
+                  "dn": "topology/pod-2/node-201/sys",
+                  "fabricDomain": "MXP",
+                  "name": "LAB-SPINE3",
+                  "oobMgmtAddr": "198.51.100.231",
+                  "role": "spine",
+                  "state": "in-service"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-2/node-201/sys/phys-[eth1/1]",
+        "type": "network.switch.port",
+        "name": "eth1/1",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-2/node-201/sys/phys-[eth1/1]",
+          "type": "l1PhysIf"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "duplex": "full",
+          "interface_name": "eth1/1",
+          "layer": "Layer3",
+          "mtu": "9216",
+          "node_id": "201",
+          "oper_status": "up",
+          "port_mode": "trunk",
+          "speed": "25G",
+          "usage": "fabric"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "port_type": "leaf",
+            "raw": {
+              "ethpmPhysIf": [
+                {
+                  "bundleIndex": "unspecified",
+                  "dn": "topology/pod-2/node-201/sys/phys-[eth1/1]/phys",
+                  "operDuplex": "full",
+                  "operSpeed": "25G",
+                  "operSt": "up",
+                  "operStQual": "none"
+                }
+              ],
+              "l1PhysIf": [
+                {
+                  "adminSt": "up",
+                  "dn": "topology/pod-2/node-201/sys/phys-[eth1/1]",
+                  "id": "eth1/1",
+                  "layer": "Layer3",
+                  "mode": "trunk",
+                  "mtu": "9216",
+                  "portT": "leaf",
+                  "usage": "fabric"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-2/node-211",
+        "type": "network.switch",
+        "name": "LAB-LEAF3",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-2/node-211",
+          "type": "fabricNode",
+          "version": "n9000-16.0(5h)"
+        },
+        "status": "active",
+        "properties": {
+          "address": "192.0.2.232",
+          "fabric_domain": "MXP",
+          "manufacturer": "Cisco",
+          "model": "N9K-C93180YC-FX3",
+          "node_id": "211",
+          "oob_mgmt_addr": "198.51.100.232",
+          "pod": "2",
+          "role": "leaf",
+          "serial": "TST0000211",
+          "system_state": "in-service"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "fabricNode": [
+                {
+                  "address": "192.0.2.232",
+                  "dn": "topology/pod-2/node-211",
+                  "fabricSt": "active",
+                  "id": "211",
+                  "model": "N9K-C93180YC-FX3",
+                  "name": "LAB-LEAF3",
+                  "role": "leaf",
+                  "serial": "TST0000211",
+                  "version": "n9000-16.0(5h)"
+                }
+              ],
+              "topSystem": [
+                {
+                  "dn": "topology/pod-2/node-211/sys",
+                  "fabricDomain": "MXP",
+                  "name": "LAB-LEAF3",
+                  "oobMgmtAddr": "198.51.100.232",
+                  "role": "leaf",
+                  "state": "in-service"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-2/node-211/sys/phys-[eth1/1]",
+        "type": "network.switch.port",
+        "name": "eth1/1",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-2/node-211/sys/phys-[eth1/1]",
+          "type": "l1PhysIf"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "duplex": "full",
+          "interface_name": "eth1/1",
+          "layer": "Layer2",
+          "mtu": "9216",
+          "node_id": "211",
+          "oper_status": "up",
+          "port_mode": "trunk",
+          "speed": "25G",
+          "usage": "epg"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "port_type": "leaf",
+            "raw": {
+              "ethpmPhysIf": [
+                {
+                  "bundleIndex": "unspecified",
+                  "dn": "topology/pod-2/node-211/sys/phys-[eth1/1]/phys",
+                  "operDuplex": "full",
+                  "operSpeed": "25G",
+                  "operSt": "up",
+                  "operStQual": "none"
+                }
+              ],
+              "l1PhysIf": [
+                {
+                  "adminSt": "up",
+                  "dn": "topology/pod-2/node-211/sys/phys-[eth1/1]",
+                  "id": "eth1/1",
+                  "layer": "Layer2",
+                  "mode": "trunk",
+                  "mtu": "9216",
+                  "portT": "leaf",
+                  "usage": "epg"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-2/node-211/sys/phys-[eth1/49]",
+        "type": "network.switch.port",
+        "name": "eth1/49",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-2/node-211/sys/phys-[eth1/49]",
+          "type": "l1PhysIf"
+        },
+        "status": "active",
+        "properties": {
+          "admin_status": "up",
+          "duplex": "full",
+          "interface_name": "eth1/49",
+          "layer": "Layer3",
+          "mtu": "9216",
+          "node_id": "211",
+          "oper_status": "up",
+          "port_mode": "trunk",
+          "speed": "25G",
+          "usage": "fabric"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "port_type": "leaf",
+            "raw": {
+              "ethpmPhysIf": [
+                {
+                  "bundleIndex": "unspecified",
+                  "dn": "topology/pod-2/node-211/sys/phys-[eth1/49]/phys",
+                  "operDuplex": "full",
+                  "operSpeed": "25G",
+                  "operSt": "up",
+                  "operStQual": "none"
+                }
+              ],
+              "l1PhysIf": [
+                {
+                  "adminSt": "up",
+                  "dn": "topology/pod-2/node-211/sys/phys-[eth1/49]",
+                  "id": "eth1/49",
+                  "layer": "Layer3",
+                  "mode": "trunk",
+                  "mtu": "9216",
+                  "portT": "leaf",
+                  "usage": "fabric"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::topology/pod-2/paths-211/pathep-[eth1/1]",
+        "type": "osiris.cisco.path",
+        "name": "eth1/1",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "topology/pod-2/paths-211/pathep-[eth1/1]",
+          "type": "fabricPathEp"
+        },
+        "properties": {
+          "aggregation": "not-aggregated",
+          "node_ids": [
+            "211"
+          ],
+          "path_type": "leaf",
+          "pod": "2"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "fabricPathEp": [
+                {
+                  "descr": "",
+                  "dn": "topology/pod-2/paths-211/pathep-[eth1/1]",
+                  "lagT": "not-aggregated",
+                  "name": "eth1/1",
+                  "pathT": "leaf"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/fabric/protpol/expgep-LAB-VPC-111-112",
+        "type": "osiris.cisco.vpc.domain",
+        "name": "LAB-VPC-111-112",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/fabric/protpol/expgep-LAB-VPC-111-112",
+          "type": "fabricExplicitGEp"
+        },
+        "properties": {
+          "config_state": "deployed",
+          "domain_id": "10",
+          "virtual_ip": "192.0.2.250/32"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "fabricExplicitGEp": [
+                {
+                  "configSt": "deployed",
+                  "dn": "uni/fabric/protpol/expgep-LAB-VPC-111-112",
+                  "id": "10",
+                  "name": "LAB-VPC-111-112",
+                  "virtualIp": "192.0.2.250/32"
+                }
+              ],
+              "fabricNodePEp": [
+                {
+                  "dn": "uni/fabric/protpol/expgep-LAB-VPC-111-112/nodepep-111",
+                  "id": "111",
+                  "podId": "1"
                 },
                 {
-                  "dn": "topology/pod-1/lnkcnt-101/lnk-112-1-49-to-101-1-2",
-                  "linkState": "ok",
-                  "n1": "112",
-                  "n2": "101",
-                  "p1": "49",
-                  "p2": "2",
-                  "s1": "1",
-                  "s2": "1"
-                },
-                {
-                  "dn": "topology/pod-1/lnkcnt-102/lnk-111-1-50-to-102-1-1",
-                  "linkState": "ok",
-                  "n1": "111",
-                  "n2": "102",
-                  "p1": "50",
-                  "p2": "1",
-                  "s1": "1",
-                  "s2": "1"
-                },
-                {
-                  "dn": "topology/pod-1/lnkcnt-102/lnk-112-1-50-to-102-1-2",
-                  "linkState": "ok",
-                  "n1": "112",
-                  "n2": "102",
-                  "p1": "50",
-                  "p2": "2",
-                  "s1": "1",
-                  "s2": "1"
+                  "dn": "uni/fabric/protpol/expgep-LAB-VPC-111-112/nodepep-112",
+                  "id": "112",
+                  "podId": "1"
                 }
               ]
             }
@@ -2049,7 +3183,8 @@
         "name": "bd_Db",
         "provider": {
           "name": "cisco.apic",
-          "native_id": "uni/tn-tn_Example/BD-bd_Db"
+          "native_id": "uni/tn-tn_Example/BD-bd_Db",
+          "type": "fvBD"
         },
         "status": "active",
         "properties": {
@@ -2089,7 +3224,8 @@
         "name": "203.0.113.64/26",
         "provider": {
           "name": "cisco.apic",
-          "native_id": "uni/tn-tn_Example/BD-bd_Db/subnet-[203.0.113.65/26]"
+          "native_id": "uni/tn-tn_Example/BD-bd_Db/subnet-[203.0.113.65/26]",
+          "type": "fvSubnet"
         },
         "status": "active",
         "properties": {
@@ -2120,7 +3256,8 @@
         "description": "Web bridge domain",
         "provider": {
           "name": "cisco.apic",
-          "native_id": "uni/tn-tn_Example/BD-bd_Web"
+          "native_id": "uni/tn-tn_Example/BD-bd_Web",
+          "type": "fvBD"
         },
         "status": "active",
         "properties": {
@@ -2143,6 +3280,13 @@
                   "unkMacUcastAct": "proxy"
                 }
               ],
+              "fvRsBDToOut": [
+                {
+                  "dn": "uni/tn-tn_Example/BD-bd_Web/rsBDToOut-l3out_Core",
+                  "state": "formed",
+                  "tnL3extOutName": "l3out_Core"
+                }
+              ],
               "fvRsCtx": [
                 {
                   "dn": "uni/tn-tn_Example/BD-bd_Web/rsctx",
@@ -2160,7 +3304,8 @@
         "name": "2001:db8:10::/64",
         "provider": {
           "name": "cisco.apic",
-          "native_id": "uni/tn-tn_Example/BD-bd_Web/subnet-[2001:db8:10::1/64]"
+          "native_id": "uni/tn-tn_Example/BD-bd_Web/subnet-[2001:db8:10::1/64]",
+          "type": "fvSubnet"
         },
         "status": "active",
         "properties": {
@@ -2190,7 +3335,8 @@
         "name": "203.0.113.0/26",
         "provider": {
           "name": "cisco.apic",
-          "native_id": "uni/tn-tn_Example/BD-bd_Web/subnet-[203.0.113.1/26]"
+          "native_id": "uni/tn-tn_Example/BD-bd_Web/subnet-[203.0.113.1/26]",
+          "type": "fvSubnet"
         },
         "status": "active",
         "properties": {
@@ -2252,11 +3398,19 @@
               ],
               "fvRsPathAtt": [
                 {
-                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Db/rspathAtt-[topology/pod-1/paths-111/pathep-[po1]]",
+                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Db/rspathAtt-[topology/pod-1/paths-111/pathep-[LAB-PC-DB]]",
                   "encap": "vlan-200",
                   "mode": "regular",
                   "state": "formed",
-                  "tDn": "topology/pod-1/paths-111/pathep-[po1]"
+                  "tDn": "topology/pod-1/paths-111/pathep-[LAB-PC-DB]"
+                },
+                {
+                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Db/rspathAtt-[topology/pod-1/protpaths-111-112/extprotpaths-150-151/pathep-[LAB-VPC-FEX]]",
+                  "encap": "vlan-201",
+                  "instrImedcy": "lazy",
+                  "mode": "regular",
+                  "state": "formed",
+                  "tDn": "topology/pod-1/protpaths-111-112/extprotpaths-150-151/pathep-[LAB-VPC-FEX]"
                 },
                 {
                   "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Db/rspathAtt-[topology/pod-1/protpaths-111-112/pathep-[LAB-VPC-1]]",
@@ -2294,7 +3448,8 @@
         "name": "00:00:5E:00:53:21",
         "provider": {
           "name": "cisco.apic",
-          "native_id": "uni/tn-tn_Example/ap-app1/epg-epg_Db/cep-00:00:5E:00:53:21"
+          "native_id": "uni/tn-tn_Example/ap-app1/epg-epg_Db/cep-00:00:5E:00:53:21",
+          "type": "fvCEp"
         },
         "status": "active",
         "properties": {
@@ -2306,13 +3461,13 @@
         "extensions": {
           "osiris.cisco": {
             "encap": "vlan-200",
-            "fabric_path": "topology/pod-1/paths-111/pathep-[po1]",
+            "fabric_path": "topology/pod-1/paths-111/pathep-[LAB-PC-DB]",
             "raw": {
               "fvCEp": [
                 {
                   "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Db/cep-00:00:5E:00:53:21",
                   "encap": "vlan-200",
-                  "fabricPathDn": "topology/pod-1/paths-111/pathep-[po1]",
+                  "fabricPathDn": "topology/pod-1/paths-111/pathep-[LAB-PC-DB]",
                   "mac": "00:00:5E:00:53:21"
                 }
               ],
@@ -2332,7 +3487,8 @@
         "name": "00:00:5E:00:53:22",
         "provider": {
           "name": "cisco.apic",
-          "native_id": "uni/tn-tn_Example/ap-app1/epg-epg_Db/cep-00:00:5E:00:53:22"
+          "native_id": "uni/tn-tn_Example/ap-app1/epg-epg_Db/cep-00:00:5E:00:53:22",
+          "type": "fvCEp"
         },
         "status": "active",
         "properties": {
@@ -2412,11 +3568,27 @@
                   "tDn": "topology/pod-1/paths-111/pathep-[eth1/1]"
                 },
                 {
+                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Web/rspathAtt-[topology/pod-1/paths-112/extpaths-150/pathep-[eth1/7]]",
+                  "encap": "vlan-100",
+                  "instrImedcy": "immediate",
+                  "mode": "regular",
+                  "state": "formed",
+                  "tDn": "topology/pod-1/paths-112/extpaths-150/pathep-[eth1/7]"
+                },
+                {
                   "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Web/rspathAtt-[topology/pod-1/paths-112/pathep-[eth1/1]]",
                   "encap": "vlan-100",
                   "mode": "regular",
                   "state": "formed",
                   "tDn": "topology/pod-1/paths-112/pathep-[eth1/1]"
+                },
+                {
+                  "dn": "uni/tn-tn_Example/ap-app1/epg-epg_Web/rspathAtt-[topology/pod-2/paths-211/pathep-[eth1/1]]",
+                  "encap": "vlan-100",
+                  "instrImedcy": "immediate",
+                  "mode": "regular",
+                  "state": "formed",
+                  "tDn": "topology/pod-2/paths-211/pathep-[eth1/1]"
                 }
               ],
               "fvRsProv": [
@@ -2439,7 +3611,8 @@
         "name": "00:00:5E:00:53:11",
         "provider": {
           "name": "cisco.apic",
-          "native_id": "uni/tn-tn_Example/ap-app1/epg-epg_Web/cep-00:00:5E:00:53:11"
+          "native_id": "uni/tn-tn_Example/ap-app1/epg-epg_Web/cep-00:00:5E:00:53:11",
+          "type": "fvCEp"
         },
         "status": "active",
         "properties": {
@@ -2715,6 +3888,31 @@
         }
       },
       {
+        "id": "cisco.apic::uni/tn-tn_Example/ctx-vrf_Dev",
+        "type": "osiris.cisco.policy.vrf",
+        "name": "vrf_Dev",
+        "description": "Development VRF",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/ctx-vrf_Dev",
+          "type": "fvCtx"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "fvCtx": [
+                {
+                  "descr": "Development VRF",
+                  "dn": "uni/tn-tn_Example/ctx-vrf_Dev",
+                  "name": "vrf_Dev",
+                  "pcEnfPref": "enforced"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
         "id": "cisco.apic::uni/tn-tn_Example/ctx-vrf_Prod",
         "type": "osiris.cisco.policy.vrf",
         "name": "vrf_Prod",
@@ -2963,7 +4161,8 @@
         "description": "Core routing",
         "provider": {
           "name": "cisco.apic",
-          "native_id": "uni/tn-tn_Example/out-l3out_Core"
+          "native_id": "uni/tn-tn_Example/out-l3out_Core",
+          "type": "l3extOut"
         },
         "status": "active",
         "extensions": {
@@ -2981,6 +4180,293 @@
                   "dn": "uni/tn-tn_Example/out-l3out_Core/rsectx",
                   "state": "formed",
                   "tDn": "uni/tn-tn_Example/ctx-vrf_Prod"
+                }
+              ],
+              "l3extRsNodeL3OutAtt": [
+                {
+                  "dn": "uni/tn-tn_Example/out-l3out_Core/lnodep-LAB-BL/rsnodeL3OutAtt-[topology/pod-1/node-111]",
+                  "rtrId": "192.0.2.211",
+                  "rtrIdLoopBack": "yes",
+                  "state": "formed",
+                  "tDn": "topology/pod-1/node-111"
+                },
+                {
+                  "dn": "uni/tn-tn_Example/out-l3out_Core/lnodep-LAB-BL/rsnodeL3OutAtt-[topology/pod-1/node-112]",
+                  "rtrId": "192.0.2.212",
+                  "rtrIdLoopBack": "yes",
+                  "state": "formed",
+                  "tDn": "topology/pod-1/node-112"
+                }
+              ],
+              "l3extRsPathL3OutAtt": [
+                {
+                  "addr": "198.51.100.249/30",
+                  "dn": "uni/tn-tn_Example/out-l3out_Core/lnodep-LAB-BL/lifp-LAB-BL-RTD/rspathL3OutAtt-[topology/pod-1/paths-111/pathep-[eth1/30]]",
+                  "encap": "vlan-300",
+                  "encapScope": "local",
+                  "ifInstT": "sub-interface",
+                  "mode": "regular",
+                  "mtu": "inherit",
+                  "state": "formed",
+                  "tDn": "topology/pod-1/paths-111/pathep-[eth1/30]"
+                },
+                {
+                  "addr": "0.0.0.0",
+                  "dn": "uni/tn-tn_Example/out-l3out_Core/lnodep-LAB-BL/lifp-LAB-BL-SVI/rspathL3OutAtt-[topology/pod-1/protpaths-111-112/pathep-[LAB-VPC-1]]",
+                  "encap": "vlan-301",
+                  "encapScope": "local",
+                  "ifInstT": "ext-svi",
+                  "mode": "regular",
+                  "mtu": "9000",
+                  "state": "formed",
+                  "tDn": "topology/pod-1/protpaths-111-112/pathep-[LAB-VPC-1]"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/out-l3out_Core/instP-ext",
+        "type": "osiris.cisco.l3out.epg",
+        "name": "ext",
+        "description": "Everything outside the fabric",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/out-l3out_Core/instP-ext",
+          "type": "l3extInstP"
+        },
+        "properties": {
+          "preferred_group": "exclude"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "fvRsCons": [
+                {
+                  "dn": "uni/tn-tn_Example/out-l3out_Core/instP-ext/rscons-dns",
+                  "prio": "unspecified",
+                  "state": "formed",
+                  "tDn": "",
+                  "tnVzBrCPName": "dns"
+                }
+              ],
+              "fvRsProv": [
+                {
+                  "dn": "uni/tn-tn_Example/out-l3out_Core/instP-ext/rsprov-web",
+                  "matchT": "AtleastOne",
+                  "prio": "unspecified",
+                  "state": "formed",
+                  "tDn": "uni/tn-tn_Example/brc-web",
+                  "tnVzBrCPName": "web"
+                }
+              ],
+              "l3extInstP": [
+                {
+                  "descr": "Everything outside the fabric",
+                  "dn": "uni/tn-tn_Example/out-l3out_Core/instP-ext",
+                  "name": "ext",
+                  "prefGrMemb": "exclude",
+                  "prio": "unspecified"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/out-l3out_Core/instP-ext/extsubnet-[0.0.0.0/0]",
+        "type": "osiris.cisco.l3out.prefix",
+        "name": "0.0.0.0/0",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/out-l3out_Core/instP-ext/extsubnet-[0.0.0.0/0]",
+          "type": "l3extSubnet"
+        },
+        "properties": {
+          "cidr": "0.0.0.0/0",
+          "scope": "import-security"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "l3extSubnet": [
+                {
+                  "aggregate": "",
+                  "dn": "uni/tn-tn_Example/out-l3out_Core/instP-ext/extsubnet-[0.0.0.0/0]",
+                  "ip": "0.0.0.0/0",
+                  "name": "",
+                  "scope": "import-security"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/out-l3out_Core/instP-ext/extsubnet-[2001:db8:100::/48]",
+        "type": "osiris.cisco.l3out.prefix",
+        "name": "2001:db8:100::/48",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/out-l3out_Core/instP-ext/extsubnet-[2001:db8:100::/48]",
+          "type": "l3extSubnet"
+        },
+        "properties": {
+          "aggregate": "shared-rtctrl",
+          "cidr": "2001:db8:100::/48",
+          "scope": "import-security,shared-rtctrl"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "l3extSubnet": [
+                {
+                  "aggregate": "shared-rtctrl",
+                  "dn": "uni/tn-tn_Example/out-l3out_Core/instP-ext/extsubnet-[2001:db8:100::/48]",
+                  "ip": "2001:db8:100::/48",
+                  "name": "",
+                  "scope": "import-security,shared-rtctrl"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/out-l3out_Core/instP-ext/extsubnet-[203.0.113.0/24]",
+        "type": "osiris.cisco.l3out.prefix",
+        "name": "LAB-PARTNER",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/out-l3out_Core/instP-ext/extsubnet-[203.0.113.0/24]",
+          "type": "l3extSubnet"
+        },
+        "properties": {
+          "cidr": "203.0.113.0/24",
+          "scope": "import-security,export-rtctrl"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "l3extSubnet": [
+                {
+                  "aggregate": "",
+                  "dn": "uni/tn-tn_Example/out-l3out_Core/instP-ext/extsubnet-[203.0.113.0/24]",
+                  "ip": "203.0.113.0/24",
+                  "name": "LAB-PARTNER",
+                  "scope": "import-security,export-rtctrl"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/out-l3out_Dev",
+        "type": "osiris.cisco.l3out",
+        "name": "l3out_Dev",
+        "description": "Development routing",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/out-l3out_Dev",
+          "type": "l3extOut"
+        },
+        "status": "active",
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "l3extOut": [
+                {
+                  "descr": "Development routing",
+                  "dn": "uni/tn-tn_Example/out-l3out_Dev",
+                  "name": "l3out_Dev"
+                }
+              ],
+              "l3extRsEctx": [
+                {
+                  "dn": "uni/tn-tn_Example/out-l3out_Dev/rsectx",
+                  "state": "formed",
+                  "tDn": "uni/tn-tn_Example/ctx-vrf_Dev"
+                }
+              ],
+              "l3extRsNodeL3OutAtt": [
+                {
+                  "dn": "uni/tn-tn_Example/out-l3out_Dev/lnodep-LAB-BL-DEV/rsnodeL3OutAtt-[topology/pod-1/node-111]",
+                  "rtrId": "192.0.2.221",
+                  "rtrIdLoopBack": "no",
+                  "state": "formed",
+                  "tDn": "topology/pod-1/node-111"
+                }
+              ],
+              "l3extRsPathL3OutAtt": [
+                {
+                  "addr": "198.51.100.253/30",
+                  "dn": "uni/tn-tn_Example/out-l3out_Dev/lnodep-LAB-BL-DEV/lifp-LAB-BL-DEV-RTD/rspathL3OutAtt-[topology/pod-1/paths-111/pathep-[eth1/30]]",
+                  "encap": "vlan-302",
+                  "encapScope": "local",
+                  "ifInstT": "sub-interface",
+                  "mode": "regular",
+                  "mtu": "inherit",
+                  "state": "formed",
+                  "tDn": "topology/pod-1/paths-111/pathep-[eth1/30]"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/out-l3out_Dev/instP-ext_Dev",
+        "type": "osiris.cisco.l3out.epg",
+        "name": "ext_Dev",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/out-l3out_Dev/instP-ext_Dev",
+          "type": "l3extInstP"
+        },
+        "properties": {
+          "preferred_group": "exclude"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "l3extInstP": [
+                {
+                  "descr": "",
+                  "dn": "uni/tn-tn_Example/out-l3out_Dev/instP-ext_Dev",
+                  "name": "ext_Dev",
+                  "prefGrMemb": "exclude",
+                  "prio": "unspecified"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "cisco.apic::uni/tn-tn_Example/out-l3out_Dev/instP-ext_Dev/extsubnet-[203.0.113.0/24]",
+        "type": "osiris.cisco.l3out.prefix",
+        "name": "LAB-PARTNER-DEV",
+        "provider": {
+          "name": "cisco.apic",
+          "native_id": "uni/tn-tn_Example/out-l3out_Dev/instP-ext_Dev/extsubnet-[203.0.113.0/24]",
+          "type": "l3extSubnet"
+        },
+        "properties": {
+          "cidr": "203.0.113.0/24",
+          "scope": "import-security"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "raw": {
+              "l3extSubnet": [
+                {
+                  "aggregate": "",
+                  "dn": "uni/tn-tn_Example/out-l3out_Dev/instP-ext_Dev/extsubnet-[203.0.113.0/24]",
+                  "ip": "203.0.113.0/24",
+                  "name": "LAB-PARTNER-DEV",
+                  "scope": "import-security"
                 }
               ]
             }
@@ -3126,6 +4612,20 @@
         "direction": "forward"
       },
       {
+        "id": "conn-contains-aggr-po2-to-20-26b78f5aecd0d74e",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-111/sys/aggr-[po2]",
+        "target": "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/20]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-aggr-po2-to-20-6f29b3c68558f719",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-112/sys/aggr-[po2]",
+        "target": "cisco.apic::topology/pod-1/node-112/sys/phys-[eth1/20]",
+        "direction": "forward"
+      },
+      {
         "id": "conn-contains-bd-bd-db-to-26-152a1a9a97c44fe1",
         "type": "contains",
         "source": "cisco.apic::uni/tn-tn_Example/BD-bd_Db",
@@ -3189,6 +4689,34 @@
         "direction": "forward"
       },
       {
+        "id": "conn-contains-instp-ext-dev-to-24-e3c5e55d143b7c61",
+        "type": "contains",
+        "source": "cisco.apic::uni/tn-tn_Example/out-l3out_Dev/instP-ext_Dev",
+        "target": "cisco.apic::uni/tn-tn_Example/out-l3out_Dev/instP-ext_Dev/extsubnet-[203.0.113.0/24]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-instp-ext-to-0-8b74f1a0807bcfc6",
+        "type": "contains",
+        "source": "cisco.apic::uni/tn-tn_Example/out-l3out_Core/instP-ext",
+        "target": "cisco.apic::uni/tn-tn_Example/out-l3out_Core/instP-ext/extsubnet-[0.0.0.0/0]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-instp-ext-to-24-6134019484854112",
+        "type": "contains",
+        "source": "cisco.apic::uni/tn-tn_Example/out-l3out_Core/instP-ext",
+        "target": "cisco.apic::uni/tn-tn_Example/out-l3out_Core/instP-ext/extsubnet-[203.0.113.0/24]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-instp-ext-to-48-9c690a085ca402d1",
+        "type": "contains",
+        "source": "cisco.apic::uni/tn-tn_Example/out-l3out_Core/instP-ext",
+        "target": "cisco.apic::uni/tn-tn_Example/out-l3out_Core/instP-ext/extsubnet-[2001:db8:100::/48]",
+        "direction": "forward"
+      },
+      {
         "id": "conn-contains-node-101-to-1-43854aba2ed4761f",
         "type": "contains",
         "source": "cisco.apic::topology/pod-1/node-101",
@@ -3200,6 +4728,13 @@
         "type": "contains",
         "source": "cisco.apic::topology/pod-1/node-101",
         "target": "cisco.apic::topology/pod-1/node-101/sys/phys-[eth1/2]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-node-101-to-3-4979a93458c6313c",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-101",
+        "target": "cisco.apic::topology/pod-1/node-101/sys/phys-[eth1/3]",
         "direction": "forward"
       },
       {
@@ -3245,6 +4780,13 @@
         "direction": "forward"
       },
       {
+        "id": "conn-contains-node-111-to-30-e4f83f09b4358bd0",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-111",
+        "target": "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/30]",
+        "direction": "forward"
+      },
+      {
         "id": "conn-contains-node-111-to-48-085018d118699dfb",
         "type": "contains",
         "source": "cisco.apic::topology/pod-1/node-111",
@@ -3266,6 +4808,13 @@
         "direction": "forward"
       },
       {
+        "id": "conn-contains-node-111-to-51-37d4f00a7267d6b3",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-111",
+        "target": "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/51]",
+        "direction": "forward"
+      },
+      {
         "id": "conn-contains-node-111-to-aggr-po1-21db11d6fb22caa7",
         "type": "contains",
         "source": "cisco.apic::topology/pod-1/node-111",
@@ -3273,10 +4822,24 @@
         "direction": "forward"
       },
       {
+        "id": "conn-contains-node-111-to-aggr-po2-1f71276416f0ab78",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-111",
+        "target": "cisco.apic::topology/pod-1/node-111/sys/aggr-[po2]",
+        "direction": "forward"
+      },
+      {
         "id": "conn-contains-node-112-to-1-d576b6c80de2d865",
         "type": "contains",
         "source": "cisco.apic::topology/pod-1/node-112",
         "target": "cisco.apic::topology/pod-1/node-112/sys/phys-[eth1/1]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-node-112-to-20-7b5d0df0f09dbe74",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-112",
+        "target": "cisco.apic::topology/pod-1/node-112/sys/phys-[eth1/20]",
         "direction": "forward"
       },
       {
@@ -3292,6 +4855,59 @@
         "source": "cisco.apic::topology/pod-1/node-112",
         "target": "cisco.apic::topology/pod-1/node-112/sys/phys-[eth1/50]",
         "direction": "forward"
+      },
+      {
+        "id": "conn-contains-node-112-to-aggr-po2-6d254835f0eca94c",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-1/node-112",
+        "target": "cisco.apic::topology/pod-1/node-112/sys/aggr-[po2]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-node-201-to-1-d4ccc269f1f633c9",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-2/node-201",
+        "target": "cisco.apic::topology/pod-2/node-201/sys/phys-[eth1/1]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-node-211-to-1-50d0123f0c6e7414",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-2/node-211",
+        "target": "cisco.apic::topology/pod-2/node-211/sys/phys-[eth1/1]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-node-211-to-49-a7456ed24dee4267",
+        "type": "contains",
+        "source": "cisco.apic::topology/pod-2/node-211",
+        "target": "cisco.apic::topology/pod-2/node-211/sys/phys-[eth1/49]",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-out-l3out-core-to-instp-ext-d83819d440a559a9",
+        "type": "contains",
+        "source": "cisco.apic::uni/tn-tn_Example/out-l3out_Core",
+        "target": "cisco.apic::uni/tn-tn_Example/out-l3out_Core/instP-ext",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-contains-out-l3out-dev-to-instp-ext-dev-e95c0efbfb9f6e4e",
+        "type": "contains",
+        "source": "cisco.apic::uni/tn-tn_Example/out-l3out_Dev",
+        "target": "cisco.apic::uni/tn-tn_Example/out-l3out_Dev/instP-ext_Dev",
+        "direction": "forward"
+      },
+      {
+        "id": "conn-osiris.cisco.bd.l3out-bd-bd-web-to-out-l3out-core-76c5466b3d2c226b",
+        "type": "osiris.cisco.bd.l3out",
+        "source": "cisco.apic::uni/tn-tn_Example/BD-bd_Web",
+        "target": "cisco.apic::uni/tn-tn_Example/out-l3out_Core",
+        "direction": "forward",
+        "properties": {
+          "resolved_by": "name-local",
+          "state": "formed"
+        }
       },
       {
         "id": "conn-osiris.cisco.bd.vrf-bd-bd-db-to-ctx-vrf-prod-ea9dad56068d3beb",
@@ -3367,6 +4983,17 @@
         }
       },
       {
+        "id": "conn-osiris.cisco.contract.consumes-instp-ext-to-brc-dns-cc19fdfa9ac29682",
+        "type": "osiris.cisco.contract.consumes",
+        "source": "cisco.apic::uni/tn-tn_Example/out-l3out_Core/instP-ext",
+        "target": "cisco.apic::uni/tn-common/brc-dns",
+        "direction": "forward",
+        "properties": {
+          "resolved_by": "name-common",
+          "state": "formed"
+        }
+      },
+      {
         "id": "conn-osiris.cisco.contract.provides-epg-epg-db-to-brc-db-532c170cbe0a9d48",
         "type": "osiris.cisco.contract.provides",
         "source": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Db",
@@ -3411,6 +5038,50 @@
         }
       },
       {
+        "id": "conn-osiris.cisco.contract.provides-instp-ext-to-brc-web-3ee0e9c0903dd37b",
+        "type": "osiris.cisco.contract.provides",
+        "source": "cisco.apic::uni/tn-tn_Example/out-l3out_Core/instP-ext",
+        "target": "cisco.apic::uni/tn-tn_Example/brc-web",
+        "direction": "forward",
+        "properties": {
+          "match_type": "AtleastOne",
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.endpoint.learned-cep-00-00-5e-00-53-11-to-1-5eab46aa10d336dd",
+        "type": "osiris.cisco.endpoint.learned",
+        "source": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Web/cep-00:00:5E:00:53:11",
+        "target": "cisco.apic::topology/pod-1/paths-111/pathep-[eth1/1]",
+        "direction": "forward",
+        "properties": {
+          "encap": "vlan-100",
+          "semantics": "observed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.endpoint.learned-cep-00-00-5e-00-53-21-to-pathep-lab-pc-db-fb7b75ca773dd740",
+        "type": "osiris.cisco.endpoint.learned",
+        "source": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Db/cep-00:00:5E:00:53:21",
+        "target": "cisco.apic::topology/pod-1/paths-111/pathep-[LAB-PC-DB]",
+        "direction": "forward",
+        "properties": {
+          "encap": "vlan-200",
+          "semantics": "observed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.endpoint.learned-cep-00-00-5e-00-53-22-to-pathep-lab-vpc-1-c42f898ea355b36e",
+        "type": "osiris.cisco.endpoint.learned",
+        "source": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Db/cep-00:00:5E:00:53:22",
+        "target": "cisco.apic::topology/pod-1/protpaths-111-112/pathep-[LAB-VPC-1]",
+        "direction": "forward",
+        "properties": {
+          "encap": "vlan-200",
+          "semantics": "observed"
+        }
+      },
+      {
         "id": "conn-osiris.cisco.epg.bd-epg-epg-db-to-bd-bd-db-31b106136c7ebed9",
         "type": "osiris.cisco.epg.bd",
         "source": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Db",
@@ -3431,6 +5102,179 @@
         }
       },
       {
+        "id": "conn-osiris.cisco.epg.path-epg-epg-db-to-pathep-lab-pc-db-f4e1208a28e11950",
+        "type": "osiris.cisco.epg.path",
+        "source": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Db",
+        "target": "cisco.apic::topology/pod-1/paths-111/pathep-[LAB-PC-DB]",
+        "direction": "forward",
+        "properties": {
+          "encap": "vlan-200",
+          "mode": "regular",
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.epg.path-epg-epg-db-to-pathep-lab-vpc-1-d83f84c373111e1e",
+        "type": "osiris.cisco.epg.path",
+        "source": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Db",
+        "target": "cisco.apic::topology/pod-1/protpaths-111-112/pathep-[LAB-VPC-1]",
+        "direction": "forward",
+        "properties": {
+          "encap": "vlan-200",
+          "mode": "regular",
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.epg.path-epg-epg-db-to-pathep-lab-vpc-fex-afd8a6ef4b396bda",
+        "type": "osiris.cisco.epg.path",
+        "source": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Db",
+        "target": "cisco.apic::topology/pod-1/protpaths-111-112/extprotpaths-150-151/pathep-[LAB-VPC-FEX]",
+        "direction": "forward",
+        "properties": {
+          "encap": "vlan-201",
+          "instr_immediacy": "lazy",
+          "mode": "regular",
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.epg.path-epg-epg-web-to-1-7d7a568de19da4da",
+        "type": "osiris.cisco.epg.path",
+        "source": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Web",
+        "target": "cisco.apic::topology/pod-2/paths-211/pathep-[eth1/1]",
+        "direction": "forward",
+        "properties": {
+          "encap": "vlan-100",
+          "instr_immediacy": "immediate",
+          "mode": "regular",
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.epg.path-epg-epg-web-to-1-893c611bae30cb29",
+        "type": "osiris.cisco.epg.path",
+        "source": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Web",
+        "target": "cisco.apic::topology/pod-1/paths-111/pathep-[eth1/1]",
+        "direction": "forward",
+        "properties": {
+          "encap": "vlan-100",
+          "mode": "regular",
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.epg.path-epg-epg-web-to-1-9455941e4fd45e46",
+        "type": "osiris.cisco.epg.path",
+        "source": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Web",
+        "target": "cisco.apic::topology/pod-1/paths-112/pathep-[eth1/1]",
+        "direction": "forward",
+        "properties": {
+          "encap": "vlan-100",
+          "mode": "regular",
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.epg.path-epg-epg-web-to-7-468d68d70c0ce84a",
+        "type": "osiris.cisco.epg.path",
+        "source": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Web",
+        "target": "cisco.apic::topology/pod-1/paths-112/extpaths-150/pathep-[eth1/7]",
+        "direction": "forward",
+        "properties": {
+          "encap": "vlan-100",
+          "instr_immediacy": "immediate",
+          "mode": "regular",
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.l3out.node-out-l3out-core-to-node-111-392b5435c1bfd0cd",
+        "type": "osiris.cisco.l3out.node",
+        "source": "cisco.apic::uni/tn-tn_Example/out-l3out_Core",
+        "target": "cisco.apic::topology/pod-1/node-111",
+        "direction": "forward",
+        "properties": {
+          "node_profile": "LAB-BL",
+          "router_id": "192.0.2.211",
+          "router_id_loopback": "yes"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.l3out.node-out-l3out-core-to-node-112-05146940de3c3996",
+        "type": "osiris.cisco.l3out.node",
+        "source": "cisco.apic::uni/tn-tn_Example/out-l3out_Core",
+        "target": "cisco.apic::topology/pod-1/node-112",
+        "direction": "forward",
+        "properties": {
+          "node_profile": "LAB-BL",
+          "router_id": "192.0.2.212",
+          "router_id_loopback": "yes"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.l3out.node-out-l3out-dev-to-node-111-32bbdd423b4a30bc",
+        "type": "osiris.cisco.l3out.node",
+        "source": "cisco.apic::uni/tn-tn_Example/out-l3out_Dev",
+        "target": "cisco.apic::topology/pod-1/node-111",
+        "direction": "forward",
+        "properties": {
+          "node_profile": "LAB-BL-DEV",
+          "router_id": "192.0.2.221",
+          "router_id_loopback": "no"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.l3out.path-out-l3out-core-to-30-3bd041c5383f3156",
+        "type": "osiris.cisco.l3out.path",
+        "source": "cisco.apic::uni/tn-tn_Example/out-l3out_Core",
+        "target": "cisco.apic::topology/pod-1/paths-111/pathep-[eth1/30]",
+        "direction": "forward",
+        "properties": {
+          "address": "198.51.100.249/30",
+          "encap": "vlan-300",
+          "encap_scope": "local",
+          "interface_profile": "LAB-BL-RTD",
+          "interface_type": "sub-interface",
+          "mode": "regular",
+          "mtu": "inherit",
+          "node_profile": "LAB-BL"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.l3out.path-out-l3out-core-to-pathep-lab-vpc-1-c2f98a3e48fc7426",
+        "type": "osiris.cisco.l3out.path",
+        "source": "cisco.apic::uni/tn-tn_Example/out-l3out_Core",
+        "target": "cisco.apic::topology/pod-1/protpaths-111-112/pathep-[LAB-VPC-1]",
+        "direction": "forward",
+        "properties": {
+          "encap": "vlan-301",
+          "encap_scope": "local",
+          "interface_profile": "LAB-BL-SVI",
+          "interface_type": "ext-svi",
+          "mode": "regular",
+          "mtu": "9000",
+          "node_profile": "LAB-BL"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.l3out.path-out-l3out-dev-to-30-2d30e1d7cdff7a97",
+        "type": "osiris.cisco.l3out.path",
+        "source": "cisco.apic::uni/tn-tn_Example/out-l3out_Dev",
+        "target": "cisco.apic::topology/pod-1/paths-111/pathep-[eth1/30]",
+        "direction": "forward",
+        "properties": {
+          "address": "198.51.100.253/30",
+          "encap": "vlan-302",
+          "encap_scope": "local",
+          "interface_profile": "LAB-BL-DEV-RTD",
+          "interface_type": "sub-interface",
+          "mode": "regular",
+          "mtu": "inherit",
+          "node_profile": "LAB-BL-DEV"
+        }
+      },
+      {
         "id": "conn-osiris.cisco.l3out.vrf-out-l3out-core-to-ctx-vrf-prod-dfd1122315c2d01a",
         "type": "osiris.cisco.l3out.vrf",
         "source": "cisco.apic::uni/tn-tn_Example/out-l3out_Core",
@@ -3438,6 +5282,136 @@
         "direction": "forward",
         "properties": {
           "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.l3out.vrf-out-l3out-dev-to-ctx-vrf-dev-09378c03f099443b",
+        "type": "osiris.cisco.l3out.vrf",
+        "source": "cisco.apic::uni/tn-tn_Example/out-l3out_Dev",
+        "target": "cisco.apic::uni/tn-tn_Example/ctx-vrf_Dev",
+        "direction": "forward",
+        "properties": {
+          "state": "formed"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.path.member-1-to-1-0de1d1706522136c",
+        "type": "osiris.cisco.path.member",
+        "source": "cisco.apic::topology/pod-2/paths-211/pathep-[eth1/1]",
+        "target": "cisco.apic::topology/pod-2/node-211/sys/phys-[eth1/1]",
+        "direction": "forward",
+        "properties": {
+          "leg_node_id": "211",
+          "member_level": "port"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.path.member-1-to-1-3b73ec9784de02a3",
+        "type": "osiris.cisco.path.member",
+        "source": "cisco.apic::topology/pod-1/paths-112/pathep-[eth1/1]",
+        "target": "cisco.apic::topology/pod-1/node-112/sys/phys-[eth1/1]",
+        "direction": "forward",
+        "properties": {
+          "leg_node_id": "112",
+          "member_level": "port"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.path.member-1-to-1-57209364892c919c",
+        "type": "osiris.cisco.path.member",
+        "source": "cisco.apic::topology/pod-1/paths-111/pathep-[eth1/1]",
+        "target": "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/1]",
+        "direction": "forward",
+        "properties": {
+          "leg_node_id": "111",
+          "member_level": "port"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.path.member-30-to-30-70961726e44d7555",
+        "type": "osiris.cisco.path.member",
+        "source": "cisco.apic::topology/pod-1/paths-111/pathep-[eth1/30]",
+        "target": "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/30]",
+        "direction": "forward",
+        "properties": {
+          "leg_node_id": "111",
+          "member_level": "port"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.path.member-7-to-node-112-83dad34074df8e73",
+        "type": "osiris.cisco.path.member",
+        "source": "cisco.apic::topology/pod-1/paths-112/extpaths-150/pathep-[eth1/7]",
+        "target": "cisco.apic::topology/pod-1/node-112",
+        "direction": "forward",
+        "properties": {
+          "fex_id": "150",
+          "leg_node_id": "112",
+          "member_level": "node"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.path.member-pathep-lab-pc-db-to-aggr-po1-7e018b132586395e",
+        "type": "osiris.cisco.path.member",
+        "source": "cisco.apic::topology/pod-1/paths-111/pathep-[LAB-PC-DB]",
+        "target": "cisco.apic::topology/pod-1/node-111/sys/aggr-[po1]",
+        "direction": "forward",
+        "properties": {
+          "leg_node_id": "111",
+          "member_level": "aggregate",
+          "resolved_by": "pcAggrIf-name"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.path.member-pathep-lab-vpc-1-to-aggr-po2-3b905df4ba3a0757",
+        "type": "osiris.cisco.path.member",
+        "source": "cisco.apic::topology/pod-1/protpaths-111-112/pathep-[LAB-VPC-1]",
+        "target": "cisco.apic::topology/pod-1/node-112/sys/aggr-[po2]",
+        "direction": "forward",
+        "properties": {
+          "leg_node_id": "112",
+          "local_oper_status": "down",
+          "member_level": "aggregate",
+          "remote_oper_status": "up",
+          "resolved_by": "pcAggrIf-name"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.path.member-pathep-lab-vpc-1-to-aggr-po2-40d9183c793f4338",
+        "type": "osiris.cisco.path.member",
+        "source": "cisco.apic::topology/pod-1/protpaths-111-112/pathep-[LAB-VPC-1]",
+        "target": "cisco.apic::topology/pod-1/node-111/sys/aggr-[po2]",
+        "direction": "forward",
+        "properties": {
+          "leg_node_id": "111",
+          "local_oper_status": "up",
+          "member_level": "aggregate",
+          "remote_oper_status": "down",
+          "resolved_by": "vpcIf"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.path.member-pathep-lab-vpc-fex-to-node-111-370c9c3a70f24c9a",
+        "type": "osiris.cisco.path.member",
+        "source": "cisco.apic::topology/pod-1/protpaths-111-112/extprotpaths-150-151/pathep-[LAB-VPC-FEX]",
+        "target": "cisco.apic::topology/pod-1/node-111",
+        "direction": "forward",
+        "properties": {
+          "fex_id": "150",
+          "leg_node_id": "111",
+          "member_level": "node"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.path.member-pathep-lab-vpc-fex-to-node-112-3f1600ce5f1f6b31",
+        "type": "osiris.cisco.path.member",
+        "source": "cisco.apic::topology/pod-1/protpaths-111-112/extprotpaths-150-151/pathep-[LAB-VPC-FEX]",
+        "target": "cisco.apic::topology/pod-1/node-112",
+        "direction": "forward",
+        "properties": {
+          "fex_id": "151",
+          "leg_node_id": "112",
+          "member_level": "node"
         }
       },
       {
@@ -3509,9 +5483,59 @@
         }
       },
       {
-        "id": "conn-physical.ethernet-00-00-5e-00-53-b1-to-node-112-7820d26d1823a306",
+        "id": "conn-osiris.cisco.vpc.member-expgep-lab-vpc-111-112-to-node-111-4343b0162c74c614",
+        "type": "osiris.cisco.vpc.member",
+        "source": "cisco.apic::uni/fabric/protpol/expgep-LAB-VPC-111-112",
+        "target": "cisco.apic::topology/pod-1/node-111",
+        "direction": "forward",
+        "properties": {
+          "node_id": "111",
+          "peer_status": "up",
+          "peer_status_qualifier": "success",
+          "role": "primary"
+        }
+      },
+      {
+        "id": "conn-osiris.cisco.vpc.member-expgep-lab-vpc-111-112-to-node-112-eec8ab4c194ea8aa",
+        "type": "osiris.cisco.vpc.member",
+        "source": "cisco.apic::uni/fabric/protpol/expgep-LAB-VPC-111-112",
+        "target": "cisco.apic::topology/pod-1/node-112",
+        "direction": "forward",
+        "properties": {
+          "node_id": "112",
+          "peer_status": "down",
+          "peer_status_qualifier": "peer-not-reachable",
+          "role": "secondary"
+        }
+      },
+      {
+        "id": "conn-physical.ethernet-00-00-5e-00-53-a1-to-node-111-45f0b026e00ddfad",
         "type": "physical.ethernet",
-        "source": "cisco.apic::external/00:00:5e:00:53:b1",
+        "source": "cisco.apic::external/lldp/mac/00:00:5e:00:53:a1",
+        "target": "cisco.apic::topology/pod-1/node-111",
+        "direction": "bidirectional",
+        "properties": {
+          "discovered_by": "cdp,lldp",
+          "source_port": "eth1/52",
+          "target_port": "eth1/48"
+        }
+      },
+      {
+        "id": "conn-physical.ethernet-00-00-5e-00-53-a2-to-node-112-0390fd9b3de2ad4d",
+        "type": "physical.ethernet",
+        "source": "cisco.apic::external/lldp/mac/00:00:5e:00:53:a2",
+        "target": "cisco.apic::topology/pod-1/node-112",
+        "direction": "bidirectional",
+        "properties": {
+          "discovered_by": "lldp",
+          "source_port": "eth1/52",
+          "target_port": "eth1/48"
+        }
+      },
+      {
+        "id": "conn-physical.ethernet-00-00-5e-00-53-b1-to-node-112-aca316fedf14f5e2",
+        "type": "physical.ethernet",
+        "source": "cisco.apic::external/lldp/mac/00:00:5e:00:53:b1",
         "target": "cisco.apic::topology/pod-1/node-112",
         "direction": "bidirectional",
         "properties": {
@@ -3520,15 +5544,40 @@
         }
       },
       {
-        "id": "conn-physical.ethernet-lab-ext-sw1-to-node-111-7ce0efeec30e64d1",
+        "id": "conn-physical.ethernet-00-00-5e-00-53-c1-to-node-112-714210c4ed7cd651",
         "type": "physical.ethernet",
-        "source": "cisco.apic::external/lab-ext-sw1",
+        "source": "cisco.apic::external/lldp/mac/00:00:5e:00:53:c1",
+        "target": "cisco.apic::topology/pod-1/node-112",
+        "direction": "bidirectional",
+        "properties": {
+          "discovered_by": "lldp",
+          "source_port": "eth1/1",
+          "target_port": "eth1/46"
+        }
+      },
+      {
+        "id": "conn-physical.ethernet-lab-ext-sw3-tst0000903-to-node-112-083543649101395e",
+        "type": "physical.ethernet",
+        "source": "cisco.apic::external/cdp/lab-ext-sw3_tst0000903_",
+        "target": "cisco.apic::topology/pod-1/node-112",
+        "direction": "bidirectional",
+        "properties": {
+          "discovered_by": "cdp",
+          "source_port": "eth1/1",
+          "target_port": "eth1/46"
+        }
+      },
+      {
+        "id": "conn-physical.ethernet-node-101-to-node-111-a67b1aa8fe9613d6",
+        "type": "physical.ethernet",
+        "source": "cisco.apic::topology/pod-1/node-101",
         "target": "cisco.apic::topology/pod-1/node-111",
         "direction": "bidirectional",
         "properties": {
-          "discovered_by": "cdp,lldp",
-          "source_port": "eth1/52",
-          "target_port": "eth1/48"
+          "discovered_by": "fabricLink",
+          "link_state": "ok",
+          "source_port": "eth1/3",
+          "target_port": "eth1/51"
         }
       },
       {
@@ -3581,6 +5630,19 @@
           "link_state": "ok",
           "source_port": "eth1/2",
           "target_port": "eth1/50"
+        }
+      },
+      {
+        "id": "conn-physical.ethernet-node-201-to-node-211-6cfe5f004f0d9138",
+        "type": "physical.ethernet",
+        "source": "cisco.apic::topology/pod-2/node-201",
+        "target": "cisco.apic::topology/pod-2/node-211",
+        "direction": "bidirectional",
+        "properties": {
+          "discovered_by": "fabricLink",
+          "link_state": "ok",
+          "source_port": "eth1/1",
+          "target_port": "eth1/49"
         }
       }
     ],
@@ -3727,10 +5789,18 @@
           "cisco.apic::uni/tn-tn_Example/flt-https",
           "cisco.apic::uni/tn-tn_Example/flt-sql",
           "cisco.apic::uni/tn-tn_Example/flt-ssh",
-          "cisco.apic::uni/tn-tn_Example/out-l3out_Core"
+          "cisco.apic::uni/tn-tn_Example/out-l3out_Core",
+          "cisco.apic::uni/tn-tn_Example/out-l3out_Core/instP-ext",
+          "cisco.apic::uni/tn-tn_Example/out-l3out_Core/instP-ext/extsubnet-[0.0.0.0/0]",
+          "cisco.apic::uni/tn-tn_Example/out-l3out_Core/instP-ext/extsubnet-[2001:db8:100::/48]",
+          "cisco.apic::uni/tn-tn_Example/out-l3out_Core/instP-ext/extsubnet-[203.0.113.0/24]",
+          "cisco.apic::uni/tn-tn_Example/out-l3out_Dev",
+          "cisco.apic::uni/tn-tn_Example/out-l3out_Dev/instP-ext_Dev",
+          "cisco.apic::uni/tn-tn_Example/out-l3out_Dev/instP-ext_Dev/extsubnet-[203.0.113.0/24]"
         ],
         "children": [
           "group-logical.application-ap-app1-08676ea071760c91",
+          "group-logical.vrf-ctx-vrf-dev-dad5095ebe3aa60f",
           "group-logical.vrf-ctx-vrf-prod-bf6af64c22889aef"
         ],
         "extensions": {
@@ -3814,6 +5884,23 @@
         }
       },
       {
+        "id": "group-logical.vrf-ctx-vrf-dev-dad5095ebe3aa60f",
+        "type": "logical.vrf",
+        "name": "vrf_Dev",
+        "description": "Development VRF",
+        "members": [
+          "cisco.apic::uni/tn-tn_Example/out-l3out_Dev"
+        ],
+        "properties": {
+          "enforcement": "enforced"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "resource": "cisco.apic::uni/tn-tn_Example/ctx-vrf_Dev"
+          }
+        }
+      },
+      {
         "id": "group-logical.vrf-ctx-vrf-prod-bf6af64c22889aef",
         "type": "logical.vrf",
         "name": "vrf_Prod",
@@ -3868,12 +5955,159 @@
         "members": [
           "cisco.apic::topology/pod-1/node-111/sys/phys-[eth1/1]",
           "cisco.apic::topology/pod-1/node-112/sys/phys-[eth1/1]",
+          "cisco.apic::topology/pod-2/node-211/sys/phys-[eth1/1]",
           "cisco.apic::uni/tn-tn_Example/BD-bd_Web",
           "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Web/cep-00:00:5E:00:53:11"
         ],
         "extensions": {
           "osiris.cisco": {
             "resource": "cisco.apic::uni/tn-tn_Example/ap-app1/epg-epg_Web"
+          }
+        }
+      },
+      {
+        "id": "group-physical.pod-pod-1-24727155ff28b9b8",
+        "type": "physical.pod",
+        "name": "pod-1",
+        "members": [
+          "cisco.apic::topology/pod-1/node-1",
+          "cisco.apic::topology/pod-1/node-101",
+          "cisco.apic::topology/pod-1/node-102",
+          "cisco.apic::topology/pod-1/node-111",
+          "cisco.apic::topology/pod-1/node-112",
+          "cisco.apic::topology/pod-1/node-2",
+          "cisco.apic::topology/pod-1/paths-111/pathep-[LAB-PC-DB]",
+          "cisco.apic::topology/pod-1/paths-111/pathep-[eth1/1]",
+          "cisco.apic::topology/pod-1/paths-111/pathep-[eth1/30]",
+          "cisco.apic::topology/pod-1/paths-112/extpaths-150/pathep-[eth1/7]",
+          "cisco.apic::topology/pod-1/paths-112/pathep-[eth1/1]",
+          "cisco.apic::topology/pod-1/protpaths-111-112/extprotpaths-150-151/pathep-[LAB-VPC-FEX]",
+          "cisco.apic::topology/pod-1/protpaths-111-112/pathep-[LAB-VPC-1]"
+        ],
+        "properties": {
+          "pod_id": "1",
+          "pod_type": "physical"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "dn": "topology/pod-1",
+            "raw": {
+              "fabricLink": [
+                {
+                  "dn": "topology/pod-1/lnkcnt-101/lnk-111-1-49-to-101-1-1",
+                  "linkState": "ok",
+                  "n1": "111",
+                  "n2": "101",
+                  "p1": "49",
+                  "p2": "1",
+                  "s1": "1",
+                  "s2": "1"
+                },
+                {
+                  "dn": "topology/pod-1/lnkcnt-101/lnk-111-1-51-to-101-1-3",
+                  "linkState": "ok",
+                  "n1": "111",
+                  "n2": "101",
+                  "p1": "51",
+                  "p2": "3",
+                  "s1": "1",
+                  "s2": "1"
+                },
+                {
+                  "dn": "topology/pod-1/lnkcnt-101/lnk-112-1-49-to-101-1-2",
+                  "linkState": "ok",
+                  "n1": "112",
+                  "n2": "101",
+                  "p1": "49",
+                  "p2": "2",
+                  "s1": "1",
+                  "s2": "1"
+                },
+                {
+                  "dn": "topology/pod-1/lnkcnt-102/lnk-111-1-50-to-102-1-1",
+                  "linkState": "ok",
+                  "n1": "111",
+                  "n2": "102",
+                  "p1": "50",
+                  "p2": "1",
+                  "s1": "1",
+                  "s2": "1"
+                },
+                {
+                  "dn": "topology/pod-1/lnkcnt-102/lnk-112-1-50-to-102-1-2",
+                  "linkState": "ok",
+                  "n1": "112",
+                  "n2": "102",
+                  "p1": "50",
+                  "p2": "2",
+                  "s1": "1",
+                  "s2": "1"
+                }
+              ],
+              "fabricPathEp": [
+                {
+                  "descr": "",
+                  "dn": "topology/pod-1/paths-111/pathep-[eth1/2]",
+                  "lagT": "not-aggregated",
+                  "name": "eth1/2",
+                  "pathT": "leaf"
+                },
+                {
+                  "descr": "",
+                  "dn": "topology/pod-1/paths-111/pathep-[eth1/49]",
+                  "lagT": "not-aggregated",
+                  "name": "eth1/49",
+                  "pathT": "fab"
+                }
+              ],
+              "fabricPod": [
+                {
+                  "dn": "topology/pod-1",
+                  "id": "1",
+                  "podType": "physical"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "group-physical.pod-pod-2-364748e5f4aa0133",
+        "type": "physical.pod",
+        "name": "pod-2",
+        "members": [
+          "cisco.apic::topology/pod-2/node-201",
+          "cisco.apic::topology/pod-2/node-211",
+          "cisco.apic::topology/pod-2/paths-211/pathep-[eth1/1]"
+        ],
+        "properties": {
+          "pod_id": "2",
+          "pod_type": "physical"
+        },
+        "extensions": {
+          "osiris.cisco": {
+            "dn": "topology/pod-2",
+            "raw": {
+              "fabricLink": [
+                {
+                  "dn": "topology/pod-2/lnkcnt-201/lnk-211-1-49-to-201-1-1",
+                  "linkState": "ok",
+                  "n1": "211",
+                  "n2": "201",
+                  "p1": "49",
+                  "p2": "1",
+                  "s1": "1",
+                  "s2": "1"
+                }
+              ],
+              "fabricPod": [
+                {
+                  "dn": "topology/pod-2",
+                  "id": "2",
+                  "podType": "physical"
+                }
+              ]
+            }
           }
         }
       }

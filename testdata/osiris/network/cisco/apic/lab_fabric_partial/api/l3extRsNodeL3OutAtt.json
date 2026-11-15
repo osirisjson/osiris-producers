@@ -1,0 +1,38 @@
+{
+  "totalCount": "3",
+  "imdata": [
+    {
+      "l3extRsNodeL3OutAtt": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/out-l3out_Core/lnodep-LAB-BL/rsnodeL3OutAtt-[topology/pod-1/node-111]",
+          "tDn": "topology/pod-1/node-111",
+          "rtrId": "192.0.2.211",
+          "rtrIdLoopBack": "yes",
+          "state": "formed"
+        }
+      }
+    },
+    {
+      "l3extRsNodeL3OutAtt": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/out-l3out_Core/lnodep-LAB-BL/rsnodeL3OutAtt-[topology/pod-1/node-112]",
+          "tDn": "topology/pod-1/node-112",
+          "rtrId": "192.0.2.212",
+          "rtrIdLoopBack": "yes",
+          "state": "formed"
+        }
+      }
+    },
+    {
+      "l3extRsNodeL3OutAtt": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/out-l3out_Dev/lnodep-LAB-BL-DEV/rsnodeL3OutAtt-[topology/pod-1/node-111]",
+          "tDn": "topology/pod-1/node-111",
+          "rtrId": "192.0.2.221",
+          "rtrIdLoopBack": "no",
+          "state": "formed"
+        }
+      }
+    }
+  ]
+}

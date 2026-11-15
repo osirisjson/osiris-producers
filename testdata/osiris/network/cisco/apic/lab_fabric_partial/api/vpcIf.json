@@ -1,0 +1,27 @@
+{
+  "totalCount": "2",
+  "imdata": [
+    {
+      "vpcIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111/sys/vpc/inst/dom-10/if-1",
+          "id": "1",
+          "fabricPathDn": "topology/pod-1/protpaths-111-112/pathep-[LAB-VPC-1]",
+          "localOperSt": "up",
+          "remoteOperSt": "down"
+        }
+      }
+    },
+    {
+      "vpcIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-112/sys/vpc/inst/dom-10/if-1",
+          "id": "1",
+          "fabricPathDn": "topology/pod-1/protpaths-111-112/pathep-[LAB-VPC-1]",
+          "localOperSt": "down",
+          "remoteOperSt": "up"
+        }
+      }
+    }
+  ]
+}

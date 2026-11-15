@@ -1,5 +1,5 @@
 {
-  "totalCount": "6",
+  "totalCount": "8",
   "imdata": [
     {
       "fabricNode": {
@@ -88,6 +88,36 @@
           "version": "n9000-16.0(5h)",
           "address": "192.0.2.112",
           "fabricSt": "inactive"
+        }
+      }
+    },
+    {
+      "fabricNode": {
+        "attributes": {
+          "dn": "topology/pod-2/node-201",
+          "id": "201",
+          "name": "LAB-SPINE3",
+          "role": "spine",
+          "model": "N9K-C9332D-GX2B",
+          "serial": "TST0000201",
+          "version": "n9000-16.0(5h)",
+          "address": "192.0.2.231",
+          "fabricSt": "active"
+        }
+      }
+    },
+    {
+      "fabricNode": {
+        "attributes": {
+          "dn": "topology/pod-2/node-211",
+          "id": "211",
+          "name": "LAB-LEAF3",
+          "role": "leaf",
+          "model": "N9K-C93180YC-FX3",
+          "serial": "TST0000211",
+          "version": "n9000-16.0(5h)",
+          "address": "192.0.2.232",
+          "fabricSt": "active"
         }
       }
     }

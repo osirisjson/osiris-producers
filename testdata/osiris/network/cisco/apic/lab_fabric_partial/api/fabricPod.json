@@ -1,0 +1,23 @@
+{
+  "totalCount": "2",
+  "imdata": [
+    {
+      "fabricPod": {
+        "attributes": {
+          "dn": "topology/pod-1",
+          "id": "1",
+          "podType": "physical"
+        }
+      }
+    },
+    {
+      "fabricPod": {
+        "attributes": {
+          "dn": "topology/pod-2",
+          "id": "2",
+          "podType": "physical"
+        }
+      }
+    }
+  ]
+}

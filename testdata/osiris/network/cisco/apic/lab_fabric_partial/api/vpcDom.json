@@ -1,0 +1,27 @@
+{
+  "totalCount": "2",
+  "imdata": [
+    {
+      "vpcDom": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111/sys/vpc/inst/dom-10",
+          "id": "10",
+          "operRole": "primary",
+          "peerSt": "up",
+          "peerStQual": "success"
+        }
+      }
+    },
+    {
+      "vpcDom": {
+        "attributes": {
+          "dn": "topology/pod-1/node-112/sys/vpc/inst/dom-10",
+          "id": "10",
+          "operRole": "secondary",
+          "peerSt": "down",
+          "peerStQual": "peer-not-reachable"
+        }
+      }
+    }
+  ]
+}

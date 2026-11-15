@@ -1,0 +1,104 @@
+{
+  "totalCount": "9",
+  "imdata": [
+    {
+      "fabricPathEp": {
+        "attributes": {
+          "dn": "topology/pod-1/paths-111/pathep-[eth1/1]",
+          "name": "eth1/1",
+          "pathT": "leaf",
+          "lagT": "not-aggregated",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "fabricPathEp": {
+        "attributes": {
+          "dn": "topology/pod-1/paths-111/pathep-[eth1/2]",
+          "name": "eth1/2",
+          "pathT": "leaf",
+          "lagT": "not-aggregated",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "fabricPathEp": {
+        "attributes": {
+          "dn": "topology/pod-1/paths-111/pathep-[eth1/49]",
+          "name": "eth1/49",
+          "pathT": "fab",
+          "lagT": "not-aggregated",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "fabricPathEp": {
+        "attributes": {
+          "dn": "topology/pod-1/paths-112/pathep-[eth1/1]",
+          "name": "eth1/1",
+          "pathT": "leaf",
+          "lagT": "not-aggregated",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "fabricPathEp": {
+        "attributes": {
+          "dn": "topology/pod-1/paths-111/pathep-[LAB-PC-DB]",
+          "name": "LAB-PC-DB",
+          "pathT": "leaf",
+          "lagT": "link",
+          "descr": "Database server bond"
+        }
+      }
+    },
+    {
+      "fabricPathEp": {
+        "attributes": {
+          "dn": "topology/pod-1/paths-112/extpaths-150/pathep-[eth1/7]",
+          "name": "eth1/7",
+          "pathT": "fex",
+          "lagT": "not-aggregated",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "fabricPathEp": {
+        "attributes": {
+          "dn": "topology/pod-1/paths-111/pathep-[eth1/30]",
+          "name": "eth1/30",
+          "pathT": "leaf",
+          "lagT": "not-aggregated",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "fabricPathEp": {
+        "attributes": {
+          "dn": "topology/pod-1/protpaths-111-112/extprotpaths-150-151/pathep-[LAB-VPC-FEX]",
+          "name": "LAB-VPC-FEX",
+          "pathT": "fex",
+          "lagT": "node",
+          "descr": ""
+        }
+      }
+    },
+    {
+      "fabricPathEp": {
+        "attributes": {
+          "dn": "topology/pod-2/paths-211/pathep-[eth1/1]",
+          "name": "eth1/1",
+          "pathT": "leaf",
+          "lagT": "not-aggregated",
+          "descr": ""
+        }
+      }
+    }
+  ]
+}

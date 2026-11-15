@@ -1,0 +1,41 @@
+{
+  "totalCount": "4",
+  "imdata": [
+    {
+      "fabricNodePEp": {
+        "attributes": {
+          "dn": "uni/fabric/protpol/expgep-LAB-VPC-111-112/nodepep-111",
+          "id": "111",
+          "podId": "1"
+        }
+      }
+    },
+    {
+      "fabricNodePEp": {
+        "attributes": {
+          "dn": "uni/fabric/protpol/expgep-LAB-VPC-111-112/nodepep-112",
+          "id": "112",
+          "podId": "1"
+        }
+      }
+    },
+    {
+      "fabricNodePEp": {
+        "attributes": {
+          "dn": "uni/fabric/protpol/expgep-LAB-VPC-113-114/nodepep-113",
+          "id": "113",
+          "podId": "1"
+        }
+      }
+    },
+    {
+      "fabricNodePEp": {
+        "attributes": {
+          "dn": "uni/fabric/protpol/expgep-LAB-VPC-113-114/nodepep-114",
+          "id": "114",
+          "podId": "1"
+        }
+      }
+    }
+  ]
+}

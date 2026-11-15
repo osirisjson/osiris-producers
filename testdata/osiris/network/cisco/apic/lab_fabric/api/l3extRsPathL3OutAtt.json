@@ -1,0 +1,50 @@
+{
+  "totalCount": "3",
+  "imdata": [
+    {
+      "l3extRsPathL3OutAtt": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/out-l3out_Core/lnodep-LAB-BL/lifp-LAB-BL-RTD/rspathL3OutAtt-[topology/pod-1/paths-111/pathep-[eth1/30]]",
+          "tDn": "topology/pod-1/paths-111/pathep-[eth1/30]",
+          "ifInstT": "sub-interface",
+          "encap": "vlan-300",
+          "encapScope": "local",
+          "mode": "regular",
+          "mtu": "inherit",
+          "addr": "198.51.100.249/30",
+          "state": "formed"
+        }
+      }
+    },
+    {
+      "l3extRsPathL3OutAtt": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/out-l3out_Core/lnodep-LAB-BL/lifp-LAB-BL-SVI/rspathL3OutAtt-[topology/pod-1/protpaths-111-112/pathep-[LAB-VPC-1]]",
+          "tDn": "topology/pod-1/protpaths-111-112/pathep-[LAB-VPC-1]",
+          "ifInstT": "ext-svi",
+          "encap": "vlan-301",
+          "encapScope": "local",
+          "mode": "regular",
+          "mtu": "9000",
+          "addr": "0.0.0.0",
+          "state": "formed"
+        }
+      }
+    },
+    {
+      "l3extRsPathL3OutAtt": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/out-l3out_Dev/lnodep-LAB-BL-DEV/lifp-LAB-BL-DEV-RTD/rspathL3OutAtt-[topology/pod-1/paths-111/pathep-[eth1/30]]",
+          "tDn": "topology/pod-1/paths-111/pathep-[eth1/30]",
+          "ifInstT": "sub-interface",
+          "encap": "vlan-302",
+          "encapScope": "local",
+          "mode": "regular",
+          "mtu": "inherit",
+          "addr": "198.51.100.253/30",
+          "state": "formed"
+        }
+      }
+    }
+  ]
+}

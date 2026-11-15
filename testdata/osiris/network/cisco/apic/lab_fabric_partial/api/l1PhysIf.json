@@ -1,5 +1,5 @@
 {
-  "totalCount": "14",
+  "totalCount": "21",
   "imdata": [
     {
       "l1PhysIf": {
@@ -208,6 +208,104 @@
           "portT": "fab",
           "usage": "fabric",
           "descr": ""
+        }
+      }
+    },
+    {
+      "l1PhysIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111/sys/phys-[eth1/30]",
+          "id": "eth1/30",
+          "adminSt": "up",
+          "layer": "Layer3",
+          "mode": "trunk",
+          "mtu": "9216",
+          "usage": "discovery",
+          "portT": "leaf"
+        }
+      }
+    },
+    {
+      "l1PhysIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111/sys/phys-[eth1/51]",
+          "id": "eth1/51",
+          "adminSt": "up",
+          "layer": "Layer3",
+          "mode": "trunk",
+          "mtu": "9216",
+          "usage": "fabric",
+          "portT": "leaf"
+        }
+      }
+    },
+    {
+      "l1PhysIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-101/sys/phys-[eth1/3]",
+          "id": "eth1/3",
+          "adminSt": "up",
+          "layer": "Layer3",
+          "mode": "trunk",
+          "mtu": "9216",
+          "usage": "fabric",
+          "portT": "leaf"
+        }
+      }
+    },
+    {
+      "l1PhysIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-112/sys/phys-[eth1/20]",
+          "id": "eth1/20",
+          "adminSt": "up",
+          "layer": "Layer2",
+          "mode": "trunk",
+          "mtu": "9216",
+          "usage": "epg",
+          "portT": "leaf"
+        }
+      }
+    },
+    {
+      "l1PhysIf": {
+        "attributes": {
+          "dn": "topology/pod-2/node-211/sys/phys-[eth1/1]",
+          "id": "eth1/1",
+          "adminSt": "up",
+          "layer": "Layer2",
+          "mode": "trunk",
+          "mtu": "9216",
+          "usage": "epg",
+          "portT": "leaf"
+        }
+      }
+    },
+    {
+      "l1PhysIf": {
+        "attributes": {
+          "dn": "topology/pod-2/node-211/sys/phys-[eth1/49]",
+          "id": "eth1/49",
+          "adminSt": "up",
+          "layer": "Layer3",
+          "mode": "trunk",
+          "mtu": "9216",
+          "usage": "fabric",
+          "portT": "leaf"
+        }
+      }
+    },
+    {
+      "l1PhysIf": {
+        "attributes": {
+          "dn": "topology/pod-2/node-201/sys/phys-[eth1/1]",
+          "id": "eth1/1",
+          "adminSt": "up",
+          "layer": "Layer3",
+          "mode": "trunk",
+          "mtu": "9216",
+          "usage": "fabric",
+          "portT": "leaf"
         }
       }
     }

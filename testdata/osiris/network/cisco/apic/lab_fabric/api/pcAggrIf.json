@@ -1,5 +1,5 @@
 {
-  "totalCount": "1",
+  "totalCount": "3",
   "imdata": [
     {
       "pcAggrIf": {
@@ -12,6 +12,42 @@
           "adminSt": "up",
           "operSt": "up",
           "activePorts": "2",
+          "minLinks": "1",
+          "mtu": "9216",
+          "layer": "Layer2",
+          "mode": "trunk"
+        }
+      }
+    },
+    {
+      "pcAggrIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111/sys/aggr-[po2]",
+          "id": "po2",
+          "name": "LAB-VPC-1",
+          "descr": "",
+          "pcMode": "active",
+          "adminSt": "up",
+          "operSt": "up",
+          "activePorts": "1",
+          "minLinks": "1",
+          "mtu": "9216",
+          "layer": "Layer2",
+          "mode": "trunk"
+        }
+      }
+    },
+    {
+      "pcAggrIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-112/sys/aggr-[po2]",
+          "id": "po2",
+          "name": "LAB-VPC-1",
+          "descr": "",
+          "pcMode": "active",
+          "adminSt": "up",
+          "operSt": "up",
+          "activePorts": "1",
           "minLinks": "1",
           "mtu": "9216",
           "layer": "Layer2",

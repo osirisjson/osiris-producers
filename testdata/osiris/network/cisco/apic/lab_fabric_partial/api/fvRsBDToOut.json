@@ -1,0 +1,23 @@
+{
+  "totalCount": "2",
+  "imdata": [
+    {
+      "fvRsBDToOut": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/BD-bd_Web/rsBDToOut-l3out_Core",
+          "tnL3extOutName": "l3out_Core",
+          "state": "formed"
+        }
+      }
+    },
+    {
+      "fvRsBDToOut": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/BD-bd_Db/rsBDToOut-l3out_Gone",
+          "tnL3extOutName": "l3out_Gone",
+          "state": "missing-target"
+        }
+      }
+    }
+  ]
+}

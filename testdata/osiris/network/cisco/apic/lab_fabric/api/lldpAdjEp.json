@@ -1,5 +1,5 @@
 {
-  "totalCount": "3",
+  "totalCount": "5",
   "imdata": [
     {
       "lldpAdjEp": {
@@ -40,6 +40,34 @@
           "chassisIdT": "mac",
           "chassisIdV": "00:00:5E:00:53:B1",
           "mgmtIp": "unspecified"
+        }
+      }
+    },
+    {
+      "lldpAdjEp": {
+        "attributes": {
+          "dn": "topology/pod-1/node-112/sys/lldp/inst/if-[eth1/48]/adj-1",
+          "sysName": "LAB-EXT-SW1.example.net",
+          "sysDesc": "Cisco Nexus Operating System",
+          "portIdT": "if-name",
+          "portIdV": "Ethernet1/52",
+          "chassisIdT": "mac",
+          "chassisIdV": "00:00:5E:00:53:A2",
+          "mgmtIp": "198.51.100.201"
+        }
+      }
+    },
+    {
+      "lldpAdjEp": {
+        "attributes": {
+          "dn": "topology/pod-1/node-112/sys/lldp/inst/if-[eth1/46]/adj-1",
+          "sysName": "LAB-EXT-SW2",
+          "sysDesc": "Cisco Nexus Operating System",
+          "portIdT": "if-name",
+          "portIdV": "Ethernet1/1",
+          "chassisIdT": "mac",
+          "chassisIdV": "00:00:5E:00:53:C1",
+          "mgmtIp": "198.51.100.202"
         }
       }
     }

@@ -12,6 +12,7 @@ byte with `purpose/golden_<purpose>.json`.
 <scenario>
   api/<class>.json              # class query response body (imdata envelope)
   failures.json                 # optional: class -> HTTP status the query fails with
+  manifest.json                 # provenance: source, releases, classes observed live
   purpose/
     golden_documentation.json   # expected default OSIRIS JSON document
     golden_audit.json           # expected OSIRIS JSON document using --purpose audit flag,
@@ -24,7 +25,10 @@ discovery coverage (`fabricNode`, `topSystem`, `firmwareRunning`,
 `fvRsCtx`, `fvRsBd`, `l3extRsEctx`, `faultInst`, `fvAp`, `vzBrCP`,
 `vzSubj`, `vzFilter`, `fvRsProv`, `fvRsCons`, `vzRsSubjFiltAtt`,
 `l1PhysIf`, `ethpmPhysIf`, `fabricLink`, `lldpAdjEp`, `cdpAdjEp`,
-`pcAggrIf`, `fvRsPathAtt` and at audit purpose `vzEntry`, `fvCEp`,
+`pcAggrIf`, `pcRsMbrIfs`, `fvRsPathAtt`, `fabricPod`, `fabricPathEp`, `vpcIf`,
+`vpcRsVpcConf`, `fabricExplicitGEp`, `fabricNodePEp`, `l3extInstP`,
+`l3extSubnet`, `l3extRsNodeL3OutAtt`, `l3extRsPathL3OutAtt`,
+`fvRsBDToOut` and at audit purpose `vpcDom`, `vzEntry`, `fvCEp`,
 `fvIp`). A class without a fixture file is answered with a valid empty
 `imdata`.
 
@@ -36,9 +40,15 @@ Besides the byte-for-byte comparison:
 - `TestGolden_OrderIndependent` serves every class with its elements in
   reverse order and requires the identical document.
 - `TestGolden_GraphIntegrity` checks the rules the schema cannot
-  express: every connection endpoint and group member is an emitted
-  resource, every group child is an emitted group, no group is its own
-  ancestor and documentation purpose carries no endpoint.
+  express: every resource names its APIC class in `provider.type`,
+  every connection endpoint and group member is an emitted resource,
+  every group child is an emitted group, no group is its own ancestor
+  and documentation purpose carries no endpoint.
+- `TestGolden_StableUnderStateChange` rewrites the operational state
+  (vPC leg and peer, port, port-channel, link and relation state) and
+  requires the same IDs.
+- `TestGolden_ManifestMatchesFixtures` keeps `manifest.json` in step
+  with the files of its scenario.
 
 Unit cases for single response shapes (missing or null `imdata`,
 error objects, foreign classes, missing `dn`, redirects, HTTP error
@@ -57,7 +67,11 @@ committing a change to them:
 Each scenario was tested against the matching platform in the
 [Cisco DevNet Sandbox](https://developer.cisco.com/sandbox).
 Only the structure was taken from the sandbox. Every value is
-synthetic, as described below.
+synthetic, as described below. `manifest.json` records, per scenario,
+the declared releases and which classes were observed with objects on
+the sandbox simulator; the classes it lists as model-only (for
+example `vpcIf`, `pcRsMbrIfs` and the L3Out child classes) follow the
+management information model and have not been observed live.
 
 Every value is synthetic and hand-authored. Addresses are RFC 5737
 (`192.0.2.0/24`, `198.51.100.0/24`, `203.0.113.0/24`) and RFC 3849
@@ -72,30 +86,55 @@ formats and attribute names of the Cisco APIC 6.0 management
 information model. Only the attributes the producer reads are present;
 every other attribute an APIC returns is omitted.
 
-Deliberately omitted from both scenarios: multi-pod and multi-site
-fabrics, remote leaves, FEX, vPC domain objects, more than one page per
-class and every class the producer does not query (vzAny, taboo
-contracts, endpoint security groups, external EPGs, service graphs,
-subject terms, access policies, routing protocol state).
+Deliberately omitted from both scenarios: multi-site fabrics, remote
+leaves, FEX inventory (a FEX path is present), vPC
+SVI side addresses, more than one page per class and every class the
+producer does not query (vzAny, taboo contracts, endpoint security
+groups, service graphs, subject terms, access policies, route-control
+profiles, routing protocol state).
 
 ### Cisco ACI Complete fabric (lab_fabric)
 
-- Fabric: one pod, fabric domain `MXP`; a physical controller
+- Fabric: two pods, fabric domain `MXP`; a physical controller
   (`LAB-APIC1`) and a virtual one (`LAB-APIC2`, `virtualMode=yes`), two
-  spines and two leaves, one leaf `inactive`.
+  spines and two leaves in pod 1, one leaf `inactive`, and a spine and
+  a leaf in pod 2 (`physical.pod` groups `pod-1` and `pod-2`).
 - Tenants: `common` and `tn_Example` with a VRF, two bridge domains
   (IPv4 and IPv6 subnets), two EPGs, an L3Out and their `fvRsCtx`,
   `fvRsBd` and `l3extRsEctx` relations.
 - Physical topology: leaf and spine ports with operational state, a
   down unused port (kept only at audit purpose), a two-member
-  port-channel, four spine-leaf `fabricLink` links, an LLDP adjacency
-  that confirms one of them, an off-fabric switch seen by both LLDP and
-  CDP (merged into one external neighbour) and a host seen by LLDP with
-  a MAC-only port id.
-- EPG path attachments to a port, a port-channel and a vPC (the vPC has
-  no single owning resource and is not wired).
+  port-channel (`pcRsMbrIfs` and `bundleIndex` agree), vPC leg members
+  reported only by `pcRsMbrIfs` (one bundle down), six spine-leaf
+  `fabricLink` links including two parallel links between the same
+  spine and leaf, an LLDP adjacency that confirms one of them, an 
+  off-fabric switch seen by both LLDP and CDP (merged into one external
+  neighbour) and a host seen by LLDP with a MAC-only port id.
+- More off-fabric neighbours: a second switch with the same short name
+  in another DNS domain (a separate neighbour, both listing the shared
+  pre-0.4.0 ID in `legacy_ids`) and a port where LLDP and CDP report
+  different devices (two neighbours flagged `identity_conflict`).
+- Logical paths (`fabricPathEp`): two single ports, a port-channel
+  named after its interface policy group (`LAB-PC-DB`), a vPC
+  (`LAB-VPC-1`) on both leaves, a FEX port, a vPC across two FEXes
+  (`extprotpaths`, one member edge per leg with its FEX id), a routed
+  port, a pod-2 port and unreferenced single and fabric ports (not
+  emitted). Leaf 111 binds its vPC leg through
+  `vpcIf`/`vpcRsVpcConf`; leaf 112 is resolved by the port-channel name.
+- A vPC domain (`fabricExplicitGEp` with two `fabricNodePEp` members,
+  per-leaf `vpcDom` state at audit purpose) and one `fabricPod`.
+- EPG path attachments to a port, a port-channel, a vPC, a FEX port,
+  a two-FEX vPC and a pod-2 port.
 - Endpoints (audit purpose): on a port, on a port-channel and on a vPC,
   with IPv4 and IPv6 addresses.
+- L3Out: an external EPG providing a contract by `tDn` and consuming
+  one by name in tenant `common`, IPv4 and IPv6 policy prefixes
+  (including the default route and a shared-route-control prefix), two
+  border leaves, a routed sub-interface and a vPC SVI path attachment
+  and a bridge domain associated with the L3Out by name. A second
+  L3Out in a second VRF (`vrf_Dev`) uses the same routed port with
+  another encapsulation (two distinct path edges) and configures the
+  same prefix `203.0.113.0/24` (two distinct prefix resources).
 - Faults on a port, a node and a tenant, plus a cleared fault.
 - Configured policy: tenants `tn_Example`, `tn_Other` and `common`;
   application profiles `app1` and `shared`; contracts with several
@@ -121,7 +160,7 @@ The complete fabric with failures and malformed optional data:
   is counted as unresolved.
 - A consumed contract whose target does not exist (`missing-target`)
   emits no edge and is counted as `unresolved`; a provided contract
-  under an external EPG (not modeled) is counted as `out_of_scope`.
+  under an external EPG is an edge from the external EPG.
 - `fvRsBd` carries an element without `dn` and an element of another
   class; both are rejected and counted (`rejected: 2`).
 - `ethpmPhysIf` repeats one object, as across a page boundary; it is
@@ -130,4 +169,15 @@ The complete fabric with failures and malformed optional data:
   the coverage record carries `received` and `reported_total`.
 - A fabric node of a role the producer does not model is named by a CDP
   neighbour; no connection or external neighbour is emitted for it and
-  the coverage record carries `unresolved: 1`.
+  the coverage record carries `unresolved: 1`. With LLDP denied, the
+  off-fabric switch is identified by its CDP device id.
+- `fabricPathEp` does not report the vPC path (as for an unformed
+  vPC): the vPC attachment and the vPC endpoint emit no path edge and
+  are counted as `unresolved`; `vpcRsVpcConf` fails with HTTP 403.
+- A second vPC domain names two leaves that are not in the fabric
+  (`fabricNodePEp` `unresolved: 2`).
+- `l3extRsPathL3OutAtt` fails with HTTP 403; a policy prefix under a
+  missing external EPG and a bridge-domain association to a missing
+  L3Out are counted as `unresolved`.
+- A `pcRsMbrIfs` member port that is not in `l1PhysIf` is counted as
+  `unresolved`.
