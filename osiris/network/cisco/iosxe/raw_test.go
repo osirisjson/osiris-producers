@@ -117,7 +117,7 @@ func TestQueries_ConfigurationFlag(t *testing.T) {
 // never carries a value an SDK secret pattern matches.
 func FuzzRedactXML(f *testing.F) {
 	f.Add([]byte(`<a><key>changeme</key><b x="1">Bearer abcdefghijklmnop</b></a>`))
-	f.Add([]byte(`<nc:a xmlns:nc="urn:x"><nc:secret>x</nc:secret></nc:a>`))
+	f.Add([]byte(`<nc:a xmlns:nc="urn:x"><nc:secret>secret</nc:secret></nc:a>`))
 	f.Fuzz(func(t *testing.T, data []byte) {
 		out, ok := redactXML(data)
 		if !ok {

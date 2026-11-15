@@ -902,19 +902,19 @@
         }
       },
       {
-        "id": "cisco.iosxe::TST0000RTR01/certificate/LAB-CA/1A2B",
+        "id": "cisco.iosxe::TST0000RTR01/certificate/LAB-CA/TST0000CERT02",
         "type": "network.security.certificate",
         "name": "cn=LAB-CA,o=example.org",
         "provider": {
           "name": "cisco.iosxe",
-          "native_id": "TST0000RTR01/certificate/LAB-CA/1A2B",
+          "native_id": "TST0000RTR01/certificate/LAB-CA/TST0000CERT02",
           "type": "crypto-pki-certificate"
         },
         "status": "active",
         "properties": {
           "issuer": "cn=LAB-CA,o=example.org",
           "key_type": "rsa",
-          "serial_number": "1A2B",
+          "serial_number": "TST0000CERT02",
           "subject": "cn=LAB-CA,o=example.org",
           "trustpoint": "LAB-CA",
           "usage": "signature",
@@ -923,19 +923,19 @@
         }
       },
       {
-        "id": "cisco.iosxe::TST0000RTR01/certificate/LAB-TP/01",
+        "id": "cisco.iosxe::TST0000RTR01/certificate/LAB-TP/TST0000CERT01",
         "type": "network.security.certificate",
         "name": "cn=LAB-RTR01.example.com",
         "provider": {
           "name": "cisco.iosxe",
-          "native_id": "TST0000RTR01/certificate/LAB-TP/01",
+          "native_id": "TST0000RTR01/certificate/LAB-TP/TST0000CERT01",
           "type": "crypto-pki-certificate"
         },
         "status": "active",
         "properties": {
           "issuer": "cn=LAB-RTR01.example.com",
           "key_type": "rsa",
-          "serial_number": "01",
+          "serial_number": "TST0000CERT01",
           "subject": "cn=LAB-RTR01.example.com",
           "trustpoint": "LAB-TP",
           "usage": "general-purpose",
@@ -1055,24 +1055,6 @@
     ],
     "connections": [
       {
-        "id": "conn-contains.logical-tst0000rtr01-to-01-1af0f29dcad59d79",
-        "type": "contains.logical",
-        "source": "cisco.iosxe::TST0000RTR01",
-        "target": "cisco.iosxe::TST0000RTR01/certificate/LAB-TP/01",
-        "direction": "forward",
-        "name": "LAB-RTR01 contains cn=LAB-RTR01.example.com",
-        "status": "active"
-      },
-      {
-        "id": "conn-contains.logical-tst0000rtr01-to-1a2b-789895320881002f",
-        "type": "contains.logical",
-        "source": "cisco.iosxe::TST0000RTR01",
-        "target": "cisco.iosxe::TST0000RTR01/certificate/LAB-CA/1A2B",
-        "direction": "forward",
-        "name": "LAB-RTR01 contains cn=LAB-CA,o=example.org",
-        "status": "active"
-      },
-      {
         "id": "conn-contains.logical-tst0000rtr01-to-gigabitethernet2-100-5d85d433cc8b5f29",
         "type": "contains.logical",
         "source": "cisco.iosxe::TST0000RTR01",
@@ -1151,6 +1133,24 @@
         "target": "cisco.iosxe::TST0000RTR01/certificate/CISCO_IDEVID_SUDI/TST0000CA02",
         "direction": "forward",
         "name": "LAB-RTR01 contains cn=High Assurance SUDI CA,o=Cisco",
+        "status": "active"
+      },
+      {
+        "id": "conn-contains.logical-tst0000rtr01-to-tst0000cert01-4a37be92f00eb459",
+        "type": "contains.logical",
+        "source": "cisco.iosxe::TST0000RTR01",
+        "target": "cisco.iosxe::TST0000RTR01/certificate/LAB-TP/TST0000CERT01",
+        "direction": "forward",
+        "name": "LAB-RTR01 contains cn=LAB-RTR01.example.com",
+        "status": "active"
+      },
+      {
+        "id": "conn-contains.logical-tst0000rtr01-to-tst0000cert02-0240245bb8ef53c0",
+        "type": "contains.logical",
+        "source": "cisco.iosxe::TST0000RTR01",
+        "target": "cisco.iosxe::TST0000RTR01/certificate/LAB-CA/TST0000CERT02",
+        "direction": "forward",
+        "name": "LAB-RTR01 contains cn=LAB-CA,o=example.org",
         "status": "active"
       },
       {
