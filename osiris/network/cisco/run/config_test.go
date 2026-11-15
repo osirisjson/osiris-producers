@@ -28,9 +28,9 @@ func TestParseHostPort(t *testing.T) {
 		wantErr  bool
 	}{
 		// Plain hostname.
-		{"switch-01", "switch-01", 0, false},
+		{"LAB-SW01", "LAB-SW01", 0, false},
 		// FQDN.
-		{"apic.lab.local", "apic.lab.local", 0, false},
+		{"lab-apic.example.com", "lab-apic.example.com", 0, false},
 		// IPv4 no port.
 		{"192.0.2.1", "192.0.2.1", 0, false},
 		// IPv4 with port.
@@ -96,9 +96,9 @@ func TestResolveAddr(t *testing.T) {
 		},
 		{
 			name:        "hostname default port",
-			target:      TargetConfig{Host: "apic.lab"},
+			target:      TargetConfig{Host: "lab-apic.example.com"},
 			defaultPort: 443,
-			want:        "apic.lab:443",
+			want:        "lab-apic.example.com:443",
 		},
 	}
 
@@ -118,7 +118,7 @@ func TestSanitizePathSegment(t *testing.T) {
 		wantErr bool
 	}{
 		{"MXP", false},
-		{"spine-01", false},
+		{"LAB-SPINE01", false},
 		{"", true},
 		{".", true},
 		{"..", true},
@@ -142,8 +142,8 @@ func TestSanitizePathSegment(t *testing.T) {
 func TestOutputPath_RejectsTraversal(t *testing.T) {
 	tests := []TargetConfig{
 		{Host: "192.0.2.1", Hostname: "../../etc/passwd"},
-		{Host: "192.0.2.2", Hostname: "ok", Datacenter: "../escape"},
-		{Host: "192.0.2.3", Hostname: "ok", Rack: "a/b"},
+		{Host: "192.0.2.2", Hostname: "LAB-OK", Datacenter: "../escape"},
+		{Host: "192.0.2.3", Hostname: "LAB-OK", Rack: "a/b"},
 	}
 	for _, tgt := range tests {
 		if _, err := OutputPath("/output", "2026-01-15T10-00-00Z", tgt); err == nil {
@@ -162,25 +162,25 @@ func TestOutputPath(t *testing.T) {
 		{
 			name: "full hierarchy",
 			target: TargetConfig{
-				Host: "192.0.2.1", Hostname: "apic-01", Type: "apic",
+				Host: "192.0.2.1", Hostname: "LAB-APIC01", Type: "apic",
 				Datacenter: "MXP", Floor: "F3", Room: "R301", Rack: "RACK-A",
 			},
-			want: "/output/MXP/F3/R301/RACK-A/cisco-apic-" + ts + "-apic-01.json",
+			want: "/output/MXP/F3/R301/RACK-A/cisco-apic-" + ts + "-LAB-APIC01.json",
 		},
 		{
 			name: "partial hierarchy (datacenter and rack only)",
 			target: TargetConfig{
-				Host: "192.0.2.2", Hostname: "spine-01", Type: "nxos",
+				Host: "192.0.2.2", Hostname: "LAB-SPINE01", Type: "nxos",
 				Datacenter: "MXP", Rack: "RACK-B",
 			},
-			want: "/output/MXP/RACK-B/cisco-nxos-" + ts + "-spine-01.json",
+			want: "/output/MXP/RACK-B/cisco-nxos-" + ts + "-LAB-SPINE01.json",
 		},
 		{
 			name: "no hierarchy (flat)",
 			target: TargetConfig{
-				Host: "192.0.2.3", Hostname: "leaf-01", Type: "nxos",
+				Host: "192.0.2.3", Hostname: "LAB-LEAF01", Type: "nxos",
 			},
-			want: "/output/cisco-nxos-" + ts + "-leaf-01.json",
+			want: "/output/cisco-nxos-" + ts + "-LAB-LEAF01.json",
 		},
 		{
 			name: "hostname defaults to Host",

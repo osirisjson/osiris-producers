@@ -159,7 +159,7 @@ func ParseHostPort(addr string) (host string, port int, err error) {
 	}
 
 	// No port component - treat entire string as host.
-	// Strip brackets from bare IPv6 addresses like "[::1]".
+	// Strip brackets from bare IPv6 addresses like "[2001:db8::1]".
 	if strings.HasPrefix(addr, "[") && strings.HasSuffix(addr, "]") {
 		addr = addr[1 : len(addr)-1]
 	}

@@ -170,82 +170,82 @@ func TestResolveForHost_DefaultOnlyEmptyRulesArray(t *testing.T) {
 func TestResolveForHost_ExactMatch(t *testing.T) {
 	cf := &CredentialFile{
 		Rules: []CredentialRule{
-			{Hosts: "192.0.2.10,192.0.2.11,192.0.2.12", CredentialEntry: CredentialEntry{Username: "dc2-admin", Password: "dc2-pass"}},
+			{Hosts: "192.0.2.10,192.0.2.11,192.0.2.12", CredentialEntry: CredentialEntry{Username: "dc2-admin", Password: "secret-3"}},
 		},
 	}
 	u, p := cf.ResolveForHost("192.0.2.11")
-	if u != "dc2-admin" || p != "dc2-pass" {
-		t.Errorf("ResolveForHost(exact) = %q/%q, want dc2-admin/dc2-pass", u, p)
+	if u != "dc2-admin" || p != "secret-3" {
+		t.Errorf("ResolveForHost(exact) = %q/%q, want dc2-admin/secret-3", u, p)
 	}
 }
 
 func TestResolveForHost_ExactMatchCaseInsensitiveHostname(t *testing.T) {
 	cf := &CredentialFile{
 		Rules: []CredentialRule{
-			{Hosts: "switch-edge-01.lab.local", CredentialEntry: CredentialEntry{Username: "edge-admin", Password: "edge-pass"}},
+			{Hosts: "lab-sw-edge01.example.com", CredentialEntry: CredentialEntry{Username: "edge-admin", Password: "secret-4"}},
 		},
 	}
-	u, p := cf.ResolveForHost("Switch-Edge-01.Lab.Local")
-	if u != "edge-admin" || p != "edge-pass" {
-		t.Errorf("ResolveForHost(case-insensitive hostname) = %q/%q, want edge-admin/edge-pass", u, p)
+	u, p := cf.ResolveForHost("LAB-SW-Edge01.Example.COM")
+	if u != "edge-admin" || p != "secret-4" {
+		t.Errorf("ResolveForHost(case-insensitive hostname) = %q/%q, want edge-admin/secret-4", u, p)
 	}
 }
 
 func TestResolveForHost_CIDRMatch(t *testing.T) {
 	cf := &CredentialFile{
 		Rules: []CredentialRule{
-			{Hosts: "192.0.2.0/24", CredentialEntry: CredentialEntry{Username: "dc1-admin", Password: "dc1-pass"}},
+			{Hosts: "192.0.2.0/24", CredentialEntry: CredentialEntry{Username: "dc1-admin", Password: "secret-2"}},
 		},
 	}
 	u, p := cf.ResolveForHost("192.0.2.42")
-	if u != "dc1-admin" || p != "dc1-pass" {
-		t.Errorf("ResolveForHost(CIDR) = %q/%q, want dc1-admin/dc1-pass", u, p)
+	if u != "dc1-admin" || p != "secret-2" {
+		t.Errorf("ResolveForHost(CIDR) = %q/%q, want dc1-admin/secret-2", u, p)
 	}
 }
 
 func TestResolveForHost_CIDRDoesNotMatchOutsideRange(t *testing.T) {
 	cf := &CredentialFile{
-		Default: &CredentialEntry{Username: "admin", Password: "default-pass"},
+		Default: &CredentialEntry{Username: "admin", Password: "secret-1"},
 		Rules: []CredentialRule{
-			{Hosts: "192.0.2.0/24", CredentialEntry: CredentialEntry{Username: "dc1-admin", Password: "dc1-pass"}},
+			{Hosts: "192.0.2.0/24", CredentialEntry: CredentialEntry{Username: "dc1-admin", Password: "secret-2"}},
 		},
 	}
 	u, p := cf.ResolveForHost("198.51.100.1")
-	if u != "admin" || p != "default-pass" {
-		t.Errorf("ResolveForHost(outside CIDR) = %q/%q, want fallback to default admin/default-pass", u, p)
+	if u != "admin" || p != "secret-1" {
+		t.Errorf("ResolveForHost(outside CIDR) = %q/%q, want fallback to default admin/secret-1", u, p)
 	}
 }
 
 func TestResolveForHost_HostnameNeverMatchesCIDR(t *testing.T) {
 	cf := &CredentialFile{
-		Default: &CredentialEntry{Username: "admin", Password: "default-pass"},
+		Default: &CredentialEntry{Username: "admin", Password: "secret-1"},
 		Rules: []CredentialRule{
-			{Hosts: "192.0.2.0/24", CredentialEntry: CredentialEntry{Username: "dc1-admin", Password: "dc1-pass"}},
+			{Hosts: "192.0.2.0/24", CredentialEntry: CredentialEntry{Username: "dc1-admin", Password: "secret-2"}},
 		},
 	}
-	u, p := cf.ResolveForHost("switch-01.lab.local")
-	if u != "admin" || p != "default-pass" {
-		t.Errorf("a hostname should never match a CIDR rule; got %q/%q, want default admin/default-pass", u, p)
+	u, p := cf.ResolveForHost("lab-sw01.example.com")
+	if u != "admin" || p != "secret-1" {
+		t.Errorf("a hostname should never match a CIDR rule; got %q/%q, want default admin/secret-1", u, p)
 	}
 }
 
 func TestResolveForHost_FirstMatchWins(t *testing.T) {
 	cf := &CredentialFile{
 		Rules: []CredentialRule{
-			{Hosts: "192.0.2.0/24", CredentialEntry: CredentialEntry{Username: "broad", Password: "broad-pass"}},
-			{Hosts: "192.0.2.42", CredentialEntry: CredentialEntry{Username: "specific", Password: "specific-pass"}},
+			{Hosts: "192.0.2.0/24", CredentialEntry: CredentialEntry{Username: "broad", Password: "secret-5"}},
+			{Hosts: "192.0.2.42", CredentialEntry: CredentialEntry{Username: "specific", Password: "secret-6"}},
 		},
 	}
 	u, p := cf.ResolveForHost("192.0.2.42")
-	if u != "broad" || p != "broad-pass" {
-		t.Errorf("first matching rule should win regardless of specificity; got %q/%q, want broad/broad-pass", u, p)
+	if u != "broad" || p != "secret-5" {
+		t.Errorf("first matching rule should win regardless of specificity; got %q/%q, want broad/secret-5", u, p)
 	}
 }
 
 func TestResolveForHost_NoMatchNoDefaultIsEmpty(t *testing.T) {
 	cf := &CredentialFile{
 		Rules: []CredentialRule{
-			{Hosts: "192.0.2.0/24", CredentialEntry: CredentialEntry{Username: "dc1-admin", Password: "dc1-pass"}},
+			{Hosts: "192.0.2.0/24", CredentialEntry: CredentialEntry{Username: "dc1-admin", Password: "secret-2"}},
 		},
 	}
 	u, p := cf.ResolveForHost("198.51.100.1")
@@ -261,9 +261,9 @@ func TestResolveForHost_RulesIgnoreTopLevelFlatFields(t *testing.T) {
 	// them instead of Default.
 	cf := &CredentialFile{
 		Username: "flat-user",
-		Password: "flat-pass",
+		Password: "secret-7",
 		Rules: []CredentialRule{
-			{Hosts: "192.0.2.0/24", CredentialEntry: CredentialEntry{Username: "dc1-admin", Password: "dc1-pass"}},
+			{Hosts: "192.0.2.0/24", CredentialEntry: CredentialEntry{Username: "dc1-admin", Password: "secret-2"}},
 		},
 	}
 	u, p := cf.ResolveForHost("198.51.100.1")
@@ -283,11 +283,11 @@ func TestHostMatches_MalformedCIDRTokenSkipped(t *testing.T) {
 func TestLoadCredentialFile_RulesShapeJSON(t *testing.T) {
 	dir := t.TempDir()
 	content := `{
-  "default": {"username": "admin", "password": "default-pass"},
+  "default": {"username": "admin", "password": "secret-1"},
   "rules": [
-    {"hosts": "192.0.2.0/24", "username": "dc1-admin", "password": "dc1-pass"},
-    {"hosts": "198.51.100.10,198.51.100.11,198.51.100.12", "username": "dc2-admin", "password": "dc2-pass"},
-    {"hosts": "switch-edge-01.lab.local", "username": "edge-admin", "password": "edge-pass"}
+    {"hosts": "192.0.2.0/24", "username": "dc1-admin", "password": "secret-2"},
+    {"hosts": "198.51.100.10,198.51.100.11,198.51.100.12", "username": "dc2-admin", "password": "secret-3"},
+    {"hosts": "lab-sw-edge01.example.com", "username": "edge-admin", "password": "secret-4"}
   ]
 }`
 	path := writeCredentialFile(t, dir, "rules.json", content, 0600)
@@ -302,10 +302,10 @@ func TestLoadCredentialFile_RulesShapeJSON(t *testing.T) {
 		wantUser string
 		wantPass string
 	}{
-		{"192.0.2.42", "dc1-admin", "dc1-pass"},
-		{"198.51.100.11", "dc2-admin", "dc2-pass"},
-		{"switch-edge-01.lab.local", "edge-admin", "edge-pass"},
-		{"203.0.113.9", "admin", "default-pass"},
+		{"192.0.2.42", "dc1-admin", "secret-2"},
+		{"198.51.100.11", "dc2-admin", "secret-3"},
+		{"lab-sw-edge01.example.com", "edge-admin", "secret-4"},
+		{"203.0.113.9", "admin", "secret-1"},
 	}
 	for _, tt := range tests {
 		u, p := cf.ResolveForHost(tt.host)
