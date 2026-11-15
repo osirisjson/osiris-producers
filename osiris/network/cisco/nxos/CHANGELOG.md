@@ -22,6 +22,14 @@ the release-level index of which producers shipped under each tag.
 
 ## [Unreleased]
 
+### Changed
+
+- CLI usage example targets `lab-sw01.example.com`, a reserved example
+  hostname. Emitted documents are unchanged; the behavior version
+  stays `0.2.1`.
+- The `--secrets-file` example in the 0.2.0 entry below uses RFC 5737
+  documentation addresses; the described behavior is unchanged.
+
 ## [0.2.1] - 2026-11-14
 
 Raw-body redaction fix for the stronger document secret scan. Only
@@ -74,8 +82,9 @@ from `metadata.generator.version` bump.
   `{"default": {username, password}, "rules": [{"hosts": "...",
   "username", "password"}, ...]}`. A target's host is matched against
   each rule's `hosts` (a comma-separated list of exact hosts/IPs and/or
-  CIDR blocks, e.g. `"10.0.1.0/24"` or `"10.0.2.10,10.0.2.11"`) in
-  order, first match wins; an unmatched target falls back to `default`.
+  CIDR blocks, e.g. `"192.0.2.0/24"` or
+  `"198.51.100.10,198.51.100.11"`) in order, first match wins; an
+  unmatched target falls back to `default`.
   Applies to both single mode (matched against the resolved `--host`)
   and batch mode (matched per CSV row). There is no per-rule port: the
   CSV `port` column remains the sole source of truth for a target's
@@ -410,7 +419,7 @@ from `metadata.generator.version` bump.
   repository (`resourceID(nativeID) = providerName + "::" + nativeID`).
 - External LLDP/CDP/OSPF/BGP/vPC-keepalive neighbor stub resources'
   `id` is now anchored under the owning switch's own already-namespaced
-  `id` (e.g. `cisco.nxos::TST0000NX01/neighbor/REMOTE-SW01/Ethernet1/49`,
+  `id` (e.g. `cisco.nxos::TST0000NX01/neighbor/LAB-REMOTE-SW01/Ethernet1/49`,
   `cisco.nxos::TST0000NX01/ospf-neighbor/<router-id>`,
   `cisco.nxos::TST0000NX01/bgp-neighbor/<neighbor-id>`,
   `cisco.nxos::TST0000NX01/vpc-peer-keepalive/<dest>`) instead of a
@@ -422,7 +431,7 @@ from `metadata.generator.version` bump.
   (`unknown` still accurate, this producer genuinely does not know
   the remote device's real vendor); only the `id` field's own
   construction changed. `provider.native_id` is also unchanged (still
-  the raw observed composite, e.g. `REMOTE-SW01|Ethernet1/49`).
+  the raw observed composite, e.g. `LAB-REMOTE-SW01|Ethernet1/49`).
 - `provider.name` (and `metadata.scope.providers`) changes from the
   plain `cisco` apic/iosxe still use to the dotted `cisco.nxos` matching
   the `cisco.vmanage` precedent the `id` change

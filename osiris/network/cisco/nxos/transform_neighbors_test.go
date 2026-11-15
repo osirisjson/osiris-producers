@@ -16,8 +16,8 @@ func TestTransformNeighbors_LLDPOnly(t *testing.T) {
 	lldp := lldpNeighborsResponse{
 		TableNborDetail: lldpTable{
 			RowNborDetail: rowList[lldpNeighborRow]{
-				{LocalPortID: "Ethernet1/1", SysName: "REMOTE-SW01", PortID: "Ethernet1/49", MgmtAddr: "192.0.2.10"},
-				{LocalPortID: "Ethernet1/2", SysName: "REMOTE-SW02", PortID: "Ethernet1/50"},
+				{LocalPortID: "Ethernet1/1", SysName: "LAB-REMOTE-SW01", PortID: "Ethernet1/49", MgmtAddr: "192.0.2.10"},
+				{LocalPortID: "Ethernet1/2", SysName: "LAB-REMOTE-SW02", PortID: "Ethernet1/50"},
 			},
 		},
 	}
@@ -43,10 +43,10 @@ func TestTransformNeighbors_LLDPOnly(t *testing.T) {
 	if stubs[0].Provider.Name != unknownProviderName {
 		t.Errorf("stub provider should be %q (LLDP does not establish remote vendor), got %q", unknownProviderName, stubs[0].Provider.Name)
 	}
-	if stubs[0].ID != "cisco.nxos::TST0000NX01/neighbor/REMOTE-SW01/Ethernet1/49" {
+	if stubs[0].ID != "cisco.nxos::TST0000NX01/neighbor/LAB-REMOTE-SW01/Ethernet1/49" {
 		t.Errorf("stub id should be anchored under the local device's own id, not a separate unknown:: identity, got %q", stubs[0].ID)
 	}
-	if stubs[0].Properties["remote_system"] != "REMOTE-SW01" {
+	if stubs[0].Properties["remote_system"] != "LAB-REMOTE-SW01" {
 		t.Errorf("remote_system: %v", stubs[0].Properties["remote_system"])
 	}
 	if stubs[0].Properties["remote_mgmt_addr"] != "192.0.2.10" {
@@ -69,8 +69,8 @@ func TestTransformNeighbors_SourceTransceiverAttachedWhenPresent(t *testing.T) {
 	lldp := lldpNeighborsResponse{
 		TableNborDetail: lldpTable{
 			RowNborDetail: rowList[lldpNeighborRow]{
-				{LocalPortID: "Ethernet1/1", SysName: "REMOTE-SW01", PortID: "Ethernet1/49"},
-				{LocalPortID: "Ethernet1/2", SysName: "REMOTE-SW02", PortID: "Ethernet1/50"},
+				{LocalPortID: "Ethernet1/1", SysName: "LAB-REMOTE-SW01", PortID: "Ethernet1/49"},
+				{LocalPortID: "Ethernet1/2", SysName: "LAB-REMOTE-SW02", PortID: "Ethernet1/50"},
 			},
 		},
 	}
@@ -114,7 +114,7 @@ func TestTransformNeighbors_MissingLocalInterface(t *testing.T) {
 	lldp := lldpNeighborsResponse{
 		TableNborDetail: lldpTable{
 			RowNborDetail: rowList[lldpNeighborRow]{
-				{LocalPortID: "Ethernet1/99", SysName: "REMOTE-SW01", PortID: "Ethernet1/1"},
+				{LocalPortID: "Ethernet1/99", SysName: "LAB-REMOTE-SW01", PortID: "Ethernet1/1"},
 			},
 		},
 	}
@@ -136,7 +136,7 @@ func TestTransformNeighbors_CDPOnly(t *testing.T) {
 	cdp := cdpNeighborsResponse{
 		TableCDP: cdpTable{
 			RowCDP: rowList[cdpNeighborRow]{
-				{IntfID: "mgmt0", SysName: "REMOTE-MGMT01", PortID: "Ethernet1/18", V4MgmtAddr: "192.0.2.20"},
+				{IntfID: "mgmt0", SysName: "LAB-REMOTE-MGMT01", PortID: "Ethernet1/18", V4MgmtAddr: "192.0.2.20"},
 			},
 		},
 	}
@@ -158,7 +158,7 @@ func TestTransformNeighbors_CDPFallsBackToV4AddrWhenNoMgmtAddr(t *testing.T) {
 	cdp := cdpNeighborsResponse{
 		TableCDP: cdpTable{
 			RowCDP: rowList[cdpNeighborRow]{
-				{IntfID: "Ethernet1/1", SysName: "REMOTE-SW01", PortID: "Ethernet1/5", V4Addr: "192.0.2.30"},
+				{IntfID: "Ethernet1/1", SysName: "LAB-REMOTE-SW01", PortID: "Ethernet1/5", V4Addr: "192.0.2.30"},
 			},
 		},
 	}
@@ -180,14 +180,14 @@ func TestTransformNeighbors_DuplicateAcrossLLDPAndCDPMergesToOneConnection(t *te
 	lldp := lldpNeighborsResponse{
 		TableNborDetail: lldpTable{
 			RowNborDetail: rowList[lldpNeighborRow]{
-				{LocalPortID: "Ethernet1/1", SysName: "REMOTE-SW01", PortID: "Ethernet1/5", MgmtAddr: "192.0.2.10"},
+				{LocalPortID: "Ethernet1/1", SysName: "LAB-REMOTE-SW01", PortID: "Ethernet1/5", MgmtAddr: "192.0.2.10"},
 			},
 		},
 	}
 	cdp := cdpNeighborsResponse{
 		TableCDP: cdpTable{
 			RowCDP: rowList[cdpNeighborRow]{
-				{IntfID: "Ethernet1/1", SysName: "REMOTE-SW01", PortID: "Ethernet1/5", V4MgmtAddr: "192.0.2.10"},
+				{IntfID: "Ethernet1/1", SysName: "LAB-REMOTE-SW01", PortID: "Ethernet1/5", V4MgmtAddr: "192.0.2.10"},
 			},
 		},
 	}

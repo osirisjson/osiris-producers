@@ -768,7 +768,7 @@ Output (0600 permissions):
   batch mode: 	<output>/Datacenter/Floor/Room/Rack/Hostname.json
 
 Examples:
-  osirisjson-producer cisco nxos -h switch.lab:8443 -u admin --insecure
+  osirisjson-producer cisco nxos -h lab-sw01.example.com:8443 -u admin --insecure
   osirisjson-producer cisco nxos -h 192.0.2.10 -u admin --purpose audit
   osirisjson-producer cisco nxos -s datacenter.csv -o ./output -u admin
   osirisjson-producer cisco nxos template --generate
