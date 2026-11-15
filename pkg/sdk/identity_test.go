@@ -68,8 +68,8 @@ func TestDeriveHint(t *testing.T) {
 		want string
 	}{
 		{"mxp::spine-sw-01", "abcdef12", "spine-sw-01"},
-		{"aws::i-0abc123def456", "abcdef12", "i-0abc123def456"},
-		{"azure::/subscriptions/sub-123/vm01", "abcdef12", "vm01"},
+		{"aws::i-0000000000000a456", "abcdef12", "i-0000000000000a456"},
+		{"azure::/subscriptions/00000000-0000-4000-8000-000000000094/vm01", "abcdef12", "vm01"},
 		{"/some/deep/path/resource", "abcdef12", "resource"},
 		{"UPPER::CASE-Test", "abcdef12", "case-test"}, // :: takes priority, "CASE-Test" after :: .
 		{"", "abcdef12", "abcdef12"},                  // empty falls back to hash.

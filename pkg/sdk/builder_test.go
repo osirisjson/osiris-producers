@@ -442,7 +442,7 @@ func TestBuildFailClosedBlocksSecrets(t *testing.T) {
 
 	r := mustResource("r1", "compute.vm", mustProvider("aws"))
 	r.Properties = map[string]any{
-		"connection_string": "postgresql://admin:s3cret@db:5432/app",
+		"connection_string": "postgresql://admin:secret@db:5432/app",
 	}
 	b.AddResource(r)
 
@@ -465,7 +465,7 @@ func TestBuildLogAndRedactAllowsSecrets(t *testing.T) {
 
 	r := mustResource("r1", "compute.vm", mustProvider("aws"))
 	r.Properties = map[string]any{
-		"connection_string": "postgresql://admin:s3cret@db:5432/app",
+		"connection_string": "postgresql://admin:secret@db:5432/app",
 	}
 	b.AddResource(r)
 
@@ -488,7 +488,7 @@ func TestBuildOffModeSkipsScanning(t *testing.T) {
 
 	r := mustResource("r1", "compute.vm", mustProvider("aws"))
 	r.Properties = map[string]any{
-		"api_key": "AKIAIOSFODNN7EXAMPLE",
+		"api_key": "secret",
 	}
 	b.AddResource(r)
 
@@ -504,7 +504,7 @@ func TestBuildCleanDocumentPassesScanning(t *testing.T) {
 
 	r := mustResource("r1", "compute.vm", mustProvider("aws"))
 	r.Properties = map[string]any{
-		"hostname":  "web-01",
+		"hostname":  "LAB-WEB01",
 		"memory_gb": 64,
 	}
 	b.AddResource(r)
