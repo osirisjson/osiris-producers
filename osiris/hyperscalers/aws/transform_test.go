@@ -23,8 +23,8 @@ const (
 func TestTransformVPCs(t *testing.T) {
 	vpcs := []ec2types.Vpc{
 		{
-			VpcId:     aws.String("vpc-0a1b2c3d4e5f00001"),
-			CidrBlock: aws.String("10.0.0.0/24"),
+			VpcId:     aws.String("vpc-00000000000000001"),
+			CidrBlock: aws.String("192.0.2.0/24"),
 			IsDefault: aws.Bool(false),
 			OwnerId:   aws.String(testAccountID),
 			State:     ec2types.VpcStateAvailable,
@@ -59,17 +59,17 @@ func TestTransformVPCs(t *testing.T) {
 		t.Errorf("expected status active, got %s", r.Status)
 	}
 	cidr, ok := r.Properties["cidr_block"].(string)
-	if !ok || cidr != "10.0.0.0/24" {
-		t.Errorf("expected cidr_block 10.0.0.0/24, got %v", r.Properties["cidr_block"])
+	if !ok || cidr != "192.0.2.0/24" {
+		t.Errorf("expected cidr_block 192.0.2.0/24, got %v", r.Properties["cidr_block"])
 	}
 }
 
 func TestTransformSubnets(t *testing.T) {
 	subnets := []ec2types.Subnet{
 		{
-			SubnetId:                aws.String("subnet-0a1b2c3d4e5f0001"),
-			VpcId:                   aws.String("vpc-0a1b2c3d4e5f00002"),
-			CidrBlock:               aws.String("10.0.1.0/28"),
+			SubnetId:                aws.String("subnet-00000000000000001"),
+			VpcId:                   aws.String("vpc-00000000000000002"),
+			CidrBlock:               aws.String("198.51.100.0/28"),
 			AvailabilityZone:        aws.String("eu-central-1a"),
 			AvailableIpAddressCount: aws.Int32(9),
 			Tags: []ec2types.Tag{
@@ -95,7 +95,7 @@ func TestTransformSubnets(t *testing.T) {
 	}
 
 	// Verify ID map.
-	if _, ok := idMap["subnet-0a1b2c3d4e5f0001"]; !ok {
+	if _, ok := idMap["subnet-00000000000000001"]; !ok {
 		t.Error("expected subnet ID in map")
 	}
 }
@@ -103,9 +103,9 @@ func TestTransformSubnets(t *testing.T) {
 func TestTransformSecurityGroups(t *testing.T) {
 	sgs := []ec2types.SecurityGroup{
 		{
-			GroupId:     aws.String("sg-0a1b2c3d4e5f00001"),
+			GroupId:     aws.String("sg-00000000000000001"),
 			GroupName:   aws.String("default"),
-			VpcId:       aws.String("vpc-0a1b2c3d4e5f00001"),
+			VpcId:       aws.String("vpc-00000000000000001"),
 			Description: aws.String("default VPC security group"),
 			OwnerId:     aws.String(testAccountID),
 		},
@@ -124,7 +124,7 @@ func TestTransformSecurityGroups(t *testing.T) {
 		t.Errorf("expected name default, got %s", r.Name)
 	}
 
-	if _, ok := idMap["sg-0a1b2c3d4e5f00001"]; !ok {
+	if _, ok := idMap["sg-00000000000000001"]; !ok {
 		t.Error("expected SG ID in map")
 	}
 }
@@ -132,11 +132,11 @@ func TestTransformSecurityGroups(t *testing.T) {
 func TestTransformInstances(t *testing.T) {
 	instances := []ec2types.Instance{
 		{
-			InstanceId:       aws.String("i-0a1b2c3d4e5f00001"),
+			InstanceId:       aws.String("i-00000000000000001"),
 			InstanceType:     ec2types.InstanceTypeC5Xlarge,
-			VpcId:            aws.String("vpc-0a1b2c3d4e5f00003"),
-			SubnetId:         aws.String("subnet-0a1b2c3d4e5f0002"),
-			PrivateIpAddress: aws.String("10.0.2.10"),
+			VpcId:            aws.String("vpc-00000000000000003"),
+			SubnetId:         aws.String("subnet-00000000000000002"),
+			PrivateIpAddress: aws.String("203.0.113.10"),
 			PublicIpAddress:  aws.String("203.0.113.10"),
 			State: &ec2types.InstanceState{
 				Name: ec2types.InstanceStateNameRunning,
@@ -167,10 +167,10 @@ func TestTransformInstances(t *testing.T) {
 func TestTransformTransitGateways(t *testing.T) {
 	tgws := []ec2types.TransitGateway{
 		{
-			TransitGatewayId:  aws.String("tgw-0a1b2c3d4e5f0001"),
-			TransitGatewayArn: aws.String("arn:aws:ec2:eu-central-1:234567890123:transit-gateway/tgw-0a1b2c3d4e5f0001"),
+			TransitGatewayId:  aws.String("tgw-00000000000000001"),
+			TransitGatewayArn: aws.String("arn:aws:ec2:eu-central-1:111122223333:transit-gateway/tgw-00000000000000001"),
 			State:             ec2types.TransitGatewayStateAvailable,
-			OwnerId:           aws.String("234567890123"),
+			OwnerId:           aws.String("111122223333"),
 			Description:       aws.String("Transit Gateway EUR region"),
 			Options: &ec2types.TransitGatewayOptions{
 				AmazonSideAsn: aws.Int64(65531),
@@ -229,15 +229,15 @@ func TestTransformDirectConnectConnections(t *testing.T) {
 func TestTransformLoadBalancersV2(t *testing.T) {
 	lbs := []elbv2types.LoadBalancer{
 		{
-			LoadBalancerArn:  aws.String("arn:aws:elasticloadbalancing:eu-central-1:345678901234:loadbalancer/gwy/demo-gwlb-1/a1b2c3d4e5f60000"),
-			LoadBalancerName: aws.String("demo-gwlb-1"),
-			VpcId:            aws.String("vpc-0a1b2c3d4e5f00003"),
+			LoadBalancerArn:  aws.String("arn:aws:elasticloadbalancing:eu-central-1:444455556666:loadbalancer/gwy/lab-gwlb-1/a1b2c3d4e5f60000"),
+			LoadBalancerName: aws.String("lab-gwlb-1"),
+			VpcId:            aws.String("vpc-00000000000000003"),
 			Type:             elbv2types.LoadBalancerTypeEnumGateway,
 			State: &elbv2types.LoadBalancerState{
 				Code: elbv2types.LoadBalancerStateEnumActive,
 			},
 			AvailabilityZones: []elbv2types.AvailabilityZone{
-				{ZoneName: aws.String("eu-central-1b"), SubnetId: aws.String("subnet-0a1b2c3d4e5f0002")},
+				{ZoneName: aws.String("eu-central-1b"), SubnetId: aws.String("subnet-00000000000000002")},
 			},
 		},
 	}
@@ -251,8 +251,8 @@ func TestTransformLoadBalancersV2(t *testing.T) {
 	if r.Type != "network.loadbalancer" {
 		t.Errorf("expected type network.loadbalancer, got %s", r.Type)
 	}
-	if r.Name != "demo-gwlb-1" {
-		t.Errorf("expected name demo-gwlb-1, got %s", r.Name)
+	if r.Name != "lab-gwlb-1" {
+		t.Errorf("expected name lab-gwlb-1, got %s", r.Name)
 	}
 	if r.Status != "active" {
 		t.Errorf("expected status active, got %s", r.Status)
@@ -262,12 +262,12 @@ func TestTransformLoadBalancersV2(t *testing.T) {
 func TestTransformSubnetToVPCConnections(t *testing.T) {
 	subnets := []ec2types.Subnet{
 		{
-			SubnetId: aws.String("subnet-001"),
-			VpcId:    aws.String("vpc-001"),
+			SubnetId: aws.String("subnet-00000000000000101"),
+			VpcId:    aws.String("vpc-00000000000000101"),
 		},
 	}
 	subnetIDMap := map[string]string{
-		"subnet-001": resourceID(testAccountID, testRegion, "ec2", "subnet/subnet-001"),
+		"subnet-00000000000000101": resourceID(testAccountID, testRegion, "ec2", "subnet/subnet-00000000000000101"),
 	}
 
 	conns := TransformSubnetToVPCConnections(subnets, subnetIDMap, testRegion, testAccountID)
@@ -287,9 +287,9 @@ func TestTransformSubnetToVPCConnections(t *testing.T) {
 func TestTransformIGWToVPCConnections(t *testing.T) {
 	igws := []ec2types.InternetGateway{
 		{
-			InternetGatewayId: aws.String("igw-001"),
+			InternetGatewayId: aws.String("igw-00000000000000101"),
 			Attachments: []ec2types.InternetGatewayAttachment{
-				{VpcId: aws.String("vpc-001"), State: ec2types.AttachmentStatusAttached},
+				{VpcId: aws.String("vpc-00000000000000101"), State: ec2types.AttachmentStatusAttached},
 			},
 		},
 	}
@@ -318,7 +318,7 @@ func TestTransformAccountGroup(t *testing.T) {
 func TestTransformVPCGroups(t *testing.T) {
 	vpcs := []ec2types.Vpc{
 		{
-			VpcId: aws.String("vpc-001"),
+			VpcId: aws.String("vpc-00000000000000101"),
 			Tags: []ec2types.Tag{
 				{Key: aws.String("Name"), Value: aws.String("test-vpc")},
 			},
@@ -343,15 +343,15 @@ func TestTransformVPCGroups(t *testing.T) {
 }
 
 func TestResourceIDPattern(t *testing.T) {
-	id := resourceID("123456789012", "us-east-1", "ec2", "vpc/vpc-abc123")
-	expected := "aws::arn:aws:ec2:us-east-1:123456789012:vpc/vpc-abc123"
+	id := resourceID("123456789012", "us-east-1", "ec2", "vpc/vpc-0000000000000abc1")
+	expected := "aws::arn:aws:ec2:us-east-1:123456789012:vpc/vpc-0000000000000abc1"
 	if id != expected {
 		t.Errorf("expected %s, got %s", expected, id)
 	}
 }
 
 func TestResourceIDFromARN(t *testing.T) {
-	arn := "arn:aws:elasticloadbalancing:eu-central-1:345678901234:loadbalancer/gwy/test/abc"
+	arn := "arn:aws:elasticloadbalancing:eu-central-1:444455556666:loadbalancer/gwy/test/abc"
 	id := resourceIDFromARN(arn)
 	expected := "aws::" + arn
 	if id != expected {

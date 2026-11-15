@@ -1067,7 +1067,7 @@ Common flags:
                           (all extensions are stripped by osirismeta.Project).
 
 SSO setup (for IAM Identity Center / AWS SSO users):
-  osirisjson-producer aws setup-sso --start-url https://myorg.awsapps.com/start
+  osirisjson-producer aws setup-sso --start-url https://example.awsapps.com/start
   Discovers all accounts and roles, writes profiles to ~/.aws/config
   automatically. SSO region is auto-detected (or pass --region to skip).
 
@@ -1084,7 +1084,7 @@ Prerequisites:
 Examples:
 
   # SSO automatic setup for large volume accounts
-  osirisjson-producer aws setup-sso --start-url https://myorg.awsapps.com/start
+  osirisjson-producer aws setup-sso --start-url https://example.awsapps.com/start
 
   # Interactive mode (pick profiles and regions)
   osirisjson-producer aws
