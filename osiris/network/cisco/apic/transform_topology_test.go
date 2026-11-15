@@ -129,15 +129,21 @@ func TestTopologyPortDNs(t *testing.T) {
 	}
 	pathAtts := []map[string]any{
 		{"tDn": "topology/pod-1/paths-111/pathep-[eth1/4]"},
-		{"tDn": "topology/pod-1/paths-111/pathep-[po1]"},
-		{"tDn": "topology/pod-1/protpaths-111-112/pathep-[vpc_x]"}, // vPC: not a single port, skipped
+		{"tDn": "topology/pod-1/paths-111/pathep-[LAB-PC-1]"},            // policy-group name of po1
+		{"tDn": "topology/pod-1/protpaths-111-112/pathep-[vpc_x]"},       // vPC: not a single port, skipped
+		{"tDn": "topology/pod-1/paths-111/extpaths-150/pathep-[eth1/9]"}, // FEX port: not a leaf port, skipped
 	}
 	ethpm := []map[string]any{
 		{"dn": "topology/pod-1/node-111/sys/phys-[eth1/5]/phys", "bundleIndex": "po1"},
 		{"dn": "topology/pod-1/node-111/sys/phys-[eth1/6]/phys", "bundleIndex": "unspecified"},
 	}
 
-	keep := topologyPortDNs(fabricLinks, lldp, cdp, pathAtts, ethpm, numToDN)
+	nodes := []map[string]any{{"dn": "topology/pod-1/node-101"}, {"dn": "topology/pod-1/node-111"}}
+	pcs := []map[string]any{{"dn": "topology/pod-1/node-111/sys/aggr-[po1]", "id": "po1", "name": "LAB-PC-1"}}
+	mbrIfs := []map[string]any{
+		{"dn": "topology/pod-1/node-111/sys/aggr-[po1]/rsmbrIfs-[eth1/7]", "tDn": "sys/phys-[eth1/7]"},
+	}
+	keep := topologyPortDNs(fabricLinks, lldp, cdp, pathAtts, ethpm, mbrIfs, numToDN, newPathResolver(nodes, pcs))
 	want := []string{
 		"topology/pod-1/node-111/sys/phys-[eth1/53]",
 		"topology/pod-1/node-101/sys/phys-[eth1/1]",
@@ -146,6 +152,7 @@ func TestTopologyPortDNs(t *testing.T) {
 		"topology/pod-1/node-111/sys/phys-[eth1/4]",
 		"topology/pod-1/node-111/sys/aggr-[po1]",
 		"topology/pod-1/node-111/sys/phys-[eth1/5]",
+		"topology/pod-1/node-111/sys/phys-[eth1/7]",
 	}
 	for _, w := range want {
 		if !keep[w] {
@@ -160,23 +167,30 @@ func TestTopologyPortDNs(t *testing.T) {
 	}
 }
 
-func TestPathTargetDN(t *testing.T) {
-	numToDN := map[string]string{"121": "topology/pod-1/node-121"}
+func TestPathResolverSingleTarget(t *testing.T) {
+	nodes := []map[string]any{{"dn": "topology/pod-1/node-121"}}
+	pcs := []map[string]any{
+		{"dn": "topology/pod-1/node-121/sys/aggr-[po5]", "id": "po5", "name": "LAB-PC-5"},
+	}
+	r := newPathResolver(nodes, pcs)
 	tests := []struct {
 		in       string
 		wantDN   string
 		wantKind string
 	}{
 		{"topology/pod-1/paths-121/pathep-[eth1/10]", "topology/pod-1/node-121/sys/phys-[eth1/10]", "port"},
+		{"topology/pod-1/paths-121/pathep-[LAB-PC-5]", "topology/pod-1/node-121/sys/aggr-[po5]", "portchannel"},
 		{"topology/pod-1/paths-121/pathep-[po5]", "topology/pod-1/node-121/sys/aggr-[po5]", "portchannel"},
+		{"topology/pod-1/paths-121/pathep-[LAB-PC-UNKNOWN]", "", ""}, // no such port-channel
 		{"topology/pod-1/protpaths-121-122/pathep-[vpc1]", "", "vpc"},
+		{"topology/pod-1/paths-121/extpaths-150/pathep-[eth1/1]", "", "fex"},
 		{"topology/pod-1/paths-999/pathep-[eth1/1]", "", ""}, // unknown node
 		{"garbage", "", ""},
 	}
 	for _, tt := range tests {
-		dn, kind := pathTargetDN(tt.in, numToDN)
+		dn, kind := r.singleTarget(tt.in)
 		if dn != tt.wantDN || kind != tt.wantKind {
-			t.Errorf("pathTargetDN(%q) = (%q,%q), want (%q,%q)", tt.in, dn, kind, tt.wantDN, tt.wantKind)
+			t.Errorf("singleTarget(%q) = (%q,%q), want (%q,%q)", tt.in, dn, kind, tt.wantDN, tt.wantKind)
 		}
 	}
 }

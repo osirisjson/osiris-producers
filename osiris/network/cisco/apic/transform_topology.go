@@ -112,10 +112,10 @@ func TransformSwitchPorts(l1, ethpm []map[string]any, keep map[string]bool) ([]s
 // TransformPortChannels converts pcAggrIf attributes into aggregate
 // network.switch.port resources (properties.aggregate = true). The
 // member ports are not listed on pcAggrIf itself; they are wired from
-// ethpmPhysIf.bundleIndex by WirePortChannelMembers. Every port-channel
-// is emitted in both purposes the set is small (one per configured
-// bundle per leaf) and is inherently topology. Returns the resources
-// and a map of pcAggrIf DN -> resource ID.
+// pcRsMbrIfs and ethpmPhysIf.bundleIndex by WirePortChannelMembers.
+// Every port-channel is emitted in both purposes: the set is small (one
+// per configured bundle per leaf) and is inherently topology. Returns
+// the resources and a map of pcAggrIf DN -> resource ID.
 func TransformPortChannels(pc []map[string]any) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	dnToID := make(map[string]string)
@@ -216,8 +216,9 @@ func mapPortStatus(adminSt, operSt string) string {
 // part in fabric topology and are therefore emitted as resources in
 // documentation mode: any port carrying a fabric link, an LLDP or CDP
 // neighbour, an EPG path attachment, or a port-channel membership.
-// numToDN maps a bare node number to that node's DN.
-func topologyPortDNs(fabricLinks, lldp, cdp, pathAtts, ethpm []map[string]any, numToDN map[string]string) map[string]bool {
+// numToDN maps a bare node number to that node's DN; paths resolves an
+// attachment's path to the interface it names.
+func topologyPortDNs(fabricLinks, lldp, cdp, pathAtts, ethpm, mbrIfs []map[string]any, numToDN map[string]string, paths *pathResolver) map[string]bool {
 	keep := make(map[string]bool)
 
 	for _, l := range fabricLinks {
@@ -243,19 +244,13 @@ func topologyPortDNs(fabricLinks, lldp, cdp, pathAtts, ethpm []map[string]any, n
 	}
 
 	for _, ra := range pathAtts {
-		if dn, kind := pathTargetDN(str(ra, "tDn"), numToDN); dn != "" && kind != "vpc" {
+		if dn, _ := paths.singleTarget(str(ra, "tDn")); dn != "" {
 			keep[dn] = true
 		}
 	}
 
-	for _, e := range ethpm {
-		bi := str(e, "bundleIndex")
-		if bi == "" || bi == "unspecified" {
-			continue
-		}
-		if member := extractParentDN(str(e, "dn"), "/phys"); member != "" {
-			keep[member] = true
-		}
+	for _, m := range portChannelMembers(ethpm, mbrIfs) {
+		keep[m.portDN] = true
 	}
 
 	return keep

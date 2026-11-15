@@ -99,6 +99,7 @@ func TransformBridgeDomains(bds []map[string]any) ([]sdk.Resource, map[string]st
 		prov := sdk.Provider{
 			Name:     providerName,
 			NativeID: dn,
+			Type:     "fvBD",
 		}
 
 		r, err := sdk.NewResource(id, "osiris.cisco.domain.bridge", prov)
@@ -150,6 +151,7 @@ func TransformSubnets(subnets []map[string]any) []sdk.Resource {
 		prov := sdk.Provider{
 			Name:     providerName,
 			NativeID: dn,
+			Type:     "fvSubnet",
 		}
 
 		r, err := sdk.NewResource(id, "network.subnet", prov)
@@ -235,6 +237,7 @@ func TransformL3Outs(l3outs []map[string]any) ([]sdk.Resource, map[string]string
 		prov := sdk.Provider{
 			Name:     providerName,
 			NativeID: dn,
+			Type:     "l3extOut",
 		}
 
 		r, err := sdk.NewResource(id, "osiris.cisco.l3out", prov)

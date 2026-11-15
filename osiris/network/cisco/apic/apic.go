@@ -32,7 +32,7 @@ import (
 
 const (
 	generatorName    = "osirisjson-producer-cisco-apic"
-	generatorVersion = "0.3.0"
+	generatorVersion = "0.4.0"
 	generatorURL     = "https://docs.osirisjson.org/osiris-producers/network/cisco"
 )
 
@@ -106,6 +106,7 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		cov.succeededQuery(dc.name, q, len(objs))
 	}
 	if !audit {
+		cov.skipped("vpcDom")
 		cov.skipped("vzEntry")
 		cov.skipped("fvCEp")
 		cov.skipped("fvIp")
@@ -168,9 +169,11 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	// and port-channel aggregate interfaces.
 	numToDN := nodeNumIndex(nodes)
 	nodeIDs := resourceIDSet(nodeResources)
+	pathRes := newPathResolver(nodes, pcAttrs)
 	var portKeep map[string]bool
 	if !audit {
-		portKeep = topologyPortDNs(fabricLinkAttrs, lldpAttrs, cdpAttrs, pathAttAttrs, ethpmAttrs, numToDN)
+		attachments := append(append([]map[string]any(nil), pathAttAttrs...), raw["l3extRsPathL3OutAtt"]...)
+		portKeep = topologyPortDNs(fabricLinkAttrs, lldpAttrs, cdpAttrs, attachments, ethpmAttrs, raw["pcRsMbrIfs"], numToDN, pathRes)
 	}
 	portResources, portDNToID := TransformSwitchPorts(l1Attrs, ethpmAttrs, portKeep)
 	pcResources, pcDNToID := TransformPortChannels(pcAttrs)
@@ -223,15 +226,19 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	var topoConns []sdk.Connection
 	topoConns = append(topoConns, WireNodePorts(portDNToID, nodeIDs)...)
 	topoConns = append(topoConns, WireNodePorts(pcDNToID, nodeIDs)...)
-	topoConns = append(topoConns, WirePortChannelMembers(ethpmAttrs, pcDNToID, portDNToID)...)
+	pcMemberConns, pcMemberUnresolved := WirePortChannelMembers(ethpmAttrs, raw["pcRsMbrIfs"], pcDNToID, portDNToID)
+	if pcMemberUnresolved > 0 {
+		cov.unresolved("pcRsMbrIfs", pcMemberUnresolved)
+	}
+	topoConns = append(topoConns, pcMemberConns...)
 	topoConns = append(topoConns, WireBDSubnets(subnetAttrs, bdDNToID)...)
 	topoConns = append(topoConns, adjacencyConns...)
 
 	// Audit mode: wire each endpoint to the port it was learned on and
 	// each EPG group to its attached ports/port-channels.
 	if audit {
-		topoConns = append(topoConns, WireEndpointPorts(endpointAttrs, portDNToID, pcDNToID, numToDN)...)
-		WireEPGPathAttachments(pathAttAttrs, epgDNToID, epgGroups, portDNToID, pcDNToID, numToDN)
+		topoConns = append(topoConns, WireEndpointPorts(endpointAttrs, portDNToID, pcDNToID, pathRes)...)
+		WireEPGPathAttachments(pathAttAttrs, epgDNToID, epgGroups, portDNToID, pcDNToID, pathRes)
 	}
 
 	// Configured policy intent: EPG/VRF resource anchors, contracts,
@@ -240,19 +247,53 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	anchorResources, epgAnchors, vrfAnchors := TransformPolicyAnchors(epgAttrs, epgDNToID, epgGroups, vrfAttrs, vrfDNToID, vrfGroups)
 	contractResources, contractIdx := TransformContracts(raw["vzBrCP"])
 	tally := newPolicyTally()
+	extEPGResources, extEPGDNToID, extEPGConns := TransformExternalEPGs(raw["l3extInstP"], l3outDNToID, tally)
+	prefixResources, prefixConns := TransformL3OutPrefixes(raw["l3extSubnet"], extEPGDNToID, tally)
 	subjectResources, subjectDNToID, subjectConns := TransformSubjects(raw["vzSubj"], contractIdx, tally)
 	filterResources, filterIdx := TransformFilters(raw["vzFilter"], raw["vzEntry"])
 	policyConns := WirePolicyRelations(raw, policyRefs{
 		epgAnchors:  epgAnchors,
+		extEPGs:     extEPGDNToID,
 		vrfAnchors:  vrfAnchors,
 		bdDNToID:    bdDNToID,
 		l3outDNToID: l3outDNToID,
+		l3outs:      l3outIndex(l3outAttrs, l3outDNToID),
 		contracts:   contractIdx,
 		subjects:    subjectDNToID,
 		filters:     filterIdx,
 	}, tally)
 	topoConns = append(topoConns, subjectConns...)
 	topoConns = append(topoConns, policyConns...)
+	topoConns = append(topoConns, extEPGConns...)
+	topoConns = append(topoConns, prefixConns...)
+
+	// Logical paths: path resources with member edges to the ports,
+	// port-channels or leaf nodes that realize them, EPG -> path static
+	// attachments, endpoint -> path observations, vPC domains and pods.
+	ctx.Logger.Info("transforming logical paths, vPC domains and pods")
+	pathResources, paths := TransformPaths(raw["fabricPathEp"], referencedPaths(raw))
+	topoConns = append(topoConns, WirePathMembers(paths, pathMemberRefs{
+		resolver:   pathRes,
+		portDNToID: portDNToID,
+		pcIDs:      pcDNToID,
+		nodeIDs:    nodeIDs,
+		vpcLegs:    indexVPCLegs(raw["vpcIf"], raw["vpcRsVpcConf"]),
+		audit:      audit,
+	}, tally)...)
+	topoConns = append(topoConns, WireEPGPaths(pathAttAttrs, epgAnchors, paths, tally)...)
+	topoConns = append(topoConns, WireL3OutAttachments(raw["l3extRsNodeL3OutAtt"], raw["l3extRsPathL3OutAtt"], l3outAttachRefs{
+		l3outDNToID: l3outDNToID,
+		nodeIDs:     nodeIDs,
+		paths:       paths,
+		audit:       audit,
+	}, tally)...)
+	if audit {
+		topoConns = append(topoConns, WireEndpointPaths(endpointAttrs, paths, tally)...)
+	}
+	vpcResources, vpcConns, vpcPairs := TransformVPCDomains(raw["fabricExplicitGEp"], raw["fabricNodePEp"], raw["vpcDom"], numToDN, nodeIDs, audit, tally)
+	LabelVPCPaths(pathResources, paths, vpcPairs)
+	topoConns = append(topoConns, vpcConns...)
+	podGroups, podDNToID := TransformPods(raw["fabricPod"], append(append([]sdk.Resource(nil), nodeResources...), pathResources...))
 	for _, class := range sortedKeys(tally.unresolved) {
 		ctx.Logger.Warn("APIC relations without an emitted source or target; no edge emitted",
 			"class", class, "count", tally.unresolved[class])
@@ -273,6 +314,8 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	policyResources = append(policyResources, contractResources...)
 	policyResources = append(policyResources, subjectResources...)
 	policyResources = append(policyResources, filterResources...)
+	policyResources = append(policyResources, extEPGResources...)
+	policyResources = append(policyResources, prefixResources...)
 	WirePolicyToTenants(policyResources, tenantDNToID, tenantGroups)
 
 	// Wire fault extensions.
@@ -286,6 +329,9 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	attachCoverage(nodeResources, cov.asSlice())
 	if cov.anySucceeded("fvAp", "vzBrCP", "vzSubj", "vzFilter", "fvRsProv", "fvRsCons", "vzRsSubjFiltAtt") {
 		attachControllerExtension(nodeResources, "policy_scope", policyScope)
+	}
+	if cov.anySucceeded(l3outClasses...) {
+		attachControllerExtension(nodeResources, "l3out_scope", l3outScope)
 	}
 
 	scopePurpose := ""
@@ -319,6 +365,8 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	resources = append(resources, pcResources...)
 	resources = append(resources, extNeighbourResources...)
 	resources = append(resources, policyResources...)
+	resources = append(resources, pathResources...)
+	resources = append(resources, vpcResources...)
 	if len(endpointAttrs) > 0 {
 		resources = append(resources, TransformEndpoints(endpointAttrs, endpointIPAttrs)...)
 	}
@@ -327,13 +375,14 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	groups = append(groups, vrfGroups...)
 	groups = append(groups, epgGroups...)
 	groups = append(groups, appGroups...)
+	groups = append(groups, podGroups...)
 
 	// --include-raw-body (audit purpose only): attach every collected
 	// object's redacted attributes to the entity that owns it.
 	if audit && ctx.Config.IncludeRawBody {
 		ctx.Logger.Info("attaching raw APIC object attributes (--include-raw-body)")
 		groupDNs := map[string]string{}
-		for _, m := range []map[string]string{tenantDNToID, vrfDNToID, epgDNToID, appDNToID} {
+		for _, m := range []map[string]string{tenantDNToID, vrfDNToID, epgDNToID, appDNToID, podDNToID} {
 			for dn, gid := range m {
 				groupDNs[gid] = dn
 			}
@@ -636,9 +685,9 @@ owner (e.g. chmod 0600); a looser file is rejected.
 
 Discovery and failure behavior:
   Every class is read with paged GET /api/class/<class>.json queries.
-  The producer never writes to the APIC. fvCEp and fvIp (endpoints) and
-  vzEntry (filter entries: protocols and ports) are read only with
-  --purpose audit flag.
+  The producer never writes to the APIC. fvCEp and fvIp (endpoints),
+  vzEntry (filter entries: protocols and ports) and vpcDom (per-leaf vPC
+  state) are read only with --purpose audit flag.
   fabricNode and topSystem (fabric inventory) and the tenant, VRF,
   bridge-domain, subnet, EPG and L3Out classes are required: if one
   fails, returns a malformed response or an object without a dn, or the
@@ -648,13 +697,25 @@ Discovery and failure behavior:
   is written as partial. The per-class coverage record on the controller
   resources and metadata.scope.description name what is missing.
   Policy is configured intent only: application profiles, contracts,
-  subjects, filters and which EPGs provide or consume each contract. It
-  never states that traffic is permitted or flows. vzAny, taboo
-  contracts, endpoint security groups, external and management EPGs,
-  out-of-band contracts, contract inheritance, service graphs and
-  direction-specific subject terms are not modeled (policy_scope on the
-  controller resources lists them; coverage counts them as
-  out_of_scope).
+  subjects, filters and which EPGs provide or consume each contract.
+  It never states that traffic is permitted or flows. External EPGs
+  provide and consume contracts like EPGs. vzAny, taboo contracts,
+  endpoint security groups, management EPGs, out-of-band contracts,
+  contract inheritance, service graphs and direction-specific subject
+  terms are not modeled (policy_scope on the controller resources lists
+  them; coverage counts them as out_of_scope).
+  Logical paths (fabricPathEp) are resources with one member edge per
+  leg: port, port-channel, vPC leg port-channel or, when no interface is
+  named, the leaf node. A vPC is never given a single owner. EPG static
+  attachments, endpoints and L3Out routed interfaces point to the path;
+  an attachment to a path the APIC does not report is counted as
+  unresolved, never invented.
+  L3Out is configured intent: external EPGs, their policy prefixes and
+  the border leaves and routed paths an L3Out is attached to. No
+  installed route or routing session is implied (l3out_scope).
+  External neighbours are identified by the LLDP chassis id, otherwise
+  the CDP device id, never by a shortened name; legacy_ids lists the
+  identifiers used before behavior version 0.4.0.
   Redirects are never followed. Errors and logs carry the class, HTTP
   status and APIC error code only, never response content.
   A secret-shaped value anywhere in the document aborts the run

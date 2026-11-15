@@ -10,6 +10,7 @@
 package apic
 
 import (
+	"reflect"
 	"testing"
 
 	"go.osirisjson.org/producers/pkg/sdk"
@@ -53,23 +54,39 @@ func TestWireNodePorts(t *testing.T) {
 }
 
 func TestWirePortChannelMembers(t *testing.T) {
+	pc := "topology/pod-1/node-111/sys/aggr-[po1]"
+	port := func(p string) string { return "topology/pod-1/node-111/sys/phys-[" + p + "]" }
 	ethpm := []map[string]any{
-		{"dn": "topology/pod-1/node-111/sys/phys-[eth1/5]/phys", "bundleIndex": "po1"},
-		{"dn": "topology/pod-1/node-111/sys/phys-[eth1/6]/phys", "bundleIndex": "unspecified"},
+		{"dn": port("eth1/5") + "/phys", "bundleIndex": "po1"}, // also in pcRsMbrIfs: one edge
+		{"dn": port("eth1/6") + "/phys", "bundleIndex": "unspecified"},
+		{"dn": port("eth1/9") + "/phys", "bundleIndex": "po9"}, // port-channel not emitted: silent
 	}
-	pcDNToID := map[string]string{
-		"topology/pod-1/node-111/sys/aggr-[po1]": resourceID("topology/pod-1/node-111/sys/aggr-[po1]"),
+	mbrIfs := []map[string]any{
+		{"dn": pc + "/rsmbrIfs-[eth1/5]", "tDn": "sys/phys-[eth1/5]", "tSKey": "eth1/5"},
+		{"dn": pc + "/rsmbrIfs-[eth1/7]", "tDn": port("eth1/7")},        // absolute target
+		{"dn": pc + "/rsmbrIfs-[eth1/8]", "tSKey": "eth1/8"},            // no tDn
+		{"dn": pc + "/rsmbrIfs-[eth1/30]", "tDn": "sys/phys-[eth1/30]"}, // port not emitted
+		{"dn": "uni/x/rsmbrIfs-[eth1/1]", "tDn": "sys/phys-[eth1/1]"},   // not under a node
 	}
-	portDNToID := map[string]string{
-		"topology/pod-1/node-111/sys/phys-[eth1/5]": resourceID("topology/pod-1/node-111/sys/phys-[eth1/5]"),
+	pcDNToID := map[string]string{pc: resourceID(pc)}
+	portDNToID := map[string]string{}
+	for _, p := range []string{"eth1/5", "eth1/7", "eth1/8"} {
+		portDNToID[port(p)] = resourceID(port(p))
 	}
-	conns := WirePortChannelMembers(ethpm, pcDNToID, portDNToID)
-	if len(conns) != 1 {
-		t.Fatalf("expected 1 PC member edge, got %d", len(conns))
+	conns, unresolved := WirePortChannelMembers(ethpm, mbrIfs, pcDNToID, portDNToID)
+	if len(conns) != 3 || unresolved != 1 {
+		t.Fatalf("got %d edges, %d unresolved; want 3 and 1", len(conns), unresolved)
 	}
-	if conns[0].Source != pcDNToID["topology/pod-1/node-111/sys/aggr-[po1]"] ||
-		conns[0].Target != portDNToID["topology/pod-1/node-111/sys/phys-[eth1/5]"] {
-		t.Errorf("unexpected PC member edge: %+v", conns[0])
+	for i, p := range []string{"eth1/5", "eth1/7", "eth1/8"} {
+		if conns[i].Type != "contains" || conns[i].Source != resourceID(pc) || conns[i].Target != resourceID(port(p)) {
+			t.Errorf("edge %d = %+v", i, conns[i])
+		}
+	}
+
+	// bundleIndex alone (pcRsMbrIfs not collected) still wires the member.
+	conns, _ = WirePortChannelMembers(ethpm[:1], nil, pcDNToID, portDNToID)
+	if len(conns) != 1 || conns[0].Target != resourceID(port("eth1/5")) {
+		t.Errorf("bundleIndex fallback = %+v", conns)
 	}
 }
 
@@ -152,7 +169,7 @@ func TestWireFabricAdjacencies_ExternalNeighbour(t *testing.T) {
 		t.Fatalf("expected 1 external neighbour resource, got %d", len(ext))
 	}
 	e := ext[0]
-	if e.Type != "network.switch" || e.ID != providerName+"::external/lab-ext-sw1" {
+	if e.Type != "network.switch" || e.ID != providerName+"::external/lldp/mac/00:00:5e:00:53:01" {
 		t.Errorf("external resource type/id = %q / %q", e.Type, e.ID)
 	}
 	if e.Status != "unknown" {
@@ -170,8 +187,12 @@ func TestWireFabricAdjacencies_ExternalNeighbour(t *testing.T) {
 	if e.Properties["chassis_id"] != "00:00:5E:00:53:01" || e.Properties["management_ip"] != "198.51.100.9" {
 		t.Errorf("external chassis/mgmt = %v / %v", e.Properties["chassis_id"], e.Properties["management_ip"])
 	}
-	if cisco, _ := e.Extensions[extensionNamespace].(map[string]any); cisco["external"] != true {
+	if cisco, _ := e.Extensions[extensionNamespace].(map[string]any); cisco["external"] != true ||
+		!reflect.DeepEqual(cisco["legacy_ids"], []string{providerName + "::external/lab-ext-sw1"}) {
 		t.Errorf("external extension = %v", e.Extensions)
+	}
+	if e.Properties["identity_basis"] != "lldp-chassis-id" || e.Properties["cdp_device_id"] != "LAB-EXT-SW1(TST0000009)" {
+		t.Errorf("external identity = %v", e.Properties)
 	}
 
 	phys := connByType(conns, "physical.ethernet")
@@ -195,7 +216,7 @@ func TestWireEndpointPorts(t *testing.T) {
 	portDNToID := map[string]string{
 		"topology/pod-1/node-111/sys/phys-[eth1/1]": resourceID("topology/pod-1/node-111/sys/phys-[eth1/1]"),
 	}
-	conns := WireEndpointPorts(endpoints, portDNToID, nil, numToDN)
+	conns := WireEndpointPorts(endpoints, portDNToID, nil, newPathResolver(nodesFromNumbers(numToDN), nil))
 	if len(conns) != 1 {
 		t.Fatalf("expected 1 endpoint->port edge, got %d", len(conns))
 	}
@@ -218,9 +239,131 @@ func TestWireEPGPathAttachments(t *testing.T) {
 	portDNToID := map[string]string{
 		"topology/pod-1/node-111/sys/phys-[eth1/1]": resourceID("topology/pod-1/node-111/sys/phys-[eth1/1]"),
 	}
-	WireEPGPathAttachments(pathAtts, epgDNToID, epgGroups, portDNToID, nil, numToDN)
+	WireEPGPathAttachments(pathAtts, epgDNToID, epgGroups, portDNToID, nil, newPathResolver(nodesFromNumbers(numToDN), nil))
 	if len(epgGroups[0].Members) != 1 ||
 		epgGroups[0].Members[0] != resourceID("topology/pod-1/node-111/sys/phys-[eth1/1]") {
 		t.Errorf("epg_WEB members = %v", epgGroups[0].Members)
+	}
+}
+
+// nodesFromNumbers turns a node number -> DN map into fabricNode
+// attribute maps for newPathResolver.
+func nodesFromNumbers(numToDN map[string]string) []map[string]any {
+	var nodes []map[string]any
+	for _, dn := range numToDN {
+		nodes = append(nodes, map[string]any{"dn": dn})
+	}
+	return nodes
+}
+
+// externalIdentityFixture returns a leaf and the LLDP/CDP observations
+// of the external-identity cases:
+//   - eth1/1: LLDP chassis A "LAB-EXT-SW1.example.com" and CDP
+//     "LAB-EXT-SW1" agree (one neighbour);
+//   - eth1/2: CDP only, same device id as eth1/1 (correlates to A);
+//   - eth1/3: LLDP chassis B "LAB-EXT-SW1.example.net" (same short
+//     name as A, a different device);
+//   - eth1/4: LLDP chassis C "LAB-EXT-SW2" and CDP "LAB-EXT-SW3"
+//     disagree (two neighbours, both flagged).
+func externalIdentityFixture() (lldp, cdp []map[string]any) {
+	adj := func(proto, port string) string {
+		return "topology/pod-1/node-111/sys/" + proto + "/inst/if-[" + port + "]/adj-1"
+	}
+	lldp = []map[string]any{
+		{"dn": adj("lldp", "eth1/1"), "sysName": "LAB-EXT-SW1.example.com", "chassisIdT": "mac", "chassisIdV": "00:00:5E:00:53:A1", "portIdV": "Eth1/48"},
+		{"dn": adj("lldp", "eth1/3"), "sysName": "LAB-EXT-SW1.example.net", "chassisIdT": "mac", "chassisIdV": "00:00:5E:00:53:B1", "portIdV": "Eth1/48"},
+		{"dn": adj("lldp", "eth1/4"), "sysName": "LAB-EXT-SW2", "chassisIdT": "mac", "chassisIdV": "00:00:5E:00:53:C1", "portIdV": "Eth1/1"},
+	}
+	cdp = []map[string]any{
+		{"dn": adj("cdp", "eth1/1"), "sysName": "LAB-EXT-SW1", "devId": "LAB-EXT-SW1(TST0000901)", "portId": "Ethernet1/48"},
+		{"dn": adj("cdp", "eth1/2"), "sysName": "LAB-EXT-SW1", "devId": "LAB-EXT-SW1(TST0000901)", "portId": "Ethernet1/49"},
+		{"dn": adj("cdp", "eth1/4"), "sysName": "LAB-EXT-SW3", "devId": "LAB-EXT-SW3(TST0000903)", "portId": "Ethernet1/1"},
+	}
+	return lldp, cdp
+}
+
+func TestWireFabricAdjacencies_ExternalIdentity(t *testing.T) {
+	nodes := []map[string]any{{"dn": "topology/pod-1/node-111", "name": "LAB-LEAF1"}}
+	nodeResources := []sdk.Resource{nodeRes(t, "topology/pod-1/node-111")}
+	lldp, cdp := externalIdentityFixture()
+	ext, conns, _ := WireFabricAdjacencies(nil, lldp, cdp, nodes, nodeResources)
+
+	byID := map[string]sdk.Resource{}
+	for _, r := range ext {
+		byID[r.ID] = r
+	}
+	a := providerName + "::external/lldp/mac/00:00:5e:00:53:a1"
+	b := providerName + "::external/lldp/mac/00:00:5e:00:53:b1"
+	c := providerName + "::external/lldp/mac/00:00:5e:00:53:c1"
+	d := providerName + "::external/cdp/lab-ext-sw3_tst0000903_"
+	if len(byID) != 4 || byID[a].ID == "" || byID[b].ID == "" || byID[c].ID == "" || byID[d].ID == "" {
+		t.Fatalf("external IDs = %v", sortedKeys(byID))
+	}
+	if byID[a].Properties["discovered_by"] != "cdp,lldp" || byID[b].Properties["discovered_by"] != "lldp" {
+		t.Errorf("discovered_by a=%v b=%v", byID[a].Properties["discovered_by"], byID[b].Properties["discovered_by"])
+	}
+	conflict := func(id string) any {
+		return byID[id].Extensions[extensionNamespace].(map[string]any)["identity_conflict"]
+	}
+	if !reflect.DeepEqual(conflict(c), []string{d}) || !reflect.DeepEqual(conflict(d), []string{c}) {
+		t.Errorf("conflict c=%v d=%v", conflict(c), conflict(d))
+	}
+	if conflict(a) != nil || conflict(b) != nil {
+		t.Errorf("unexpected conflict a=%v b=%v", conflict(a), conflict(b))
+	}
+	links := 0
+	for _, cn := range connByType(conns, "physical.ethernet") {
+		if cn.Source == a || cn.Target == a {
+			links++
+		}
+	}
+	if links != 2 {
+		t.Errorf("neighbour A links = %d, want 2 (eth1/1 and the CDP-only eth1/2)", links)
+	}
+
+	// Input order never changes the result.
+	rev := func(in []map[string]any) []map[string]any {
+		out := append([]map[string]any(nil), in...)
+		for i, j := 0, len(out)-1; i < j; i, j = i+1, j-1 {
+			out[i], out[j] = out[j], out[i]
+		}
+		return out
+	}
+	ext2, conns2, _ := WireFabricAdjacencies(nil, rev(lldp), rev(cdp), nodes, nodeResources)
+	if len(ext2) != len(ext) || len(conns2) != len(conns) {
+		t.Fatalf("reversed input: %d/%d resources, %d/%d connections", len(ext2), len(ext), len(conns2), len(conns))
+	}
+	for _, r := range ext2 {
+		if !reflect.DeepEqual(r, byID[r.ID]) {
+			t.Errorf("reversed input changed %s:\n%+v\n%+v", r.ID, r, byID[r.ID])
+		}
+	}
+}
+
+func TestWireFabricAdjacencies_AmbiguousCDPDevice(t *testing.T) {
+	nodes := []map[string]any{{"dn": "topology/pod-1/node-111", "name": "LAB-LEAF1"}}
+	nodeResources := []sdk.Resource{nodeRes(t, "topology/pod-1/node-111")}
+	adj := func(proto, port string) string {
+		return "topology/pod-1/node-111/sys/" + proto + "/inst/if-[" + port + "]/adj-1"
+	}
+	// One CDP device id agrees by name with two different LLDP chassis:
+	// it cannot be folded into either.
+	lldp := []map[string]any{
+		{"dn": adj("lldp", "eth1/1"), "sysName": "LAB-EXT-SW1", "chassisIdT": "mac", "chassisIdV": "00:00:5E:00:53:A1"},
+		{"dn": adj("lldp", "eth1/2"), "sysName": "LAB-EXT-SW1", "chassisIdT": "mac", "chassisIdV": "00:00:5E:00:53:A2"},
+	}
+	cdp := []map[string]any{
+		{"dn": adj("cdp", "eth1/1"), "sysName": "LAB-EXT-SW1", "devId": "LAB-EXT-SW1"},
+		{"dn": adj("cdp", "eth1/2"), "sysName": "LAB-EXT-SW1", "devId": "LAB-EXT-SW1"},
+	}
+	ext, _, _ := WireFabricAdjacencies(nil, lldp, cdp, nodes, nodeResources)
+	if len(ext) != 3 {
+		t.Fatalf("got %d external neighbours, want 3 (two chassis and the ambiguous CDP device)", len(ext))
+	}
+	for _, r := range ext {
+		cf := r.Extensions[extensionNamespace].(map[string]any)["identity_conflict"]
+		if r.Properties["identity_basis"] == "cdp-device-id" && len(cf.([]string)) != 2 {
+			t.Errorf("CDP device conflict = %v", cf)
+		}
 	}
 }

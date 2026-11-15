@@ -32,6 +32,7 @@ func TransformEndpoints(endpoints, ips []map[string]any) []sdk.Resource {
 		prov := sdk.Provider{
 			Name:     providerName,
 			NativeID: dn,
+			Type:     "fvCEp",
 		}
 
 		r, err := sdk.NewResource(id, "network.interface", prov)

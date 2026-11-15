@@ -1,8 +1,10 @@
 // transform_policy.go - APIC configured policy intent. Maps application
 // profiles (fvAp), contracts (vzBrCP), subjects (vzSubj), filters
 // (vzFilter, with vzEntry entries at audit purpose) and the relation
-// classes fvRsProv, fvRsCons, vzRsSubjFiltAtt, fvRsBd, fvRsCtx and
-// l3extRsEctx into OSIRIS JSON resources, groups and connections.
+// classes fvRsProv, fvRsCons, vzRsSubjFiltAtt, fvRsBd, fvRsCtx,
+// l3extRsEctx and fvRsBDToOut into OSIRIS JSON resources, groups and
+// connections. An external EPG (l3extInstP, transform_l3out.go)
+// provides and consumes contracts like an application EPG.
 //
 // The model is configured intent only. An EPG providing and another
 // consuming the same contract are linked through the contract resource,
@@ -55,6 +57,7 @@ const (
 	connEPGToBD       = "osiris.cisco.epg.bd"
 	connBDToVRF       = "osiris.cisco.bd.vrf"
 	connL3OutToVRF    = "osiris.cisco.l3out.vrf"
+	connBDToL3Out     = "osiris.cisco.bd.l3out"
 )
 
 // commonTenantDN is the tenant whose contracts and filters every tenant
@@ -73,7 +76,7 @@ var policyScope = map[string]any{
 	"semantics": "configured-intent",
 	"not_modeled": []string{
 		"contract-inheritance", "direction-specific-subject-terms", "endpoint-security-groups",
-		"external-epgs", "management-epgs", "out-of-band-contracts", "service-graphs",
+		"management-epgs", "out-of-band-contracts", "service-graphs",
 		"taboo-contracts", "vzany",
 	},
 }
@@ -81,7 +84,6 @@ var policyScope = map[string]any{
 // parentKinds maps the APIC DN naming prefix of a parent object the
 // policy model does not cover to its policyScope "not_modeled" name.
 var parentKinds = map[string]string{
-	"instP":  "external-epgs",
 	"esg":    "endpoint-security-groups",
 	"inb":    "management-epgs",
 	"oob":    "management-epgs",
@@ -445,9 +447,11 @@ func filterEntry(e map[string]any) map[string]any {
 // policyRefs carries the emitted objects relation edges may reference.
 type policyRefs struct {
 	epgAnchors  map[string]string // EPG DN -> anchor ID
+	extEPGs     map[string]string // external EPG (l3extInstP) DN -> resource ID
 	vrfAnchors  map[string]string // VRF DN -> anchor ID
 	bdDNToID    map[string]string
 	l3outDNToID map[string]string
+	l3outs      policyIndex // L3Out DN / tenant-scoped name -> resource ID
 	contracts   policyIndex
 	subjects    map[string]string // subject DN -> resource ID
 	filters     policyIndex
@@ -458,21 +462,21 @@ type relationSpec struct {
 	class    string
 	connType string
 	marker   string // DN segment that starts the relation under its parent
-	// parentKind is the modeled kind of the relation's parent object
-	// (dnKind of the parent DN); kindOf extracts the kind to compare.
-	parentKind string
-	kindOf     func(parentDN string) string
-	source     func(parentDN string) string
-	target     func(rel map[string]any) (id, how string, ok bool)
-	props      [][2]string // attribute allowlist for connection properties
+	// kindOf extracts the kind of the relation's parent object (dnKind
+	// of the parent DN); sources maps each modeled parent kind to the
+	// lookup of the edge's source resource.
+	kindOf  func(parentDN string) string
+	sources map[string]func(parentDN string) string
+	target  func(rel map[string]any) (id, how string, ok bool)
+	props   [][2]string // attribute allowlist for connection properties
 }
 
 // WirePolicyRelations turns the relation classes into forward edges.
 // raw holds the collected class objects. A relation under a parent the
-// model does not cover (an external or management EPG, an out-of-band
-// contract subject) is counted in tally as out of scope; one whose
-// modeled source or target is not an emitted object, as unresolved.
-// Neither produces an edge.
+// model does not cover (a management EPG, an endpoint security group,
+// an out-of-band contract subject) is counted in tally as out of
+// scope; one whose modeled source or target is not an emitted object,
+// as unresolved. Neither produces an edge.
 func WirePolicyRelations(raw map[string][]map[string]any, refs policyRefs, tally policyTally) []sdk.Connection {
 	byDN := func(m map[string]string) func(map[string]any) (string, string, bool) {
 		return func(rel map[string]any) (string, string, bool) {
@@ -492,19 +496,25 @@ func WirePolicyRelations(raw map[string][]map[string]any, refs policyRefs, tally
 		}
 		return ""
 	}
+	lookup := func(m map[string]string) func(string) string { return func(p string) string { return m[p] } }
+	epgOrExternal := map[string]func(string) string{"epg": lookup(refs.epgAnchors), "instP": lookup(refs.extEPGs)}
 	specs := []relationSpec{
-		{"fvRsProv", connProvides, "/rsprov-", "epg", dnKind, func(p string) string { return refs.epgAnchors[p] }, contractTarget,
+		{"fvRsProv", connProvides, "/rsprov-", dnKind, epgOrExternal, contractTarget,
 			[][2]string{{"state", "state"}, {"matchT", "match_type"}, {"prio", "priority"}}},
-		{"fvRsCons", connConsumes, "/rscons-", "epg", dnKind, func(p string) string { return refs.epgAnchors[p] }, contractTarget,
+		{"fvRsCons", connConsumes, "/rscons-", dnKind, epgOrExternal, contractTarget,
 			[][2]string{{"state", "state"}, {"prio", "priority"}}},
-		{"vzRsSubjFiltAtt", connSubjectFilter, "/rssubjFiltAtt-", "brc", subjectOwnerKind, func(p string) string { return refs.subjects[p] },
+		{"vzRsSubjFiltAtt", connSubjectFilter, "/rssubjFiltAtt-", subjectOwnerKind, map[string]func(string) string{"brc": lookup(refs.subjects)},
 			func(rel map[string]any) (string, string, bool) {
 				return refs.filters.resolve(str(rel, "dn"), str(rel, "tDn"), str(rel, "tnVzFilterName"))
 			},
 			[][2]string{{"state", "state"}, {"action", "action"}, {"directives", "directives"}}},
-		{"fvRsBd", connEPGToBD, "/rsbd", "epg", dnKind, func(p string) string { return refs.epgAnchors[p] }, byDN(refs.bdDNToID), stateProps},
-		{"fvRsCtx", connBDToVRF, "/rsctx", "BD", dnKind, func(p string) string { return refs.bdDNToID[p] }, byDN(refs.vrfAnchors), stateProps},
-		{"l3extRsEctx", connL3OutToVRF, "/rsectx", "out", dnKind, func(p string) string { return refs.l3outDNToID[p] }, byDN(refs.vrfAnchors), stateProps},
+		{"fvRsBd", connEPGToBD, "/rsbd", dnKind, map[string]func(string) string{"epg": lookup(refs.epgAnchors)}, byDN(refs.bdDNToID), stateProps},
+		{"fvRsCtx", connBDToVRF, "/rsctx", dnKind, map[string]func(string) string{"BD": lookup(refs.bdDNToID)}, byDN(refs.vrfAnchors), stateProps},
+		{"l3extRsEctx", connL3OutToVRF, "/rsectx", dnKind, map[string]func(string) string{"out": lookup(refs.l3outDNToID)}, byDN(refs.vrfAnchors), stateProps},
+		{"fvRsBDToOut", connBDToL3Out, "/rsBDToOut-", dnKind, map[string]func(string) string{"BD": lookup(refs.bdDNToID)},
+			func(rel map[string]any) (string, string, bool) {
+				return refs.l3outs.resolve(str(rel, "dn"), str(rel, "tDn"), str(rel, "tnL3extOutName"))
+			}, stateProps},
 	}
 
 	var conns []sdk.Connection
@@ -516,11 +526,12 @@ func WirePolicyRelations(raw map[string][]map[string]any, refs policyRefs, tally
 				tally.unresolved[sp.class]++
 				continue
 			}
-			if kind := sp.kindOf(dn[:i]); kind != sp.parentKind {
-				tally.skip(sp.class, kind)
+			source, modeled := sp.sources[sp.kindOf(dn[:i])]
+			if !modeled {
+				tally.skip(sp.class, sp.kindOf(dn[:i]))
 				continue
 			}
-			src := sp.source(dn[:i])
+			src := source(dn[:i])
 			tgt, how, ok := sp.target(rel)
 			if src == "" || !ok {
 				tally.unresolved[sp.class]++
@@ -541,13 +552,13 @@ func WirePolicyRelations(raw map[string][]map[string]any, refs policyRefs, tally
 	return conns
 }
 
-// WirePolicyToTenants adds contract, subject and filter resources as
-// members of their tenant group.
+// WirePolicyToTenants adds contract, subject, filter, external EPG and
+// policy prefix resources as members of their tenant group.
 func WirePolicyToTenants(resources []sdk.Resource, tenantDNToID map[string]string, tenantGroups []sdk.Group) {
 	idx := groupIndex(tenantGroups)
 	for _, r := range resources {
 		switch r.Type {
-		case policyContractType, policySubjectType, policyFilterType:
+		case policyContractType, policySubjectType, policyFilterType, l3outEPGType, l3outPrefixType:
 		default:
 			continue
 		}

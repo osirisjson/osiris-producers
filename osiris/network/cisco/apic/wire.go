@@ -1,9 +1,11 @@
 // wire.go - APIC topology wiring. Builds the OSIRIS connections and the
 // group membership that join the resources produced by the transform_*
 // files: node "contains" port, the merged fabricLink/LLDP/CDP physical
-// adjacency graph (with minimal external-neighbour resources), the
-// port-channel membership, the bridge-domain "contains" subnet edges,
-// and the audit-only endpoint-to-port and EPG-to-path attachments.
+// adjacency graph (with minimal external-neighbour resources identified
+// by the LLDP chassis id or CDP device id), the port-channel
+// membership, the bridge-domain "contains" subnet edges and the
+// audit-only endpoint-to-port and EPG-to-interface group membership.
+// Logical path edges are in transform_paths.go.
 //
 // OSIRIS JSON Producer for Cisco introduction:
 // [OSIRIS-JSON-CISCO]: https://docs.osirisjson.org/osiris-producers/network/cisco
@@ -57,33 +59,92 @@ func WireNodePorts(portDNToID map[string]string, nodeIDs map[string]bool) []sdk.
 	return conns
 }
 
-// WirePortChannelMembers emits a "contains" connection from each
-// port-channel resource to its member physical ports, sourced from
-// ethpmPhysIf.bundleIndex (the only place APIC reports the membership).
-func WirePortChannelMembers(ethpm []map[string]any, pcDNToID, portDNToID map[string]string) []sdk.Connection {
-	var conns []sdk.Connection
+// pcMember is one port-channel membership: the pcAggrIf DN and the
+// l1PhysIf DN of the member port and the class that reported it.
+type pcMember struct {
+	pcDN, portDN, source string
+}
+
+// portChannelMembers returns the port-channel memberships reported by
+// pcRsMbrIfs (the pcAggrIf -> member relation, primary) and by
+// ethpmPhysIf.bundleIndex (the member's operational bundle, fallback),
+// deduplicated by port-channel and port in a stable order.
+// A pcRsMbrIfs target is a relative "sys/phys-[...]" DN, an absolute DN
+// or, without tDn, the tSKey port id.
+func portChannelMembers(ethpm, mbrIfs []map[string]any) []pcMember {
+	seen := map[[2]string]bool{}
+	var out []pcMember
+	add := func(pc, port, source string) {
+		k := [2]string{pc, port}
+		if pc == "" || port == "" || seen[k] {
+			return
+		}
+		seen[k] = true
+		out = append(out, pcMember{pc, port, source})
+	}
+	for _, m := range mbrIfs {
+		dn := str(m, "dn")
+		i := strings.Index(dn, "/rsmbrIfs-")
+		if i < 0 {
+			continue
+		}
+		pc := dn[:i]
+		node := dnPrefix(pc)
+		if node == pc {
+			continue
+		}
+		port := ""
+		switch t := str(m, "tDn"); {
+		case strings.HasPrefix(t, "topology/"):
+			port = t
+		case strings.HasPrefix(t, "sys/phys-["):
+			port = node + "/" + t
+		case str(m, "tSKey") != "":
+			port = physIfDN(node, str(m, "tSKey"))
+		}
+		add(pc, port, "pcRsMbrIfs")
+	}
 	for _, e := range ethpm {
 		bi := str(e, "bundleIndex")
 		if bi == "" || bi == "unspecified" {
 			continue
 		}
-		memberDN := extractParentDN(str(e, "dn"), "/phys")
-		if memberDN == "" {
-			continue
+		if port := extractParentDN(str(e, "dn"), "/phys"); port != "" {
+			add(aggrIfDN(dnPrefix(port), bi), port, "ethpmPhysIf")
 		}
-		memberID, ok := portDNToID[memberDN]
-		if !ok {
-			continue
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].pcDN != out[j].pcDN {
+			return out[i].pcDN < out[j].pcDN
 		}
-		pcID, ok := pcDNToID[aggrIfDN(dnPrefix(memberDN), bi)]
-		if !ok {
+		return out[i].portDN < out[j].portDN
+	})
+	return out
+}
+
+// WirePortChannelMembers emits a "contains" connection from each
+// port-channel resource to its member physical ports (see
+// portChannelMembers). It returns the number of pcRsMbrIfs relations
+// whose port-channel or member port was not emitted; a bundleIndex
+// observation without an emitted pair is skipped silently, as an
+// unbundled port is not an error.
+func WirePortChannelMembers(ethpm, mbrIfs []map[string]any, pcDNToID, portDNToID map[string]string) ([]sdk.Connection, int) {
+	var conns []sdk.Connection
+	unresolved := 0
+	for _, m := range portChannelMembers(ethpm, mbrIfs) {
+		pcID, okPC := pcDNToID[m.pcDN]
+		memberID, okPort := portDNToID[m.portDN]
+		if !okPC || !okPort {
+			if m.source == "pcRsMbrIfs" {
+				unresolved++
+			}
 			continue
 		}
 		if c, ok := containsConn(pcID, memberID); ok {
 			conns = append(conns, c)
 		}
 	}
-	return conns
+	return conns, unresolved
 }
 
 // WireBDSubnets emits a "contains" connection from each bridge-domain
@@ -115,13 +176,14 @@ func WireBDSubnets(subnets []map[string]any, bdDNToID map[string]string) []sdk.C
 
 // WireEndpointPorts emits a "contains" connection from the switch port
 // (or port-channel) an endpoint was learned on to that endpoint
-// resource. vPC-attached endpoints span two nodes with no single owning
-// resource and are skipped. Audit purpose only (endpoint resources
-// exist only then).
-func WireEndpointPorts(endpoints []map[string]any, portDNToID, pcDNToID, numToDN map[string]string) []sdk.Connection {
+// resource. vPC and FEX-attached endpoints have no single owning
+// interface on a modeled leaf and are skipped here; their path is
+// wired by WireEndpointPaths.
+// Audit purpose only (endpoint resources exist only then).
+func WireEndpointPorts(endpoints []map[string]any, portDNToID, pcDNToID map[string]string, paths *pathResolver) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, ep := range endpoints {
-		targetDN, kind := pathTargetDN(str(ep, "fabricPathDn"), numToDN)
+		targetDN, kind := paths.singleTarget(str(ep, "fabricPathDn"))
 		if targetDN == "" {
 			continue
 		}
@@ -143,10 +205,10 @@ func WireEndpointPorts(endpoints []map[string]any, portDNToID, pcDNToID, numToDN
 }
 
 // WireEPGPathAttachments adds the switch port or port-channel named by
-// each fvRsPathAtt as a member of its EPG group, wiring the
-// EPG-to-interface attachment the fabric actually programs. vPC path
-// targets are skipped (no single owning resource). Audit purpose only.
-func WireEPGPathAttachments(pathAtts []map[string]any, epgDNToID map[string]string, epgGroups []sdk.Group, portDNToID, pcDNToID, numToDN map[string]string) {
+// each fvRsPathAtt as a member of its EPG group (presentation). vPC and
+// FEX path targets have no single owning interface and are skipped,
+// the attachment edge itself is WireEPGPaths. Audit purpose only.
+func WireEPGPathAttachments(pathAtts []map[string]any, epgDNToID map[string]string, epgGroups []sdk.Group, portDNToID, pcDNToID map[string]string, paths *pathResolver) {
 	idx := groupIndex(epgGroups)
 	for _, ra := range pathAtts {
 		dn := str(ra, "dn")
@@ -158,7 +220,7 @@ func WireEPGPathAttachments(pathAtts []map[string]any, epgDNToID map[string]stri
 		if !ok {
 			continue
 		}
-		targetDN, kind := pathTargetDN(str(ra, "tDn"), numToDN)
+		targetDN, kind := paths.singleTarget(str(ra, "tDn"))
 		if targetDN == "" {
 			continue
 		}
@@ -193,20 +255,22 @@ type adjacency struct {
 type adjacencyGraph struct {
 	numToDN     map[string]string
 	nodeIDs     map[string]bool
-	nameToID    map[string]string // emitted fabric node name -> resource IDì
+	nameToID    map[string]string // emitted fabric node name -> resource ID
 	hiddenNames map[string]bool   // hiddenNames are fabric node names with no emitted resource.
 	links       map[string]*adjacency
 	externals   map[string]*sdk.Resource
 	unresolved  int // unresolved counts CDP observations skipped because they name a fabric node without an emitted resource.
+	obs         []neighbourObs
 }
 
 // WireFabricAdjacencies merges the fabricLink, lldpAdjEp and cdpAdjEp
 // classes into one set of physical.ethernet connections between fabric
 // nodes, keeping the observing sources in connection
 // properties.discovered_by. A neighbour that is not a fabric node gets
-// deterministic minimal network.switch resource
-// (id "cisco.apic::external/<name>") so the connection resolves;
-// manufacturer/model are set only when CDP explicitly reports them.
+// a deterministic minimal network.switch resource identified by its
+// typed source identifier (see resolveExternals) so the connection
+// resolves; manufacturer/model are set only when CDP explicitly
+// reports them.
 //
 // A CDP neighbour whose system name matches a fabric node that is not
 // in nodeResources (an unsupported role) is never wired: the edge would
@@ -237,6 +301,7 @@ func WireFabricAdjacencies(fabricLinks, lldp, cdp, nodes []map[string]any, nodeR
 	g.addFabricLinks(fabricLinks)
 	g.addLLDP(lldp)
 	g.addCDP(cdp)
+	g.resolveExternals()
 	g.reconcile()
 
 	extResources := make([]sdk.Resource, 0, len(g.externals))
@@ -380,39 +445,46 @@ func (g *adjacencyGraph) addLLDP(adjs []map[string]any) {
 			continue
 		}
 		localPort := extractIfToken(dn)
+		remotePort := lldpPeerPort(a)
 
-		remoteID, remotePort := g.remoteFromLLDP(a)
-		g.add(localID, localPort, remoteID, remotePort, "lldp", "")
-	}
-}
-
-// remoteFromLLDP resolves the far side of an LLDP adjacency: an APIC
-// fabric node when sysDesc carries its topology DN, otherwise a minimal
-// external resource keyed by the neighbour's short system name (or,
-// with none, its chassis id).
-func (g *adjacencyGraph) remoteFromLLDP(a map[string]any) (id, port string) {
-	remotePort := lldpPeerPort(a)
-	if rd := str(a, "sysDesc"); strings.HasPrefix(rd, "topology/") && strings.Contains(rd, "/node-") {
-		if rid := resourceID(dnPrefix(rd)); g.nodeIDs[rid] {
-			return rid, remotePort
+		// A fabric node announces its own topology DN in sysDesc.
+		if rd := str(a, "sysDesc"); strings.HasPrefix(rd, "topology/") && strings.Contains(rd, "/node-") {
+			if rid := resourceID(dnPrefix(rd)); g.nodeIDs[rid] {
+				g.add(localID, localPort, rid, remotePort, "lldp", "")
+				continue
+			}
 		}
+
+		name := str(a, "sysName")
+		o := neighbourObs{
+			dn: dn, proto: "lldp", localID: localID, localPort: localPort,
+			remotePort: remotePort, name: name, legacyKey: baseSysName(name),
+			props: map[string]any{},
+		}
+		if o.legacyKey == "" {
+			o.legacyKey = cleanVal(str(a, "chassisIdV"))
+		}
+		chassisT, chassisV := cleanVal(str(a, "chassisIdT")), cleanVal(str(a, "chassisIdV"))
+		switch {
+		case chassisV != "":
+			if chassisT == "" {
+				chassisT = "unknown"
+			}
+			o.key = "lldp/" + chassisT + "/" + chassisV
+			o.basis = "lldp-chassis-id"
+			o.props["chassis_id"] = chassisV
+			o.props["chassis_id_type"] = chassisT
+		case baseSysName(name) != "":
+			o.key = "lldp-name/" + baseSysName(name)
+			o.basis = "lldp-system-name"
+		default:
+			continue
+		}
+		if v := cleanVal(str(a, "mgmtIp")); v != "" {
+			o.props["management_ip"] = v
+		}
+		g.obs = append(g.obs, o)
 	}
-	name := str(a, "sysName")
-	key := baseSysName(name)
-	if key == "" {
-		key = cleanVal(str(a, "chassisIdV"))
-	}
-	if key == "" {
-		return "", ""
-	}
-	props := map[string]any{}
-	if v := cleanVal(str(a, "chassisIdV")); v != "" {
-		props["chassis_id"] = v
-	}
-	if v := cleanVal(str(a, "mgmtIp")); v != "" {
-		props["management_ip"] = v
-	}
-	return g.upsertExternal(key, name, "lldp", props), remotePort
 }
 
 // lldpPeerPort returns the neighbour's port id, or "" when LLDP reported
@@ -447,82 +519,237 @@ func (g *adjacencyGraph) addCDP(adjs []map[string]any) {
 			continue
 		}
 		localPort := extractIfToken(dn)
+		name := str(a, "sysName")
+		remotePort := normalizeIfID(cleanVal(str(a, "portId")))
 
-		remoteID, remotePort := g.remoteFromCDP(a)
-		g.add(localID, localPort, remoteID, remotePort, "cdp", "")
+		// CDP carries no topology DN: a fabric node is matched by its
+		// reported system name.
+		if rid, ok := g.nameToID[name]; ok {
+			g.add(localID, localPort, rid, remotePort, "cdp", "")
+			continue
+		}
+		if rid, ok := g.nameToID[baseSysName(name)]; ok {
+			g.add(localID, localPort, rid, remotePort, "cdp", "")
+			continue
+		}
+		if g.hiddenNames[name] || g.hiddenNames[baseSysName(name)] {
+			g.unresolved++
+			continue
+		}
+
+		devID := str(a, "devId")
+		o := neighbourObs{
+			dn: dn, proto: "cdp", localID: localID, localPort: localPort,
+			remotePort: remotePort, name: name, legacyKey: baseSysName(name),
+			props: map[string]any{},
+		}
+		if o.legacyKey == "" {
+			o.legacyKey = devID
+		}
+		switch {
+		case devID != "":
+			o.key = "cdp/" + devID
+			o.basis = "cdp-device-id"
+			o.props["cdp_device_id"] = devID
+		case baseSysName(name) != "":
+			o.key = "cdp-name/" + baseSysName(name)
+			o.basis = "cdp-system-name"
+		default:
+			continue
+		}
+		// CDP is Cisco-proprietary and its ver string names the OS, so
+		// manufacturer/model are set for an external CDP neighbour.
+		if v := str(a, "platId"); v != "" {
+			o.props["model"] = v
+		}
+		if strings.Contains(str(a, "ver"), "Cisco") {
+			o.props["manufacturer"] = "Cisco"
+		}
+		if s := parenToken(devID); s != "" {
+			o.props["serial"] = s
+		}
+		g.obs = append(g.obs, o)
 	}
 }
 
-// remoteFromCDP resolves the far side of a CDP adjacency: a fabric node
-// when the reported system name matches one, otherwise a minimal
-// external resource. CDP is Cisco-proprietary and its ver string names
-// the OS, so manufacturer/model are set for an external CDP neighbour.
-func (g *adjacencyGraph) remoteFromCDP(a map[string]any) (id, port string) {
-	name := str(a, "sysName")
-	remotePort := normalizeIfID(cleanVal(str(a, "portId")))
+// neighbourObs is one LLDP or CDP observation of a neighbour that is
+// not an emitted fabric node.
+type neighbourObs struct {
+	dn                 string // adjacency DN
+	proto              string // "lldp" or "cdp"
+	localID, localPort string
+	remotePort         string
+	name               string // reported system name
+	key                string // typed identity key ("lldp/mac/<mac>", "cdp/<device id>", ...)
+	basis              string // identity_basis property value
+	legacyKey          string // the 0.3.0 identity input (short system name)
+	props              map[string]any
+}
 
-	if rid, ok := g.nameToID[name]; ok {
-		return rid, remotePort
+// resolveExternals assigns every external observation its neighbour
+// resource and records the link. Identity is the typed source
+// identifier: the LLDP chassis id (type and value), otherwise the CDP
+// device id, otherwise the reported system name, never a shortened
+// name. A CDP observation folds into an LLDP neighbour only when both
+// were seen on the same local port and report the same system name,
+// and its device id correlates with exactly one LLDP chassis across the
+// fabric. Observations on one local port that report different system
+// names stay separate neighbours, each flagged identity_conflict.
+// The result does not depend on input order.
+func (g *adjacencyGraph) resolveExternals() {
+	sort.SliceStable(g.obs, func(i, j int) bool {
+		if g.obs[i].proto != g.obs[j].proto {
+			return g.obs[i].proto > g.obs[j].proto // lldp before cdp
+		}
+		return g.obs[i].dn < g.obs[j].dn
+	})
+
+	byPort := map[string][]int{}
+	for i, o := range g.obs {
+		lp := o.localID + "\x00" + o.localPort
+		byPort[lp] = append(byPort[lp], i)
 	}
-	if rid, ok := g.nameToID[baseSysName(name)]; ok {
-		return rid, remotePort
+	cdpToLLDP := map[string]map[string]bool{}
+	conflicts := map[string]map[string]bool{}
+	flag := func(a, b string) {
+		for _, p := range [][2]string{{a, b}, {b, a}} {
+			if conflicts[p[0]] == nil {
+				conflicts[p[0]] = map[string]bool{}
+			}
+			conflicts[p[0]][p[1]] = true
+		}
 	}
-	if g.hiddenNames[name] || g.hiddenNames[baseSysName(name)] {
-		g.unresolved++
-		return "", ""
+	for _, lp := range sortedKeys(byPort) {
+		var lldp, cdp []neighbourObs
+		for _, i := range byPort[lp] {
+			if g.obs[i].proto == "lldp" {
+				lldp = append(lldp, g.obs[i])
+			} else {
+				cdp = append(cdp, g.obs[i])
+			}
+		}
+		for _, l := range lldp {
+			for _, c := range cdp {
+				if strings.EqualFold(baseSysName(l.name), baseSysName(c.name)) && baseSysName(l.name) != "" {
+					if cdpToLLDP[c.key] == nil {
+						cdpToLLDP[c.key] = map[string]bool{}
+					}
+					cdpToLLDP[c.key][l.key] = true
+				} else if l.key != c.key {
+					flag(l.key, c.key)
+				}
+			}
+		}
 	}
 
-	key := baseSysName(name)
-	if key == "" {
-		key = str(a, "devId")
+	final := func(key string) string {
+		if m := cdpToLLDP[key]; len(m) == 1 {
+			for k := range m {
+				return k
+			}
+		}
+		return key
 	}
-	if key == "" {
-		return "", ""
+	for key, m := range cdpToLLDP {
+		if len(m) > 1 {
+			for l := range m {
+				flag(key, l)
+			}
+		}
 	}
-	props := map[string]any{}
-	if v := str(a, "platId"); v != "" {
-		props["model"] = v
+
+	for _, o := range g.obs {
+		key := final(o.key)
+		id := g.upsertExternal(key, o)
+		g.add(o.localID, o.localPort, id, o.remotePort, o.proto, "")
 	}
-	if strings.Contains(str(a, "ver"), "Cisco") {
-		props["manufacturer"] = "Cisco"
+	for key, others := range conflicts {
+		r := g.externals[externalID(final(key))]
+		if r == nil {
+			continue
+		}
+		ext := r.Extensions[extensionNamespace].(map[string]any)
+		ids := []string{}
+		if prev, ok := ext["identity_conflict"].([]string); ok {
+			ids = prev
+		}
+		for k := range others {
+			if oid := externalID(final(k)); oid != r.ID {
+				ids = append(ids, oid)
+			}
+		}
+		if len(ids) > 0 {
+			ext["identity_conflict"] = sortedUnique(ids)
+		}
 	}
-	if s := parenToken(str(a, "devId")); s != "" {
-		props["serial"] = s
+}
+
+// externalID is the resource ID of the external neighbour with the
+// typed identity key ("<source>/<type>/<value>" or "<source>/<value>").
+func externalID(key string) string {
+	return providerName + "::" + externalNativeID(key)
+}
+
+// externalNativeID slugs each segment of a typed identity key: the
+// source and type segments keep their "/" separators, a value never
+// introduces a new one.
+func externalNativeID(key string) string {
+	n := 2
+	if strings.HasPrefix(key, "lldp/") {
+		n = 3
 	}
-	return g.upsertExternal(key, name, "cdp", props), remotePort
+	segs := strings.SplitN(key, "/", n)
+	for i := range segs {
+		segs[i] = sanitizeExtKey(segs[i])
+	}
+	return "external/" + strings.Join(segs, "/")
 }
 
 // upsertExternal creates, or merges an observation into, the external
 // neighbour resource for key. discovered_by accumulates the protocols
 // that saw it; a later observation fills a property the first left
 // blank but never overwrites one.
-func (g *adjacencyGraph) upsertExternal(key, name, proto string, props map[string]any) string {
-	id := providerName + "::external/" + sanitizeExtKey(key)
+func (g *adjacencyGraph) upsertExternal(key string, o neighbourObs) string {
+	id := externalID(key)
 	r := g.externals[id]
 	if r == nil {
-		prov := sdk.Provider{Name: providerName, NativeID: "external/" + sanitizeExtKey(key), Type: "neighbour"}
+		prov := sdk.Provider{Name: providerName, NativeID: externalNativeID(key), Type: "neighbour"}
 		nr, err := sdk.NewResource(id, "network.switch", prov)
 		if err != nil {
 			return ""
 		}
-		nr.Name = name
+		nr.Name = o.name
 		nr.Status = "unknown"
-		nr.Properties = map[string]any{"discovered_by": proto}
+		nr.Properties = map[string]any{"discovered_by": o.proto, "identity_basis": o.basis}
 		nr.Extensions = map[string]any{extensionNamespace: map[string]any{"external": true}}
 		g.externals[id] = &nr
 		r = &nr
 	} else {
-		r.Properties["discovered_by"] = mergeCSV(str(r.Properties, "discovered_by"), proto)
+		r.Properties["discovered_by"] = mergeCSV(str(r.Properties, "discovered_by"), o.proto)
 		if r.Name == "" {
-			r.Name = name
+			r.Name = o.name
 		}
 	}
-	for k, v := range props {
+	for k, v := range o.props {
 		if _, present := r.Properties[k]; !present {
 			r.Properties[k] = v
 		}
 	}
+	if o.legacyKey != "" {
+		ext := r.Extensions[extensionNamespace].(map[string]any)
+		legacy, _ := ext["legacy_ids"].([]string)
+		ext["legacy_ids"] = sortedUnique(append(legacy, providerName+"::external/"+sanitizeExtKey(o.legacyKey)))
+	}
 	return id
+}
+
+// sortedUnique returns the sorted, deduplicated values of s.
+func sortedUnique(s []string) []string {
+	set := map[string]struct{}{}
+	for _, v := range s {
+		set[v] = struct{}{}
+	}
+	return sortedKeys(set)
 }
 
 // baseSysName trims a DNS suffix from a reported system name so LLDP's
