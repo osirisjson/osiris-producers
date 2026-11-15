@@ -77,6 +77,22 @@ func goldenServer(t *testing.T, dir string, reverse bool) *httptest.Server {
 			t.Fatalf("failures.json: %v", err)
 		}
 	}
+	fixtures := map[string][]byte{}
+	entries, err := os.ReadDir(filepath.Join(dir, "api"))
+	if err != nil {
+		t.Fatalf("api: %v", err)
+	}
+	for _, e := range entries {
+		name, ok := strings.CutSuffix(e.Name(), ".json")
+		if !ok || e.IsDir() {
+			continue
+		}
+		data, err := os.ReadFile(filepath.Join(dir, "api", e.Name()))
+		if err != nil {
+			t.Fatalf("api/%s: %v", e.Name(), err)
+		}
+		fixtures[name] = data
+	}
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		class, ok := strings.CutPrefix(r.URL.Path, "/api/class/")
@@ -90,8 +106,8 @@ func goldenServer(t *testing.T, dir string, reverse bool) *httptest.Server {
 			_, _ = io.WriteString(w, `{"imdata":[]}`)
 			return
 		}
-		body, err := os.ReadFile(filepath.Join(dir, "api", class+".json"))
-		if err != nil {
+		body, found := fixtures[class]
+		if !found {
 			_, _ = io.WriteString(w, `{"totalCount":"0","imdata":[]}`)
 			return
 		}
