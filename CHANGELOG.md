@@ -43,6 +43,61 @@ OSIRIS JSON core schema itself, see the [OSIRIS JSON Repository](https://github.
 
 ---
 
+## [0.12.0] - 2026-11-15
+
+Cisco APIC OSIRIS JSON producer behavior version 0.4.0: logical paths,
+vPC and pods, L3Out external connectivity and source-typed external
+neighbour identity. No shared package changed. No other OSIRIS JSON
+producer's behavior version changed.
+
+| Producer | Behavior version |
+|----------|------------------|
+| Amazon Web Services OSIRIS JSON producer | 0.1.1 (no change) |
+| Microsoft Azure OSIRIS JSON producer | 0.6.0 (no change) |
+| Cisco APIC OSIRIS JSON producer | [0.4.0](osiris/network/cisco/apic/CHANGELOG.md#040---2026-11-15) |
+| Cisco IOS-XE OSIRIS JSON producer | 0.2.0 (no change) |
+| Cisco NX-OS OSIRIS JSON producer | 0.2.1 (no change) |
+| Cisco vManage OSIRIS JSON producer | 0.1.0 (no change) |
+| HPE Aruba Networking Central OSIRIS JSON producer | 0.1.0 (no change) |
+
+### Highlights (Cisco APIC 0.4.0)
+- **Logical paths and vPC:** `osiris.cisco.path` resources per
+  `fabricPathEp` DN with one member edge per leg (port, port-channel,
+  vPC leg port-channel or leaf node), EPG -> path static attachments,
+  endpoint -> path observations, vPC domains with their member leaves
+  and `physical.pod` groups. A vPC never gets a single owner and no
+  placeholder path is created for an unresolved attachment.
+- **L3Out:** external EPGs and their policy prefixes as resources,
+  external EPG provide/consume edges, L3Out -> border leaf and
+  L3Out -> routed path edges and bridge domain -> L3Out edges.
+  Configured intent only: no installed route or routing session is
+  implied.
+- **External neighbour identity:** LLDP chassis id, then CDP device
+  id, never a shortened system name; conflicting observations stay
+  separate and flagged.
+- **Fixed:** port-channel paths resolve by interface policy group
+  name; FEX paths no longer resolve to a leaf port; bridge-domain,
+  subnet, L3Out and endpoint resources carry `provider.type`.
+
+All APIC fabric, tenant, policy, port and group IDs emitted by precedent
+release `0.3.0` remain unchanged.
+
+**Breaking** for APIC external neighbour IDs and the connections that
+reach them; each new neighbour lists the IDs it replaces
+in `legacy_ids`.
+
+### Changed
+- Cisco APIC: logical paths, vPC domains, pods, L3Out external
+  connectivity and external neighbour identity. See the
+  [Cisco APIC 0.4.0 entry](osiris/network/cisco/apic/CHANGELOG.md#040---2026-11-15).
+- `testdata/`: the Cisco APIC scenarios cover two pods, logical paths,
+  vPC (including across two FEXes), parallel links, port-channel
+  membership, L3Out (two VRFs sharing a routed port and a prefix) and
+  external neighbour identity cases. Each scenario has a provenance
+  `manifest.json` file.
+
+---
+
 ## [0.11.0] - 2026-11-14
 
 Cisco APIC OSIRIS JSON producer behavior version 0.3.0: configured
@@ -816,7 +871,8 @@ Initial SDK release. No producers shipped under this tag.
 - Removed empty `common/` stubs (replaced by `pkg/sdk/`).
 - Updated `.gitignore` for Go.
 
-[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.11.0...HEAD
+[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.12.0...HEAD
+[0.12.0]: https://github.com/osirisjson/osiris-producers/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/osirisjson/osiris-producers/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/osirisjson/osiris-producers/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/osirisjson/osiris-producers/compare/v0.8.0...v0.9.0
