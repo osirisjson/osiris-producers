@@ -257,7 +257,7 @@ func TestDecodeFullCommandResponses(t *testing.T) {
 		},
 		{
 			name: "lldp neighbors",
-			raw:  `{"TABLE_nbor_detail":{"ROW_nbor_detail":{"l_port_id":"Ethernet1/1","sys_name":"REMOTE-SW01","port_id":"Ethernet1/49"}}}`,
+			raw:  `{"TABLE_nbor_detail":{"ROW_nbor_detail":{"l_port_id":"Ethernet1/1","sys_name":"LAB-REMOTE-SW01","port_id":"Ethernet1/49"}}}`,
 			into: &lldpNeighborsResponse{},
 		},
 		{

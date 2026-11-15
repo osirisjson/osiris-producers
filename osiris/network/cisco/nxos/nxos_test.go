@@ -102,7 +102,7 @@ func fixtureBodies() map[string]map[string]any {
 			"TABLE_nbor_detail": map[string]any{
 				"ROW_nbor_detail": map[string]any{
 					"l_port_id": "Ethernet1/1",
-					"sys_name":  "REMOTE-SW01",
+					"sys_name":  "LAB-REMOTE-SW01",
 					"port_id":   "Ethernet1/49",
 					"mgmt_addr": "192.0.2.10",
 				},
@@ -224,13 +224,13 @@ func fixtureBodies() map[string]map[string]any {
 		"show tacacs-server": {
 			"global_deadtime":     "0",
 			"global_source_intf":  "mgmt0",
-			"global_testPassword": "SECRET-NEVER-EMIT",
+			"global_testPassword": "secret-99",
 			"global_testUsername": "test",
 			"global_timeout":      "5",
 			"server_count":        "1",
 			"TABLE_server": map[string]any{
 				"ROW_server": map[string]any{
-					"port": "49", "secretKey": "SECRET-NEVER-EMIT", "server_ip": "198.51.100.10", "timeout": "30",
+					"port": "49", "secretKey": "secret-99", "server_ip": "198.51.100.10", "timeout": "30",
 				},
 			},
 		},
@@ -591,7 +591,7 @@ func TestCollect_Detailed(t *testing.T) {
 	if err != nil {
 		t.Fatalf("marshal document failed: %v", err)
 	}
-	if strings.Contains(string(docBytes), "SECRET-NEVER-EMIT") {
+	if strings.Contains(string(docBytes), "secret-99") {
 		t.Fatal("TACACS secret leaked into the emitted document")
 	}
 }
@@ -729,7 +729,7 @@ func TestCollect_LLDPConnections(t *testing.T) {
 	if stub == nil {
 		t.Fatal("missing LLDP stub resource")
 	}
-	if stub.Properties["remote_system"] != "REMOTE-SW01" {
+	if stub.Properties["remote_system"] != "LAB-REMOTE-SW01" {
 		t.Errorf("stub remote_system: %v", stub.Properties["remote_system"])
 	}
 }
@@ -1007,7 +1007,7 @@ func TestCollect_P1NeighborAndSessionFeatures(t *testing.T) {
 		// interface resource this test doesn't otherwise set up.
 		"TABLE_cdp_neighbor_detail_info": map[string]any{
 			"ROW_cdp_neighbor_detail_info": map[string]any{
-				"intf_id": "Ethernet1/2", "sysname": "REMOTE-MGMT01", "port_id": "Ethernet1/18", "v4mgmtaddr": "198.51.100.9",
+				"intf_id": "Ethernet1/2", "sysname": "LAB-REMOTE-MGMT01", "port_id": "Ethernet1/18", "v4mgmtaddr": "198.51.100.9",
 			},
 		},
 	}
@@ -1102,7 +1102,7 @@ func TestCollect_P1NeighborAndSessionFeatures(t *testing.T) {
 	// CDP-only neighbor on mgmt0.
 	var cdpStub *sdk.Resource
 	for i, r := range doc.Topology.Resources {
-		if r.Name == "REMOTE-MGMT01:Ethernet1/18" {
+		if r.Name == "LAB-REMOTE-MGMT01:Ethernet1/18" {
 			cdpStub = &doc.Topology.Resources[i]
 		}
 	}
@@ -1279,13 +1279,13 @@ func TestCollect_IncludeRawBody(t *testing.T) {
 					t.Error(`raw_commands missing "show version"`)
 				}
 				// Sensitive keys in a raw body (the fixture plants
-				// TACACS secretKey / global_testPassword = "SECRET-NEVER-EMIT")
+				// TACACS secretKey / global_testPassword = "secret-99")
 				// must be redacted, never attached verbatim.
 				tb, ok := raw["show tacacs-server"]
 				if !ok {
 					t.Fatal(`raw_commands missing "show tacacs-server"`)
 				}
-				if strings.Contains(string(tb), "SECRET-NEVER-EMIT") {
+				if strings.Contains(string(tb), "secret-99") {
 					t.Errorf("raw show tacacs-server body leaked a secret value: %s", tb)
 				}
 				if !strings.Contains(string(tb), redactRawBodyMarker) {
@@ -1303,7 +1303,7 @@ func TestCollect_IncludeRawBody(t *testing.T) {
 				if mErr != nil {
 					t.Fatalf("MarshalDocument: %v", mErr)
 				}
-				if strings.Contains(string(full), "SECRET-NEVER-EMIT") {
+				if strings.Contains(string(full), "secret-99") {
 					t.Error("marshaled document leaked a secret from a raw command body")
 				}
 			} else if ok && len(raw) > 0 {
@@ -1315,10 +1315,10 @@ func TestCollect_IncludeRawBody(t *testing.T) {
 
 func TestRedactRawBody(t *testing.T) {
 	in := `{
-	  "global_testPassword": "SECRET-NEVER-EMIT",
+	  "global_testPassword": "secret-99",
 	  "global_testUsername": "svc-tacacs",
 	  "TABLE_server": {"ROW_server": [
-	    {"server_ip": "198.51.100.10", "secretKey": "topsecret", "port": "49"}
+	    {"server_ip": "198.51.100.10", "secretKey": "secret-98", "port": "49"}
 	  ]},
 	  "note": "-----BEGIN OPENSSH PRIVATE KEY-----AAAA",
 	  "plain": "nothing here"
@@ -1328,7 +1328,7 @@ func TestRedactRawBody(t *testing.T) {
 		t.Fatal("redactRawBody returned ok=false for valid JSON")
 	}
 	s := string(out)
-	for _, leaked := range []string{"SECRET-NEVER-EMIT", "topsecret", "BEGIN OPENSSH PRIVATE KEY"} {
+	for _, leaked := range []string{"secret-99", "secret-98", "BEGIN OPENSSH PRIVATE KEY"} {
 		if strings.Contains(s, leaked) {
 			t.Errorf("redacted body still contains %q: %s", leaked, s)
 		}
