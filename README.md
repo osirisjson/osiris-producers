@@ -5,11 +5,15 @@
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=osirisjson_osiris-producers&metric=security_rating&token=341158228074a961caa8700b5b8ab74f7ac963b2)](https://sonarcloud.io/component_measures?metric=new_security_rating&id=osirisjson_osiris-producers)
 
 
-An **OSIRIS JSON Producer** is a lightweight, read-only program written in Go that runs on your workstation or server. It connects directly to supported infrastructure environments, discovers resources and relationships, normalizes vendor-specific data, redacts sensitive values, and generates a portable OSIRIS JSON document representing the infrastructure at a specific point in time.
+An **OSIRIS JSON Producer** is a lightweight, read-only program written in Go that runs on your workstation or server.
 
-![The OSIRIS JSON producer for AWS](.github/media/osiris-json-demo-aws.gif)
+It connects directly to supported infrastructure environments, discovers resources and relationships, normalizes vendor-specific data, redacts sensitive values, and generates a portable OSIRIS JSON document representing the infrastructure at a specific point in time.
 
-*In this demo it's connecting to AWS account and generating an OSIRIS JSON document*
+<p align="center">
+  <img src=".github/media/osiris-json-demo-cisco-apic.gif" alt="The OSIRIS JSON producer for Cisco APIC" />
+  <br />
+  <sub><em>In this demo we are running the OSIRIS JSON Producer for Cisco APIC and generating an OSIRIS JSON document</em></sub>
+</p>
 
 
 ### The OSIRIS JSON Manifesto in practice
