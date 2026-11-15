@@ -112,7 +112,7 @@ func fixtureServerWith(t *testing.T, failCodes map[string]int, overrides map[str
 		if r.URL.Path == "/api/aaaLogin.json" {
 			json.NewEncoder(w).Encode(map[string]any{
 				"imdata": []any{
-					map[string]any{"aaaLogin": map[string]any{"attributes": map[string]any{"token": "test-token"}}},
+					map[string]any{"aaaLogin": map[string]any{"attributes": map[string]any{"token": "test"}}},
 				},
 			})
 			return
@@ -183,7 +183,7 @@ func newTestProducer(t *testing.T, ts *httptest.Server, detailLevel string) (*Pr
 		client: &Client{
 			baseURL:    ts.URL,
 			httpClient: ts.Client(),
-			token:      "test-token",
+			token:      "test",
 			username:   "admin",
 			logger:     ctx.Logger,
 			retryBase:  time.Millisecond, // keep failure-policy tests fast

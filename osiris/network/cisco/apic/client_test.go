@@ -56,7 +56,7 @@ func TestLogin_Success(t *testing.T) {
 				map[string]any{
 					"aaaLogin": map[string]any{
 						"attributes": map[string]any{
-							"token": "test-token-abc123",
+							"token": "test-1",
 						},
 					},
 				},
@@ -70,8 +70,8 @@ func TestLogin_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Login failed: %v", err)
 	}
-	if c.token != "test-token-abc123" {
-		t.Errorf("expected token %q, got %q", "test-token-abc123", c.token)
+	if c.token != "test-1" {
+		t.Errorf("expected token %q, got %q", "test-1", c.token)
 	}
 }
 
@@ -128,7 +128,7 @@ func TestLogin_EncodesCredentialsAsJSON(t *testing.T) {
 		gotPwd = req.AaaUser.Attributes.Pwd
 		json.NewEncoder(w).Encode(map[string]any{
 			"imdata": []any{
-				map[string]any{"aaaLogin": map[string]any{"attributes": map[string]any{"token": "tok"}}},
+				map[string]any{"aaaLogin": map[string]any{"attributes": map[string]any{"token": "test-2"}}},
 			},
 		})
 	}))
@@ -158,7 +158,7 @@ func TestLogin_RetriesTransientThenSucceeds(t *testing.T) {
 		}
 		json.NewEncoder(w).Encode(map[string]any{
 			"imdata": []any{
-				map[string]any{"aaaLogin": map[string]any{"attributes": map[string]any{"token": "tok"}}},
+				map[string]any{"aaaLogin": map[string]any{"attributes": map[string]any{"token": "test-2"}}},
 			},
 		})
 	}))
@@ -305,7 +305,7 @@ func TestLogout_PostsAaaLogout(t *testing.T) {
 	defer ts.Close()
 
 	c := newTestClient(ts)
-	c.token = "live-token"
+	c.token = "test-3"
 	c.username = "admin"
 	if err := c.Logout(); err != nil {
 		t.Fatalf("Logout failed: %v", err)

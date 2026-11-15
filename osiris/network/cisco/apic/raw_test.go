@@ -32,7 +32,7 @@ func TestRedactRawAttrs(t *testing.T) {
 	if in["descr"] != canaryBearer {
 		t.Error("input map was modified")
 	}
-	got := redactRawAttrs(map[string]any{"password": "p", "secretArn": "s", "Key": "k", "community": "c", "keyRing": "r", "keepAlive": "10"})
+	got := redactRawAttrs(map[string]any{"password": "secret", "secretArn": "s", "Key": "k", "community": "c", "keyRing": "r", "keepAlive": "10"})
 	for _, k := range []string{"password", "secretArn", "Key", "community", "keyRing"} {
 		if got[k] != sdk.RedactedValue {
 			t.Errorf("%s not redacted: %v", k, got[k])
