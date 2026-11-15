@@ -3,14 +3,14 @@ main.go - Standalone Cisco OSIRIS JSON producer binary.
 
 This binary is fully self-contained and can be invoked directly:
 
-	osirisjson-producer-cisco apic -h 10.0.0.1 -u admin -p secret
+	osirisjson-producer-cisco apic -h 192.0.2.1 -u admin
 	osirisjson-producer-cisco nxos --help
 	osirisjson-producer-cisco template --generate apic
 
 It is also discovered automatically by the core osirisjson-producer
 dispatcher when the user runs:
 
-	osirisjson-producer cisco apic -h 10.0.0.1 -u admin -p secret
+	osirisjson-producer cisco apic -h 192.0.2.1 -u admin
 
 Exit codes:
 

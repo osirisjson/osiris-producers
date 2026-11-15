@@ -172,7 +172,7 @@ release:
     ```bash
     osirisjson-producer aws
     osirisjson-producer azure -S <subscription-id>
-    osirisjson-producer cisco apic -h 10.0.0.1
+    osirisjson-producer cisco apic -h 192.0.2.1
     ```
 
     Full installation instructions: [INSTALL.md](https://github.com/osirisjson/osiris-producers/blob/main/INSTALL.md)
