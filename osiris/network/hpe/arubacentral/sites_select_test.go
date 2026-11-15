@@ -94,7 +94,7 @@ func TestResolveSites_ExplicitFlagSkipsPrompting(t *testing.T) {
 func TestSelectSitesInteractive_PicksBySelection(t *testing.T) {
 	withStdin(t, "2\n")
 	sites := []Site{
-		{ScopeName: "example-campus-1", DeviceCount: 10},
+		{ScopeName: "MXP", DeviceCount: 10},
 		{ScopeName: "example-branch-1", DeviceCount: 3},
 	}
 	got, err := selectSitesInteractive(sites)
@@ -108,12 +108,12 @@ func TestSelectSitesInteractive_PicksBySelection(t *testing.T) {
 
 func TestSelectSitesInteractive_BlankMeansAll(t *testing.T) {
 	withStdin(t, "\n")
-	sites := []Site{{ScopeName: "example-campus-1"}, {ScopeName: "example-branch-1"}}
+	sites := []Site{{ScopeName: "MXP"}, {ScopeName: "example-branch-1"}}
 	got, err := selectSitesInteractive(sites)
 	if err != nil {
 		t.Fatalf("selectSitesInteractive failed: %v", err)
 	}
-	want := []string{"example-campus-1", "example-branch-1"}
+	want := []string{"MXP", "example-branch-1"}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("expected every site name for a blank selection, got %v want %v", got, want)
 	}
@@ -126,7 +126,7 @@ func TestSelectSitesFromAccount_NoSitesFallsBackToAll(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	client := newTestClient(ts, Credentials{AccessToken: "test-access-token"})
+	client := newTestClient(ts, Credentials{AccessToken: "test"})
 	got, err := selectSitesFromAccount(client)
 	if err != nil {
 		t.Fatalf("expected no error when no sites are available, got %v", err)
@@ -140,19 +140,19 @@ func TestAllSitesFromAccount_ReturnsEveryNameWithoutPrompting(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]any{"items": []map[string]any{
-			{"scopeName": "example-campus-1"},
+			{"scopeName": "MXP"},
 			{"scopeName": "example-branch-1"},
 		}})
 	}))
 	defer ts.Close()
 
 	// No withStdin: --all must never read from stdin/prompt.
-	client := newTestClient(ts, Credentials{AccessToken: "test-access-token"})
+	client := newTestClient(ts, Credentials{AccessToken: "test"})
 	got, err := allSitesFromAccount(client)
 	if err != nil {
 		t.Fatalf("allSitesFromAccount failed: %v", err)
 	}
-	want := []string{"example-campus-1", "example-branch-1"}
+	want := []string{"MXP", "example-branch-1"}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("got %v, want %v", got, want)
 	}
@@ -165,7 +165,7 @@ func TestAllSitesFromAccount_NoSitesFallsBackToUnfiltered(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	client := newTestClient(ts, Credentials{AccessToken: "test-access-token"})
+	client := newTestClient(ts, Credentials{AccessToken: "test"})
 	got, err := allSitesFromAccount(client)
 	if err != nil {
 		t.Fatalf("expected no error when no sites are available, got %v", err)
@@ -179,19 +179,19 @@ func TestSelectSitesFromAccount_ListsAndSelects(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]any{"items": []map[string]any{
-			{"scopeName": "example-campus-1"},
+			{"scopeName": "MXP"},
 			{"scopeName": "example-branch-1"},
 		}})
 	}))
 	defer ts.Close()
 
 	withStdin(t, "1\n")
-	client := newTestClient(ts, Credentials{AccessToken: "test-access-token"})
+	client := newTestClient(ts, Credentials{AccessToken: "test"})
 	got, err := selectSitesFromAccount(client)
 	if err != nil {
 		t.Fatalf("selectSitesFromAccount failed: %v", err)
 	}
-	if !reflect.DeepEqual(got, []string{"example-campus-1"}) {
-		t.Errorf("got %v, want [example-campus-1]", got)
+	if !reflect.DeepEqual(got, []string{"MXP"}) {
+		t.Errorf("got %v, want [MXP]", got)
 	}
 }

@@ -19,10 +19,10 @@ func TestIsPersonalAPIClient(t *testing.T) {
 		want  bool
 	}{
 		{name: "client id/secret with no refresh token", creds: Credentials{ClientID: "id", ClientSecret: "secret"}, want: true},
-		{name: "classic gateway app with a refresh token", creds: Credentials{ClientID: "id", ClientSecret: "secret", RefreshToken: "refresh"}, want: false},
+		{name: "classic gateway app with a refresh token", creds: Credentials{ClientID: "id", ClientSecret: "secret", RefreshToken: "test-8"}, want: false},
 		{name: "missing client secret", creds: Credentials{ClientID: "id"}, want: false},
 		{name: "missing client id", creds: Credentials{ClientSecret: "secret"}, want: false},
-		{name: "access token only", creds: Credentials{AccessToken: "token"}, want: false},
+		{name: "access token only", creds: Credentials{AccessToken: "test-2"}, want: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -51,21 +51,21 @@ func TestMintPersonalAPIToken_Success(t *testing.T) {
 		if r.FormValue("grant_type") != "client_credentials" {
 			t.Errorf("expected grant_type=client_credentials, got %q", r.FormValue("grant_type"))
 		}
-		if r.FormValue("client_id") != "personal-id" || r.FormValue("client_secret") != "personal-secret" {
+		if r.FormValue("client_id") != "personal-id" || r.FormValue("client_secret") != "secret-1" {
 			t.Errorf("unexpected client_id/client_secret in request: %v", r.Form)
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]any{"access_token": "minted-token", "token_type": "bearer", "expires_in": 7200})
+		json.NewEncoder(w).Encode(map[string]any{"access_token": "test-4", "token_type": "bearer", "expires_in": 7200})
 	}))
 	defer ts.Close()
 	withGreenLakeTokenURL(t, ts)
 
-	token, err := mintPersonalAPIToken(ts.Client(), "personal-id", "personal-secret")
+	token, err := mintPersonalAPIToken(ts.Client(), "personal-id", "secret-1")
 	if err != nil {
 		t.Fatalf("mintPersonalAPIToken failed: %v", err)
 	}
-	if token != "minted-token" {
-		t.Errorf("got token %q, want %q", token, "minted-token")
+	if token != "test-4" {
+		t.Errorf("got token %q, want %q", token, "test-4")
 	}
 }
 
