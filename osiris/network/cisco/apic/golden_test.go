@@ -56,9 +56,11 @@ import (
 const goldenRoot = "../../../../testdata/osiris/network/cisco/apic"
 
 // goldenScenarios are the scenario directories under goldenRoot: a
-// complete single-pod fabric (controllers, spines, leaves, tenants,
-// physical topology, endpoints and faults) and the same fabric with
-// failed, malformed and unresolvable optional data.
+// complete two-pod fabric (controllers, spines, leaves, tenants,
+// policy, physical and logical topology, L3Out, endpoints and faults)
+// and the same fabric with failed, malformed and unresolvable optional
+// data. Cross-release and cross-run contracts are in
+// golden_contract_test.go.
 var goldenScenarios = []string{"lab_fabric", "lab_fabric_partial"}
 
 // goldenClock is the fixed build time stamped into every golden
@@ -140,7 +142,14 @@ func collectGolden(t *testing.T, scenario, purpose string, reverse bool) *sdk.Do
 // given.
 func collectGoldenRaw(t *testing.T, scenario, purpose string, reverse, raw bool) *sdk.Document {
 	t.Helper()
-	ts := goldenServer(t, filepath.Join(goldenRoot, scenario), reverse)
+	return collectScenarioDir(t, filepath.Join(goldenRoot, scenario), purpose, reverse, raw)
+}
+
+// collectScenarioDir runs Collect against the scenario layout in dir
+// (api/, failures.json) with the golden clock.
+func collectScenarioDir(t *testing.T, dir, purpose string, reverse, raw bool) *sdk.Document {
+	t.Helper()
+	ts := goldenServer(t, dir, reverse)
 	defer ts.Close()
 
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
@@ -156,7 +165,7 @@ func collectGoldenRaw(t *testing.T, scenario, purpose string, reverse, raw bool)
 	ctx.Logger = logger
 	doc, err := producer.Collect(ctx)
 	if err != nil {
-		t.Fatalf("Collect(%s, %s): %v", scenario, purpose, err)
+		t.Fatalf("Collect(%s, %s): %v", dir, purpose, err)
 	}
 	return doc
 }
@@ -194,9 +203,10 @@ func TestGolden_OrderIndependent(t *testing.T) {
 }
 
 // TestGolden_GraphIntegrity proves, on every golden document: every
-// connection endpoint and group member is an emitted resource, every
-// group child is an emitted group, no group is its own ancestor and
-// documentation purpose carries no endpoint resources.
+// resource carries the APIC class it was built from in provider.type,
+// every connection endpoint and group member is an emitted resource,
+// every group child is an emitted group, no group is its own ancestor
+// and documentation purpose carries no endpoint resources.
 func TestGolden_GraphIntegrity(t *testing.T) {
 	for _, scenario := range goldenScenarios {
 		for _, purpose := range []string{"documentation", "audit"} {
@@ -205,6 +215,9 @@ func TestGolden_GraphIntegrity(t *testing.T) {
 				resources := map[string]string{}
 				for _, r := range doc.Topology.Resources {
 					resources[r.ID] = r.Type
+					if r.Provider.Type == "" {
+						t.Errorf("resource %s (%s) has no provider.type", r.ID, r.Type)
+					}
 				}
 				for _, c := range doc.Topology.Connections {
 					if resources[c.Source] == "" || resources[c.Target] == "" {

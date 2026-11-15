@@ -1,0 +1,27 @@
+{
+  "totalCount": "2",
+  "imdata": [
+    {
+      "l3extInstP": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/out-l3out_Core/instP-ext",
+          "name": "ext",
+          "descr": "Everything outside the fabric",
+          "prefGrMemb": "exclude",
+          "prio": "unspecified"
+        }
+      }
+    },
+    {
+      "l3extInstP": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/out-l3out_Dev/instP-ext_Dev",
+          "name": "ext_Dev",
+          "descr": "",
+          "prefGrMemb": "exclude",
+          "prio": "unspecified"
+        }
+      }
+    }
+  ]
+}

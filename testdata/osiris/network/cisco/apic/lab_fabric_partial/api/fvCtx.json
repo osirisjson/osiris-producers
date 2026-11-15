@@ -1,5 +1,5 @@
 {
-  "totalCount": "2",
+  "totalCount": "3",
   "imdata": [
     {
       "fvCtx": {
@@ -18,6 +18,16 @@
           "name": "default",
           "descr": "",
           "pcEnfPref": "unenforced"
+        }
+      }
+    },
+    {
+      "fvCtx": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/ctx-vrf_Dev",
+          "name": "vrf_Dev",
+          "descr": "Development VRF",
+          "pcEnfPref": "enforced"
         }
       }
     }

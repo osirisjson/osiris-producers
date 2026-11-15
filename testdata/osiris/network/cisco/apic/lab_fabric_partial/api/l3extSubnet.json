@@ -1,0 +1,60 @@
+{
+  "totalCount": "5",
+  "imdata": [
+    {
+      "l3extSubnet": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/out-l3out_Core/instP-ext/extsubnet-[0.0.0.0/0]",
+          "ip": "0.0.0.0/0",
+          "name": "",
+          "scope": "import-security",
+          "aggregate": ""
+        }
+      }
+    },
+    {
+      "l3extSubnet": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/out-l3out_Core/instP-ext/extsubnet-[203.0.113.0/24]",
+          "ip": "203.0.113.0/24",
+          "name": "LAB-PARTNER",
+          "scope": "import-security,export-rtctrl",
+          "aggregate": ""
+        }
+      }
+    },
+    {
+      "l3extSubnet": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/out-l3out_Core/instP-ext/extsubnet-[2001:db8:100::/48]",
+          "ip": "2001:db8:100::/48",
+          "name": "",
+          "scope": "import-security,shared-rtctrl",
+          "aggregate": "shared-rtctrl"
+        }
+      }
+    },
+    {
+      "l3extSubnet": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/out-l3out_Core/instP-gone/extsubnet-[198.51.100.0/24]",
+          "ip": "198.51.100.0/24",
+          "name": "",
+          "scope": "import-security",
+          "aggregate": ""
+        }
+      }
+    },
+    {
+      "l3extSubnet": {
+        "attributes": {
+          "dn": "uni/tn-tn_Example/out-l3out_Dev/instP-ext_Dev/extsubnet-[203.0.113.0/24]",
+          "ip": "203.0.113.0/24",
+          "name": "LAB-PARTNER-DEV",
+          "scope": "import-security",
+          "aggregate": ""
+        }
+      }
+    }
+  ]
+}

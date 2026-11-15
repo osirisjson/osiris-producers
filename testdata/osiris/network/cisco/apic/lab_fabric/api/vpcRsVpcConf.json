@@ -1,0 +1,14 @@
+{
+  "totalCount": "1",
+  "imdata": [
+    {
+      "vpcRsVpcConf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111/sys/vpc/inst/dom-10/if-1/rsvpcConf",
+          "tDn": "sys/aggr-[po2]",
+          "state": "formed"
+        }
+      }
+    }
+  ]
+}

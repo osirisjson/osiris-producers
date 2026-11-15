@@ -1,5 +1,5 @@
 {
-  "totalCount": "14",
+  "totalCount": "21",
   "imdata": [
     {
       "ethpmPhysIf": {
@@ -166,6 +166,90 @@
           "operSpeed": "100G",
           "operDuplex": "full",
           "bundleIndex": "unspecified"
+        }
+      }
+    },
+    {
+      "ethpmPhysIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111/sys/phys-[eth1/30]/phys",
+          "operSt": "up",
+          "operSpeed": "25G",
+          "operDuplex": "full",
+          "bundleIndex": "unspecified",
+          "operStQual": "none"
+        }
+      }
+    },
+    {
+      "ethpmPhysIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111/sys/phys-[eth1/51]/phys",
+          "operSt": "up",
+          "operSpeed": "25G",
+          "operDuplex": "full",
+          "bundleIndex": "unspecified",
+          "operStQual": "none"
+        }
+      }
+    },
+    {
+      "ethpmPhysIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-101/sys/phys-[eth1/3]/phys",
+          "operSt": "up",
+          "operSpeed": "25G",
+          "operDuplex": "full",
+          "bundleIndex": "unspecified",
+          "operStQual": "none"
+        }
+      }
+    },
+    {
+      "ethpmPhysIf": {
+        "attributes": {
+          "dn": "topology/pod-1/node-112/sys/phys-[eth1/20]/phys",
+          "operSt": "down",
+          "operSpeed": "25G",
+          "operDuplex": "full",
+          "bundleIndex": "unspecified",
+          "operStQual": "none"
+        }
+      }
+    },
+    {
+      "ethpmPhysIf": {
+        "attributes": {
+          "dn": "topology/pod-2/node-211/sys/phys-[eth1/1]/phys",
+          "operSt": "up",
+          "operSpeed": "25G",
+          "operDuplex": "full",
+          "bundleIndex": "unspecified",
+          "operStQual": "none"
+        }
+      }
+    },
+    {
+      "ethpmPhysIf": {
+        "attributes": {
+          "dn": "topology/pod-2/node-211/sys/phys-[eth1/49]/phys",
+          "operSt": "up",
+          "operSpeed": "25G",
+          "operDuplex": "full",
+          "bundleIndex": "unspecified",
+          "operStQual": "none"
+        }
+      }
+    },
+    {
+      "ethpmPhysIf": {
+        "attributes": {
+          "dn": "topology/pod-2/node-201/sys/phys-[eth1/1]/phys",
+          "operSt": "up",
+          "operSpeed": "25G",
+          "operDuplex": "full",
+          "bundleIndex": "unspecified",
+          "operStQual": "none"
         }
       }
     }

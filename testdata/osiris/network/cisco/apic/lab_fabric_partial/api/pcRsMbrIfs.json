@@ -1,0 +1,55 @@
+{
+  "totalCount": "5",
+  "imdata": [
+    {
+      "pcRsMbrIfs": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111/sys/aggr-[po1]/rsmbrIfs-[eth1/10]",
+          "tDn": "sys/phys-[eth1/10]",
+          "tSKey": "eth1/10",
+          "state": "formed"
+        }
+      }
+    },
+    {
+      "pcRsMbrIfs": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111/sys/aggr-[po1]/rsmbrIfs-[eth1/11]",
+          "tDn": "sys/phys-[eth1/11]",
+          "tSKey": "eth1/11",
+          "state": "formed"
+        }
+      }
+    },
+    {
+      "pcRsMbrIfs": {
+        "attributes": {
+          "dn": "topology/pod-1/node-111/sys/aggr-[po2]/rsmbrIfs-[eth1/20]",
+          "tDn": "sys/phys-[eth1/20]",
+          "tSKey": "eth1/20",
+          "state": "formed"
+        }
+      }
+    },
+    {
+      "pcRsMbrIfs": {
+        "attributes": {
+          "dn": "topology/pod-1/node-112/sys/aggr-[po2]/rsmbrIfs-[eth1/20]",
+          "tDn": "sys/phys-[eth1/20]",
+          "tSKey": "eth1/20",
+          "state": "formed"
+        }
+      }
+    },
+    {
+      "pcRsMbrIfs": {
+        "attributes": {
+          "dn": "topology/pod-1/node-112/sys/aggr-[po2]/rsmbrIfs-[eth1/40]",
+          "tDn": "sys/phys-[eth1/40]",
+          "tSKey": "eth1/40",
+          "state": "formed"
+        }
+      }
+    }
+  ]
+}
