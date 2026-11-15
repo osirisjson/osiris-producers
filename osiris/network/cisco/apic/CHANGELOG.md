@@ -24,6 +24,129 @@ the release-level index of which producers shipped under each tag.
 
 ---
 
+## [0.4.0] - 2026-11-15
+
+Logical paths, vPC and pods; L3Out external connectivity (external
+EPGs, policy prefixes, border-leaf and routed-path attachments) and
+external neighbours identified by the identifier LLDP or CDP reports
+instead of a shortened system name.
+
+All fabric, tenant, policy, port and group IDs emitted by `0.3.0`
+remain unchanged. External neighbour IDs and the IDs of the
+`physical.ethernet` connections that reach them, change (see Changed);
+every new neighbour lists the `0.3.0` IDs it replaces in
+`extensions["osiris.cisco"].legacy_ids`.
+
+### Added
+- Logical paths, collected in both purposes from `fabricPathEp`,
+  `vpcIf` and `vpcRsVpcConf` (optional classes):
+  - `osiris.cisco.path` resources identified by the exact
+    `fabricPathEp` DN, for every port-channel and vPC path and for
+    every path an EPG, endpoint or L3Out attaches to. A single-port
+    path nothing attaches to is not emitted. Properties: `pod`,
+    `node_ids`, `fex_ids` (FEX paths), `path_type` (`pathT`),
+    `aggregation` (`lagT`) and, for a vPC, `vpc_domain_id`.
+  - `osiris.cisco.path.member` forward edges, one per leg, path ->
+    the interface that realizes it: the physical port, the
+    port-channel, or for a vPC the leg port-channel named by `vpcIf`
+    and `vpcRsVpcConf` (`resolved_by: vpcIf`) or by the leg's
+    `pcAggrIf` name (`resolved_by: pcAggrIf-name`). A leg that names no
+    emitted interface, and every FEX leg, points to the leaf node
+    (`member_level: node`, with `fex_id`). A vPC never gets a single
+    owner. At `--purpose audit` the vPC leg edge carries the `vpcIf`
+    local and remote operational state.
+  - `osiris.cisco.epg.path` forward edges for every `fvRsPathAtt`, EPG
+    resource anchor -> path, qualified by the relation DN, with
+    `encap`, `primary_encap`, `mode`, `instr_immediacy` and `state`.
+  - At `--purpose audit`, `osiris.cisco.endpoint.learned` forward
+    edges endpoint -> path (`fvCEp.fabricPathDn`), marked
+    `semantics: observed`.
+  - An attachment to a path that `fabricPathEp` does not report
+    (an unformed vPC, a denied or failed query) emits no edge and is
+    counted as `unresolved`; no placeholder path is created.
+- vPC domains, from `fabricExplicitGEp` and `fabricNodePEp` (optional):
+  `osiris.cisco.vpc.domain` resources with `domain_id` and
+  `config_state` (`virtual_ip` at `--purpose audit`) and an
+  `osiris.cisco.vpc.member` forward edge to each member leaf. At
+  `--purpose audit` the edge carries the leaf's `vpcDom` role and peer
+  state (`vpcDom`, audit-only optional class).
+- Pods, from `fabricPod` (optional): `physical.pod` groups whose
+  members are the pod's fabric nodes and paths.
+- Port-channel membership from `pcRsMbrIfs` (optional, both purposes),
+  the configured pcAggrIf -> member relation. A member it reports is
+  wired even when the bundle is down; `ethpmPhysIf.bundleIndex` stays a
+  fallback and the two never duplicate an edge. A relation whose
+  port-channel or member port is not emitted is counted as
+  `unresolved`.
+- L3Out external connectivity, collected in both purposes from
+  `l3extInstP`, `l3extSubnet`, `l3extRsNodeL3OutAtt`,
+  `l3extRsPathL3OutAtt` and `fvRsBDToOut` (optional classes):
+  - `osiris.cisco.l3out.epg` resources (external EPGs), contained by
+    their L3Out and members of their tenant group. External EPGs
+    provide and consume contracts like EPGs
+    (`osiris.cisco.contract.provides` / `.consumes`).
+  - `osiris.cisco.l3out.prefix` resources (policy prefixes under an
+    external EPG), contained by it, with `cidr`, `scope` and
+    `aggregate`. A prefix is configured classification and
+    route-control intent, never an installed or advertised route.
+  - `osiris.cisco.l3out.node` forward edges L3Out -> border leaf and
+    `osiris.cisco.l3out.path` forward edges L3Out -> path (routed
+    port, sub-interface, SVI), qualified by the relation DN, with the
+    node and interface profile names, `interface_type`, `encap`,
+    `encap_scope`, `mode` and `mtu`. The router id and interface
+    address are carried at `--purpose audit` only.
+  - `osiris.cisco.bd.l3out` forward edges bridge domain -> L3Out,
+    resolved by `tDn`, then by name in the bridge domain's tenant,
+    then in tenant `common`.
+  - `l3out_scope` on the controller resources: the model is configured
+    intent and lists what it does not model (routing protocol peers,
+    installed routes, route-control profiles, vPC SVI side addresses).
+- External neighbours carry `identity_basis` (`lldp-chassis-id`,
+  `cdp-device-id`, `lldp-system-name` or `cdp-system-name`),
+  `chassis_id_type`, `cdp_device_id` when CDP reported one and, in
+  `extensions["osiris.cisco"]`, `legacy_ids` (the `0.3.0` IDs this
+  neighbour replaces) and `identity_conflict` (see Changed).
+
+### Changed
+- External neighbour identity. A neighbour is identified by the LLDP
+  chassis id (`cisco.apic::external/lldp/<chassisIdT>/<chassisIdV>`),
+  otherwise by the CDP device id
+  (`cisco.apic::external/cdp/<devId>`), otherwise by its full
+  reported system name; never by a shortened name. Two devices that
+  share a short name in different DNS domains are no longer merged. A
+  CDP observation is folded into an LLDP neighbour only when both were
+  seen on the same local port with the same system name and that CDP
+  device id matches exactly one LLDP chassis. Observations on one
+  local port that disagree stay separate neighbours, each listing the
+  other in `identity_conflict`. Because identity follows the protocol
+  that reported it, a neighbour seen only by CDP (for example when the
+  LLDP query fails) has a `cdp/` ID.
+- `external-epgs` is no longer listed in `policy_scope.not_modeled`.
+  A provide or consume relation under an external EPG, counted as
+  `out_of_scope` in `0.3.0`, is now an edge.
+- In documentation purpose, ports named by an L3Out path attachment
+  and member ports reported by `pcRsMbrIfs` are emitted, like ports
+  named by an EPG path attachment.
+- With `--include-raw-body`, an object under `topology/pod-<n>` that no
+  resource owns (for example `fabricLink`, or a `fabricPathEp` that is
+  not emitted) is attached to its `physical.pod` group instead of
+  `raw_unowned` on the controller resources.
+
+### Fixed
+- A port-channel path is resolved by its interface policy group name,
+  which is the `pcAggrIf` name on the leaf (the `pcAggrIf` id is still
+  accepted). `0.3.0` matched only paths whose name started with `po`,
+  which an APIC does not use, so port-channel EPG membership and
+  endpoint edges were missing on real fabrics.
+- A FEX path (`.../paths-<leaf>/extpaths-<fex>/pathep-[...]`) is no
+  longer resolved to the leaf port of the same name.
+- Bridge-domain, subnet, L3Out and endpoint resources now carry the APIC
+  class they were built from in `provider.type` (`fvBD`, `fvSubnet`,
+  `l3extOut`, `fvCEp`), like every other APIC resource. It was empty
+  since `0.2.0`. IDs are unchanged.
+
+---
+
 ## [0.3.0] - 2026-11-14
 
 Configured policy intent (application profiles, contracts, subjects,
@@ -334,6 +457,7 @@ changes are listed below with their module-tag context.
   empty falls back to `topSystem.state` field.
 
 [Unreleased]: ../../../../CHANGELOG.md
+[0.4.0]: ../../../../CHANGELOG.md#0120---2026-11-15
 [0.3.0]: ../../../../CHANGELOG.md#0110---2026-11-14
 [0.2.0]: ../../../../CHANGELOG.md#080---2026-09-01
 [0.1.0]: ../../../../CHANGELOG.md#010---2026-03-21
