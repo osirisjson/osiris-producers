@@ -15,10 +15,10 @@ import (
 )
 
 var testSub = SubscriptionInfo{
-	SubscriptionID: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+	SubscriptionID: "00000000-0000-4000-8000-00000000a1b2",
 	DisplayName:    "my-nonprod-subscription",
 	State:          "Enabled",
-	TenantID:       "f1e2d3c4-b5a6-9078-fedc-ba9876543210",
+	TenantID:       "00000000-0000-4000-8000-00000000f1e2",
 	Tags: map[string]string{
 		"environment": "np",
 		"department":  "information technology",
@@ -28,10 +28,10 @@ var testSub = SubscriptionInfo{
 func TestTransformVNets(t *testing.T) {
 	vnets := []VirtualNetwork{
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/vnet1",
-			Name:          "vnet1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/virtualNetworks/labvnet1",
+			Name:          "labvnet1",
 			Location:      "westeurope",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 			AddressSpace:  azAddressSpace{AddressPrefixes: []string{"192.0.2.0/24"}},
 			DhcpOptions:   azDHCPOptions{DNSServers: []string{"192.0.2.4"}},
 		},
@@ -47,8 +47,8 @@ func TestTransformVNets(t *testing.T) {
 	if r.Type != "network.vpc" {
 		t.Errorf("expected type network.vnet, got %q", r.Type)
 	}
-	if r.Name != "vnet1" {
-		t.Errorf("expected name vnet1, got %q", r.Name)
+	if r.Name != "labvnet1" {
+		t.Errorf("expected name labvnet1, got %q", r.Name)
 	}
 	if r.Provider.Name != "azure" {
 		t.Errorf("expected provider azure, got %q", r.Provider.Name)
@@ -56,15 +56,15 @@ func TestTransformVNets(t *testing.T) {
 	if r.Provider.Region != "westeurope" {
 		t.Errorf("expected region westeurope, got %q", r.Provider.Region)
 	}
-	if r.Provider.Account != "11111111-1111-1111-1111-111111111111" || r.Provider.Subscription != "" || r.Provider.Tenant != "" {
+	if r.Provider.Account != "00000000-0000-4000-8000-000000001111" || r.Provider.Subscription != "" || r.Provider.Tenant != "" {
 		t.Errorf("provider = account %q subscription %q tenant %q", r.Provider.Account, r.Provider.Subscription, r.Provider.Tenant)
 	}
 	// The input carries no provisioningState, so status is omitted.
 	if r.Status != "" {
 		t.Errorf("expected no status without provisioningState, got %q", r.Status)
 	}
-	if r.Properties["resource_group"] != "rg1" {
-		t.Errorf("expected resource_group rg1, got %v", r.Properties["resource_group"])
+	if r.Properties["resource_group"] != "rg-lab-01" {
+		t.Errorf("expected resource_group rg-lab-01, got %v", r.Properties["resource_group"])
 	}
 	addrs, ok := r.Properties["address_space"].([]string)
 	if !ok || len(addrs) != 1 || addrs[0] != "192.0.2.0/24" {
@@ -75,12 +75,12 @@ func TestTransformVNets(t *testing.T) {
 func TestTransformSubnets(t *testing.T) {
 	subnets := []Subnet{
 		{
-			ID:                   "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/subnet1",
-			Name:                 "subnet1",
-			ResourceGroup:        "rg1",
+			ID:                   "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/virtualNetworks/labvnet1/subnets/labsubnet1",
+			Name:                 "labsubnet1",
+			ResourceGroup:        "rg-lab-01",
 			AddressPrefixes:      []string{"192.0.2.128/25"},
-			NetworkSecurityGroup: &azNSGRef{ID: "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/networkSecurityGroups/nsg1"},
-			RouteTable:           &azRouteTableRef{ID: "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/routeTables/rt1"},
+			NetworkSecurityGroup: &azNSGRef{ID: "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/networkSecurityGroups/labnsg1"},
+			RouteTable:           &azRouteTableRef{ID: "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/routeTables/labrt1"},
 			ServiceEndpoints:     []azServiceEndpoint{{Service: "Microsoft.Storage", Locations: []string{"*"}}},
 		},
 	}
@@ -98,8 +98,8 @@ func TestTransformSubnets(t *testing.T) {
 	if r.Type != "network.subnet" {
 		t.Errorf("expected type network.subnet, got %q", r.Type)
 	}
-	if r.Name != "subnet1" {
-		t.Errorf("expected name subnet1, got %q", r.Name)
+	if r.Name != "labsubnet1" {
+		t.Errorf("expected name labsubnet1, got %q", r.Name)
 	}
 
 	// Verify the ID map contains the subnet's ARM ID.
@@ -111,9 +111,9 @@ func TestTransformSubnets(t *testing.T) {
 func TestTransformSubnetsSingularAddressPrefix(t *testing.T) {
 	subnets := []Subnet{
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/s1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/virtualNetworks/labvnet1/subnets/labs1",
 			Name:          "s1",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 			AddressPrefix: "192.0.2.64/27",
 		},
 	}
@@ -132,14 +132,14 @@ func TestTransformSubnetsSingularAddressPrefix(t *testing.T) {
 func TestTransformNICs(t *testing.T) {
 	nics := []NetworkInterface{
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/networkInterfaces/nic1",
-			Name:          "nic1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/networkInterfaces/labnic1",
+			Name:          "labnic1",
 			Location:      "westeurope",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 			IPConfigurations: []IPConfiguration{
 				{
 					Name:                      "ipconfig1",
-					Subnet:                    &azSubnetRef{ID: "/subscriptions/11111111-1111-1111-1111-111111111111/.../subnets/subnet1"},
+					Subnet:                    &azSubnetRef{ID: "/subscriptions/00000000-0000-4000-8000-000000001111/.../subnets/labsubnet1"},
 					PrivateIPAddress:          "192.0.2.132",
 					PrivateIPAllocationMethod: "Dynamic",
 				},
@@ -174,18 +174,18 @@ func TestTransformNICs(t *testing.T) {
 func TestTransformVMs(t *testing.T) {
 	vms := []VirtualMachine{
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Compute/virtualMachines/vm1",
-			Name:          "vm1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Compute/virtualMachines/labvm1",
+			Name:          "labvm1",
 			Location:      "westeurope",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 			VMSize:        "Standard_D2s_v3",
 			PowerState:    "VM running",
 		},
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Compute/virtualMachines/vm2",
-			Name:          "vm2",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Compute/virtualMachines/labvm2",
+			Name:          "labvm2",
 			Location:      "westeurope",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 			VMSize:        "Standard_B2s",
 			PowerState:    "VM deallocated",
 		},
@@ -213,15 +213,15 @@ func TestTransformVMs(t *testing.T) {
 
 func TestTransformVNetPeerings(t *testing.T) {
 	vnetIDMap := map[string]string{
-		"/subscriptions/11111111-1111-1111-1111-111111111111/.../virtualNetworks/vnet1": "azure::/subscriptions/11111111-1111-1111-1111-111111111111/.../virtualNetworks/vnet1",
-		"/subscriptions/11111111-1111-1111-1111-111111111111/.../virtualNetworks/vnet2": "azure::/subscriptions/11111111-1111-1111-1111-111111111111/.../virtualNetworks/vnet2",
+		"/subscriptions/00000000-0000-4000-8000-000000001111/.../virtualNetworks/labvnet1": "azure::/subscriptions/00000000-0000-4000-8000-000000001111/.../virtualNetworks/labvnet1",
+		"/subscriptions/00000000-0000-4000-8000-000000001111/.../virtualNetworks/labvnet2": "azure::/subscriptions/00000000-0000-4000-8000-000000001111/.../virtualNetworks/labvnet2",
 	}
 
 	peerings := []VNetPeering{
 		{
-			ID:                   "/subscriptions/11111111-1111-1111-1111-111111111111/.../virtualNetworks/vnet1/virtualNetworkPeerings/peer1",
+			ID:                   "/subscriptions/00000000-0000-4000-8000-000000001111/.../virtualNetworks/labvnet1/virtualNetworkPeerings/peer1",
 			Name:                 "vnet1-to-vnet2",
-			RemoteVirtualNetwork: &azVNetRef{ID: "/subscriptions/11111111-1111-1111-1111-111111111111/.../virtualNetworks/vnet2"},
+			RemoteVirtualNetwork: &azVNetRef{ID: "/subscriptions/00000000-0000-4000-8000-000000001111/.../virtualNetworks/labvnet2"},
 			PeeringState:         "Connected",
 			AllowGatewayTransit:  true,
 		},
@@ -251,9 +251,9 @@ func TestTransformVNetPeerings(t *testing.T) {
 func TestTransformSubnetNSGConnections(t *testing.T) {
 	subnets := []Subnet{
 		{
-			ID:                   "/sub/subnet1",
-			Name:                 "subnet1",
-			NetworkSecurityGroup: &azNSGRef{ID: "/sub/nsg1"},
+			ID:                   "/sub/labsubnet1",
+			Name:                 "labsubnet1",
+			NetworkSecurityGroup: &azNSGRef{ID: "/sub/labnsg1"},
 		},
 		{
 			ID:   "/sub/subnet2",
@@ -263,11 +263,11 @@ func TestTransformSubnetNSGConnections(t *testing.T) {
 	}
 
 	subnetIDMap := map[string]string{
-		"/sub/subnet1": "azure::/sub/subnet1",
+		"/sub/labsubnet1": "azure::/sub/labsubnet1",
 		"/sub/subnet2": "azure::/sub/subnet2",
 	}
 	nsgIDMap := map[string]string{
-		"/sub/nsg1": "azure::/sub/nsg1",
+		"/sub/labnsg1": "azure::/sub/labnsg1",
 	}
 
 	conns := TransformSubnetNSGConnections(subnets, subnetIDMap, nsgIDMap)
@@ -281,8 +281,8 @@ func TestTransformSubnetNSGConnections(t *testing.T) {
 	if conns[0].Direction != "forward" {
 		t.Errorf("expected forward direction, got %q", conns[0].Direction)
 	}
-	if conns[0].Source != "azure::/sub/subnet1" || conns[0].Target != "azure::/sub/nsg1" {
-		t.Errorf("expected subnet1 -> nsg1, got %q -> %q", conns[0].Source, conns[0].Target)
+	if conns[0].Source != "azure::/sub/labsubnet1" || conns[0].Target != "azure::/sub/labnsg1" {
+		t.Errorf("expected labsubnet1 -> labnsg1, got %q -> %q", conns[0].Source, conns[0].Target)
 	}
 }
 
@@ -303,13 +303,13 @@ func TestTransformSubscriptionGroup(t *testing.T) {
 func TestTransformResourceGroupGroups(t *testing.T) {
 	rgs := []ResourceGroup{
 		{
-			ID:       "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1",
-			Name:     "rg1",
+			ID:       "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01",
+			Name:     "rg-lab-01",
 			Location: "westeurope",
 		},
 		{
-			ID:       "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg2",
-			Name:     "rg2",
+			ID:       "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-02",
+			Name:     "rg-lab-02",
 			Location: "eastus",
 		},
 	}
@@ -326,13 +326,13 @@ func TestTransformResourceGroupGroups(t *testing.T) {
 	if groups[0].Type != "logical.resourcegroup" {
 		t.Errorf("expected type logical.resourcegroup, got %q", groups[0].Type)
 	}
-	if groups[0].Name != "rg1" {
-		t.Errorf("expected name rg1, got %q", groups[0].Name)
+	if groups[0].Name != "rg-lab-01" {
+		t.Errorf("expected name rg-lab-01, got %q", groups[0].Name)
 	}
 
 	// Verify case-insensitive name lookup.
-	if _, ok := nameToID["rg1"]; !ok {
-		t.Error("expected rg1 in nameToID map")
+	if _, ok := nameToID["rg-lab-01"]; !ok {
+		t.Error("expected rg-lab-01 in nameToID map")
 	}
 }
 
@@ -392,15 +392,15 @@ func TestExtractResourceGroup(t *testing.T) {
 		expected string
 	}{
 		{
-			armID:    "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/my-rg/providers/Microsoft.Network/virtualNetworks/vnet1",
-			expected: "my-rg",
+			armID:    "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-my/providers/Microsoft.Network/virtualNetworks/labvnet1",
+			expected: "rg-lab-my",
 		},
 		{
-			armID:    "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/MyRG",
-			expected: "MyRG",
+			armID:    "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/RG-LAB-MY",
+			expected: "RG-LAB-MY",
 		},
 		{
-			armID:    "/subscriptions/xxx",
+			armID:    "/subscriptions/00000000-0000-4000-8000-000000000093",
 			expected: "",
 		},
 	}
@@ -455,7 +455,7 @@ func TestMapPeeringState(t *testing.T) {
 }
 
 func TestResourceIDFormat(t *testing.T) {
-	armID := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/vnet1"
+	armID := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/virtualNetworks/labvnet1"
 	id := resourceID("network.vpc", armID)
 
 	// Per OSIRIS Producer Guidelines chapter 2 section 2.2.1:
@@ -472,7 +472,7 @@ func TestResourceIDFormat(t *testing.T) {
 	}
 
 	// Different ARM IDs produce different resource IDs.
-	armID2 := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/vnet2"
+	armID2 := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/virtualNetworks/labvnet2"
 	id3 := resourceID("network.vpc", armID2)
 	if id == id3 {
 		t.Errorf("different ARM IDs should produce different resource IDs")
@@ -482,9 +482,9 @@ func TestResourceIDFormat(t *testing.T) {
 func TestTransformVNetToSubnetConnections(t *testing.T) {
 	subnets := []Subnet{
 		{
-			ID:   "/sub/vnet1/subnets/subnet1",
-			Name: "subnet1",
-			// VNetID() derives "/sub/vnet1" from the subnet ARM ID.
+			ID:   "/sub/labvnet1/subnets/labsubnet1",
+			Name: "labsubnet1",
+			// VNetID() derives "/sub/labvnet1" from the subnet ARM ID.
 		},
 		{
 			ID:   "/sub/nosubnets",
@@ -493,11 +493,11 @@ func TestTransformVNetToSubnetConnections(t *testing.T) {
 		},
 	}
 	subnetIDMap := map[string]string{
-		"/sub/vnet1/subnets/subnet1": "azure::/sub/vnet1/subnets/subnet1",
+		"/sub/labvnet1/subnets/labsubnet1": "azure::/sub/labvnet1/subnets/labsubnet1",
 		"/sub/nosubnets":             "azure::/sub/nosubnets",
 	}
 	vnetIDMap := map[string]string{
-		"/sub/vnet1": "azure::/sub/vnet1",
+		"/sub/labvnet1": "azure::/sub/labvnet1",
 	}
 
 	conns := TransformVNetToSubnetConnections(subnets, subnetIDMap, vnetIDMap)
@@ -512,10 +512,10 @@ func TestTransformVNetToSubnetConnections(t *testing.T) {
 		t.Errorf("expected forward direction, got %q", conns[0].Direction)
 	}
 	// Source contains target: the VNet contains the subnet.
-	if conns[0].Source != "azure::/sub/vnet1" {
+	if conns[0].Source != "azure::/sub/labvnet1" {
 		t.Errorf("expected source to be vnet, got %q", conns[0].Source)
 	}
-	if conns[0].Target != "azure::/sub/vnet1/subnets/subnet1" {
+	if conns[0].Target != "azure::/sub/labvnet1/subnets/labsubnet1" {
 		t.Errorf("expected target to be subnet, got %q", conns[0].Target)
 	}
 }
@@ -523,16 +523,16 @@ func TestTransformVNetToSubnetConnections(t *testing.T) {
 func TestTransformNICToSubnetConnections(t *testing.T) {
 	nics := []NetworkInterface{
 		{
-			ID:   "/sub/nic1",
-			Name: "nic1",
+			ID:   "/sub/labnic1",
+			Name: "labnic1",
 			IPConfigurations: []IPConfiguration{
-				{Subnet: &azSubnetRef{ID: "/sub/subnet1"}, PrivateIPAddress: "192.0.2.132"},
-				{Subnet: &azSubnetRef{ID: "/sub/subnet1"}, PrivateIPAddress: "192.0.2.133"}, // same subnet should deduplicate.
+				{Subnet: &azSubnetRef{ID: "/sub/labsubnet1"}, PrivateIPAddress: "192.0.2.132"},
+				{Subnet: &azSubnetRef{ID: "/sub/labsubnet1"}, PrivateIPAddress: "192.0.2.133"}, // same subnet should deduplicate.
 			},
 		},
 	}
-	nicIDMap := map[string]string{"/sub/nic1": "azure::/sub/nic1"}
-	subnetIDMap := map[string]string{"/sub/subnet1": "azure::/sub/subnet1"}
+	nicIDMap := map[string]string{"/sub/labnic1": "azure::/sub/labnic1"}
+	subnetIDMap := map[string]string{"/sub/labsubnet1": "azure::/sub/labsubnet1"}
 
 	conns := TransformNICToSubnetConnections(nics, nicIDMap, subnetIDMap)
 
@@ -549,10 +549,10 @@ func TestTransformNICToSubnetConnections(t *testing.T) {
 
 func TestTransformPrivateEndpointToSubnetConnections(t *testing.T) {
 	pes := []PrivateEndpoint{
-		{ID: "/sub/pe1", Name: "pe1", Subnet: &azSubnetRef{ID: "/sub/subnet1"}},
+		{ID: "/sub/labpe1", Name: "labpe1", Subnet: &azSubnetRef{ID: "/sub/labsubnet1"}},
 		{ID: "/sub/pe2", Name: "pe2"}, // no subnet skipped.
 	}
-	subnetIDMap := map[string]string{"/sub/subnet1": "azure::/sub/subnet1"}
+	subnetIDMap := map[string]string{"/sub/labsubnet1": "azure::/sub/labsubnet1"}
 
 	conns := TransformPrivateEndpointToSubnetConnections(pes, subnetIDMap)
 
@@ -564,24 +564,24 @@ func TestTransformPrivateEndpointToSubnetConnections(t *testing.T) {
 func TestTransformVNetGatewayToSubnetConnections(t *testing.T) {
 	gws := []VNetGateway{
 		{
-			ID:   "/sub/gw1",
-			Name: "gw1",
+			ID:   "/sub/labgw1",
+			Name: "labgw1",
 			IPConfigurations: []GatewayIPConfig{
-				{Subnet: &azSubnetRef{ID: "/sub/vnet1/subnets/GatewaySubnet"}, PublicIPAddress: &azPublicIPRef{ID: "/sub/pip1"}},
+				{Subnet: &azSubnetRef{ID: "/sub/labvnet1/subnets/GatewaySubnet"}, PublicIPAddress: &azPublicIPRef{ID: "/sub/pip1"}},
 			},
 		},
 	}
-	subnetIDMap := map[string]string{"/sub/vnet1/subnets/GatewaySubnet": "azure::/sub/vnet1/subnets/GatewaySubnet"}
+	subnetIDMap := map[string]string{"/sub/labvnet1/subnets/GatewaySubnet": "azure::/sub/labvnet1/subnets/GatewaySubnet"}
 
 	conns := TransformVNetGatewayToSubnetConnections(gws, subnetIDMap)
 
 	if len(conns) != 1 {
 		t.Fatalf("expected 1 connection, got %d", len(conns))
 	}
-	if conns[0].Source != "azure::/sub/gw1" {
+	if conns[0].Source != "azure::/sub/labgw1" {
 		t.Errorf("expected source to be gateway, got %q", conns[0].Source)
 	}
-	if conns[0].Target != "azure::/sub/vnet1/subnets/GatewaySubnet" {
+	if conns[0].Target != "azure::/sub/labvnet1/subnets/GatewaySubnet" {
 		t.Errorf("expected target to be GatewaySubnet, got %q", conns[0].Target)
 	}
 }
@@ -592,12 +592,12 @@ func TestTransformPrivateDNSToVNetConnections(t *testing.T) {
 			ID:   "/sub/pdns1",
 			Name: "privatelink.blob.core.windows.net",
 			Links: []PrivateDNSLink{
-				{Name: "vnetlink1", VirtualNetwork: &azVNetRef{ID: "/sub/vnet1"}, RegistrationEnabled: true},
+				{Name: "vnetlink1", VirtualNetwork: &azVNetRef{ID: "/sub/labvnet1"}, RegistrationEnabled: true},
 				{Name: "vnetlink2", VirtualNetwork: &azVNetRef{ID: "/sub/vnet-unknown"}}, // not in map.
 			},
 		},
 	}
-	vnetIDMap := map[string]string{"/sub/vnet1": "azure::/sub/vnet1"}
+	vnetIDMap := map[string]string{"/sub/labvnet1": "azure::/sub/labvnet1"}
 
 	conns, stubs := TransformPrivateDNSToVNetConnections(zones, vnetIDMap)
 
@@ -627,14 +627,14 @@ func TestTransformPrivateDNSToVNetConnections(t *testing.T) {
 // stub whose owner is in provider.account (canonical lower case), not
 // in a duplicated property.
 func TestPeeringStubOwner(t *testing.T) {
-	local := "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/RG-LAB/providers/Microsoft.Network/virtualNetworks/LAB-VNET01"
-	remote := "/subscriptions/ABCDEF01-0000-0000-0000-000000000002/resourceGroups/RG-LAB-DR/providers/Microsoft.Network/virtualNetworks/LAB-VNET02"
+	local := "/subscriptions/00000000-0000-4000-8000-000000000001/resourceGroups/RG-LAB/providers/Microsoft.Network/virtualNetworks/LAB-VNET01"
+	remote := "/subscriptions/00000000-0000-4000-8000-00000000AB02/resourceGroups/RG-LAB-DR/providers/Microsoft.Network/virtualNetworks/LAB-VNET02"
 	peerings := decode[[]VNetPeering](t, `[{"id":"`+local+`/virtualNetworkPeerings/LAB-P1","name":"LAB-P1","peeringState":"Connected","remoteVirtualNetwork":{"id":"`+remote+`"}}]`)
 	_, stubs := TransformVNetPeerings(peerings, idMapOf(local))
 	if len(stubs) != 1 {
 		t.Fatalf("expected 1 stub, got %d", len(stubs))
 	}
-	if stubs[0].Provider.Account != "abcdef01-0000-0000-0000-000000000002" {
+	if stubs[0].Provider.Account != "00000000-0000-4000-8000-00000000ab02" {
 		t.Errorf("stub account = %q", stubs[0].Provider.Account)
 	}
 	if _, dup := stubs[0].Properties["subscription_id"]; dup {
@@ -647,7 +647,7 @@ func TestExtractLastSegment(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{"/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/vnet1", "vnet1"},
+		{"/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/virtualNetworks/labvnet1", "labvnet1"},
 		{"simple", "simple"},
 		{"/a/b/c", "c"},
 	}
@@ -661,24 +661,24 @@ func TestExtractLastSegment(t *testing.T) {
 
 func TestWireResourcesToResourceGroups(t *testing.T) {
 	rgs := []ResourceGroup{
-		{ID: "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1", Name: "rg1", Location: "westeurope"},
+		{ID: "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01", Name: "rg-lab-01", Location: "westeurope"},
 	}
 	groups, nameToID := TransformResourceGroupGroups(rgs, testSub)
 
 	vnets := []VirtualNetwork{
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/vnet1",
-			Name:          "vnet1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/virtualNetworks/labvnet1",
+			Name:          "labvnet1",
 			Location:      "westeurope",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 		},
 	}
 	resources := TransformVNets(vnets, nil, testSub)
 
-	WireResourcesToResourceGroups(resources, "11111111-1111-1111-1111-111111111111", nameToID, groups)
+	WireResourcesToResourceGroups(resources, "00000000-0000-4000-8000-000000001111", nameToID, groups)
 
 	if len(groups[0].Members) != 1 {
-		t.Fatalf("expected 1 member in rg1 group, got %d", len(groups[0].Members))
+		t.Fatalf("expected 1 member in rg-lab-01 group, got %d", len(groups[0].Members))
 	}
 	if groups[0].Members[0] != resources[0].ID {
 		t.Errorf("expected member %q, got %q", resources[0].ID, groups[0].Members[0])
@@ -687,8 +687,8 @@ func TestWireResourcesToResourceGroups(t *testing.T) {
 
 func TestWireResourceGroupsToSubscription(t *testing.T) {
 	rgs := []ResourceGroup{
-		{ID: "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1", Name: "rg1", Location: "westeurope"},
-		{ID: "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg2", Name: "rg2", Location: "eastus"},
+		{ID: "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01", Name: "rg-lab-01", Location: "westeurope"},
+		{ID: "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-02", Name: "rg-lab-02", Location: "eastus"},
 	}
 	groups, _ := TransformResourceGroupGroups(rgs, testSub)
 	subGroup := TransformSubscriptionGroup(testSub)
@@ -703,10 +703,10 @@ func TestWireResourceGroupsToSubscription(t *testing.T) {
 func TestTransformAppServicePlans(t *testing.T) {
 	plans := []AppServicePlan{
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Web/serverfarms/plan1",
-			Name:          "plan1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Web/serverfarms/labplan1",
+			Name:          "labplan1",
 			Location:      "westeurope",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 			Kind:          "linux",
 			SKU:           azAppServicePlanSKU{Name: "P1v3", Tier: "PremiumV3", Size: "P1v3", Family: "Pv3", Capacity: 2},
 			Reserved:      true,
@@ -745,32 +745,32 @@ func TestTransformAppServicePlans(t *testing.T) {
 func TestTransformWebApps(t *testing.T) {
 	apps := []WebApp{
 		{
-			ID:                  "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Web/sites/site1",
-			Name:                "site1",
+			ID:                  "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Web/sites/labsite1",
+			Name:                "labsite1",
 			Location:            "westeurope",
-			ResourceGroup:       "rg1",
+			ResourceGroup:       "rg-lab-01",
 			Kind:                "app,linux,container",
 			State:               "Running",
 			Enabled:             true,
-			DefaultHostName:     "site1.azurewebsites.net",
-			HostNames:           []string{"site1.azurewebsites.net"},
+			DefaultHostName:     "labsite1.azurewebsites.net",
+			HostNames:           []string{"labsite1.azurewebsites.net"},
 			HTTPSOnly:           true,
-			ServerFarmID:        "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Web/serverfarms/plan1",
+			ServerFarmID:        "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Web/serverfarms/labplan1",
 			OutboundIPAddresses: "203.0.113.1,203.0.113.2,203.0.113.3",
 			Identity: &azSiteIdentity{
 				Type:        "SystemAssigned",
-				PrincipalID: "00000000-0000-0000-0000-000000000001",
+				PrincipalID: "00000000-0000-4000-8000-000000000001",
 			},
 			OutboundVnetRouting: &azOutboundVnetRouting{AllTraffic: true},
 			Tags: map[string]string{
-				"hidden-link: /app-insights-resource-id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Insights/components/ai1",
+				"hidden-link: /app-insights-resource-id": "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Insights/components/labai1",
 			},
 		},
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Web/sites/fn1",
-			Name:          "fn1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Web/sites/labfn1",
+			Name:          "labfn1",
 			Location:      "westeurope",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 			Kind:          "functionapp,linux",
 			State:         "Stopped",
 			Enabled:       false,
@@ -817,10 +817,10 @@ func TestTransformWebApps(t *testing.T) {
 func TestTransformApplicationSecurityGroups(t *testing.T) {
 	asgs := []ApplicationSecurityGroup{
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/applicationSecurityGroups/asg1",
-			Name:          "asg1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/applicationSecurityGroups/labasg1",
+			Name:          "labasg1",
 			Location:      "westeurope",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 		},
 	}
 
@@ -842,14 +842,14 @@ func TestTransformApplicationSecurityGroups(t *testing.T) {
 }
 
 func TestTransformWebAppToPlanConnections(t *testing.T) {
-	planID := "/sub/plan1"
+	planID := "/sub/labplan1"
 	planID2 := "/sub/plan2"
-	siteID := "/sub/site1"
-	siteID2 := "/sub/site2"
+	siteID := "/sub/labsite1"
+	siteID2 := "/sub/labsite2"
 	apps := []WebApp{
-		{ID: siteID, Name: "site1", ServerFarmID: planID},
+		{ID: siteID, Name: "labsite1", ServerFarmID: planID},
 		// az webapp list flattens serverFarmId -> appServicePlanId; accept either.
-		{ID: siteID2, Name: "site2", AppServicePlanID: planID2},
+		{ID: siteID2, Name: "labsite2", AppServicePlanID: planID2},
 		{ID: "/sub/orphan", Name: "orphan"}, // neither set -> skipped.
 	}
 	webAppIDMap := map[string]string{
@@ -875,11 +875,11 @@ func TestTransformWebAppToPlanConnections(t *testing.T) {
 
 func TestTransformWebAppToSubnetConnections(t *testing.T) {
 	apps := []WebApp{
-		{ID: "/sub/site1", Name: "site1", VirtualNetworkSubnetID: "/sub/subnet1"},
+		{ID: "/sub/labsite1", Name: "labsite1", VirtualNetworkSubnetID: "/sub/labsubnet1"},
 		{ID: "/sub/nosubnet", Name: "nosubnet"},
 	}
-	webAppIDMap := map[string]string{"/sub/site1": "azure::/sub/site1", "/sub/nosubnet": "azure::/sub/nosubnet"}
-	subnetIDMap := map[string]string{"/sub/subnet1": "azure::/sub/subnet1"}
+	webAppIDMap := map[string]string{"/sub/labsite1": "azure::/sub/labsite1", "/sub/nosubnet": "azure::/sub/nosubnet"}
+	subnetIDMap := map[string]string{"/sub/labsubnet1": "azure::/sub/labsubnet1"}
 
 	conns := TransformWebAppToSubnetConnections(apps, webAppIDMap, subnetIDMap)
 	if len(conns) != 1 {
@@ -893,20 +893,20 @@ func TestTransformWebAppToSubnetConnections(t *testing.T) {
 func TestTransformNICToASGConnections(t *testing.T) {
 	nics := []NetworkInterface{
 		{
-			ID:   "/sub/nic1",
-			Name: "nic1",
+			ID:   "/sub/labnic1",
+			Name: "labnic1",
 			IPConfigurations: []IPConfiguration{
 				{
 					ApplicationSecurityGroups: []azASGRef{
-						{ID: "/sub/asg1"},
-						{ID: "/sub/asg1"}, // duplicate ASG on same NIC -> dedup.
+						{ID: "/sub/labasg1"},
+						{ID: "/sub/labasg1"}, // duplicate ASG on same NIC -> dedup.
 					},
 				},
 			},
 		},
 	}
-	nicIDMap := map[string]string{"/sub/nic1": "azure::/sub/nic1"}
-	asgIDMap := map[string]string{"/sub/asg1": "azure::/sub/asg1"}
+	nicIDMap := map[string]string{"/sub/labnic1": "azure::/sub/labnic1"}
+	asgIDMap := map[string]string{"/sub/labasg1": "azure::/sub/labasg1"}
 
 	conns := TransformNICToASGConnections(nics, nicIDMap, asgIDMap)
 	if len(conns) != 1 {
@@ -972,10 +972,10 @@ func TestSplitCSV(t *testing.T) {
 
 func TestAppInsightsFromTags(t *testing.T) {
 	tags := map[string]string{
-		"hidden-link: /app-insights-resource-id": "/subs/xxx/ai1",
+		"hidden-link: /app-insights-resource-id": "/subs/xxx/labai1",
 		"other":                                  "value",
 	}
-	if got := appInsightsFromTags(tags); got != "/subs/xxx/ai1" {
+	if got := appInsightsFromTags(tags); got != "/subs/xxx/labai1" {
 		t.Errorf("appInsightsFromTags = %q", got)
 	}
 	if got := appInsightsFromTags(map[string]string{"foo": "bar"}); got != "" {
@@ -987,10 +987,10 @@ func TestTransformStorageAccounts(t *testing.T) {
 	yes := true
 	accts := []StorageAccount{
 		{
-			ID:                     "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Storage/storageAccounts/stg1",
-			Name:                   "stg1",
+			ID:                     "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Storage/storageAccounts/labstg1",
+			Name:                   "labstg1",
 			Location:               "westeurope",
-			ResourceGroup:          "rg1",
+			ResourceGroup:          "rg-lab-01",
 			Kind:                   "StorageV2",
 			SKU:                    azStorageSKU{Name: "Standard_LRS", Tier: "Standard"},
 			AccessTier:             "Hot",
@@ -1001,8 +1001,8 @@ func TestTransformStorageAccounts(t *testing.T) {
 			ProvisioningState:      "Succeeded",
 			AllowBlobPublicAccess:  &yes,
 			PrimaryEndpoints: &azStorageEndpoints{
-				Blob: "https://stg1.blob.core.windows.net/",
-				File: "https://stg1.file.core.windows.net/",
+				Blob: "https://labstg1.blob.core.windows.net/",
+				File: "https://labstg1.file.core.windows.net/",
 			},
 			NetworkRuleSet: &azStorageNetworkRuleSet{
 				DefaultAction: "Deny",
@@ -1051,14 +1051,14 @@ func TestTransformKeyVaults(t *testing.T) {
 	softDel := true
 	vaults := []KeyVault{
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.KeyVault/vaults/kv1",
-			Name:          "kv1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.KeyVault/vaults/labkv1",
+			Name:          "labkv1",
 			Location:      "westeurope",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 			Properties: &KeyVaultProperties{
 				SKU:                       azKeyVaultSKU{Family: "A", Name: "standard"},
-				TenantID:                  "f1e2d3c4-b5a6-9078-fedc-ba9876543210",
-				VaultURI:                  "https://kv1.vault.azure.net/",
+				TenantID:                  "00000000-0000-4000-8000-00000000f1e2",
+				VaultURI:                  "https://labkv1.vault.azure.net/",
 				EnableRbacAuthorization:   true,
 				EnableSoftDelete:          &softDel,
 				SoftDeleteRetentionInDays: 90,
@@ -1069,7 +1069,7 @@ func TestTransformKeyVaults(t *testing.T) {
 					Bypass:              "AzureServices",
 					DefaultAction:       "Deny",
 					IPRules:             []azKeyVaultIPRule{{Value: "203.0.113.0/24"}},
-					VirtualNetworkRules: []azKeyVaultVNetRule{{ID: "/subs/s/vnet/subnet1"}},
+					VirtualNetworkRules: []azKeyVaultVNetRule{{ID: "/subs/s/vnet/labsubnet1"}},
 				},
 			},
 		},
@@ -1119,12 +1119,12 @@ func TestTransformKeyVaults(t *testing.T) {
 func TestTransformContainerRegistries(t *testing.T) {
 	regs := []ContainerRegistry{
 		{
-			ID:                   "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.ContainerRegistry/registries/acr1",
-			Name:                 "acr1",
+			ID:                   "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.ContainerRegistry/registries/labacr1",
+			Name:                 "labacr1",
 			Location:             "westeurope",
-			ResourceGroup:        "rg1",
+			ResourceGroup:        "rg-lab-01",
 			SKU:                  azACRSKU{Name: "Premium", Tier: "Premium"},
-			LoginServer:          "acr1.azurecr.io",
+			LoginServer:          "labacr1.azurecr.io",
 			AdminUserEnabled:     false,
 			AnonymousPullEnabled: false,
 			PublicNetworkAccess:  "Disabled",
@@ -1141,7 +1141,7 @@ func TestTransformContainerRegistries(t *testing.T) {
 	if r.Type != "osiris.azure.containerregistry" {
 		t.Errorf("expected type osiris.azure.containerregistry, got %q", r.Type)
 	}
-	if r.Properties["login_server"] != "acr1.azurecr.io" {
+	if r.Properties["login_server"] != "labacr1.azurecr.io" {
 		t.Errorf("expected login_server")
 	}
 	if r.Properties["zone_redundant"] != true {
@@ -1152,13 +1152,13 @@ func TestTransformContainerRegistries(t *testing.T) {
 func TestTransformManagedIdentities(t *testing.T) {
 	ids := []ManagedIdentity{
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.ManagedIdentity/userAssignedIdentities/mi1",
-			Name:          "mi1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.ManagedIdentity/userAssignedIdentities/labmi1",
+			Name:          "labmi1",
 			Location:      "westeurope",
-			ResourceGroup: "rg1",
-			PrincipalID:   "00000000-0000-0000-0000-000000000001",
-			ClientID:      "00000000-0000-0000-0000-000000000002",
-			TenantID:      "f1e2d3c4-b5a6-9078-fedc-ba9876543210",
+			ResourceGroup: "rg-lab-01",
+			PrincipalID:   "00000000-0000-4000-8000-000000000001",
+			ClientID:      "00000000-0000-4000-8000-000000000002",
+			TenantID:      "00000000-0000-4000-8000-00000000f1e2",
 		},
 	}
 
@@ -1170,10 +1170,10 @@ func TestTransformManagedIdentities(t *testing.T) {
 	if r.Type != "osiris.azure.managedidentity" {
 		t.Errorf("expected type osiris.azure.managedidentity, got %q", r.Type)
 	}
-	if r.Properties["principal_id"] != "00000000-0000-0000-0000-000000000001" {
+	if r.Properties["principal_id"] != "00000000-0000-4000-8000-000000000001" {
 		t.Errorf("expected principal_id in properties, got %v", r.Properties["principal_id"])
 	}
-	if r.Properties["client_id"] != "00000000-0000-0000-0000-000000000002" {
+	if r.Properties["client_id"] != "00000000-0000-4000-8000-000000000002" {
 		t.Errorf("expected client_id in properties, got %v", r.Properties["client_id"])
 	}
 	if idMap[armKey(ids[0].ID)] != r.ID {
@@ -1184,25 +1184,25 @@ func TestTransformManagedIdentities(t *testing.T) {
 func TestTransformDisks(t *testing.T) {
 	disks := []Disk{
 		{
-			ID:                "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Compute/disks/disk1",
-			Name:              "disk1",
+			ID:                "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Compute/disks/labdisk1",
+			Name:              "labdisk1",
 			Location:          "westeurope",
-			ResourceGroup:     "rg1",
+			ResourceGroup:     "rg-lab-01",
 			SKU:               azDiskSKU{Name: "Premium_LRS", Tier: "Premium"},
 			DiskSizeGB:        128,
 			DiskIOPSReadWrite: 500,
 			DiskMBPSReadWrite: 100,
 			DiskState:         "Attached",
 			OSType:            "Linux",
-			ManagedBy:         "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Compute/virtualMachines/vm1",
+			ManagedBy:         "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Compute/virtualMachines/labvm1",
 			ProvisioningState: "Succeeded",
 			Zones:             []string{"1"},
 		},
 		{
-			ID:                "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Compute/disks/disk2",
-			Name:              "disk2",
+			ID:                "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Compute/disks/labdisk2",
+			Name:              "labdisk2",
 			Location:          "westeurope",
-			ResourceGroup:     "rg1",
+			ResourceGroup:     "rg-lab-01",
 			DiskState:         "Unattached",
 			ProvisioningState: "Succeeded",
 		},
@@ -1226,17 +1226,17 @@ func TestTransformDisks(t *testing.T) {
 func TestTransformSnapshots(t *testing.T) {
 	snaps := []Snapshot{
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Compute/snapshots/snap1",
-			Name:          "snap1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Compute/snapshots/labsnap1",
+			Name:          "labsnap1",
 			Location:      "westeurope",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 			SKU:           azDiskSKU{Name: "Standard_LRS"},
 			DiskSizeGB:    128,
 			Incremental:   true,
 			OSType:        "Linux",
 			CreationData: &azDiskCreationData{
 				CreateOption:     "Copy",
-				SourceResourceID: "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Compute/disks/disk1",
+				SourceResourceID: "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Compute/disks/labdisk1",
 			},
 			ProvisioningState: "Succeeded",
 		},
@@ -1261,24 +1261,24 @@ func TestTransformSnapshots(t *testing.T) {
 func TestTransformDiskToSnapshotConnections(t *testing.T) {
 	snaps := []Snapshot{
 		{
-			ID:           "/sub/snap1",
-			Name:         "snap1",
-			CreationData: &azDiskCreationData{SourceResourceID: "/sub/disk1"},
+			ID:           "/sub/labsnap1",
+			Name:         "labsnap1",
+			CreationData: &azDiskCreationData{SourceResourceID: "/sub/labdisk1"},
 		},
 		{
 			ID: "/sub/snap2", Name: "snap2", // no creation data -> skipped.
 		},
 	}
-	snapshotIDMap := map[string]string{"/sub/snap1": "azure::/sub/snap1", "/sub/snap2": "azure::/sub/snap2"}
-	diskIDMap := map[string]string{"/sub/disk1": "azure::/sub/disk1"}
+	snapshotIDMap := map[string]string{"/sub/labsnap1": "azure::/sub/labsnap1", "/sub/snap2": "azure::/sub/snap2"}
+	diskIDMap := map[string]string{"/sub/labdisk1": "azure::/sub/labdisk1"}
 
 	conns := TransformDiskToSnapshotConnections(snaps, snapshotIDMap, diskIDMap)
 	if len(conns) != 1 {
 		t.Fatalf("expected 1 connection, got %d", len(conns))
 	}
 	c := conns[0]
-	if c.Type != connDataflow || c.Direction != "forward" || c.Source != "azure::/sub/disk1" || c.Target != "azure::/sub/snap1" {
-		t.Errorf("want dataflow disk1 -> snap1 forward, got %s %s -> %s (%s)", c.Type, c.Source, c.Target, c.Direction)
+	if c.Type != connDataflow || c.Direction != "forward" || c.Source != "azure::/sub/labdisk1" || c.Target != "azure::/sub/labsnap1" {
+		t.Errorf("want dataflow labdisk1 -> labsnap1 forward, got %s %s -> %s (%s)", c.Type, c.Source, c.Target, c.Direction)
 	}
 }
 
@@ -1343,13 +1343,13 @@ func TestMapDiskState(t *testing.T) {
 }
 
 func TestTransformApplicationInsights(t *testing.T) {
-	wsArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.OperationalInsights/workspaces/ws1"
+	wsArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.OperationalInsights/workspaces/labws1"
 	comps := []ApplicationInsights{
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/microsoft.insights/components/app1",
-			Name:          "app1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/microsoft.insights/components/labapp1",
+			Name:          "labapp1",
 			Location:      "westeurope",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 			Kind:          "web",
 			Properties: &AppInsightsProperties{
 				ApplicationType:                 "web",
@@ -1364,10 +1364,10 @@ func TestTransformApplicationInsights(t *testing.T) {
 			},
 		},
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/microsoft.insights/components/classic1",
-			Name:          "classic1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/microsoft.insights/components/labclassic1",
+			Name:          "labclassic1",
 			Location:      "westeurope",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 			Properties:    nil,
 		},
 	}
@@ -1426,11 +1426,11 @@ func TestTransformApplicationInsights(t *testing.T) {
 func TestTransformLogAnalyticsWorkspaces(t *testing.T) {
 	wss := []LogAnalyticsWorkspace{
 		{
-			ID:                              "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.OperationalInsights/workspaces/ws1",
-			Name:                            "ws1",
+			ID:                              "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.OperationalInsights/workspaces/labws1",
+			Name:                            "labws1",
 			Location:                        "westeurope",
-			ResourceGroup:                   "rg1",
-			CustomerID:                      "11111111-2222-3333-4444-555555555555",
+			ResourceGroup:                   "rg-lab-01",
+			CustomerID:                      "00000000-0000-4000-8000-000000005555",
 			ProvisioningState:               "Succeeded",
 			SKU:                             &azLAWorkspaceSKU{Name: "PerGB2018"},
 			RetentionInDays:                 30,
@@ -1465,7 +1465,7 @@ func TestTransformLogAnalyticsWorkspaces(t *testing.T) {
 		t.Errorf("expected daily_quota_gb=10.5, got %v", r.Properties["daily_quota_gb"])
 	}
 	ext, _ := r.Extensions[extensionNamespace].(map[string]any)
-	if ext == nil || ext["customer_id"] != "11111111-2222-3333-4444-555555555555" {
+	if ext == nil || ext["customer_id"] != "00000000-0000-4000-8000-000000005555" {
 		t.Errorf("expected customer_id extension")
 	}
 	// Secret fields (shared keys) must never be emitted.
@@ -1485,18 +1485,18 @@ func TestTransformLogAnalyticsWorkspaces(t *testing.T) {
 }
 
 func TestTransformAppInsightsToWorkspaceConnections(t *testing.T) {
-	aiArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/microsoft.insights/components/app1"
-	wsArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.OperationalInsights/workspaces/ws1"
+	aiArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/microsoft.insights/components/labapp1"
+	wsArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.OperationalInsights/workspaces/labws1"
 	comps := []ApplicationInsights{
 		{
 			ID:         aiArm,
-			Name:       "app1",
+			Name:       "labapp1",
 			Properties: &AppInsightsProperties{WorkspaceResourceID: wsArm},
 		},
 		{
 			// Classic AI with no workspace binding should not emit an edge.
-			ID:         "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/microsoft.insights/components/classic1",
-			Name:       "classic1",
+			ID:         "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/microsoft.insights/components/labclassic1",
+			Name:       "labclassic1",
 			Properties: nil,
 		},
 	}
@@ -1517,13 +1517,13 @@ func TestTransformAppInsightsToWorkspaceConnections(t *testing.T) {
 }
 
 func TestTransformRecoveryServicesVaults(t *testing.T) {
-	peArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/privateEndpoints/pe1"
+	peArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/privateEndpoints/labpe1"
 	vaults := []RecoveryServicesVault{
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.RecoveryServices/vaults/rsv1",
-			Name:          "rsv1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.RecoveryServices/vaults/labrsv1",
+			Name:          "labrsv1",
 			Location:      "westeurope",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 			SKU:           &azRSVaultSKU{Name: "RS0", Tier: "Standard"},
 			Properties: &RSVaultProperties{
 				ProvisioningState:   "Succeeded",
@@ -1581,10 +1581,10 @@ func TestTransformRecoveryServicesVaults(t *testing.T) {
 func TestTransformBackupVaults(t *testing.T) {
 	vaults := []BackupVault{
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.DataProtection/backupVaults/bv1",
-			Name:          "bv1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.DataProtection/backupVaults/labbv1",
+			Name:          "labbv1",
 			Location:      "westeurope",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 			Properties: &BackupVaultProperties{
 				ProvisioningState: "Succeeded",
 				StorageSettings: []azBackupVaultStorageSetting{
@@ -1628,12 +1628,12 @@ func TestTransformBackupVaults(t *testing.T) {
 }
 
 func TestTransformBackupProtectedItemConnections(t *testing.T) {
-	vmArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Compute/virtualMachines/vm1"
-	vaultArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.RecoveryServices/vaults/rsv1"
+	vmArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Compute/virtualMachines/labvm1"
+	vaultArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.RecoveryServices/vaults/labrsv1"
 	vaults := []RecoveryServicesVault{
 		{
 			ID:   vaultArm,
-			Name: "rsv1",
+			Name: "labrsv1",
 			ProtectedItems: []BackupProtectedItem{
 				{
 					Name: "vm1-item",
@@ -1646,7 +1646,7 @@ func TestTransformBackupProtectedItemConnections(t *testing.T) {
 					// Unknown source resource -> skipped.
 					Name: "orphan",
 					Properties: &azProtectedItemProperties{
-						SourceResourceID: "/subscriptions/other/resourceGroups/rgZ/providers/Microsoft.Compute/virtualMachines/ghost",
+						SourceResourceID: "/subscriptions/00000000-0000-4000-8000-000000000099/resourceGroups/rg-lab-z/providers/Microsoft.Compute/virtualMachines/labghost",
 					},
 				},
 				{
@@ -1674,12 +1674,12 @@ func TestTransformBackupProtectedItemConnections(t *testing.T) {
 }
 
 func TestTransformBackupInstanceConnections(t *testing.T) {
-	diskArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Compute/disks/disk1"
-	vaultArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.DataProtection/backupVaults/bv1"
+	diskArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Compute/disks/labdisk1"
+	vaultArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.DataProtection/backupVaults/labbv1"
 	vaults := []BackupVault{
 		{
 			ID:   vaultArm,
-			Name: "bv1",
+			Name: "labbv1",
 			ProtectedInstances: []BackupInstance{
 				{
 					Name: "disk1-instance",
@@ -1706,19 +1706,19 @@ func TestTransformBackupInstanceConnections(t *testing.T) {
 }
 
 func TestTransformWebAppToAppInsightsConnections(t *testing.T) {
-	aiArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/microsoft.insights/components/app1"
+	aiArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/microsoft.insights/components/labapp1"
 	webApps := []WebApp{
 		{
-			ID:   "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Web/sites/site1",
-			Name: "site1",
+			ID:   "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Web/sites/labsite1",
+			Name: "labsite1",
 			Tags: map[string]string{
 				"hidden-link: /app-insights-resource-id": aiArm,
 			},
 		},
 		{
 			// No hidden-link tag -> no edge.
-			ID:   "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Web/sites/site2",
-			Name: "site2",
+			ID:   "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Web/sites/labsite2",
+			Name: "labsite2",
 			Tags: map[string]string{"environment": "np"},
 		},
 	}
@@ -1739,17 +1739,17 @@ func TestTransformWebAppToAppInsightsConnections(t *testing.T) {
 }
 
 func TestTransformSQLServers(t *testing.T) {
-	peArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/privateEndpoints/pe-sql"
+	peArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/privateEndpoints/labpe-sql"
 	servers := []SQLServer{
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Sql/servers/sqlsrv1",
-			Name:          "sqlsrv1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Sql/servers/labsqlsrv1",
+			Name:          "labsqlsrv1",
 			Location:      "westeurope",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 			Properties: &azSQLServerProperties{
 				Version:                  "12.0",
 				AdministratorLogin:       "sqladmin",
-				FullyQualifiedDomainName: "sqlsrv1.database.windows.net",
+				FullyQualifiedDomainName: "labsqlsrv1.database.windows.net",
 				State:                    "Ready",
 				PublicNetworkAccess:      "Disabled",
 				MinimalTLSVersion:        "1.2",
@@ -1764,7 +1764,7 @@ func TestTransformSQLServers(t *testing.T) {
 				},
 			},
 			Databases: []SQLDatabase{
-				{Name: "db1"},
+				{Name: "labdb1"},
 				{Name: "db2"},
 			},
 		},
@@ -1813,15 +1813,15 @@ func TestTransformSQLServers(t *testing.T) {
 func TestTransformSQLDatabases(t *testing.T) {
 	servers := []SQLServer{
 		{
-			ID:   "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Sql/servers/sqlsrv1",
-			Name: "sqlsrv1",
+			ID:   "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Sql/servers/labsqlsrv1",
+			Name: "labsqlsrv1",
 			Databases: []SQLDatabase{
 				{
-					ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Sql/servers/sqlsrv1/databases/db1",
-					Name:          "db1",
+					ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Sql/servers/labsqlsrv1/databases/labdb1",
+					Name:          "labdb1",
 					Location:      "westeurope",
-					ResourceGroup: "rg1",
-					ServerID:      "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Sql/servers/sqlsrv1",
+					ResourceGroup: "rg-lab-01",
+					ServerID:      "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Sql/servers/labsqlsrv1",
 					SKU:           &azSQLDatabaseSKU{Name: "GP_S_Gen5_2", Tier: "GeneralPurpose", Capacity: 2, Family: "Gen5"},
 					Properties: &azSQLDatabaseProperties{
 						Collation:     "SQL_Latin1_General_CP1_CI_AS",
@@ -1851,8 +1851,8 @@ func TestTransformSQLDatabases(t *testing.T) {
 	if r.Properties["zone_redundant"] != true {
 		t.Errorf("expected zone_redundant=true")
 	}
-	if r.Properties["server_name"] != "sqlsrv1" {
-		t.Errorf("expected server_name=sqlsrv1")
+	if r.Properties["server_name"] != "labsqlsrv1" {
+		t.Errorf("expected server_name=labsqlsrv1")
 	}
 	if idMap[armKey(servers[0].Databases[0].ID)] != r.ID {
 		t.Errorf("idMap mismatch")
@@ -1860,10 +1860,10 @@ func TestTransformSQLDatabases(t *testing.T) {
 }
 
 func TestTransformSQLServerContainsDatabaseConnections(t *testing.T) {
-	srvArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Sql/servers/sqlsrv1"
-	dbArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Sql/servers/sqlsrv1/databases/db1"
+	srvArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Sql/servers/labsqlsrv1"
+	dbArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Sql/servers/labsqlsrv1/databases/labdb1"
 	servers := []SQLServer{
-		{ID: srvArm, Name: "sqlsrv1", Databases: []SQLDatabase{{ID: dbArm, Name: "db1", ServerID: srvArm}}},
+		{ID: srvArm, Name: "labsqlsrv1", Databases: []SQLDatabase{{ID: dbArm, Name: "labdb1", ServerID: srvArm}}},
 	}
 	srvIDMap := map[string]string{srvArm: "srv-id"}
 	dbIDMap := map[string]string{dbArm: "db-id"}
@@ -1881,18 +1881,18 @@ func TestTransformSQLServerContainsDatabaseConnections(t *testing.T) {
 }
 
 func TestTransformPostgreSQLServers(t *testing.T) {
-	subnetArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/pgsubnet"
+	subnetArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/virtualNetworks/labvnet1/subnets/labpgsubnet"
 	servers := []PostgreSQLServer{
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.DBforPostgreSQL/flexibleServers/pg1",
-			Name:          "pg1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/labpg1",
+			Name:          "labpg1",
 			Location:      "westeurope",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 			SKU:           &azFlexServerSKU{Name: "Standard_D2ds_v4", Tier: "GeneralPurpose"},
 			Properties: &azFlexServerProperties{
 				Version:                  "15",
 				AdministratorLogin:       "pgadmin",
-				FullyQualifiedDomainName: "pg1.postgres.database.azure.com",
+				FullyQualifiedDomainName: "labpg1.postgres.database.azure.com",
 				State:                    "Ready",
 				AvailabilityZone:         "1",
 				Storage:                  &azFlexServerStorage{StorageSizeGB: 128, Tier: "P10", Iops: 500, AutoGrow: "Enabled"},
@@ -1939,10 +1939,10 @@ func TestTransformPostgreSQLServers(t *testing.T) {
 func TestTransformMySQLServers(t *testing.T) {
 	servers := []MySQLServer{
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.DBforMySQL/flexibleServers/mysql1",
-			Name:          "mysql1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.DBforMySQL/flexibleServers/labmysql1",
+			Name:          "labmysql1",
 			Location:      "westeurope",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 			SKU:           &azFlexServerSKU{Name: "Standard_B1ms", Tier: "Burstable"},
 			Properties: &azFlexServerProperties{
 				Version:            "8.0.21",
@@ -1969,18 +1969,18 @@ func TestTransformMySQLServers(t *testing.T) {
 }
 
 func TestTransformCosmosAccounts(t *testing.T) {
-	peArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/privateEndpoints/pe-cosmos"
+	peArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/privateEndpoints/labpe-cosmos"
 	accts := []CosmosAccount{
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/cosmos1",
-			Name:          "cosmos1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.DocumentDB/databaseAccounts/labcosmos1",
+			Name:          "labcosmos1",
 			Location:      "westeurope",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 			Kind:          "GlobalDocumentDB",
 			Properties: &azCosmosProperties{
 				ProvisioningState:             "Succeeded",
 				DatabaseAccountOfferType:      "Standard",
-				DocumentEndpoint:              "https://cosmos1.documents.azure.com:443/",
+				DocumentEndpoint:              "https://labcosmos1.documents.azure.com:443/",
 				PublicNetworkAccess:           "Disabled",
 				EnableAutomaticFailover:       true,
 				IsVirtualNetworkFilterEnabled: true,
@@ -2043,21 +2043,21 @@ func TestTransformCosmosAccounts(t *testing.T) {
 }
 
 func TestTransformRedisCaches(t *testing.T) {
-	peArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/privateEndpoints/pe-redis"
-	subnetArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/redis"
+	peArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/privateEndpoints/labpe-redis"
+	subnetArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/virtualNetworks/labvnet1/subnets/labredis"
 	caches := []RedisCache{
 		{
-			ID:                  "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Cache/Redis/redis1",
-			Name:                "redis1",
+			ID:                  "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Cache/Redis/labredis1",
+			Name:                "labredis1",
 			Location:            "westeurope",
-			ResourceGroup:       "rg1",
+			ResourceGroup:       "rg-lab-01",
 			SKU:                 &azRedisSKU{Name: "Premium", Family: "P", Capacity: 1},
 			RedisVersion:        "6.0",
 			ProvisioningState:   "Succeeded",
 			EnableNonSSLPort:    false,
 			MinimumTLSVersion:   "1.2",
 			PublicNetworkAccess: "Disabled",
-			HostName:            "redis1.redis.cache.windows.net",
+			HostName:            "labredis1.redis.cache.windows.net",
 			Port:                6379,
 			SSLPort:             6380,
 			ShardCount:          3,
@@ -2115,19 +2115,19 @@ func TestTransformRedisCaches(t *testing.T) {
 }
 
 func TestTransformFlexServerToSubnetConnections(t *testing.T) {
-	subnetArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/pgsubnet"
+	subnetArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/virtualNetworks/labvnet1/subnets/labpgsubnet"
 	pgs := []PostgreSQLServer{
 		{
-			ID:   "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.DBforPostgreSQL/flexibleServers/pg1",
-			Name: "pg1",
+			ID:   "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/labpg1",
+			Name: "labpg1",
 			Properties: &azFlexServerProperties{
 				Network: &azFlexServerNetwork{DelegatedSubnetResourceID: subnetArm},
 			},
 		},
 		// Public-access server: no delegated subnet; must be skipped.
 		{
-			ID:   "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.DBforPostgreSQL/flexibleServers/pg-public",
-			Name: "pg-public",
+			ID:   "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.DBforPostgreSQL/flexibleServers/labpg-public",
+			Name: "labpg-public",
 			Properties: &azFlexServerProperties{
 				Network: &azFlexServerNetwork{PublicNetworkAccess: "Enabled"},
 			},
@@ -2135,8 +2135,8 @@ func TestTransformFlexServerToSubnetConnections(t *testing.T) {
 	}
 	mys := []MySQLServer{
 		{
-			ID:   "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.DBforMySQL/flexibleServers/mysql1",
-			Name: "mysql1",
+			ID:   "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.DBforMySQL/flexibleServers/labmysql1",
+			Name: "labmysql1",
 			Properties: &azFlexServerProperties{
 				Network: &azFlexServerNetwork{DelegatedSubnetResourceID: subnetArm},
 			},
@@ -2164,11 +2164,11 @@ func TestTransformFlexServerToSubnetConnections(t *testing.T) {
 }
 
 func TestTransformRedisToSubnetConnections(t *testing.T) {
-	subnetArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/redis"
+	subnetArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/virtualNetworks/labvnet1/subnets/labredis"
 	caches := []RedisCache{
-		{ID: "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Cache/Redis/redis1", Name: "redis1", SubnetID: subnetArm},
+		{ID: "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Cache/Redis/labredis1", Name: "labredis1", SubnetID: subnetArm},
 		// Basic tier, no VNet injection: must be skipped.
-		{ID: "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Cache/Redis/redis-basic", Name: "redis-basic"},
+		{ID: "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Cache/Redis/labredis-basic", Name: "labredis-basic"},
 	}
 	redisIDMap := map[string]string{
 		caches[0].ID: "redis-rid",
@@ -2186,18 +2186,18 @@ func TestTransformRedisToSubnetConnections(t *testing.T) {
 }
 
 func TestTransformAKSClusters(t *testing.T) {
-	peArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/privateEndpoints/pe-aks"
+	peArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/privateEndpoints/labpe-aks"
 	clusters := []AKSCluster{
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.ContainerService/managedClusters/aks1",
-			Name:          "aks1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.ContainerService/managedClusters/labaks1",
+			Name:          "labaks1",
 			Location:      "westeurope",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 			SKU:           &azAKSSKU{Name: "Base", Tier: "Standard"},
 			Properties: &azAKSProperties{
 				KubernetesVersion: "1.29.0",
 				DNSPrefix:         "aks1-dns",
-				FQDN:              "aks1.hcp.westeurope.azmk8s.io",
+				FQDN:              "labaks1.hcp.westeurope.azmk8s.io",
 				EnableRBAC:        true,
 				ProvisioningState: "Succeeded",
 				NodeResourceGroup: "MC_rg1_aks1_westeurope",
@@ -2265,16 +2265,16 @@ func TestTransformAKSClusters(t *testing.T) {
 }
 
 func TestTransformAKSAgentPools(t *testing.T) {
-	subnetArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/aks"
+	subnetArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/virtualNetworks/labvnet1/subnets/labaks"
 	clusters := []AKSCluster{
 		{
-			ID:       "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.ContainerService/managedClusters/aks1",
-			Name:     "aks1",
+			ID:       "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.ContainerService/managedClusters/labaks1",
+			Name:     "labaks1",
 			Location: "westeurope",
 			AgentPools: []AKSAgentPool{
 				{
-					ID:                "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.ContainerService/managedClusters/aks1/agentPools/nodepool1",
-					Name:              "nodepool1",
+					ID:                "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.ContainerService/managedClusters/labaks1/agentPools/labnodepool1",
+					Name:              "labnodepool1",
 					VMSize:            "Standard_DS2_v2",
 					Count:             3,
 					EnableAutoScaling: true, MinCount: 1, MaxCount: 5,
@@ -2282,8 +2282,8 @@ func TestTransformAKSAgentPools(t *testing.T) {
 					OrchestratorVer:   "1.29.0",
 					VNetSubnetID:      subnetArm,
 					ProvisioningState: "Succeeded",
-					ClusterID:         "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.ContainerService/managedClusters/aks1",
-					ClusterName:       "aks1",
+					ClusterID:         "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.ContainerService/managedClusters/labaks1",
+					ClusterName:       "labaks1",
 				},
 			},
 		},
@@ -2315,16 +2315,16 @@ func TestTransformAKSAgentPools(t *testing.T) {
 }
 
 func TestTransformContainerAppEnvironments(t *testing.T) {
-	subnetArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/ace"
+	subnetArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/virtualNetworks/labvnet1/subnets/labace"
 	envs := []ContainerAppEnvironment{
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.App/managedEnvironments/env1",
-			Name:          "env1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.App/managedEnvironments/labenv1",
+			Name:          "labenv1",
 			Location:      "westeurope",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 			Properties: &azContainerEnvProperties{
 				ProvisioningState: "Succeeded",
-				DefaultDomain:     "proudforest-abc.westeurope.azurecontainerapps.io",
+				DefaultDomain:     "labenv-abc.westeurope.azurecontainerapps.io",
 				StaticIP:          "192.0.2.4",
 				ZoneRedundant:     true,
 				VNetConfiguration: &azContainerEnvVNetConfig{
@@ -2358,18 +2358,18 @@ func TestTransformContainerAppEnvironments(t *testing.T) {
 }
 
 func TestTransformContainerApps(t *testing.T) {
-	envArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.App/managedEnvironments/env1"
+	envArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.App/managedEnvironments/labenv1"
 	apps := []ContainerApp{
 		// Uses environmentId.
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.App/containerApps/app1",
-			Name:          "app1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.App/containerApps/labapp1",
+			Name:          "labapp1",
 			Location:      "westeurope",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 			Properties: &azContainerAppProperties{
 				ProvisioningState:   "Succeeded",
 				EnvironmentID:       envArm,
-				LatestRevisionFQDN:  "app1.proudforest.westeurope.azurecontainerapps.io",
+				LatestRevisionFQDN:  "labapp1.labenv.westeurope.azurecontainerapps.io",
 				WorkloadProfileName: "Consumption",
 				Configuration: &azContainerAppConfig{
 					ActiveRevisionsMode: "Single",
@@ -2381,8 +2381,8 @@ func TestTransformContainerApps(t *testing.T) {
 		},
 		// Uses managedEnvironmentId fallback.
 		{
-			ID:   "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.App/containerApps/app2",
-			Name: "app2",
+			ID:   "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.App/containerApps/labapp2",
+			Name: "labapp2",
 			Properties: &azContainerAppProperties{
 				ManagedEnvironmentID: envArm,
 			},
@@ -2394,14 +2394,14 @@ func TestTransformContainerApps(t *testing.T) {
 		t.Fatalf("expected 2 resources, got %d", len(resources))
 	}
 	if resources[0].Properties["environment_id"] != envArm {
-		t.Errorf("expected app1 environment_id=%s", envArm)
+		t.Errorf("expected labapp1 environment_id=%s", envArm)
 	}
 	if resources[1].Properties["environment_id"] != envArm {
-		t.Errorf("expected app2 environment_id=%s (fallback)", envArm)
+		t.Errorf("expected labapp2 environment_id=%s (fallback)", envArm)
 	}
 	ing, ok := resources[0].Properties["ingress"].(map[string]any)
 	if !ok {
-		t.Fatalf("expected ingress map on app1")
+		t.Fatalf("expected ingress map on labapp1")
 	}
 	if ing["external"] != true || ing["target_port"] != 8080 {
 		t.Errorf("ingress fields wrong: %+v", ing)
@@ -2409,20 +2409,20 @@ func TestTransformContainerApps(t *testing.T) {
 }
 
 func TestTransformContainerGroups(t *testing.T) {
-	subnetArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/aci"
+	subnetArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/virtualNetworks/labvnet1/subnets/labaci"
 	groups := []ContainerGroup{
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.ContainerInstance/containerGroups/cg1",
-			Name:          "cg1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.ContainerInstance/containerGroups/labcg1",
+			Name:          "labcg1",
 			Location:      "westeurope",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 			Properties: &azContainerGroupProperties{
 				ProvisioningState: "Succeeded",
 				OSType:            "Linux",
 				RestartPolicy:     "Always",
 				Sku:               "Standard",
 				IPAddress: &azContainerGroupIPAddress{
-					IP: "192.0.2.5", Type: "Private", FQDN: "cg1.westeurope.azurecontainer.io",
+					IP: "192.0.2.5", Type: "Private", FQDN: "labcg1.westeurope.azurecontainer.io",
 				},
 				SubnetIDs:  []azContainerGroupSubnetRef{{ID: subnetArm}},
 				Containers: []map[string]any{{"name": "web"}, {"name": "sidecar"}},
@@ -2454,17 +2454,17 @@ func TestTransformContainerGroups(t *testing.T) {
 }
 
 func TestTransformServiceBusNamespaces(t *testing.T) {
-	peArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/privateEndpoints/pe-sb"
+	peArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/privateEndpoints/labpe-sb"
 	namespaces := []ServiceBusNamespace{
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.ServiceBus/namespaces/sb1",
-			Name:          "sb1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.ServiceBus/namespaces/labsb1",
+			Name:          "labsb1",
 			Location:      "westeurope",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 			SKU:           &azMessagingSKU{Name: "Premium", Tier: "Premium", Capacity: 1},
 			Properties: &azMessagingProperties{
 				ProvisioningState:   "Succeeded",
-				ServiceBusEndpoint:  "https://sb1.servicebus.windows.net:443/",
+				ServiceBusEndpoint:  "https://labsb1.servicebus.windows.net:443/",
 				ZoneRedundant:       true,
 				DisableLocalAuth:    true,
 				PublicNetworkAccess: "Disabled",
@@ -2514,19 +2514,19 @@ func TestTransformServiceBusNamespaces(t *testing.T) {
 }
 
 func TestTransformAPIMServices(t *testing.T) {
-	subnetArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/apim"
+	subnetArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/virtualNetworks/labvnet1/subnets/labapim"
 	services := []APIMService{
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.ApiManagement/service/apim1",
-			Name:          "apim1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.ApiManagement/service/labapim1",
+			Name:          "labapim1",
 			Location:      "westeurope",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 			SKU:           &azAPIMSKU{Name: "Developer", Capacity: 1},
 			Properties: &azAPIMProperties{
 				ProvisioningState:  "Succeeded",
-				GatewayURL:         "https://apim1.azure-api.net",
-				PortalURL:          "https://apim1.developer.azure-api.net",
-				ManagementURL:      "https://apim1.management.azure-api.net",
+				GatewayURL:         "https://labapim1.azure-api.net",
+				PortalURL:          "https://labapim1.developer.azure-api.net",
+				ManagementURL:      "https://labapim1.management.azure-api.net",
 				VirtualNetworkType: "Internal",
 				VirtualNetworkConfiguration: &azAPIMVirtualNetworkConfig{
 					SubnetResourceID: subnetArm,
@@ -2559,10 +2559,10 @@ func TestTransformAPIMServices(t *testing.T) {
 func TestTransformFrontDoorProfiles(t *testing.T) {
 	profiles := []FrontDoorProfile{
 		{
-			ID:            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Cdn/profiles/afd1",
-			Name:          "afd1",
+			ID:            "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Cdn/profiles/labafd1",
+			Name:          "labafd1",
 			Location:      "global",
-			ResourceGroup: "rg1",
+			ResourceGroup: "rg-lab-01",
 			SKU:           &azFrontDoorSKU{Name: "Premium_AzureFrontDoor"},
 			Kind:          "frontdoor",
 			Properties: &azFrontDoorProperties{
@@ -2593,9 +2593,9 @@ func TestTransformAKSClusterContainsAgentPoolConnections(t *testing.T) {
 	clusters := []AKSCluster{
 		{
 			ID:   "cluster-arm",
-			Name: "aks1",
+			Name: "labaks1",
 			AgentPools: []AKSAgentPool{
-				{ID: "pool1-arm", Name: "nodepool1"},
+				{ID: "pool1-arm", Name: "labnodepool1"},
 				{ID: "pool2-arm", Name: "nodepool2"},
 			},
 		},
@@ -2620,8 +2620,8 @@ func TestTransformAKSClusterContainsAgentPoolConnections(t *testing.T) {
 func TestTransformContainerEnvContainsAppConnections(t *testing.T) {
 	envArm := "env-arm"
 	apps := []ContainerApp{
-		{ID: "app1-arm", Name: "app1", Properties: &azContainerAppProperties{EnvironmentID: envArm}},
-		{ID: "app2-arm", Name: "app2", Properties: &azContainerAppProperties{ManagedEnvironmentID: envArm}},
+		{ID: "app1-arm", Name: "labapp1", Properties: &azContainerAppProperties{EnvironmentID: envArm}},
+		{ID: "app2-arm", Name: "labapp2", Properties: &azContainerAppProperties{ManagedEnvironmentID: envArm}},
 		// No env ID set: must be skipped.
 		{ID: "app-orphan", Name: "orphan", Properties: &azContainerAppProperties{}},
 	}
@@ -2647,11 +2647,11 @@ func TestTransformContainerEnvContainsAppConnections(t *testing.T) {
 }
 
 func TestTransformContainerGroupToSubnetConnections(t *testing.T) {
-	subnetArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/aci"
+	subnetArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/virtualNetworks/labvnet1/subnets/labaci"
 	groups := []ContainerGroup{
 		{
 			ID:   "cg1-arm",
-			Name: "cg1",
+			Name: "labcg1",
 			Properties: &azContainerGroupProperties{
 				SubnetIDs: []azContainerGroupSubnetRef{{ID: subnetArm}},
 			},
@@ -2693,11 +2693,11 @@ func TestNormalizeAzureLocation(t *testing.T) {
 }
 
 func TestTransformAPIMToSubnetConnections(t *testing.T) {
-	subnetArm := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/apim"
+	subnetArm := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/virtualNetworks/labvnet1/subnets/labapim"
 	services := []APIMService{
 		{
 			ID:   "apim1-arm",
-			Name: "apim1",
+			Name: "labapim1",
 			Properties: &azAPIMProperties{
 				VirtualNetworkType:          "Internal",
 				VirtualNetworkConfiguration: &azAPIMVirtualNetworkConfig{SubnetResourceID: subnetArm},
@@ -2723,8 +2723,8 @@ func TestTransformAPIMToSubnetConnections(t *testing.T) {
 }
 
 func TestTransformGatewayConnections_CrossSubscriptionPeer(t *testing.T) {
-	localGW := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworkGateways/gw1"
-	remoteER := "/subscriptions/22222222-2222-2222-2222-222222222222/resourceGroups/hub-rg/providers/Microsoft.Network/expressRouteCircuits/hub-xpr"
+	localGW := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/virtualNetworkGateways/labgw1"
+	remoteER := "/subscriptions/00000000-0000-4000-8000-000000002222/resourceGroups/rg-lab-hub/providers/Microsoft.Network/expressRouteCircuits/labhub-xpr"
 
 	gwConns := []GatewayConnection{
 		{
@@ -2751,7 +2751,7 @@ func TestTransformGatewayConnections_CrossSubscriptionPeer(t *testing.T) {
 	if stubs[0].Type != "osiris.azure.expressroute" {
 		t.Errorf("stub type = %q, want osiris.azure.expressroute", stubs[0].Type)
 	}
-	if stubs[0].Provider.Account != "22222222-2222-2222-2222-222222222222" {
+	if stubs[0].Provider.Account != "00000000-0000-4000-8000-000000002222" {
 		t.Errorf("stub account = %q, want the remote sub", stubs[0].Provider.Account)
 	}
 	if stubs[0].Provider.Type != "Microsoft.Network/expressRouteCircuits" {
@@ -2786,8 +2786,8 @@ func TestGatewayConnectionSubtype(t *testing.T) {
 }
 
 func TestTransformGatewayConnections_InScopePeer(t *testing.T) {
-	localGW := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworkGateways/gw1"
-	localER := "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/expressRouteCircuits/er1"
+	localGW := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab/providers/Microsoft.Network/virtualNetworkGateways/labgw1"
+	localER := "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab/providers/Microsoft.Network/expressRouteCircuits/laber1"
 	gwConns := []GatewayConnection{
 		{
 			ID:                     "conn1-arm",
@@ -2836,22 +2836,22 @@ func TestTransformGatewayConnections_MissingGateway(t *testing.T) {
 func TestTransformPrivateEndpoints_TargetLinkage(t *testing.T) {
 	pes := []PrivateEndpoint{
 		{
-			ID:   "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/privateEndpoints/pe-blob",
-			Name: "pe-blob",
+			ID:   "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab/providers/Microsoft.Network/privateEndpoints/labpe-blob",
+			Name: "labpe-blob",
 			PrivateLinkServiceConnections: []azPrivateLinkServiceConnection{
 				{
 					Name:                 "pe-blob-conn",
-					PrivateLinkServiceID: "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/mystg",
+					PrivateLinkServiceID: "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab/providers/Microsoft.Storage/storageAccounts/labstg",
 					GroupIDs:             []string{"blob"},
 				},
 			},
 			CustomDNSConfigs: []azPrivateEndpointDNSConfig{
-				{FQDN: "mystg.blob.core.windows.net", IPAddresses: []string{"192.0.2.5"}},
+				{FQDN: "labstg.blob.core.windows.net", IPAddresses: []string{"192.0.2.5"}},
 			},
 		},
 		{
-			ID:   "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/privateEndpoints/pe-bare",
-			Name: "pe-bare",
+			ID:   "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab/providers/Microsoft.Network/privateEndpoints/labpe-bare",
+			Name: "labpe-bare",
 		},
 	}
 
@@ -2864,14 +2864,14 @@ func TestTransformPrivateEndpoints_TargetLinkage(t *testing.T) {
 	if got := enriched.Properties["group_id"]; got != "blob" {
 		t.Errorf("group_id = %v, want blob", got)
 	}
-	if got := enriched.Properties["private_link_service_id"]; got != "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/mystg" {
+	if got := enriched.Properties["private_link_service_id"]; got != "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab/providers/Microsoft.Storage/storageAccounts/labstg" {
 		t.Errorf("private_link_service_id = %v", got)
 	}
 	configs, ok := enriched.Properties["custom_dns_configs"].([]map[string]any)
 	if !ok || len(configs) != 1 {
 		t.Fatalf("custom_dns_configs missing or wrong shape: %#v", enriched.Properties["custom_dns_configs"])
 	}
-	if configs[0]["fqdn"] != "mystg.blob.core.windows.net" {
+	if configs[0]["fqdn"] != "labstg.blob.core.windows.net" {
 		t.Errorf("dns fqdn = %v", configs[0]["fqdn"])
 	}
 
@@ -2891,10 +2891,10 @@ func TestTransformAppGateways(t *testing.T) {
 	http2 := true
 	gws := []ApplicationGateway{
 		{
-			ID:                "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Network/applicationGateways/agw1",
-			Name:              "agw1",
+			ID:                "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Network/applicationGateways/labagw1",
+			Name:              "labagw1",
 			Location:          "westeurope",
-			ResourceGroup:     "rg1",
+			ResourceGroup:     "rg-lab-01",
 			Zones:             []string{"1", "2"},
 			ProvisioningState: "Succeeded",
 			OperationalState:  "Running",
@@ -2943,10 +2943,10 @@ func TestTransformAppGateways(t *testing.T) {
 func TestTransformMetricAlerts(t *testing.T) {
 	alerts := []MetricAlert{
 		{
-			ID:                  "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Insights/metricAlerts/alert1",
-			Name:                "alert1",
+			ID:                  "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Insights/metricAlerts/labalert1",
+			Name:                "labalert1",
 			Location:            "global",
-			ResourceGroup:       "rg1",
+			ResourceGroup:       "rg-lab-01",
 			Description:         "CPU alert",
 			Severity:            2,
 			Enabled:             true,
@@ -2954,9 +2954,9 @@ func TestTransformMetricAlerts(t *testing.T) {
 			WindowSize:          "PT5M",
 			TargetResourceType:  "Microsoft.Compute/virtualMachines",
 			AutoMitigate:        true,
-			Scopes:              []string{"/subscriptions/11111111-1111-1111-1111-111111111111"},
+			Scopes:              []string{"/subscriptions/00000000-0000-4000-8000-000000001111"},
 			Actions: []azMetricAlertActionGroup{
-				{ActionGroupID: "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Insights/actionGroups/ag1"},
+				{ActionGroupID: "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Insights/actionGroups/labag1"},
 			},
 		},
 	}
@@ -2986,10 +2986,10 @@ func TestTransformMetricAlerts(t *testing.T) {
 func TestTransformActionGroups(t *testing.T) {
 	groups := []ActionGroup{
 		{
-			ID:               "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg1/providers/Microsoft.Insights/actionGroups/ag1",
-			Name:             "ag1",
+			ID:               "/subscriptions/00000000-0000-4000-8000-000000001111/resourceGroups/rg-lab-01/providers/Microsoft.Insights/actionGroups/labag1",
+			Name:             "labag1",
 			Location:         "global",
-			ResourceGroup:    "rg1",
+			ResourceGroup:    "rg-lab-01",
 			GroupShortName:   "ag1short",
 			Enabled:          true,
 			EmailReceivers:   []struct{}{{}, {}},
@@ -3040,9 +3040,9 @@ func splitERConnectionEndpoints(all []sdk.Connection) (dataPath, endpoints []sdk
 // subscription in the canonical lower-case form, so it equals
 // metadata.scope.accounts, and the exported tenant applies.
 func TestProviderAccountCanonicalCase(t *testing.T) {
-	arm := "/subscriptions/A1B2C3D4-E5F6-7890-ABCD-EF1234567890/resourceGroups/rg1/providers/microsoft.insights/actionGroups/ag1"
+	arm := "/subscriptions/00000000-0000-4000-8000-00000000A1B2/resourceGroups/rg-lab-01/providers/microsoft.insights/actionGroups/labag1"
 	p := azureProvider(arm, "microsoft.insights/actionGroups", "global", testSub)
-	if p.Account != "a1b2c3d4-e5f6-7890-abcd-ef1234567890" || p.Tenant != testSub.TenantID {
+	if p.Account != "00000000-0000-4000-8000-00000000a1b2" || p.Tenant != testSub.TenantID {
 		t.Errorf("provider = account %q tenant %q, want lower-case exported subscription and its tenant", p.Account, p.Tenant)
 	}
 	if p.NativeID != arm {

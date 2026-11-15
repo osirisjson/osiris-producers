@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	rbVNet   = "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/RG-LAB/providers/Microsoft.Network/virtualNetworks/LAB-VNET01"
+	rbVNet   = "/subscriptions/00000000-0000-4000-8000-000000000001/resourceGroups/RG-LAB/providers/Microsoft.Network/virtualNetworks/LAB-VNET01"
 	rbSubnet = rbVNet + "/subnets/LAB-SNET01"
-	rbNSG    = "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/RG-LAB/providers/Microsoft.Network/networkSecurityGroups/LAB-NSG01"
+	rbNSG    = "/subscriptions/00000000-0000-4000-8000-000000000001/resourceGroups/RG-LAB/providers/Microsoft.Network/networkSecurityGroups/LAB-NSG01"
 )
 
 func decodeBody(t *testing.T, raw json.RawMessage) map[string]any {
@@ -66,8 +66,8 @@ func TestRawStoreCapture(t *testing.T) {
 
 func TestRawStoreNilAndConcurrent(t *testing.T) {
 	var nilStore *rawStore
-	nilStore.capture([]byte(`[{"id":"/subscriptions/x/a","name":"a"}]`))
-	if _, ok := nilStore.get("/subscriptions/x/a"); ok {
+	nilStore.capture([]byte(`[{"id":"/subscriptions/00000000-0000-4000-8000-000000000091/a","name":"a"}]`))
+	if _, ok := nilStore.get("/subscriptions/00000000-0000-4000-8000-000000000091/a"); ok {
 		t.Fatal("nil store must capture nothing")
 	}
 
@@ -94,7 +94,7 @@ func TestRedactRawBody(t *testing.T) {
 			"adminPassword": "changeme",
 			"enableRbacAuthorization": true,
 			"addonProfiles": {"azureKeyvaultSecretsProvider": {"config": {"enableSecretRotation": "false"}}},
-			"secretFlagPassword": "true-secret",
+			"secretFlagPassword": "secret-1",
 			"siteConfig": {"connectionStrings": [{"name": "db", "connectionString": "Server=LAB-SQL01;Password=secret", "type": "SQLAzure"}]},
 			"accessKeys": {"primaryKey": "secret", "keyCount": 2},
 			"endpoint": "https://admin:password@example.com/",
@@ -279,7 +279,7 @@ func TestRedactMultilineEncodedMatch(t *testing.T) {
 }
 
 func TestRedactDocumentValues(t *testing.T) {
-	const conn = "InstrumentationKey=00000000-0000-0000-0000-0000000000ee;IngestionEndpoint=https://LAB-AI01.example.com/"
+	const conn = "InstrumentationKey=00000000-0000-4000-8000-0000000000ee;IngestionEndpoint=https://LAB-AI01.example.com/"
 	shared := map[string]string{"hidden-link": conn, "env": "LAB"}
 	doc := &sdk.Document{}
 	doc.Topology.Resources = []sdk.Resource{
@@ -332,7 +332,7 @@ func TestRedactDocumentValues(t *testing.T) {
 // is redacted in the raw body and never decoded into the struct (so a
 // struct fallback body cannot carry it either).
 func TestExpressRouteServiceKeyNeverEmitted(t *testing.T) {
-	const key = "00000000-0000-0000-0000-0000000000ff"
+	const key = "00000000-0000-4000-8000-0000000000ff"
 	body := `{"id":"` + tRG + `/Microsoft.Network/expressRouteCircuits/LAB-ER01","name":"LAB-ER01","serviceKey":"` + key + `","serviceProviderProperties":{"bandwidthInMbps":200}}`
 	out, _, ok := redactRawBody(json.RawMessage(body))
 	if !ok || strings.Contains(string(out), key) {
