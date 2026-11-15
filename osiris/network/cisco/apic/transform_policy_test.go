@@ -54,15 +54,17 @@ func TestPolicyIndex_Resolve(t *testing.T) {
 // TestWirePolicyRelations proves: relations become forward edges from
 // the EPG anchor to the contract, two relation objects between the same
 // pair stay two edges with distinct IDs, a relation under an object the
-// model does not cover (an external or management EPG) is counted out
-// of scope by kind and a relation whose target is absent is counted
-// unresolved; neither emits an edge.
+// model does not cover (a management EPG) is counted out of scope by
+// kind and a relation whose target is absent is counted unresolved;
+// neither emits an edge. An external EPG provides like an EPG.
 func TestWirePolicyRelations(t *testing.T) {
 	contracts := newPolicyIndex()
 	contracts.add("uni/tn-A/brc-web", "web", resourceID("uni/tn-A/brc-web"))
 	epg := "uni/tn-A/ap-p/epg-e"
+	ext := "uni/tn-A/out-o/instP-x"
 	refs := policyRefs{
 		epgAnchors: map[string]string{epg: resourceID(epg)},
+		extEPGs:    map[string]string{ext: resourceID(ext)},
 		contracts:  contracts,
 		filters:    newPolicyIndex(),
 		subjects:   map[string]string{},
@@ -70,7 +72,7 @@ func TestWirePolicyRelations(t *testing.T) {
 	raw := map[string][]map[string]any{
 		"fvRsProv": {
 			{"dn": epg + "/rsprov-web", "tDn": "uni/tn-A/brc-web", "tnVzBrCPName": "web", "state": "formed", "matchT": "AtleastOne"},
-			{"dn": "uni/tn-A/out-o/instP-x/rsprov-web", "tDn": "uni/tn-A/brc-web", "tnVzBrCPName": "web"},
+			{"dn": ext + "/rsprov-web", "tDn": "uni/tn-A/brc-web", "tnVzBrCPName": "web"},
 		},
 		"fvRsCons": {
 			{"dn": epg + "/rscons-web", "tDn": "uni/tn-A/brc-web", "state": "formed"},
@@ -83,9 +85,13 @@ func TestWirePolicyRelations(t *testing.T) {
 	}
 	tally := newPolicyTally()
 	conns := WirePolicyRelations(raw, refs, tally)
-	if len(conns) != 2 {
-		t.Fatalf("expected 2 edges, got %d: %+v", len(conns), conns)
+	if len(conns) != 3 {
+		t.Fatalf("expected 3 edges, got %d: %+v", len(conns), conns)
 	}
+	if conns[1].Type != connProvides || conns[1].Source != resourceID(ext) {
+		t.Errorf("external EPG provides edge = %+v", conns[1])
+	}
+	conns = []sdk.Connection{conns[0], conns[2]}
 	if conns[0].ID == conns[1].ID {
 		t.Error("provides and consumes edges between the same pair share an ID")
 	}
@@ -100,7 +106,7 @@ func TestWirePolicyRelations(t *testing.T) {
 	if fmt.Sprint(tally.unresolved) != "map[fvRsCons:1]" {
 		t.Errorf("unresolved = %v, want fvRsCons:1", tally.unresolved)
 	}
-	want := "map[fvRsCons:map[management-epgs:1] fvRsProv:map[external-epgs:1] vzRsSubjFiltAtt:map[out-of-band-contracts:1]]"
+	want := "map[fvRsCons:map[management-epgs:1] vzRsSubjFiltAtt:map[out-of-band-contracts:1]]"
 	if got := fmt.Sprint(tally.outOfScope); got != want {
 		t.Errorf("outOfScope = %s, want %s", got, want)
 	}
@@ -269,7 +275,7 @@ func TestDNKind(t *testing.T) {
 			t.Errorf("dnKind(%q) = %q, want %q", dn, got, want)
 		}
 	}
-	if scopeName("") != "other" || scopeName("instP") != "external-epgs" {
+	if scopeName("") != "other" || scopeName("esg") != "endpoint-security-groups" {
 		t.Error("scopeName mapping")
 	}
 }

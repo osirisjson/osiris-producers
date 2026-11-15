@@ -57,8 +57,8 @@ type discoveryClass struct {
 // both purposes: the physical fabric graph is emitted regardless of
 // --purpose, bounded in documentation mode to ports that participate in
 // topology. Endpoint inventory (fvCEp) and its per-endpoint IP
-// addresses (fvIp) and filter entries (vzEntry) are collected only for
-// --purpose audit.
+// addresses (fvIp), filter entries (vzEntry) and the per-leaf vPC
+// domain state (vpcDom) are collected only for --purpose audit.
 func discoveryPlan(audit bool) []discoveryClass {
 	plan := []discoveryClass{
 		{"fabricNode", critEssential},
@@ -96,10 +96,31 @@ func discoveryPlan(audit bool) []discoveryClass {
 		{"lldpAdjEp", critOptional},   // LLDP neighbours
 		{"cdpAdjEp", critOptional},    // CDP neighbours (merge/fallback)
 		{"pcAggrIf", critOptional},    // port-channel aggregate ifaces
+		{"pcRsMbrIfs", critOptional},  // port-channel -> member port
 		{"fvRsPathAtt", critOptional}, // EPG -> path attachments
+
+		// Logical paths, vPC and pods. All optional: without them the
+		// path resources, member edges and pod groups are missing,
+		// recorded in the coverage record; the physical graph stays.
+		{"fabricPod", critOptional},         // pods
+		{"fabricPathEp", critOptional},      // logical paths (port, PC, vPC, FEX)
+		{"vpcIf", critOptional},             // vPC leg -> vPC path
+		{"vpcRsVpcConf", critOptional},      // vPC leg -> port-channel
+		{"fabricExplicitGEp", critOptional}, // vPC explicit protection groups
+		{"fabricNodePEp", critOptional},     // vPC protection group members
+
+		// L3Out external connectivity (configured intent). All
+		// optional: a failure leaves the L3Out slice incomplete and the
+		// L3Out inventory itself (l3extOut, structural) unchanged.
+		{"l3extInstP", critOptional},          // external EPGs
+		{"l3extSubnet", critOptional},         // external EPG policy prefixes
+		{"l3extRsNodeL3OutAtt", critOptional}, // L3Out -> border leaf
+		{"l3extRsPathL3OutAtt", critOptional}, // L3Out -> routed path
+		{"fvRsBDToOut", critOptional},         // bridge domain -> L3Out
 	}
 	if audit {
 		plan = append(plan,
+			discoveryClass{"vpcDom", critOptional},  // per-leaf vPC domain state
 			discoveryClass{"vzEntry", critOptional}, // filter entries (ports, protocols)
 			discoveryClass{"fvCEp", critOptional},
 			discoveryClass{"fvIp", critOptional},

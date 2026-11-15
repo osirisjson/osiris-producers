@@ -164,6 +164,22 @@ func TestCollect_SecretInAPICDataFailsClosed(t *testing.T) {
 			"vzFilter": []any{apicObj("vzFilter", map[string]any{"dn": "uni/tn-tn_Example/flt-f", "name": "f"})},
 			"vzEntry":  []any{apicObj("vzEntry", map[string]any{"dn": "uni/tn-tn_Example/flt-f/e-x", "name": canaryURI, "prot": "tcp"})},
 		}},
+		{"logical path description", canaryBearer, map[string]any{"fabricPathEp": []any{
+			apicObj("fabricPathEp", map[string]any{"dn": "topology/pod-1/paths-111/pathep-[LAB-PC-1]", "name": "LAB-PC-1", "lagT": "link", "descr": "token " + canaryBearer}),
+		}}},
+		{"vPC domain name", canaryAWSKey, map[string]any{"fabricExplicitGEp": []any{
+			apicObj("fabricExplicitGEp", map[string]any{"dn": "uni/fabric/protpol/expgep-x", "name": canaryAWSKey, "id": "10"}),
+		}}},
+		{"external EPG description", canaryURI, map[string]any{"l3extInstP": []any{
+			apicObj("l3extInstP", map[string]any{"dn": "uni/tn-tn_Example/out-l3out_Prod_1/instP-ext", "name": "ext", "descr": canaryURI}),
+		}}},
+		{"policy prefix description", canaryBearer, map[string]any{
+			"l3extInstP":  []any{apicObj("l3extInstP", map[string]any{"dn": "uni/tn-tn_Example/out-l3out_Prod_1/instP-ext", "name": "ext"})},
+			"l3extSubnet": []any{apicObj("l3extSubnet", map[string]any{"dn": "uni/tn-tn_Example/out-l3out_Prod_1/instP-ext/extsubnet-[203.0.113.0/24]", "ip": "203.0.113.0/24", "descr": canaryBearer})},
+		}},
+		{"external neighbour system name", canaryAWSKey, map[string]any{"lldpAdjEp": []any{
+			apicObj("lldpAdjEp", map[string]any{"dn": "topology/pod-1/node-111/sys/lldp/inst/if-[eth1/48]/adj-1", "sysName": canaryAWSKey, "chassisIdT": "mac", "chassisIdV": "00:00:5E:00:53:A1"}),
+		}}},
 	}
 	for _, tc := range cases {
 		for _, purpose := range []string{"documentation", "audit"} {
