@@ -18,7 +18,7 @@ func failMint(clientID, clientSecret string) (string, error) {
 }
 
 func TestResolveCredentials_AllPresentSkipsPrompts(t *testing.T) {
-	creds := Credentials{ClientID: "id", ClientSecret: "secret", AccessToken: "token", RefreshToken: "refresh"}
+	creds := Credentials{ClientID: "id", ClientSecret: "secret", AccessToken: "test-2", RefreshToken: "test-8"}
 
 	calls := 0
 	fail := func(string) (string, error) { calls++; return "", errors.New("should not be called") }
@@ -36,7 +36,7 @@ func TestResolveCredentials_AllPresentSkipsPrompts(t *testing.T) {
 }
 
 func TestResolveCredentials_FillsMissingClientCredentials(t *testing.T) {
-	creds := Credentials{AccessToken: "token"} // only the required field present
+	creds := Credentials{AccessToken: "test-2"} // only the required field present
 
 	askVisible := func(prompt string) (string, error) { return "prompted-id", nil }
 	askHidden := func(prompt string) (string, error) {
@@ -63,13 +63,13 @@ func TestResolveCredentials_FillsMissingClientCredentials(t *testing.T) {
 	if got.RefreshToken != "" {
 		t.Errorf("expected no refresh-token prompt once client_id/client_secret are both present, got %q", got.RefreshToken)
 	}
-	if got.AccessToken != "token" {
+	if got.AccessToken != "test-2" {
 		t.Errorf("expected the already-present access token to be left untouched, got %q", got.AccessToken)
 	}
 }
 
 func TestResolveCredentials_RefreshTokenStillPromptedWithoutClientCredentials(t *testing.T) {
-	creds := Credentials{AccessToken: "token"}
+	creds := Credentials{AccessToken: "test-2"}
 
 	askVisible := func(string) (string, error) { return "", nil } // client_id skipped
 	askHidden := func(prompt string) (string, error) {
@@ -89,7 +89,7 @@ func TestResolveCredentials_RefreshTokenStillPromptedWithoutClientCredentials(t 
 }
 
 func TestResolveCredentials_OptionalFieldsToleratesNoTerminal(t *testing.T) {
-	creds := Credentials{AccessToken: "token"}
+	creds := Credentials{AccessToken: "test-2"}
 	noTTY := func(string) (string, error) { return "", errors.New("no interactive terminal available") }
 
 	got, err := resolveCredentials(creds, noTTY, noTTY, failMint)
@@ -135,14 +135,14 @@ func TestResolveCredentials_MintsAccessTokenFromPersonalAPIClient(t *testing.T) 
 		if clientID != "id" || clientSecret != "secret" {
 			t.Fatalf("mintToken called with unexpected creds: %q/%q", clientID, clientSecret)
 		}
-		return "minted-token", nil
+		return "test-4", nil
 	}
 
 	got, err := resolveCredentials(creds, askVisible, askHidden, mint)
 	if err != nil {
 		t.Fatalf("resolveCredentials failed: %v", err)
 	}
-	if got.AccessToken != "minted-token" {
+	if got.AccessToken != "test-4" {
 		t.Errorf("expected the access token to come from mintToken, got %q", got.AccessToken)
 	}
 	if refreshPromptCalls != 0 {

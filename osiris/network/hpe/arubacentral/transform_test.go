@@ -17,12 +17,12 @@ import (
 // for tests that only need a well-formed resource to mutate
 // (e.g. enrichment tests).
 func newTestResource(resourceType string) (sdk.Resource, error) {
-	return sdk.NewResource(resourceID("SERIAL-EXAMPLE-TEST-"+resourceType), resourceType, sdk.Provider{Name: providerName})
+	return sdk.NewResource(resourceID("TST-EXAMPLE-TEST-"+resourceType), resourceType, sdk.Provider{Name: providerName})
 }
 
 func TestTransformSites(t *testing.T) {
 	sites := []Site{
-		{ScopeID: "100000000000000001", ScopeName: "example-campus-1", City: "Rome", Country: "IT", DeviceCount: 12},
+		{ScopeID: "100000000000000001", ScopeName: "MXP", City: "Rome", Country: "IT", DeviceCount: 12},
 		{ScopeID: "", ScopeName: "no-scope-id-skipped"},
 	}
 
@@ -34,13 +34,13 @@ func TestTransformSites(t *testing.T) {
 	if r.Type != "osiris.hpe.arubacentral.site" {
 		t.Errorf("expected type osiris.hpe.arubacentral.site, got %q", r.Type)
 	}
-	if r.Name != "example-campus-1" {
+	if r.Name != "MXP" {
 		t.Errorf("unexpected name: %q", r.Name)
 	}
 	if r.Properties["device_count"] != 12 {
 		t.Errorf("expected device_count 12, got %v", r.Properties["device_count"])
 	}
-	if nameToID["example-campus-1"] != r.ID {
+	if nameToID["MXP"] != r.ID {
 		t.Errorf("nameToID map does not point at the resource ID")
 	}
 }
@@ -110,13 +110,13 @@ func TestWireDeviceToGroup(t *testing.T) {
 	groupResources, nameToID := TransformDeviceGroups(groups)
 	idx := groupIndex(groupResources)
 
-	WireDeviceToGroup(groupResources, idx, nameToID, "example-switch-group", "hpe.arubacentral::SERIAL-EXAMPLE-0001")
-	if len(groupResources[0].Members) != 1 || groupResources[0].Members[0] != "hpe.arubacentral::SERIAL-EXAMPLE-0001" {
+	WireDeviceToGroup(groupResources, idx, nameToID, "example-switch-group", "hpe.arubacentral::TST-EXAMPLE-0001")
+	if len(groupResources[0].Members) != 1 || groupResources[0].Members[0] != "hpe.arubacentral::TST-EXAMPLE-0001" {
 		t.Fatalf("expected device wired into group members, got %v", groupResources[0].Members)
 	}
 
 	// Unknown group name is a no-op, not an error.
-	WireDeviceToGroup(groupResources, idx, nameToID, "unknown-group", "hpe.arubacentral::SERIAL-EXAMPLE-0002")
+	WireDeviceToGroup(groupResources, idx, nameToID, "unknown-group", "hpe.arubacentral::TST-EXAMPLE-0002")
 	if len(groupResources[0].Members) != 1 {
 		t.Fatalf("unknown group name should not mutate members, got %v", groupResources[0].Members)
 	}
@@ -125,12 +125,12 @@ func TestWireDeviceToGroup(t *testing.T) {
 func TestTransformSwitches(t *testing.T) {
 	switches := []Switch{
 		{
-			SerialNumber: "SERIAL-EXAMPLE-0001", DeviceName: "switch-example-01", Status: "Up",
-			Model: "6300F-JL658A", FirmwareVersion: "10.13.1000", SiteName: "example-campus-1",
+			SerialNumber: "TST-EXAMPLE-0001", DeviceName: "LAB-switch-example-01", Status: "Up",
+			Model: "6300F-JL658A", FirmwareVersion: "10.13.1000", SiteName: "MXP",
 			IPv4: "192.0.2.10", MACAddress: "00:00:5E:00:53:00",
 			SwitchTrends: []SwitchTrend{{CPUUtilization: 12.5, MemoryUtilization: 40, PowerConsumption: 55.5}},
 		},
-		{SerialNumber: "", DeviceName: "skipped-missing-serial"},
+		{SerialNumber: "", DeviceName: "LAB-skipped-missing-serial"},
 	}
 
 	resources, idMap := TransformSwitches(switches)
@@ -153,20 +153,20 @@ func TestTransformSwitches(t *testing.T) {
 	if r.Properties["cpu_utilization_pct"] != 12.5 {
 		t.Errorf("expected cpu_utilization_pct 12.5, got %v", r.Properties["cpu_utilization_pct"])
 	}
-	if idMap["SERIAL-EXAMPLE-0001"] != r.ID {
+	if idMap["TST-EXAMPLE-0001"] != r.ID {
 		t.Errorf("idMap does not resolve to the resource ID")
 	}
 }
 
 func TestTransformSwitchInterfacesVLANsAndLAGs(t *testing.T) {
-	switchID := resourceID("SERIAL-EXAMPLE-0001")
-	switchIDMap := map[string]string{"SERIAL-EXAMPLE-0001": switchID}
+	switchID := resourceID("TST-EXAMPLE-0001")
+	switchIDMap := map[string]string{"TST-EXAMPLE-0001": switchID}
 	ifaces := []SwitchInterface{
-		{Name: "1/1/1", Status: "Up", NativeVlan: 10, SerialNumber: "SERIAL-EXAMPLE-0001"},
-		{Name: "1/1/2", Status: "Down", SerialNumber: "SERIAL-EXAMPLE-0001"},
+		{Name: "1/1/1", Status: "Up", NativeVlan: 10, SerialNumber: "TST-EXAMPLE-0001"},
+		{Name: "1/1/2", Status: "Down", SerialNumber: "TST-EXAMPLE-0001"},
 	}
 
-	ifRes, ifConns, ifNameToID := TransformSwitchInterfaces(switchIDMap, "SERIAL-EXAMPLE-0001", ifaces)
+	ifRes, ifConns, ifNameToID := TransformSwitchInterfaces(switchIDMap, "TST-EXAMPLE-0001", ifaces)
 	if len(ifRes) != 2 {
 		t.Fatalf("expected 2 interface resources, got %d", len(ifRes))
 	}
@@ -182,7 +182,7 @@ func TestTransformSwitchInterfacesVLANsAndLAGs(t *testing.T) {
 	vlans := []SwitchVLAN{
 		{ID: "10", Name: "example-users", TaggedPorts: []string{"1/1/1"}, UntaggedPorts: []string{"1/1/2"}},
 	}
-	vlanGroups := TransformSwitchVLANs("SERIAL-EXAMPLE-0001", vlans, ifNameToID)
+	vlanGroups := TransformSwitchVLANs("TST-EXAMPLE-0001", vlans, ifNameToID)
 	if len(vlanGroups) != 1 {
 		t.Fatalf("expected 1 VLAN group, got %d", len(vlanGroups))
 	}
@@ -191,7 +191,7 @@ func TestTransformSwitchInterfacesVLANsAndLAGs(t *testing.T) {
 	}
 
 	lags := []SwitchLAG{{ID: "1", Name: "lag1", Ports: []string{"1/1/1", "1/1/2"}}}
-	lagGroups := TransformSwitchLAGs("SERIAL-EXAMPLE-0001", lags, ifNameToID)
+	lagGroups := TransformSwitchLAGs("TST-EXAMPLE-0001", lags, ifNameToID)
 	if len(lagGroups) != 1 || len(lagGroups[0].Members) != 2 {
 		t.Fatalf("expected 1 LAG group with 2 members, got %+v", lagGroups)
 	}
@@ -224,8 +224,8 @@ func TestEnrichSwitchHardware_DegradesStatus(t *testing.T) {
 }
 
 func TestTransformSwitchVSX_CreatesStubForUnknownPeer(t *testing.T) {
-	switchID := resourceID("SERIAL-EXAMPLE-0001")
-	vsx := &SwitchVSX{Role: "primary", PeerRole: "secondary", VSXPeerSerial: "SERIAL-EXAMPLE-0002", VSXPeerName: "switch-example-02"}
+	switchID := resourceID("TST-EXAMPLE-0001")
+	vsx := &SwitchVSX{Role: "primary", PeerRole: "secondary", VSXPeerSerial: "TST-EXAMPLE-0002", VSXPeerName: "LAB-switch-example-02"}
 
 	conn, stub := TransformSwitchVSX(switchID, vsx, map[string]string{})
 	if conn == nil {
@@ -242,7 +242,7 @@ func TestTransformSwitchVSX_CreatesStubForUnknownPeer(t *testing.T) {
 	}
 
 	// When the peer is already known, no stub should be created.
-	knownMap := map[string]string{"SERIAL-EXAMPLE-0002": resourceID("SERIAL-EXAMPLE-0002")}
+	knownMap := map[string]string{"TST-EXAMPLE-0002": resourceID("TST-EXAMPLE-0002")}
 	conn2, stub2 := TransformSwitchVSX(switchID, vsx, knownMap)
 	if conn2 == nil {
 		t.Fatal("expected a connection")
@@ -254,7 +254,7 @@ func TestTransformSwitchVSX_CreatesStubForUnknownPeer(t *testing.T) {
 
 func TestTransformAccessPointsAndWireless(t *testing.T) {
 	aps := []AccessPoint{
-		{SerialNumber: "SERIAL-EXAMPLE-0010", DeviceName: "ap-example-01", Status: "Up", SiteName: "example-campus-1", ClientCount: 3},
+		{SerialNumber: "TST-EXAMPLE-0010", DeviceName: "LAB-ap-example-01", Status: "Up", SiteName: "MXP", ClientCount: 3},
 	}
 	apResources, apIDMap := TransformAccessPoints(aps)
 	if len(apResources) != 1 {
@@ -270,7 +270,7 @@ func TestTransformAccessPointsAndWireless(t *testing.T) {
 		t.Fatalf("expected 1 osiris.hpe.arubacentral.wlan resource, got %+v", wlanResources)
 	}
 
-	radios := []Radio{{SerialNumber: "SERIAL-EXAMPLE-0010", RadioNumber: 0, Band: "5GHz", Status: "Up"}}
+	radios := []Radio{{SerialNumber: "TST-EXAMPLE-0010", RadioNumber: 0, Band: "5GHz", Status: "Up"}}
 	radioResources, radioConns, radioIDMap := TransformRadios(radios, apIDMap)
 	if len(radioResources) != 1 {
 		t.Fatalf("expected 1 radio resource, got %d", len(radioResources))
@@ -279,7 +279,7 @@ func TestTransformAccessPointsAndWireless(t *testing.T) {
 		t.Fatalf("expected 1 contains connection AP->radio, got %+v", radioConns)
 	}
 
-	bssids := []BSSID{{BSSID: "00:00:5E:00:53:01", SerialNumber: "SERIAL-EXAMPLE-0010", RadioNumber: 0, WLANName: "ssid-example-corp"}}
+	bssids := []BSSID{{BSSID: "00:00:5E:00:53:01", SerialNumber: "TST-EXAMPLE-0010", RadioNumber: 0, WLANName: "ssid-example-corp"}}
 	bssidResources, bssidConns := TransformBSSIDs(bssids, radioIDMap, wlanNameToID)
 	if len(bssidResources) != 1 {
 		t.Fatalf("expected 1 BSSID resource, got %d", len(bssidResources))
@@ -288,15 +288,15 @@ func TestTransformAccessPointsAndWireless(t *testing.T) {
 		t.Fatalf("expected 2 connections (radio->bssid contains, bssid->wlan network), got %d", len(bssidConns))
 	}
 
-	apWLANConns := TransformAPWLANConnections(apIDMap["SERIAL-EXAMPLE-0010"], []APWLAN{{WLANName: "ssid-example-corp", Band: "5GHz", Status: "Up"}}, wlanNameToID)
+	apWLANConns := TransformAPWLANConnections(apIDMap["TST-EXAMPLE-0010"], []APWLAN{{WLANName: "ssid-example-corp", Band: "5GHz", Status: "Up"}}, wlanNameToID)
 	if len(apWLANConns) != 1 {
 		t.Fatalf("expected 1 AP->WLAN broadcast connection, got %d", len(apWLANConns))
 	}
 }
 
 func TestTransformSwarms(t *testing.T) {
-	apIDMap := map[string]string{"SERIAL-EXAMPLE-0010": resourceID("SERIAL-EXAMPLE-0010")}
-	swarms := []Swarm{{ClusterID: "cluster-1", ClusterName: "example-mesh", ConductorSerialNumber: "SERIAL-EXAMPLE-0010"}}
+	apIDMap := map[string]string{"TST-EXAMPLE-0010": resourceID("TST-EXAMPLE-0010")}
+	swarms := []Swarm{{ClusterID: "cluster-1", ClusterName: "example-mesh", ConductorSerialNumber: "TST-EXAMPLE-0010"}}
 	groups := TransformSwarms(swarms, apIDMap)
 	if len(groups) != 1 {
 		t.Fatalf("expected 1 swarm group, got %d", len(groups))
@@ -307,14 +307,14 @@ func TestTransformSwarms(t *testing.T) {
 }
 
 func TestTransformGatewaysAndUplinks(t *testing.T) {
-	gateways := []Gateway{{SerialNumber: "SERIAL-EXAMPLE-0020", DeviceName: "gateway-example-01", Status: "Up", IPAddress: "203.0.113.5"}}
+	gateways := []Gateway{{SerialNumber: "TST-EXAMPLE-0020", DeviceName: "LAB-gateway-example-01", Status: "Up", IPAddress: "203.0.113.5"}}
 	gwResources, gwIDMap := TransformGateways(gateways)
 	if len(gwResources) != 1 || gwResources[0].Type != "network.gateway" {
 		t.Fatalf("expected 1 network.gateway resource, got %+v", gwResources)
 	}
 
 	uplinks := []GatewayUplink{{Name: "wan1", Status: "Up"}}
-	conns, stubs := TransformGatewayUplinks(gwIDMap["SERIAL-EXAMPLE-0020"], "SERIAL-EXAMPLE-0020", uplinks)
+	conns, stubs := TransformGatewayUplinks(gwIDMap["TST-EXAMPLE-0020"], "TST-EXAMPLE-0020", uplinks)
 	if len(conns) != 1 || conns[0].Type != "osiris.hpe.arubacentral.uplink" {
 		t.Fatalf("expected 1 osiris.hpe.arubacentral.uplink connection, got %+v", conns)
 	}
@@ -324,10 +324,10 @@ func TestTransformGatewaysAndUplinks(t *testing.T) {
 }
 
 func TestTransformClients(t *testing.T) {
-	deviceIDMap := map[string]string{"SERIAL-EXAMPLE-0001": resourceID("SERIAL-EXAMPLE-0001")}
+	deviceIDMap := map[string]string{"TST-EXAMPLE-0001": resourceID("TST-EXAMPLE-0001")}
 	clients := []ClientDevice{
-		{MACAddress: "00:00:5E:00:53:02", ClientName: "client-example-01", Status: "Up", ConnectedDeviceSerial: "SERIAL-EXAMPLE-0001", Port: "1/1/1"},
-		{MACAddress: "not-a-mac", ClientName: "skipped-invalid-mac"},
+		{MACAddress: "00:00:5E:00:53:02", ClientName: "LAB-client-example-01", Status: "Up", ConnectedDeviceSerial: "TST-EXAMPLE-0001", Port: "1/1/1"},
+		{MACAddress: "not-a-mac", ClientName: "LAB-skipped-invalid-mac"},
 	}
 	resources, conns := TransformClients(clients, deviceIDMap, "documentation")
 	if len(resources) != 1 {
@@ -349,7 +349,7 @@ func TestTransformClients(t *testing.T) {
 func TestTransformClients_IdentifyingFieldsAreAuditOnly(t *testing.T) {
 	clients := []ClientDevice{{
 		MACAddress: "00:00:5E:00:53:03", Status: "Up",
-		HostName: "host-example-01", UserName: "user-example-01",
+		HostName: "LAB-host-example-01", UserName: "user-example-01",
 		ClientFunction: "employee", ClientManufacturer: "Example Corp",
 		ClientOperatingSystem: "ExampleOS 1.0", AuthenticationType: "802.1X",
 		ConnectedAt: "2026-07-06T00:00:00Z",
@@ -374,10 +374,10 @@ func TestTransformClients_IdentifyingFieldsAreAuditOnly(t *testing.T) {
 }
 
 func TestTransformNeighbors_CreatesStubForUnknownDevice(t *testing.T) {
-	deviceID := resourceID("SERIAL-EXAMPLE-0001")
-	neighbors := []Neighbor{{RemoteSerial: "SERIAL-EXAMPLE-0099", LocalPort: "1/1/1", ToPort: "1/1/2", Health: "Good"}}
+	deviceID := resourceID("TST-EXAMPLE-0001")
+	neighbors := []Neighbor{{RemoteSerial: "TST-EXAMPLE-0099", LocalPort: "1/1/1", ToPort: "1/1/2", Health: "Good"}}
 
-	conns, stubs := TransformNeighbors(deviceID, "SERIAL-EXAMPLE-0001", neighbors, map[string]string{})
+	conns, stubs := TransformNeighbors(deviceID, "TST-EXAMPLE-0001", neighbors, map[string]string{})
 	if len(conns) != 1 {
 		t.Fatalf("expected 1 neighbor connection, got %d", len(conns))
 	}
@@ -390,12 +390,12 @@ func TestTransformNeighbors_CreatesStubForUnknownDevice(t *testing.T) {
 }
 
 func TestNeighborConnection_IsBidirectionallyDeterministic(t *testing.T) {
-	deviceA := resourceID("SERIAL-EXAMPLE-0001")
-	deviceB := resourceID("SERIAL-EXAMPLE-0002")
-	known := map[string]string{"SERIAL-EXAMPLE-0001": deviceA, "SERIAL-EXAMPLE-0002": deviceB}
+	deviceA := resourceID("TST-EXAMPLE-0001")
+	deviceB := resourceID("TST-EXAMPLE-0002")
+	known := map[string]string{"TST-EXAMPLE-0001": deviceA, "TST-EXAMPLE-0002": deviceB}
 
-	fromA, _ := TransformNeighbors(deviceA, "SERIAL-EXAMPLE-0001", []Neighbor{{RemoteSerial: "SERIAL-EXAMPLE-0002", LocalPort: "1/1/1", ToPort: "1/1/2"}}, known)
-	fromB, _ := TransformNeighbors(deviceB, "SERIAL-EXAMPLE-0002", []Neighbor{{RemoteSerial: "SERIAL-EXAMPLE-0001", LocalPort: "1/1/2", ToPort: "1/1/1"}}, known)
+	fromA, _ := TransformNeighbors(deviceA, "TST-EXAMPLE-0001", []Neighbor{{RemoteSerial: "TST-EXAMPLE-0002", LocalPort: "1/1/1", ToPort: "1/1/2"}}, known)
+	fromB, _ := TransformNeighbors(deviceB, "TST-EXAMPLE-0002", []Neighbor{{RemoteSerial: "TST-EXAMPLE-0001", LocalPort: "1/1/2", ToPort: "1/1/1"}}, known)
 
 	if len(fromA) != 1 || len(fromB) != 1 {
 		t.Fatalf("expected exactly 1 connection from each side")
@@ -418,15 +418,15 @@ func TestNeighborConnection_IsBidirectionallyDeterministic(t *testing.T) {
 // Without filtering, Client/Stack entries produced duplicate/bogus stub
 // resources instead of being skipped.
 func TestTransformNeighbors_SkipsClientAndStackTypes(t *testing.T) {
-	deviceID := resourceID("SERIAL-EXAMPLE-0001")
+	deviceID := resourceID("TST-EXAMPLE-0001")
 	neighbors := []Neighbor{
 		{Type: "Client", RemoteSerial: "00:00:5E:00:53:04", LocalPort: "1/1/1"},
 		{Type: "Stack", RemoteSerial: "stack-uuid-example", LocalPort: "mgmt"},
-		{Type: "Switch", RemoteSerial: "SERIAL-EXAMPLE-0099", LocalPort: "1/1/2", ToPort: "1/1/3"},
+		{Type: "Switch", RemoteSerial: "TST-EXAMPLE-0099", LocalPort: "1/1/2", ToPort: "1/1/3"},
 		{Type: "Unmanaged", RemoteSerial: "tpd_example0001", LocalPort: "1/1/4", ToPort: "Ethernet1/1", Name: "example-unmanaged-switch"},
 	}
 
-	conns, stubs := TransformNeighbors(deviceID, "SERIAL-EXAMPLE-0001", neighbors, map[string]string{})
+	conns, stubs := TransformNeighbors(deviceID, "TST-EXAMPLE-0001", neighbors, map[string]string{})
 	if len(conns) != 2 {
 		t.Fatalf("expected 2 connections (Client/Stack skipped), got %d", len(conns))
 	}

@@ -31,90 +31,90 @@ func fakeArubaCentralServer(t *testing.T) *httptest.Server {
 
 	routes := map[string]any{
 		"/network-config/v1/sites": items(
-			map[string]any{"scopeId": "1", "scopeName": "example-campus-1", "city": "Rome", "deviceCount": 3},
+			map[string]any{"scopeId": "1", "scopeName": "MXP", "city": "Rome", "deviceCount": 3},
 		),
 		"/network-monitoring/v1/sites-health": items(
-			map[string]any{"siteId": "1", "siteName": "example-campus-1", "siteHealth": "Good", "deviceHealth": "Good", "clientHealth": "Fair"},
+			map[string]any{"siteId": "1", "siteName": "MXP", "siteHealth": "Good", "deviceHealth": "Good", "clientHealth": "Fair"},
 		),
 		"/network-monitoring/v1/sites-device-health": items(
-			map[string]any{"siteId": "1", "siteName": "example-campus-1", "apHealth": "Good", "switchHealth": "Good", "gatewayHealth": "Good", "bridgeHealth": "Good"},
+			map[string]any{"siteId": "1", "siteName": "MXP", "apHealth": "Good", "switchHealth": "Good", "gatewayHealth": "Good", "bridgeHealth": "Good"},
 		),
 		"/network-monitoring/v1/isolated-devices/1": map[string]any{"id": "1", "type": "site", "isolatedDevices": []any{}},
 		"/network-config/v1/device-groups": items(
 			map[string]any{"id": "example-group", "scopeId": "1", "deviceCount": 3},
 		),
 		"/network-monitoring/v1/switches": items(
-			map[string]any{"serialNumber": "SERIAL-EXAMPLE-0001", "deviceName": "switch-example-01", "status": "Up", "siteName": "example-campus-1"},
+			map[string]any{"serialNumber": "TST-EXAMPLE-0001", "deviceName": "LAB-switch-example-01", "status": "Up", "siteName": "MXP"},
 		),
-		"/network-monitoring/v1/switches/SERIAL-EXAMPLE-0001/interfaces": items(
+		"/network-monitoring/v1/switches/TST-EXAMPLE-0001/interfaces": items(
 			map[string]any{"name": "1/1/1", "status": "Up"},
 		),
-		"/network-monitoring/v1/switches/SERIAL-EXAMPLE-0001/vlans": items(
+		"/network-monitoring/v1/switches/TST-EXAMPLE-0001/vlans": items(
 			map[string]any{"id": "10", "name": "example-users", "taggedPorts": []string{"1/1/1"}},
 		),
-		"/network-monitoring/v1/switches/SERIAL-EXAMPLE-0001/lag": items(
+		"/network-monitoring/v1/switches/TST-EXAMPLE-0001/lag": items(
 			map[string]any{"id": "1", "name": "lag1", "ports": []string{"1/1/1"}},
 		),
-		"/network-monitoring/v1/switches/SERIAL-EXAMPLE-0001/hardware-categories": items(
+		"/network-monitoring/v1/switches/TST-EXAMPLE-0001/hardware-categories": items(
 			map[string]any{"cpu": map[string]any{"health": "Good"}},
 		),
-		"/network-monitoring/v1/stack/SERIAL-EXAMPLE-0001/members": map[string]any{},
-		"/network-monitoring/v1/switches/SERIAL-EXAMPLE-0001/vsx":  map[string]any{},
-		"/network-monitoring/v1/config-health/SERIAL-EXAMPLE-0001/summary": map[string]any{
+		"/network-monitoring/v1/stack/TST-EXAMPLE-0001/members": map[string]any{},
+		"/network-monitoring/v1/switches/TST-EXAMPLE-0001/vsx":  map[string]any{},
+		"/network-monitoring/v1/config-health/TST-EXAMPLE-0001/summary": map[string]any{
 			"configStatus": "Up-to-date", "deviceGroupName": "example-group",
 		},
-		"/network-monitoring/v1/config-health/SERIAL-EXAMPLE-0001/issues": map[string]any{},
+		"/network-monitoring/v1/config-health/TST-EXAMPLE-0001/issues": map[string]any{},
 		// Unlike every other list endpoint here, /neighbours returns a
 		// bare JSON array, not an {"items": [...]} envelope
 		// so this is []any, not items(...).
-		"/network-monitoring/v1/neighbours/SERIAL-EXAMPLE-0001": []any{
-			map[string]any{"type": "Switch", "_serial": "SERIAL-EXAMPLE-0001", "serial": "SERIAL-EXAMPLE-0099", "localPort": "1/1/1", "toPort": "1/1/2", "health": "Good"},
+		"/network-monitoring/v1/neighbours/TST-EXAMPLE-0001": []any{
+			map[string]any{"type": "Switch", "_serial": "TST-EXAMPLE-0001", "serial": "TST-EXAMPLE-0099", "localPort": "1/1/1", "toPort": "1/1/2", "health": "Good"},
 		},
 
 		"/network-monitoring/v1/aps": items(
-			map[string]any{"serialNumber": "SERIAL-EXAMPLE-0010", "deviceName": "ap-example-01", "status": "Up", "siteName": "example-campus-1"},
+			map[string]any{"serialNumber": "TST-EXAMPLE-0010", "deviceName": "LAB-ap-example-01", "status": "Up", "siteName": "MXP"},
 		),
 		"/network-monitoring/v1/wlans": items(
 			map[string]any{"wlanName": "ssid-example-corp", "status": "Up"},
 		),
 		"/network-monitoring/v1/radios": items(
-			map[string]any{"serialNumber": "SERIAL-EXAMPLE-0010", "radioNumber": 0, "status": "Up"},
+			map[string]any{"serialNumber": "TST-EXAMPLE-0010", "radioNumber": 0, "status": "Up"},
 		),
 		"/network-monitoring/v1/bssids": items(
-			map[string]any{"bssid": "00:00:5E:00:53:00", "serialNumber": "SERIAL-EXAMPLE-0010", "radioNumber": 0, "wlanName": "ssid-example-corp"},
+			map[string]any{"bssid": "00:00:5E:00:53:00", "serialNumber": "TST-EXAMPLE-0010", "radioNumber": 0, "wlanName": "ssid-example-corp"},
 		),
 		"/network-monitoring/v1/swarms": items(),
-		"/network-monitoring/v1/aps/SERIAL-EXAMPLE-0010/ports": items(
+		"/network-monitoring/v1/aps/TST-EXAMPLE-0010/ports": items(
 			map[string]any{"name": "eth0", "status": "Up"},
 		),
-		"/network-monitoring/v1/aps/SERIAL-EXAMPLE-0010/tunnels": items(
-			map[string]any{"tunnelName": "tunnel1", "destinationName": "gateway-example-01", "status": "Up"},
+		"/network-monitoring/v1/aps/TST-EXAMPLE-0010/tunnels": items(
+			map[string]any{"tunnelName": "tunnel1", "destinationName": "LAB-gateway-example-01", "status": "Up"},
 		),
-		"/network-monitoring/v1/aps/SERIAL-EXAMPLE-0010/wlans": items(
+		"/network-monitoring/v1/aps/TST-EXAMPLE-0010/wlans": items(
 			map[string]any{"wlanName": "ssid-example-corp", "band": "5GHz", "status": "Up"},
 		),
-		"/network-monitoring/v1/config-health/SERIAL-EXAMPLE-0010/summary": map[string]any{"configStatus": "Up-to-date"},
-		"/network-monitoring/v1/config-health/SERIAL-EXAMPLE-0010/issues":  map[string]any{},
-		"/network-monitoring/v1/neighbours/SERIAL-EXAMPLE-0010":            []any{},
+		"/network-monitoring/v1/config-health/TST-EXAMPLE-0010/summary": map[string]any{"configStatus": "Up-to-date"},
+		"/network-monitoring/v1/config-health/TST-EXAMPLE-0010/issues":  map[string]any{},
+		"/network-monitoring/v1/neighbours/TST-EXAMPLE-0010":            []any{},
 
 		"/network-monitoring/v1/gateways": items(
-			map[string]any{"serialNumber": "SERIAL-EXAMPLE-0020", "deviceName": "gateway-example-01", "status": "Up", "siteName": "example-campus-1"},
+			map[string]any{"serialNumber": "TST-EXAMPLE-0020", "deviceName": "LAB-gateway-example-01", "status": "Up", "siteName": "MXP"},
 		),
-		"/network-monitoring/v1/gateways/SERIAL-EXAMPLE-0020/ports": items(
+		"/network-monitoring/v1/gateways/TST-EXAMPLE-0020/ports": items(
 			map[string]any{"name": "wan1", "health": "Good"},
 		),
-		"/network-monitoring/v1/gateways/SERIAL-EXAMPLE-0020/vlans": items(
+		"/network-monitoring/v1/gateways/TST-EXAMPLE-0020/vlans": items(
 			map[string]any{"vlanId": 20, "name": "example-guest"},
 		),
-		"/network-monitoring/v1/gateways/SERIAL-EXAMPLE-0020/uplinks": items(
+		"/network-monitoring/v1/gateways/TST-EXAMPLE-0020/uplinks": items(
 			map[string]any{"name": "wan1", "status": "Up"},
 		),
-		"/network-monitoring/v1/config-health/SERIAL-EXAMPLE-0020/summary": map[string]any{"configStatus": "Up-to-date"},
-		"/network-monitoring/v1/config-health/SERIAL-EXAMPLE-0020/issues":  map[string]any{},
-		"/network-monitoring/v1/neighbours/SERIAL-EXAMPLE-0020":            []any{},
+		"/network-monitoring/v1/config-health/TST-EXAMPLE-0020/summary": map[string]any{"configStatus": "Up-to-date"},
+		"/network-monitoring/v1/config-health/TST-EXAMPLE-0020/issues":  map[string]any{},
+		"/network-monitoring/v1/neighbours/TST-EXAMPLE-0020":            []any{},
 
 		"/network-monitoring/v1/clients": items(
-			map[string]any{"macAddress": "00:00:5E:00:53:01", "clientName": "client-example-01", "status": "Up", "connectedDeviceSerial": "SERIAL-EXAMPLE-0001", "port": "1/1/1", "authenticationType": "802.1X"},
+			map[string]any{"macAddress": "00:00:5E:00:53:01", "clientName": "LAB-client-example-01", "status": "Up", "connectedDeviceSerial": "TST-EXAMPLE-0001", "port": "1/1/1", "authenticationType": "802.1X"},
 		),
 	}
 
@@ -139,7 +139,7 @@ func TestUnmanagedDeviceMAC(t *testing.T) {
 		want   string
 	}{
 		{name: "valid tpd_ prefix", serial: "tpd_00005e005314", want: "00:00:5e:00:53:14"},
-		{name: "no tpd_ prefix", serial: "SERIAL-EXAMPLE-0001", want: ""},
+		{name: "no tpd_ prefix", serial: "TST-EXAMPLE-0001", want: ""},
 		{name: "wrong length after prefix", serial: "tpd_00005e0053", want: ""},
 		{name: "non-hex after prefix", serial: "tpd_00zz5e005314", want: ""},
 	}
@@ -169,7 +169,7 @@ func TestOutputPath(t *testing.T) {
 		want string
 	}{
 		{name: "unfiltered fallback", site: "", want: filepath.Join("out", "all-sites", "hpe-arubacentral-2026-07-06T09-33-42Z-all-sites.json")},
-		{name: "single site", site: "example-campus-1", want: filepath.Join("out", "example-campus-1", "hpe-arubacentral-2026-07-06T09-33-42Z-example-campus-1.json")},
+		{name: "single site", site: "MXP", want: filepath.Join("out", "MXP", "hpe-arubacentral-2026-07-06T09-33-42Z-MXP.json")},
 		{name: "unsafe characters sanitized", site: "MXP/LAB: Main", want: filepath.Join("out", "MXP-LAB--Main", "hpe-arubacentral-2026-07-06T09-33-42Z-MXP-LAB--Main.json")},
 	}
 	for _, tt := range tests {
@@ -188,7 +188,7 @@ func TestProducerCollect_EndToEnd(t *testing.T) {
 	cfg := &Config{
 		BaseURL: ts.URL,
 		Credentials: Credentials{
-			AccessToken: "test-access-token",
+			AccessToken: "test",
 		},
 		Purpose:         "documentation",
 		SafeFailureMode: "fail-closed",
@@ -297,7 +297,7 @@ func TestProducerCollect_AuditClientPropertiesDoNotTripSecretScanner(t *testing.
 
 	cfg := &Config{
 		BaseURL:         ts.URL,
-		Credentials:     Credentials{AccessToken: "test-access-token"},
+		Credentials:     Credentials{AccessToken: "test"},
 		Purpose:         "audit",
 		SafeFailureMode: "fail-closed",
 	}
@@ -332,7 +332,7 @@ func TestProducerCollect_AuditClientPropertiesDoNotTripSecretScanner(t *testing.
 // TestRunExport_WritesOneFilePerSiteDirectory exercises the
 // <output-dir>/<site-name>/hpe-arubacentral-<timestamp>-<site-name>.json
 // hierarchy for a multi-site run (here, two sites against the same fake
-// server the fixture data only tags devices to "example-campus-1", so
+// server the fixture data only tags devices to "MXP", so
 // the second site legitimately collects zero devices, which must still
 // succeed and produce a file).
 func TestRunExport_WritesOneFilePerSiteDirectory(t *testing.T) {
@@ -344,11 +344,11 @@ func TestRunExport_WritesOneFilePerSiteDirectory(t *testing.T) {
 	cfg := &Config{
 		BaseURL: ts.URL,
 		Credentials: Credentials{
-			AccessToken: "test-access-token",
+			AccessToken: "test",
 		},
 		Purpose:         "documentation",
 		SafeFailureMode: "fail-closed",
-		Sites:           []string{"example-campus-1", "other-site"},
+		Sites:           []string{"MXP", "other-site"},
 		OutputDir:       outDir,
 	}
 
@@ -381,11 +381,11 @@ func TestRunExport_SingleSiteAlsoUsesDirectoryHierarchy(t *testing.T) {
 	cfg := &Config{
 		BaseURL: ts.URL,
 		Credentials: Credentials{
-			AccessToken: "test-access-token",
+			AccessToken: "test",
 		},
 		Purpose:         "documentation",
 		SafeFailureMode: "fail-closed",
-		Sites:           []string{"example-campus-1"},
+		Sites:           []string{"MXP"},
 		OutputDir:       outDir,
 	}
 
@@ -393,7 +393,7 @@ func TestRunExport_SingleSiteAlsoUsesDirectoryHierarchy(t *testing.T) {
 		t.Fatalf("runExport failed: %v", err)
 	}
 
-	siteDir := filepath.Join(outDir, "example-campus-1")
+	siteDir := filepath.Join(outDir, "MXP")
 	entries, err := os.ReadDir(siteDir)
 	if err != nil {
 		t.Fatalf("expected site directory %q to be created: %v", siteDir, err)
@@ -416,11 +416,11 @@ func TestRunExport_RerunReusesExistingOutputDir(t *testing.T) {
 	cfg := &Config{
 		BaseURL: ts.URL,
 		Credentials: Credentials{
-			AccessToken: "test-access-token",
+			AccessToken: "test",
 		},
 		Purpose:         "documentation",
 		SafeFailureMode: "fail-closed",
-		Sites:           []string{"example-campus-1"},
+		Sites:           []string{"MXP"},
 		OutputDir:       outDir,
 	}
 
@@ -435,7 +435,7 @@ func TestRunExport_RerunReusesExistingOutputDir(t *testing.T) {
 		t.Fatalf("second runExport failed: %v", err)
 	}
 
-	siteDir := filepath.Join(outDir, "example-campus-1")
+	siteDir := filepath.Join(outDir, "MXP")
 	entries, err := os.ReadDir(siteDir)
 	if err != nil {
 		t.Fatalf("expected site directory %q to still exist: %v", siteDir, err)
@@ -457,7 +457,7 @@ func TestProducerCollect_RawBodyOnlyInAuditWithIncludeRawBody(t *testing.T) {
 
 		cfg := &Config{
 			BaseURL:         ts.URL,
-			Credentials:     Credentials{AccessToken: "test-access-token"},
+			Credentials:     Credentials{AccessToken: "test"},
 			Purpose:         purpose,
 			SafeFailureMode: "fail-closed",
 			IncludeRawBody:  includeRawBody,
@@ -523,24 +523,24 @@ func TestProducerCollect_StackInterfacesAndHardwareRouteToEachMember(t *testing.
 		"/network-monitoring/v1/sites-device-health": empty,
 		"/network-config/v1/device-groups":           empty,
 		"/network-monitoring/v1/switches": items(
-			map[string]any{"serialNumber": "SERIAL-0001", "deviceName": "switch-conductor", "status": "Up", "deployment": "Stack", "switchRole": "Conductor", "stackId": "stack-1"},
-			map[string]any{"serialNumber": "SERIAL-0002", "deviceName": "switch-member-1", "status": "Up", "deployment": "Stack", "switchRole": "Member", "stackId": "stack-1"},
-			map[string]any{"serialNumber": "SERIAL-0003", "deviceName": "switch-member-2", "status": "Up", "deployment": "Stack", "switchRole": "Standby", "stackId": "stack-1"},
+			map[string]any{"serialNumber": "TST-0001", "deviceName": "LAB-switch-conductor", "status": "Up", "deployment": "Stack", "switchRole": "Conductor", "stackId": "stack-1"},
+			map[string]any{"serialNumber": "TST-0002", "deviceName": "LAB-switch-member-1", "status": "Up", "deployment": "Stack", "switchRole": "Member", "stackId": "stack-1"},
+			map[string]any{"serialNumber": "TST-0003", "deviceName": "LAB-switch-member-2", "status": "Up", "deployment": "Stack", "switchRole": "Standby", "stackId": "stack-1"},
 		),
-		"/network-monitoring/v1/switches/SERIAL-0001/interfaces": items(
-			map[string]any{"name": "1/1/1", "status": "Up", "serialNumber": "SERIAL-0001"},
-			map[string]any{"name": "2/1/1", "status": "Up", "serialNumber": "SERIAL-0002"},
-			map[string]any{"name": "3/1/1", "status": "Down", "serialNumber": "SERIAL-0003"},
+		"/network-monitoring/v1/switches/TST-0001/interfaces": items(
+			map[string]any{"name": "1/1/1", "status": "Up", "serialNumber": "TST-0001"},
+			map[string]any{"name": "2/1/1", "status": "Up", "serialNumber": "TST-0002"},
+			map[string]any{"name": "3/1/1", "status": "Down", "serialNumber": "TST-0003"},
 		),
-		"/network-monitoring/v1/switches/SERIAL-0001/hardware-categories": items(
-			map[string]any{"serialNumber": "SERIAL-0001", "cpu": map[string]any{"health": "Good"}},
-			map[string]any{"serialNumber": "SERIAL-0002", "cpu": map[string]any{"health": "Good"}},
-			map[string]any{"serialNumber": "SERIAL-0003", "cpu": map[string]any{"health": "Poor"}},
+		"/network-monitoring/v1/switches/TST-0001/hardware-categories": items(
+			map[string]any{"serialNumber": "TST-0001", "cpu": map[string]any{"health": "Good"}},
+			map[string]any{"serialNumber": "TST-0002", "cpu": map[string]any{"health": "Good"}},
+			map[string]any{"serialNumber": "TST-0003", "cpu": map[string]any{"health": "Poor"}},
 		),
-		"/network-monitoring/v1/switches/SERIAL-0001/vlans": empty,
-		"/network-monitoring/v1/switches/SERIAL-0001/lag":   empty,
+		"/network-monitoring/v1/switches/TST-0001/vlans": empty,
+		"/network-monitoring/v1/switches/TST-0001/lag":   empty,
 	}
-	for _, serial := range []string{"SERIAL-0001", "SERIAL-0002", "SERIAL-0003"} {
+	for _, serial := range []string{"TST-0001", "TST-0002", "TST-0003"} {
 		routes["/network-monitoring/v1/stack/"+serial+"/members"] = map[string]any{}
 		routes["/network-monitoring/v1/switches/"+serial+"/vsx"] = map[string]any{}
 		routes["/network-monitoring/v1/config-health/"+serial+"/summary"] = map[string]any{}
@@ -571,7 +571,7 @@ func TestProducerCollect_StackInterfacesAndHardwareRouteToEachMember(t *testing.
 
 	cfg := &Config{
 		BaseURL:         ts.URL,
-		Credentials:     Credentials{AccessToken: "test-access-token"},
+		Credentials:     Credentials{AccessToken: "test"},
 		Purpose:         "documentation",
 		SafeFailureMode: "fail-closed",
 	}
@@ -605,30 +605,30 @@ func TestProducerCollect_StackInterfacesAndHardwareRouteToEachMember(t *testing.
 		}
 	}
 
-	for _, name := range []string{"switch-conductor", "switch-member-1", "switch-member-2"} {
+	for _, name := range []string{"LAB-switch-conductor", "LAB-switch-member-1", "LAB-switch-member-2"} {
 		if _, ok := switchByName[name]; !ok {
 			t.Fatalf("expected a switch resource named %q", name)
 		}
 	}
-	if interfacesBySwitch["switch-conductor"] != 1 || interfacesBySwitch["switch-member-1"] != 1 || interfacesBySwitch["switch-member-2"] != 1 {
+	if interfacesBySwitch["LAB-switch-conductor"] != 1 || interfacesBySwitch["LAB-switch-member-1"] != 1 || interfacesBySwitch["LAB-switch-member-2"] != 1 {
 		t.Errorf("expected each stack member to own exactly its own interface, got %v", interfacesBySwitch)
 	}
 
-	mem2 := switchByName["switch-member-2"]
+	mem2 := switchByName["LAB-switch-member-2"]
 	hwProps, ok := mem2.Properties["hardware"].(map[string]any)
 	if !ok || hwProps["cpu_health"] != "Poor" {
-		t.Errorf("expected switch-member-2's own (unhealthy) hardware to be applied to its own resource, got %+v", mem2.Properties["hardware"])
+		t.Errorf("expected LAB-switch-member-2's own (unhealthy) hardware to be applied to its own resource, got %+v", mem2.Properties["hardware"])
 	}
 	if mem2.Status != "degraded" {
-		t.Errorf("expected switch-member-2 to be degraded from its own unhealthy CPU, got %q", mem2.Status)
+		t.Errorf("expected LAB-switch-member-2 to be degraded from its own unhealthy CPU, got %q", mem2.Status)
 	}
 
-	cond := switchByName["switch-conductor"]
+	cond := switchByName["LAB-switch-conductor"]
 	if hwProps, ok := cond.Properties["hardware"].(map[string]any); !ok || hwProps["cpu_health"] != "Good" {
-		t.Errorf("expected switch-conductor to keep its own (healthy) hardware, got %+v", cond.Properties["hardware"])
+		t.Errorf("expected LAB-switch-conductor to keep its own (healthy) hardware, got %+v", cond.Properties["hardware"])
 	}
 	if cond.Status == "degraded" {
-		t.Error("expected switch-conductor to stay healthy: member-2's bad CPU must not bleed onto the conductor's resource")
+		t.Error("expected LAB-switch-conductor to stay healthy: member-2's bad CPU must not bleed onto the conductor's resource")
 	}
 }
 
@@ -661,14 +661,14 @@ func TestProducerCollect_DeviceSiteFilterFallsBackToSiteID(t *testing.T) {
 		// matches the site's own scopeId exactly mirroring the real
 		// record found via crosscheck.
 		"/network-monitoring/v1/aps": items(
-			map[string]any{"serialNumber": "SERIAL-EXAMPLE-MISMATCH", "deviceName": "ap-example-mismatch", "status": "Up", "siteName": "ITMXP", "siteId": "it-mxp-id"},
+			map[string]any{"serialNumber": "TST-EXAMPLE-MISMATCH", "deviceName": "LAB-ap-example-mismatch", "status": "Up", "siteName": "MXP", "siteId": "it-mxp-id"},
 		),
-		"/network-monitoring/v1/aps/SERIAL-EXAMPLE-MISMATCH/ports":             empty,
-		"/network-monitoring/v1/aps/SERIAL-EXAMPLE-MISMATCH/tunnels":           empty,
-		"/network-monitoring/v1/aps/SERIAL-EXAMPLE-MISMATCH/wlans":             empty,
-		"/network-monitoring/v1/config-health/SERIAL-EXAMPLE-MISMATCH/summary": map[string]any{},
-		"/network-monitoring/v1/config-health/SERIAL-EXAMPLE-MISMATCH/issues":  map[string]any{},
-		"/network-monitoring/v1/neighbours/SERIAL-EXAMPLE-MISMATCH":            []any{},
+		"/network-monitoring/v1/aps/TST-EXAMPLE-MISMATCH/ports":             empty,
+		"/network-monitoring/v1/aps/TST-EXAMPLE-MISMATCH/tunnels":           empty,
+		"/network-monitoring/v1/aps/TST-EXAMPLE-MISMATCH/wlans":             empty,
+		"/network-monitoring/v1/config-health/TST-EXAMPLE-MISMATCH/summary": map[string]any{},
+		"/network-monitoring/v1/config-health/TST-EXAMPLE-MISMATCH/issues":  map[string]any{},
+		"/network-monitoring/v1/neighbours/TST-EXAMPLE-MISMATCH":            []any{},
 	}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -688,7 +688,7 @@ func TestProducerCollect_DeviceSiteFilterFallsBackToSiteID(t *testing.T) {
 	cfg := &Config{
 		BaseURL:         ts.URL,
 		Cluster:         "eucentral3",
-		Credentials:     Credentials{AccessToken: "test-fake-access-token"},
+		Credentials:     Credentials{AccessToken: "test-7"},
 		Sites:           []string{"IT-MXP"},
 		Purpose:         "documentation",
 		SafeFailureMode: "fail-closed",
@@ -706,7 +706,7 @@ func TestProducerCollect_DeviceSiteFilterFallsBackToSiteID(t *testing.T) {
 
 	found := false
 	for _, r := range doc.Topology.Resources {
-		if r.Type == "osiris.hpe.arubacentral.accesspoint" && r.Name == "ap-example-mismatch" {
+		if r.Type == "osiris.hpe.arubacentral.accesspoint" && r.Name == "LAB-ap-example-mismatch" {
 			found = true
 		}
 	}
@@ -734,30 +734,30 @@ func TestProducerCollect_SitesFilteredAndHealthEnriched(t *testing.T) {
 
 	routes := map[string]any{
 		"/network-config/v1/sites": items(
-			map[string]any{"scopeId": "site-a-id", "scopeName": "site-a", "deviceCount": 1},
-			map[string]any{"scopeId": "site-b-id", "scopeName": "site-b", "deviceCount": 1},
+			map[string]any{"scopeId": "site-a-id", "scopeName": "BRANCH-00", "deviceCount": 1},
+			map[string]any{"scopeId": "site-b-id", "scopeName": "OFFICE-00", "deviceCount": 1},
 		),
 		"/network-config/v1/device-groups": empty,
 		"/network-monitoring/v1/sites-health": items(
-			map[string]any{"siteId": "site-a-id", "siteName": "site-a", "siteHealth": "Poor", "deviceHealth": "Poor", "clientHealth": "Good"},
-			map[string]any{"siteId": "site-b-id", "siteName": "site-b", "siteHealth": "Good", "deviceHealth": "Good", "clientHealth": "Good"},
+			map[string]any{"siteId": "site-a-id", "siteName": "BRANCH-00", "siteHealth": "Poor", "deviceHealth": "Poor", "clientHealth": "Good"},
+			map[string]any{"siteId": "site-b-id", "siteName": "OFFICE-00", "siteHealth": "Good", "deviceHealth": "Good", "clientHealth": "Good"},
 		),
 		"/network-monitoring/v1/sites-device-health": items(
-			map[string]any{"siteId": "site-a-id", "siteName": "site-a", "apHealth": "Fair", "switchHealth": "Poor", "gatewayHealth": "Good", "bridgeHealth": "Good"},
-			map[string]any{"siteId": "site-b-id", "siteName": "site-b", "apHealth": "Good", "switchHealth": "Good", "gatewayHealth": "Good", "bridgeHealth": "Good"},
+			map[string]any{"siteId": "site-a-id", "siteName": "BRANCH-00", "apHealth": "Fair", "switchHealth": "Poor", "gatewayHealth": "Good", "bridgeHealth": "Good"},
+			map[string]any{"siteId": "site-b-id", "siteName": "OFFICE-00", "apHealth": "Good", "switchHealth": "Good", "gatewayHealth": "Good", "bridgeHealth": "Good"},
 		),
 		"/network-monitoring/v1/switches": items(
-			map[string]any{"serialNumber": "SERIAL-SITE-A", "deviceName": "switch-site-a", "status": "Up", "siteName": "site-a"},
-			map[string]any{"serialNumber": "SERIAL-SITE-B", "deviceName": "switch-site-b", "status": "Up", "siteName": "site-b"},
+			map[string]any{"serialNumber": "TST-SITE-A", "deviceName": "LAB-switch-site-a", "status": "Up", "siteName": "BRANCH-00"},
+			map[string]any{"serialNumber": "TST-SITE-B", "deviceName": "LAB-switch-site-b", "status": "Up", "siteName": "OFFICE-00"},
 		),
 		"/network-monitoring/v1/aps": empty, "/network-monitoring/v1/wlans": empty, "/network-monitoring/v1/radios": empty,
 		"/network-monitoring/v1/bssids": empty, "/network-monitoring/v1/swarms": empty, "/network-monitoring/v1/gateways": empty,
 		"/network-monitoring/v1/clients": items(
-			map[string]any{"macAddress": "00:00:5E:00:53:10", "clientName": "client-site-a", "status": "Up", "siteName": "site-a"},
-			map[string]any{"macAddress": "00:00:5E:00:53:11", "clientName": "client-site-b", "status": "Up", "siteName": "site-b"},
+			map[string]any{"macAddress": "00:00:5E:00:53:10", "clientName": "LAB-client-site-a", "status": "Up", "siteName": "BRANCH-00"},
+			map[string]any{"macAddress": "00:00:5E:00:53:11", "clientName": "LAB-client-site-b", "status": "Up", "siteName": "OFFICE-00"},
 		),
 	}
-	for _, serial := range []string{"SERIAL-SITE-A", "SERIAL-SITE-B"} {
+	for _, serial := range []string{"TST-SITE-A", "TST-SITE-B"} {
 		routes["/network-monitoring/v1/switches/"+serial+"/interfaces"] = empty
 		routes["/network-monitoring/v1/switches/"+serial+"/hardware-categories"] = empty
 		routes["/network-monitoring/v1/switches/"+serial+"/vlans"] = empty
@@ -786,8 +786,8 @@ func TestProducerCollect_SitesFilteredAndHealthEnriched(t *testing.T) {
 	cfg := &Config{
 		BaseURL:         ts.URL,
 		Cluster:         "eucentral3",
-		Credentials:     Credentials{AccessToken: "test-access-token"},
-		Sites:           []string{"site-a"},
+		Credentials:     Credentials{AccessToken: "test"},
+		Sites:           []string{"BRANCH-00"},
 		Purpose:         "audit",
 		SafeFailureMode: "fail-closed",
 	}
@@ -808,11 +808,11 @@ func TestProducerCollect_SitesFilteredAndHealthEnriched(t *testing.T) {
 			siteResources = append(siteResources, r)
 		}
 	}
-	if len(siteResources) != 1 || siteResources[0].Name != "site-a" {
-		t.Fatalf("expected only site-a's osiris.hpe.arubacentral.site resource (site-b filtered out), got %+v", siteResources)
+	if len(siteResources) != 1 || siteResources[0].Name != "BRANCH-00" {
+		t.Fatalf("expected only BRANCH-00's osiris.hpe.arubacentral.site resource (OFFICE-00 filtered out), got %+v", siteResources)
 	}
 	if siteResources[0].Status != "degraded" {
-		t.Errorf("expected site-a to be degraded from its Poor site health, got %q", siteResources[0].Status)
+		t.Errorf("expected BRANCH-00 to be degraded from its Poor site health, got %q", siteResources[0].Status)
 	}
 	if got := siteResources[0].Properties["health_status"]; got != "Poor" {
 		t.Errorf("expected health_status %q, got %v", "Poor", got)
@@ -830,8 +830,8 @@ func TestProducerCollect_SitesFilteredAndHealthEnriched(t *testing.T) {
 			switchNames[r.Name] = true
 		}
 	}
-	if switchNames["switch-site-a"] != true || switchNames["switch-site-b"] {
-		t.Errorf("expected only switch-site-a (site filter applied to devices too), got %v", switchNames)
+	if switchNames["LAB-switch-site-a"] != true || switchNames["LAB-switch-site-b"] {
+		t.Errorf("expected only LAB-switch-site-a (site filter applied to devices too), got %v", switchNames)
 	}
 
 	clientNames := map[string]bool{}
@@ -840,8 +840,8 @@ func TestProducerCollect_SitesFilteredAndHealthEnriched(t *testing.T) {
 			clientNames[r.Name] = true
 		}
 	}
-	if clientNames["client-site-a"] != true || clientNames["client-site-b"] {
-		t.Errorf("expected only client-site-a (ListClients is account-wide and must be filtered by --site like every other resource type), got %v", clientNames)
+	if clientNames["LAB-client-site-a"] != true || clientNames["LAB-client-site-b"] {
+		t.Errorf("expected only LAB-client-site-a (ListClients is account-wide and must be filtered by --site like every other resource type), got %v", clientNames)
 	}
 
 	if doc.Metadata.Scope == nil || len(doc.Metadata.Scope.Clusters) != 1 || doc.Metadata.Scope.Clusters[0] != "eucentral3 ("+ts.URL+")" {
@@ -862,7 +862,7 @@ func TestProducerCollect_UnmanagedDeviceAndIsolatedDevices(t *testing.T) {
 
 	routes := map[string]any{
 		"/network-config/v1/sites": items(
-			map[string]any{"scopeId": "site-a-id", "scopeName": "site-a", "deviceCount": 1},
+			map[string]any{"scopeId": "site-a-id", "scopeName": "BRANCH-00", "deviceCount": 1},
 		),
 		"/network-config/v1/device-groups":           empty,
 		"/network-monitoring/v1/sites-health":        empty,
@@ -872,18 +872,18 @@ func TestProducerCollect_UnmanagedDeviceAndIsolatedDevices(t *testing.T) {
 			"isolatedDevices": []map[string]any{{"macAddress": "00:00:5E:00:53:00"}},
 		},
 		"/network-monitoring/v1/switches": items(
-			map[string]any{"serialNumber": "SERIAL-EXAMPLE-0001", "deviceName": "switch-example-01", "status": "Up", "siteName": "site-a"},
+			map[string]any{"serialNumber": "TST-EXAMPLE-0001", "deviceName": "LAB-switch-example-01", "status": "Up", "siteName": "BRANCH-00"},
 		),
-		"/network-monitoring/v1/switches/SERIAL-EXAMPLE-0001/interfaces":          empty,
-		"/network-monitoring/v1/switches/SERIAL-EXAMPLE-0001/hardware-categories": empty,
-		"/network-monitoring/v1/switches/SERIAL-EXAMPLE-0001/vlans":               empty,
-		"/network-monitoring/v1/switches/SERIAL-EXAMPLE-0001/lag":                 empty,
-		"/network-monitoring/v1/stack/SERIAL-EXAMPLE-0001/members":                map[string]any{},
-		"/network-monitoring/v1/switches/SERIAL-EXAMPLE-0001/vsx":                 map[string]any{},
-		"/network-monitoring/v1/config-health/SERIAL-EXAMPLE-0001/summary":        map[string]any{},
-		"/network-monitoring/v1/config-health/SERIAL-EXAMPLE-0001/issues":         map[string]any{},
-		"/network-monitoring/v1/neighbours/SERIAL-EXAMPLE-0001": []any{
-			map[string]any{"type": "Unmanaged", "_serial": "SERIAL-EXAMPLE-0001", "serial": "tpd_00005e005314", "localPort": "1/1/1", "toPort": "eth0", "name": "example-unmanaged-switch", "siteId": "site-a-id"},
+		"/network-monitoring/v1/switches/TST-EXAMPLE-0001/interfaces":          empty,
+		"/network-monitoring/v1/switches/TST-EXAMPLE-0001/hardware-categories": empty,
+		"/network-monitoring/v1/switches/TST-EXAMPLE-0001/vlans":               empty,
+		"/network-monitoring/v1/switches/TST-EXAMPLE-0001/lag":                 empty,
+		"/network-monitoring/v1/stack/TST-EXAMPLE-0001/members":                map[string]any{},
+		"/network-monitoring/v1/switches/TST-EXAMPLE-0001/vsx":                 map[string]any{},
+		"/network-monitoring/v1/config-health/TST-EXAMPLE-0001/summary":        map[string]any{},
+		"/network-monitoring/v1/config-health/TST-EXAMPLE-0001/issues":         map[string]any{},
+		"/network-monitoring/v1/neighbours/TST-EXAMPLE-0001": []any{
+			map[string]any{"type": "Unmanaged", "_serial": "TST-EXAMPLE-0001", "serial": "tpd_00005e005314", "localPort": "1/1/1", "toPort": "eth0", "name": "example-unmanaged-switch", "siteId": "site-a-id"},
 		},
 		"/network-monitoring/v1/unmanaged-device/00:00:5e:00:53:14": map[string]any{"vendor": "Example Corp"},
 		"/network-monitoring/v1/aps":                                empty, "/network-monitoring/v1/wlans": empty, "/network-monitoring/v1/radios": empty,
@@ -906,7 +906,7 @@ func TestProducerCollect_UnmanagedDeviceAndIsolatedDevices(t *testing.T) {
 	defer ts.Close()
 
 	cfg := &Config{
-		BaseURL: ts.URL, Credentials: Credentials{AccessToken: "test-access-token"},
+		BaseURL: ts.URL, Credentials: Credentials{AccessToken: "test"},
 		Purpose: "audit", IncludeRawBody: true, SafeFailureMode: "fail-closed",
 	}
 	producer := NewProducer(cfg)

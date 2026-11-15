@@ -39,25 +39,25 @@ func TestListSwitches_CursorPagination(t *testing.T) {
 		if !strings.HasPrefix(r.URL.Path, "/network-monitoring/v1/switches") {
 			t.Errorf("unexpected path: %s", r.URL.Path)
 		}
-		if got := r.Header.Get("Authorization"); got != "Bearer test-access-token" {
+		if got := r.Header.Get("Authorization"); got != "Bearer test" {
 			t.Errorf("unexpected Authorization header: %q", got)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		if r.URL.Query().Get("next") == "" {
 			items := make([]map[string]any, pageLimit)
 			for i := range items {
-				items[i] = map[string]any{"serialNumber": "SERIAL-EXAMPLE-0000", "deviceName": "switch-example-01", "status": "Up"}
+				items[i] = map[string]any{"serialNumber": "TST-EXAMPLE-0000", "deviceName": "LAB-switch-example-01", "status": "Up"}
 			}
 			json.NewEncoder(w).Encode(map[string]any{"items": items, "next": "page-2-cursor"})
 			return
 		}
 		json.NewEncoder(w).Encode(map[string]any{
-			"items": []map[string]any{{"serialNumber": "SERIAL-EXAMPLE-0001", "deviceName": "switch-example-02", "status": "Down"}},
+			"items": []map[string]any{{"serialNumber": "TST-EXAMPLE-0001", "deviceName": "LAB-switch-example-02", "status": "Down"}},
 		})
 	}))
 	defer ts.Close()
 
-	c := newTestClient(ts, Credentials{AccessToken: "test-access-token"})
+	c := newTestClient(ts, Credentials{AccessToken: "test"})
 	switches, err := c.ListSwitches()
 	if err != nil {
 		t.Fatalf("ListSwitches failed: %v", err)
@@ -68,7 +68,7 @@ func TestListSwitches_CursorPagination(t *testing.T) {
 	if len(switches) != pageLimit+1 {
 		t.Fatalf("expected %d switches, got %d", pageLimit+1, len(switches))
 	}
-	if switches[pageLimit].SerialNumber != "SERIAL-EXAMPLE-0001" {
+	if switches[pageLimit].SerialNumber != "TST-EXAMPLE-0001" {
 		t.Errorf("unexpected last switch serial: %q", switches[pageLimit].SerialNumber)
 	}
 }
@@ -81,12 +81,12 @@ func TestListSwitches_NumericStackMemberID(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]any{
-			"items": []map[string]any{{"serialNumber": "SERIAL-EXAMPLE-0000", "stackMemberId": 2}},
+			"items": []map[string]any{{"serialNumber": "TST-EXAMPLE-0000", "stackMemberId": 2}},
 		})
 	}))
 	defer ts.Close()
 
-	c := newTestClient(ts, Credentials{AccessToken: "test-access-token"})
+	c := newTestClient(ts, Credentials{AccessToken: "test"})
 	switches, err := c.ListSwitches()
 	if err != nil {
 		t.Fatalf("ListSwitches failed: %v", err)
@@ -104,7 +104,7 @@ func TestListSwitches_FractionalTrendValues(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]any{
 			"items": []map[string]any{{
-				"serialNumber": "SERIAL-EXAMPLE-0000",
+				"serialNumber": "TST-EXAMPLE-0000",
 				"switchTrends": []map[string]any{{
 					"cpuUtilization":    12.5,
 					"memoryUtilization": 40.75,
@@ -115,7 +115,7 @@ func TestListSwitches_FractionalTrendValues(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c := newTestClient(ts, Credentials{AccessToken: "test-access-token"})
+	c := newTestClient(ts, Credentials{AccessToken: "test"})
 	switches, err := c.ListSwitches()
 	if err != nil {
 		t.Fatalf("ListSwitches failed: %v", err)
@@ -141,14 +141,14 @@ func TestListAPs_RequestsBothStatuses(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]any{
 			"items": []map[string]any{
-				{"serialNumber": "SERIAL-EXAMPLE-ONLINE", "status": "Up"},
-				{"serialNumber": "SERIAL-EXAMPLE-OFFLINE", "status": "Down"},
+				{"serialNumber": "TST-EXAMPLE-ONLINE", "status": "Up"},
+				{"serialNumber": "TST-EXAMPLE-OFFLINE", "status": "Down"},
 			},
 		})
 	}))
 	defer ts.Close()
 
-	c := newTestClient(ts, Credentials{AccessToken: "test-access-token"})
+	c := newTestClient(ts, Credentials{AccessToken: "test"})
 	aps, err := c.ListAPs(nil)
 	if err != nil {
 		t.Fatalf("ListAPs failed: %v", err)
@@ -178,7 +178,7 @@ func TestListAPs_ScopesToSiteIDsWhenGiven(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c := newTestClient(ts, Credentials{AccessToken: "test-access-token"})
+	c := newTestClient(ts, Credentials{AccessToken: "test"})
 	if _, err := c.ListAPs([]string{"site-a-id"}); err != nil {
 		t.Fatalf("ListAPs failed: %v", err)
 	}
@@ -213,8 +213,8 @@ func TestListSwitchInterfaces_OffsetPagination(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c := newTestClient(ts, Credentials{AccessToken: "test-access-token"})
-	ifaces, err := c.ListSwitchInterfaces("SERIAL-EXAMPLE-0000")
+	c := newTestClient(ts, Credentials{AccessToken: "test"})
+	ifaces, err := c.ListSwitchInterfaces("TST-EXAMPLE-0000")
 	if err != nil {
 		t.Fatalf("ListSwitchInterfaces failed: %v", err)
 	}
@@ -238,8 +238,8 @@ func TestGet_ResponseWrapperEnvelope(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c := newTestClient(ts, Credentials{AccessToken: "test-access-token"})
-	ifaces, err := c.ListSwitchInterfaces("SERIAL-EXAMPLE-0000")
+	c := newTestClient(ts, Credentials{AccessToken: "test"})
+	ifaces, err := c.ListSwitchInterfaces("TST-EXAMPLE-0000")
 	if err != nil {
 		t.Fatalf("ListSwitchInterfaces failed: %v", err)
 	}
@@ -249,34 +249,34 @@ func TestGet_ResponseWrapperEnvelope(t *testing.T) {
 }
 
 func TestGet_RefreshOn401(t *testing.T) {
-	var currentToken = "expired-token"
+	var currentToken = "test-1"
 	refreshCalls := 0
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/oauth2/token" {
 			refreshCalls++
-			currentToken = "refreshed-token"
+			currentToken = "test-5"
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(map[string]any{
-				"access_token":  "refreshed-token",
-				"refresh_token": "new-refresh-token",
+				"access_token":  "test-5",
+				"refresh_token": "test-6",
 				"token_type":    "bearer",
 				"expires_in":    7200,
 			})
 			return
 		}
 
-		if r.Header.Get("Authorization") != "Bearer refreshed-token" {
+		if r.Header.Get("Authorization") != "Bearer test-5" {
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte(`{"message":"Unauthorized"}`))
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]any{"items": []map[string]any{{"serialNumber": "SERIAL-EXAMPLE-0000"}}})
+		json.NewEncoder(w).Encode(map[string]any{"items": []map[string]any{{"serialNumber": "TST-EXAMPLE-0000"}}})
 	}))
 	defer ts.Close()
 
-	c := newTestClient(ts, Credentials{AccessToken: currentToken, RefreshToken: "old-refresh-token", ClientID: "cid", ClientSecret: "csecret"})
+	c := newTestClient(ts, Credentials{AccessToken: currentToken, RefreshToken: "test-3", ClientID: "cid", ClientSecret: "secret-2"})
 	switches, err := c.ListSwitches()
 	if err != nil {
 		t.Fatalf("ListSwitches failed: %v", err)
@@ -287,7 +287,7 @@ func TestGet_RefreshOn401(t *testing.T) {
 	if len(switches) != 1 {
 		t.Fatalf("expected 1 switch after refresh+retry, got %d", len(switches))
 	}
-	if c.creds.AccessToken != "refreshed-token" {
+	if c.creds.AccessToken != "test-5" {
 		t.Errorf("client did not retain refreshed access token: %q", c.creds.AccessToken)
 	}
 }
@@ -299,11 +299,11 @@ func TestGet_RefreshOn401_PersonalAPIClientRemint(t *testing.T) {
 		if err := r.ParseForm(); err != nil {
 			t.Fatalf("parsing mint request form: %v", err)
 		}
-		if r.FormValue("grant_type") != "client_credentials" || r.FormValue("client_id") != "personal-id" || r.FormValue("client_secret") != "personal-secret" {
+		if r.FormValue("grant_type") != "client_credentials" || r.FormValue("client_id") != "personal-id" || r.FormValue("client_secret") != "secret-1" {
 			t.Fatalf("unexpected mint request form: %v", r.Form)
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]any{"access_token": "minted-token", "token_type": "bearer", "expires_in": 7200})
+		json.NewEncoder(w).Encode(map[string]any{"access_token": "test-4", "token_type": "bearer", "expires_in": 7200})
 	}))
 	defer mintServer.Close()
 
@@ -312,17 +312,17 @@ func TestGet_RefreshOn401_PersonalAPIClientRemint(t *testing.T) {
 	defer func() { greenLakeTokenURL = original }()
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("Authorization") != "Bearer minted-token" {
+		if r.Header.Get("Authorization") != "Bearer test-4" {
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte(`{"message":"Unauthorized"}`))
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]any{"items": []map[string]any{{"serialNumber": "SERIAL-EXAMPLE-0000"}}})
+		json.NewEncoder(w).Encode(map[string]any{"items": []map[string]any{{"serialNumber": "TST-EXAMPLE-0000"}}})
 	}))
 	defer ts.Close()
 
-	c := newTestClient(ts, Credentials{AccessToken: "expired-token", ClientID: "personal-id", ClientSecret: "personal-secret"})
+	c := newTestClient(ts, Credentials{AccessToken: "test-1", ClientID: "personal-id", ClientSecret: "secret-1"})
 	switches, err := c.ListSwitches()
 	if err != nil {
 		t.Fatalf("ListSwitches failed: %v", err)
@@ -333,7 +333,7 @@ func TestGet_RefreshOn401_PersonalAPIClientRemint(t *testing.T) {
 	if len(switches) != 1 {
 		t.Fatalf("expected 1 switch after re-mint+retry, got %d", len(switches))
 	}
-	if c.creds.AccessToken != "minted-token" {
+	if c.creds.AccessToken != "test-4" {
 		t.Errorf("client did not retain re-minted access token: %q", c.creds.AccessToken)
 	}
 }
@@ -355,7 +355,7 @@ func TestGet_RefreshFailsWhenPersonalAPIClientMintFails(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c := newTestClient(ts, Credentials{AccessToken: "expired-token", ClientID: "personal-id", ClientSecret: "personal-secret"})
+	c := newTestClient(ts, Credentials{AccessToken: "test-1", ClientID: "personal-id", ClientSecret: "secret-1"})
 	if _, err := c.ListSwitches(); err == nil {
 		t.Fatal("expected an error when the GreenLake re-mint request fails")
 	}
@@ -368,7 +368,7 @@ func TestGet_RefreshFailsWithoutRefreshToken(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c := newTestClient(ts, Credentials{AccessToken: "expired-token"})
+	c := newTestClient(ts, Credentials{AccessToken: "test-1"})
 	_, err := c.ListSwitches()
 	if err == nil {
 		t.Fatal("expected an error when refresh token is unavailable")
@@ -382,7 +382,7 @@ func TestGet_HTTPError(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c := newTestClient(ts, Credentials{AccessToken: "test-access-token"})
+	c := newTestClient(ts, Credentials{AccessToken: "test"})
 	_, err := c.ListSwitches()
 	if err == nil {
 		t.Fatal("expected error for HTTP 500")
@@ -401,17 +401,17 @@ func TestGetOne_BareObjectEndpoint(t *testing.T) {
 		json.NewEncoder(w).Encode(map[string]any{
 			"role":          "primary",
 			"peerRole":      "secondary",
-			"vsxPeerSerial": "SERIAL-EXAMPLE-0002",
+			"vsxPeerSerial": "TST-EXAMPLE-0002",
 		})
 	}))
 	defer ts.Close()
 
-	c := newTestClient(ts, Credentials{AccessToken: "test-access-token"})
-	vsx, err := c.GetSwitchVSX("SERIAL-EXAMPLE-0000")
+	c := newTestClient(ts, Credentials{AccessToken: "test"})
+	vsx, err := c.GetSwitchVSX("TST-EXAMPLE-0000")
 	if err != nil {
 		t.Fatalf("GetSwitchVSX failed: %v", err)
 	}
-	if vsx.VSXPeerSerial != "SERIAL-EXAMPLE-0002" {
+	if vsx.VSXPeerSerial != "TST-EXAMPLE-0002" {
 		t.Errorf("unexpected peer serial: %q", vsx.VSXPeerSerial)
 	}
 }
@@ -423,11 +423,11 @@ func TestListSites_UsesConfigPageLimit(t *testing.T) {
 			t.Errorf("expected limit=%d, got %q", configPageLimit, got)
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]any{"items": []map[string]any{{"scopeName": "example-campus-1"}}})
+		json.NewEncoder(w).Encode(map[string]any{"items": []map[string]any{{"scopeName": "MXP"}}})
 	}))
 	defer ts.Close()
 
-	c := newTestClient(ts, Credentials{AccessToken: "test-access-token"})
+	c := newTestClient(ts, Credentials{AccessToken: "test"})
 	sites, err := c.ListSites()
 	if err != nil {
 		t.Fatalf("ListSites failed: %v", err)
@@ -450,7 +450,7 @@ func TestListDeviceGroups_UsesConfigPageLimit(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c := newTestClient(ts, Credentials{AccessToken: "test-access-token"})
+	c := newTestClient(ts, Credentials{AccessToken: "test"})
 	groups, err := c.ListDeviceGroups()
 	if err != nil {
 		t.Fatalf("ListDeviceGroups failed: %v", err)
@@ -464,17 +464,17 @@ func TestListSitesHealth(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]any{"items": []map[string]any{
-			{"siteId": "site-a-id", "siteName": "site-a", "siteHealth": "Good", "deviceHealth": "Good", "clientHealth": "Fair"},
+			{"siteId": "site-a-id", "siteName": "BRANCH-00", "siteHealth": "Good", "deviceHealth": "Good", "clientHealth": "Fair"},
 		}})
 	}))
 	defer ts.Close()
 
-	c := newTestClient(ts, Credentials{AccessToken: "test-access-token"})
+	c := newTestClient(ts, Credentials{AccessToken: "test"})
 	health, err := c.ListSitesHealth()
 	if err != nil {
 		t.Fatalf("ListSitesHealth failed: %v", err)
 	}
-	if len(health) != 1 || health[0].SiteName != "site-a" || health[0].ClientHealth != "Fair" {
+	if len(health) != 1 || health[0].SiteName != "BRANCH-00" || health[0].ClientHealth != "Fair" {
 		t.Fatalf("unexpected result: %+v", health)
 	}
 }
@@ -483,12 +483,12 @@ func TestListSitesDeviceHealth(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]any{"items": []map[string]any{
-			{"siteId": "site-a-id", "siteName": "site-a", "apHealth": "Fair", "switchHealth": "Poor", "gatewayHealth": "Good", "bridgeHealth": "Good"},
+			{"siteId": "site-a-id", "siteName": "BRANCH-00", "apHealth": "Fair", "switchHealth": "Poor", "gatewayHealth": "Good", "bridgeHealth": "Good"},
 		}})
 	}))
 	defer ts.Close()
 
-	c := newTestClient(ts, Credentials{AccessToken: "test-access-token"})
+	c := newTestClient(ts, Credentials{AccessToken: "test"})
 	health, err := c.ListSitesDeviceHealth()
 	if err != nil {
 		t.Fatalf("ListSitesDeviceHealth failed: %v", err)
@@ -511,7 +511,7 @@ func TestGetUnmanagedDevice(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c := newTestClient(ts, Credentials{AccessToken: "test-access-token"})
+	c := newTestClient(ts, Credentials{AccessToken: "test"})
 	detail, err := c.GetUnmanagedDevice("00:00:5E:00:53:00", "123456789012")
 	if err != nil {
 		t.Fatalf("GetUnmanagedDevice failed: %v", err)
@@ -531,7 +531,7 @@ func TestListIsolatedDevices(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	c := newTestClient(ts, Credentials{AccessToken: "test-access-token"})
+	c := newTestClient(ts, Credentials{AccessToken: "test"})
 	devices, err := c.ListIsolatedDevices("123456789012")
 	if err != nil {
 		t.Fatalf("ListIsolatedDevices failed: %v", err)
@@ -547,18 +547,18 @@ func TestListNeighbors_ParsesBareArray(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode([]map[string]any{
-			{"type": "Switch", "serial": "SERIAL-EXAMPLE-0099", "localPort": "1/1/1", "toPort": "1/1/2", "health": "Good"},
+			{"type": "Switch", "serial": "TST-EXAMPLE-0099", "localPort": "1/1/1", "toPort": "1/1/2", "health": "Good"},
 		})
 	}))
 	defer ts.Close()
 
-	c := newTestClient(ts, Credentials{AccessToken: "test-access-token"})
-	neighbors, err := c.ListNeighbors("SERIAL-EXAMPLE-0001")
+	c := newTestClient(ts, Credentials{AccessToken: "test"})
+	neighbors, err := c.ListNeighbors("TST-EXAMPLE-0001")
 	if err != nil {
 		t.Fatalf("ListNeighbors failed: %v", err)
 	}
-	if len(neighbors) != 1 || neighbors[0].RemoteSerial != "SERIAL-EXAMPLE-0099" {
-		t.Fatalf("expected 1 neighbor with remote serial SERIAL-EXAMPLE-0099, got %+v", neighbors)
+	if len(neighbors) != 1 || neighbors[0].RemoteSerial != "TST-EXAMPLE-0099" {
+		t.Fatalf("expected 1 neighbor with remote serial TST-EXAMPLE-0099, got %+v", neighbors)
 	}
 }
 
@@ -570,18 +570,18 @@ func TestListNeighbors_ParsesFlatKeyedObject(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]any{
-			"SERIAL-EXAMPLE-0099": map[string]any{"type": "Switch", "serial": "SERIAL-EXAMPLE-0099", "localPort": "1/1/1", "toPort": "1/1/2", "health": "Good"},
+			"TST-EXAMPLE-0099": map[string]any{"type": "Switch", "serial": "TST-EXAMPLE-0099", "localPort": "1/1/1", "toPort": "1/1/2", "health": "Good"},
 		})
 	}))
 	defer ts.Close()
 
-	c := newTestClient(ts, Credentials{AccessToken: "test-access-token"})
-	neighbors, err := c.ListNeighbors("SERIAL-EXAMPLE-0001")
+	c := newTestClient(ts, Credentials{AccessToken: "test"})
+	neighbors, err := c.ListNeighbors("TST-EXAMPLE-0001")
 	if err != nil {
 		t.Fatalf("ListNeighbors failed: %v", err)
 	}
-	if len(neighbors) != 1 || neighbors[0].RemoteSerial != "SERIAL-EXAMPLE-0099" {
-		t.Fatalf("expected 1 neighbor with remote serial SERIAL-EXAMPLE-0099, got %+v", neighbors)
+	if len(neighbors) != 1 || neighbors[0].RemoteSerial != "TST-EXAMPLE-0099" {
+		t.Fatalf("expected 1 neighbor with remote serial TST-EXAMPLE-0099, got %+v", neighbors)
 	}
 }
 
@@ -592,17 +592,17 @@ func TestListNeighbors_ParsesItemsEnvelope(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]any{"items": []map[string]any{
-			{"type": "Switch", "serial": "SERIAL-EXAMPLE-0099", "localPort": "1/1/1", "toPort": "1/1/2", "health": "Good"},
+			{"type": "Switch", "serial": "TST-EXAMPLE-0099", "localPort": "1/1/1", "toPort": "1/1/2", "health": "Good"},
 		}})
 	}))
 	defer ts.Close()
 
-	c := newTestClient(ts, Credentials{AccessToken: "test-access-token"})
-	neighbors, err := c.ListNeighbors("SERIAL-EXAMPLE-0001")
+	c := newTestClient(ts, Credentials{AccessToken: "test"})
+	neighbors, err := c.ListNeighbors("TST-EXAMPLE-0001")
 	if err != nil {
 		t.Fatalf("ListNeighbors failed: %v", err)
 	}
-	if len(neighbors) != 1 || neighbors[0].RemoteSerial != "SERIAL-EXAMPLE-0099" {
-		t.Fatalf("expected 1 neighbor with remote serial SERIAL-EXAMPLE-0099, got %+v", neighbors)
+	if len(neighbors) != 1 || neighbors[0].RemoteSerial != "TST-EXAMPLE-0099" {
+		t.Fatalf("expected 1 neighbor with remote serial TST-EXAMPLE-0099, got %+v", neighbors)
 	}
 }
