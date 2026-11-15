@@ -43,7 +43,7 @@ var securityCases = map[string]string{
     <cert><cert-avail>crypto-pki-cert-not-available</cert-avail><cert-usage>crypto-pki-cert-usage-unset</cert-usage><cert-key-type>crypto-pki-cert-key-none</cert-key-type><subject-name>cn=LAB</subject-name><validity-end>not-a-time</validity-end></cert>
     <cert/>
   </crypto-pki-bundle>
-  <crypto-pki-bundle><cert><serial-number>01</serial-number></cert></crypto-pki-bundle>
+  <crypto-pki-bundle><cert><serial-number>TST0000CERT01</serial-number></cert></crypto-pki-bundle>
 </crypto-pki-oper-data>`,
 	"local-accounts": `<native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
   <username><name>admin</name><privilege>15</privilege><secret><encryption>9</encryption><secret>changeme</secret></secret></username>

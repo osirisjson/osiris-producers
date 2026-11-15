@@ -81,7 +81,7 @@ func TestDecodeModel_ErrorsDoNotEchoValues(t *testing.T) {
 		`<native xmlns="` + nsNative + `"><enable><secret>changeme</secret>`,
 		`<native xmlns="` + nsNative + `"><enable><secret>changeme</secret></native>`,
 		testNativePayload + `changeme`,
-		`<native xmlns="` + nsNative + `"><hostname>changeme&bogus;</hostname></native>`,
+		`<native xmlns="` + nsNative + `"><hostname>LAB-RTR01&bogus;</hostname></native>`,
 	} {
 		_, err := decodeModel[nativeSystem]([]byte(payload))
 		if err == nil {
