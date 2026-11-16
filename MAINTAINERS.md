@@ -3,7 +3,7 @@
 ## Descriptions of section entries and preferred order
 | Tag | Field | Description | Format / Allowed values | Notes / Examples |
 |---|---|---|---|---|
-| M | Mail | Patches should be sent to | `FullName <address@domain>` | Example: `Jane Doe <jdoe@domain.com>` |
+| M | Mail | Patches should be sent to | `FullName <address@domain>` | Example: `Jane Doe <jdoe@example.com>` |
 | S | Status | Maintenance status | `Maintained` \| `Orphan` \| `Obsolete` | **Maintained:** actively maintained<br>**Orphan:** no current maintainer<br>**Obsolete:** replaced by a better system |
 | F | Files | File/dir wildcard patterns | One pattern per line (multiple `F:` lines allowed) | Trailing `/` includes all files and subdirectories. See examples below. |
 
@@ -21,7 +21,7 @@ When reading this list, please look for the most precise areas first. When addin
 **ORIGINAL CREATOR & LEAD MAINTAINER**
 | Tag | Field |
 |---|---|
-|M|Tia Zanella @skhell" <tiazanella@osirisjson.org>|
+|M|Tia Zanella @skhell <tiazanella@osirisjson.org>|
 |S|Maintained|
 |F|*|
 
