@@ -13,6 +13,9 @@ from them.
 > repository.
 
 Every value in every fixture MUST follow the data rules below.
+They summarize the [OSIRIS JSON Producers Test Data Policy](../docs/policies/OSIRIS-PRODUCER-TEST-DATA-POLICY.md),
+which is authoritative and is enforced on every tracked file by
+`go test ./internal/testdatapolicy`.
 
 ## OSIRIS JSON Producer approved test data by type
 
@@ -59,8 +62,7 @@ Every value in every fixture MUST follow the data rules below.
 - longitude: `10.2241237`
 
 **Site or location names**
-- Airport IATA codes like `MXP` or invented site names like `BRANCH-00`,
-  `OFFICE-00` or `FACTORY-00`
+- `MXP`, `BRANCH-00`, `OFFICE-00` or `FACTORY-00` only
 
 **AS numbers**
 - RFC 5398 documentation range: `64496-64511`
@@ -74,6 +76,21 @@ Every value in every fixture MUST follow the data rules below.
   `changeme`
 - MUST NOT use real-looking passwords or API tokens or secrets of
   any kind.
+
+**Microsoft Azure identities**
+- Tenant, subscription, object and principal GUIDs:
+  `00000000-0000-N000-8000-00000000XXXX` (`N` from 1 to 5, `XXXX`
+  four hex digits), e.g. `00000000-0000-1000-8000-000000000011`
+- The nil UUID only with an exact allowlist entry
+- Resource groups and resources start with `LAB`, `TEST`, `FAKE` or
+  `STUB`: e.g. `RG-LAB-HUB-NET`, `LAB-VNET-HUB`, `labstorage01`
+
+**Amazon AWS identities**
+- Accounts: `123456789012`, `111122223333`, `444455556666` only
+- Hexadecimal resource IDs zero-padded: `vpc-00000000000000001`,
+  `sg-00000001`
+- Resource names start with `LAB`, `TEST`, `FAKE` or `STUB`:
+  e.g. `lab-test-bucket-01`, `LAB-ROLE-01`
 
 ## Layout
 

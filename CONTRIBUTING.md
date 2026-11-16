@@ -88,6 +88,10 @@ Please include in your PR description:
 - [ ] I added/updated tests (if applicable)
 - [ ] I updated docs/examples (if applicable)
 - [ ] I ran formatting/linking/tools used by this repo (if applicable)
+- [ ] `go vet ./...` pass clean
+- [ ] `go build ./...` pass clean
+- [ ] `go test ./...` pass clean including the `go test ./internal/testdatapolicy` [test data policy](docs/policies/OSIRIS-PRODUCER-TEST-DATA-POLICY.md) check on every example address, name and credential I added
+- [ ] `./scripts/validate_golden.sh`: all golden documents pass clean the canonical CLI at the strict profile.
 
 ---
 
