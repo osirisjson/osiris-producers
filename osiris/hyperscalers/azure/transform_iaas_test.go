@@ -11,7 +11,7 @@ package azure
 import "testing"
 
 const (
-	tSub    = "/subscriptions/00000000-0000-0000-0000-000000000001"
+	tSub    = "/subscriptions/00000000-0000-4000-8000-000000000001"
 	tVM1    = tSub + "/resourceGroups/RG-LAB/providers/Microsoft.Compute/virtualMachines/LAB-VM01"
 	tVM2    = tSub + "/resourceGroups/RG-LAB/providers/Microsoft.Compute/virtualMachines/LAB-VM02"
 	tNIC1   = tSub + "/resourceGroups/RG-LAB/providers/Microsoft.Network/networkInterfaces/LAB-VM01-nic"

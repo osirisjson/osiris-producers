@@ -240,7 +240,7 @@ func TestSQLDatabaseToElasticPool(t *testing.T) {
 func TestGatewayConnectionsCanonicalKeys(t *testing.T) {
 	gw := tRG + "/Microsoft.Network/virtualNetworkGateways/LAB-ERGW01"
 	er := tRG + "/Microsoft.Network/expressRouteCircuits/LAB-ER01"
-	remoteER := "/subscriptions/00000000-0000-0000-0000-000000000002/resourceGroups/RG-LAB-DR/providers/Microsoft.Network/expressRouteCircuits/LAB-ER02"
+	remoteER := "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/RG-LAB-DR/providers/Microsoft.Network/expressRouteCircuits/LAB-ER02"
 	conns := decode[[]GatewayConnection](t, `[
 		{"id":"`+tRG+`/Microsoft.Network/connections/LAB-ERCONN01","name":"LAB-ERCONN01","connectionType":"ExpressRoute","provisioningState":"Succeeded",
 		 "virtualNetworkGateway1":{"id":"`+lowerRG(gw)+`"},"peer":{"id":"`+lowerRG(er)+`"}},
@@ -286,7 +286,7 @@ func TestGatewayConnectionsCanonicalKeys(t *testing.T) {
 	if edges[0].Source != resourceID("", gw) || edges[0].Target != resourceID("", er) {
 		t.Errorf("in-scope connection = %s -> %s", edges[0].Source, edges[0].Target)
 	}
-	if len(stubs) != 1 || stubs[0].Provider.NativeID != remoteER || stubs[0].Provider.Account != "00000000-0000-0000-0000-000000000002" {
+	if len(stubs) != 1 || stubs[0].Provider.NativeID != remoteER || stubs[0].Provider.Account != "00000000-0000-4000-8000-000000000002" {
 		t.Fatalf("cross-subscription circuit must become one stub keeping its subscription: %+v", stubs)
 	}
 	if edges[1].Target != stubs[0].ID {

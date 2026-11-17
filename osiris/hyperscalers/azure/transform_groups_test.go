@@ -16,9 +16,9 @@ import (
 )
 
 const (
-	gTenant = "00000000-0000-0000-0000-0000000000aa"
-	gSubID  = "00000000-0000-0000-0000-000000000001"
-	gRemote = "00000000-0000-0000-0000-000000000002"
+	gTenant = "00000000-0000-4000-8000-0000000000aa"
+	gSubID  = "00000000-0000-4000-8000-000000000001"
+	gRemote = "00000000-0000-4000-8000-000000000002"
 )
 
 var gSub = SubscriptionInfo{SubscriptionID: gSubID, DisplayName: "LAB-SUB01", TenantID: gTenant}
@@ -229,7 +229,7 @@ func TestEnrichStubSubscriptionContext(t *testing.T) {
 	stubs := []sdk.Resource{
 		// Owner from the stub's own ARM ID.
 		{ID: "a", Provider: sdk.Provider{NativeID: "/subscriptions/" + gRemote + "/resourceGroups/RG-LAB/providers/Microsoft.Network/virtualNetworks/LAB-VNET02"}},
-		{ID: "b", Provider: sdk.Provider{Account: "00000000-0000-0000-0000-0000000000ff"}},
+		{ID: "b", Provider: sdk.Provider{Account: "00000000-0000-4000-8000-0000000000ff"}},
 	}
 	enrichStubSubscriptionContext(stubs, gEntities())
 
@@ -240,7 +240,7 @@ func TestEnrichStubSubscriptionContext(t *testing.T) {
 		t.Errorf("stubs carry no names (the catalog does): %v", stubs[0].Extensions)
 	}
 	// Unknown subscription: owner kept, no tenant invented.
-	if p := stubs[1].Provider; p.System != "" || p.Tenant != "" || p.Account != "00000000-0000-0000-0000-0000000000ff" {
+	if p := stubs[1].Provider; p.System != "" || p.Tenant != "" || p.Account != "00000000-0000-4000-8000-0000000000ff" {
 		t.Errorf("unknown subscription stub got invented context: %+v", p)
 	}
 }
@@ -261,7 +261,7 @@ func TestSubscriptionAndTenantNames(t *testing.T) {
 	// tenant's do not.
 	groups := []sdk.Group{
 		{ID: "a", Properties: map[string]any{"tenant_id": gTenant}},
-		{ID: "b", Properties: map[string]any{"tenant_id": "00000000-0000-0000-0000-0000000000bb"}},
+		{ID: "b", Properties: map[string]any{"tenant_id": "00000000-0000-4000-8000-0000000000bb"}},
 	}
 	setTenantName(groups, gTenant, "")
 	if groups[0].Properties["tenant_name"] != nil {
@@ -280,7 +280,7 @@ func TestSubscriptionAndTenantNames(t *testing.T) {
 func TestResolveTenantName(t *testing.T) {
 	api := func(tenants string) string { return `{"value":[` + tenants + `]}` }
 	lab := `{"tenantId":"` + gTenant + `","displayName":"LAB-TENANT-API"}`
-	other := `{"tenantId":"00000000-0000-0000-0000-0000000000bb","displayName":"LAB-PARTNER"}`
+	other := `{"tenantId":"00000000-0000-4000-8000-0000000000bb","displayName":"LAB-PARTNER"}`
 	cases := map[string]struct {
 		fromShow, out, stderr, want string
 		others                      int

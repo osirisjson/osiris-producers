@@ -82,11 +82,11 @@ func TestMergeKVProperties(t *testing.T) {
 
 func TestRedactListedCredentialProperties(t *testing.T) {
 	in := `{"properties":{
-		"InstrumentationKey":"00000000-0000-0000-0000-0000000000cc",
+		"InstrumentationKey":"00000000-0000-4000-8000-0000000000cc",
 		"ApplicationId":"LAB-AI01",
 		"parameterValues":{"username":"admin","server":"LAB-SQL01.example.com","nested":{"password":"changeme"}},
 		"displayName":"LAB-CONN01",
-		"accessPolicies":[{"objectId":"00000000-0000-0000-0000-0000000000dd","permissions":{"secrets":["get","list"],"keys":["get"]}}]}}`
+		"accessPolicies":[{"objectId":"00000000-0000-4000-8000-0000000000dd","permissions":{"secrets":["get","list"],"keys":["get"]}}]}}`
 	out, _, ok := redactRawBody(json.RawMessage(in))
 	if !ok {
 		t.Fatal("redaction failed")

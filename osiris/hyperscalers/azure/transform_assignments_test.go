@@ -40,7 +40,7 @@ func TestIdentityAssignment(t *testing.T) {
 		strings.ToLower(tVM1): {Identity: &azGraphIdentity{Type: "UserAssigned", UserAssignedIdentities: map[string]json.RawMessage{lowerRG(tUAMI): json.RawMessage(`{}`)}}},
 		strings.ToLower(tAKS): {Identity: &azGraphIdentity{Type: "UserAssigned", UserAssignedIdentities: map[string]json.RawMessage{tUAMI: json.RawMessage(`{}`)}}},
 		// System-assigned only: no user-assigned identity, no edge.
-		strings.ToLower(tVM2): {Identity: &azGraphIdentity{Type: "SystemAssigned", PrincipalID: "00000000-0000-0000-0000-0000000000bb"}},
+		strings.ToLower(tVM2): {Identity: &azGraphIdentity{Type: "SystemAssigned", PrincipalID: "00000000-0000-4000-8000-0000000000bb"}},
 	}
 	clusters := decode[[]AKSCluster](t, `[{"id":"`+tAKS+`","identityProfile":{"kubeletidentity":{"resourceId":"`+tUAMI+`"}}}]`)
 	docIDs := idMapOf(tVM1, tVM2, tAKS, tUAMI)
@@ -143,7 +143,7 @@ func TestSQLFailoverGroup(t *testing.T) {
 func TestSQLFailoverGroupPartnerStub(t *testing.T) {
 	// The partner server lives in another subscription and is not
 	// exported: the replication edge must be kept through a stub.
-	partner := "/subscriptions/00000000-0000-0000-0000-000000000002/resourceGroups/RG-LAB-DR/providers/Microsoft.Sql/servers/lab-sql02"
+	partner := "/subscriptions/00000000-0000-4000-8000-000000000002/resourceGroups/RG-LAB-DR/providers/Microsoft.Sql/servers/lab-sql02"
 	fg := decode[[]SQLFailoverGroup](t, `[{"id":"`+tFG1+`","name":"lab-fg01","replicationRole":"Primary",
 		"partnerServers":[{"id":"`+partner+`","location":"northeurope","replicationRole":"Secondary"},
 		{"id":"`+partner+`/databases/LAB-DB01","replicationRole":"Secondary"}],"databases":["`+tSQLDB+`"]}]`)
@@ -155,7 +155,7 @@ func TestSQLFailoverGroupPartnerStub(t *testing.T) {
 	}
 	s := stubs[0]
 	if s.ID != resourceID("", partner) || s.Type != "osiris.azure.sqlserver" || s.Name != "lab-sql02" ||
-		s.Provider.Type != "Microsoft.Sql/servers" || s.Provider.Account != "00000000-0000-0000-0000-000000000002" ||
+		s.Provider.Type != "Microsoft.Sql/servers" || s.Provider.Account != "00000000-0000-4000-8000-000000000002" ||
 		s.Provider.Region != "" || s.Status != "unknown" {
 		t.Errorf("stub = %+v", s)
 	}

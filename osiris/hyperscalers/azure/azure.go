@@ -1240,10 +1240,10 @@ Examples:
   osirisjson-producer azure
 
   # Single subscription ID - minimal documentation output
-  osirisjson-producer azure -S a1b2c3d4-e5f6-7890-abcd-ef1234567890
+  osirisjson-producer azure -S 00000000-0000-4000-8000-00000000a1b2
 
   # Same subscription, full audit-grade output
-  osirisjson-producer azure -S a1b2c3d4-e5f6-7890-abcd-ef1234567890 --purpose audit
+  osirisjson-producer azure -S 00000000-0000-4000-8000-00000000a1b2 --purpose audit
 
   # Multiple specific subscriptions IDs
   osirisjson-producer azure -S sub-id-1,sub-id-2,sub-id-3 -o ./output
@@ -1252,7 +1252,7 @@ Examples:
   osirisjson-producer azure --all --purpose audit -o ./output
 
   # All subscriptions in a specific tenant
-  osirisjson-producer azure --all --tenant f1e2d3c4-b5a6-9078-fedc-ba9876543210 -o ./output
+  osirisjson-producer azure --all --tenant 00000000-0000-4000-8000-00000000f1e2 -o ./output
 
   # Batch from CSV template
   osirisjson-producer azure -s subscriptions.csv -o ./output

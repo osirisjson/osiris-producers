@@ -45,7 +45,7 @@ const (
 // resource ID.
 // Per OSIRIS JSON Producer Guidelines section 2.2.1, hyperscaler
 // resource IDs use the pattern: provider::native-id
-// (e.g. azure::/subscriptions/sub-123/.../vm01).
+// (e.g. azure::/subscriptions/00000000-0000-4000-8000-000000000094/.../vm01).
 // The ARM resource ID is the stable native identifier for all
 // Azure resources.
 func resourceID(_ string, armID string) string {

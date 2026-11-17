@@ -14,8 +14,8 @@ import (
 )
 
 func TestBuildSubscriptionCatalog(t *testing.T) {
-	const unknown = "00000000-0000-0000-0000-000000000003"
-	const rawOnly = "00000000-0000-0000-0000-000000000004"
+	const unknown = "00000000-0000-4000-8000-000000000003"
+	const rawOnly = "00000000-0000-4000-8000-000000000004"
 	doc := &sdk.Document{}
 	doc.Topology.Resources = []sdk.Resource{
 		{
@@ -70,8 +70,8 @@ func TestBuildSubscriptionCatalog(t *testing.T) {
 // list does not know is named, with its own tenant, from az account
 // list --all; the exported tenant is not assumed for it.
 func TestCatalogCrossTenantReference(t *testing.T) {
-	const partnerSub = "00000000-0000-0000-0000-000000000004"
-	const partnerTenant = "00000000-0000-0000-0000-0000000000bb"
+	const partnerSub = "00000000-0000-4000-8000-000000000004"
+	const partnerTenant = "00000000-0000-4000-8000-0000000000bb"
 	doc := &sdk.Document{}
 	doc.Topology.Resources = []sdk.Resource{{
 		ID:         "azure::kv",
