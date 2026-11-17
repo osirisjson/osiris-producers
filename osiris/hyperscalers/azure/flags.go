@@ -187,8 +187,8 @@ func ParseFlags(args []string) (*Config, error) {
 // Output hierarchy: <output-dir>/<TenantID>/<timestamp>/<SubscriptionName>.json
 func CSVTemplate() string {
 	return `subscription_id,subscription_name,tenant_id,environment,region,notes
-00000000-0000-0000-0000-000000000001,my-nonprod-subscription,,np,,Non-prod subscription
-00000000-0000-0000-0000-000000000002,my-prod-subscription,,pr,,Production subscription
+00000000-0000-4000-8000-000000000001,my-nonprod-subscription,,np,,Non-prod subscription
+00000000-0000-4000-8000-000000000002,my-prod-subscription,,pr,,Production subscription
 `
 }
 

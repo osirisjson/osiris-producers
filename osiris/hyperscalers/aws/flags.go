@@ -165,7 +165,7 @@ func ParseFlags(args []string) (*Config, error) {
 func CSVTemplate() string {
 	return `profile,account_id,account_name,regions,environment,notes
 123456789012_ReadOnlyAccess,123456789012,my-nonprod-account,,np,Non-prod account
-987654321098_ReadOnlyAccess,987654321098,my-prod-account,"us-east-1,eu-west-1",pr,Production account
+111122223333_ReadOnlyAccess,111122223333,my-prod-account,"us-east-1,eu-west-1",pr,Production account
 `
 }
 

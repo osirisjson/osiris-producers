@@ -134,7 +134,7 @@ func TestGolden(t *testing.T) {
 		t.Fatalf("no scenarios under %s: %v", goldenRoot, err)
 	}
 	// Credentials planted in the fixtures that MUST never be emitted.
-	planted := []string{"sig=changeme", "changeme-apiconn", "InstrumentationKey=00000000", "0000000000cc", "00000000beef"}
+	planted := []string{"sig=changeme", "changeme-7", "InstrumentationKey=00000000", "0000000000cc", "00000000beef"}
 	for _, manifest := range scenarios {
 		dir := filepath.Dir(manifest)
 		for _, tc := range []struct {
@@ -451,7 +451,7 @@ func TestGoldenTenantNameUnavailable(t *testing.T) {
 	if a, b := ids(with), ids(without); strings.Join(a, "\n") != strings.Join(b, "\n") {
 		t.Errorf("IDs differ when the tenant name is unavailable (%d vs %d)", len(a), len(b))
 	}
-	if c := with.Metadata.Extensions["osiris.azure"].(azureCatalog); c.Tenants["00000000-0000-0000-0000-0000000000aa"].Name == "" {
+	if c := with.Metadata.Extensions["osiris.azure"].(azureCatalog); c.Tenants["00000000-0000-4000-8000-0000000000aa"].Name == "" {
 		t.Error("the normal run must resolve the tenant name from the fixture")
 	}
 }
@@ -522,12 +522,12 @@ func TestGoldenSubscriptionCatalog(t *testing.T) {
 		}
 	}
 
-	const tA, tB = "00000000-0000-0000-0000-0000000000aa", "00000000-0000-0000-0000-0000000000bb"
+	const tA, tB = "00000000-0000-4000-8000-0000000000aa", "00000000-0000-4000-8000-0000000000bb"
 	want := map[string]map[string]any{
-		"00000000-0000-0000-0000-000000000011": {"coverage": "exported", "name": "LAB-HUB-SUB", "tenant_id": tA},
-		"00000000-0000-0000-0000-000000000012": {"coverage": "reference_only", "name": "LAB-SPOKE-SUB", "tenant_id": tA},
-		"00000000-0000-0000-0000-000000000014": {"coverage": "reference_only", "name": "LAB-PARTNER-SUB", "tenant_id": tB},
-		"00000000-0000-0000-0000-000000000015": {"coverage": "reference_only"},
+		"00000000-0000-4000-8000-000000000011": {"coverage": "exported", "name": "LAB-HUB-SUB", "tenant_id": tA},
+		"00000000-0000-4000-8000-000000000012": {"coverage": "reference_only", "name": "LAB-SPOKE-SUB", "tenant_id": tA},
+		"00000000-0000-4000-8000-000000000014": {"coverage": "reference_only", "name": "LAB-PARTNER-SUB", "tenant_id": tB},
+		"00000000-0000-4000-8000-000000000015": {"coverage": "reference_only"},
 	}
 	if len(cat.Subscriptions) != len(want) {
 		t.Errorf("catalog subscriptions = %v, want %d", keysOf(cat.Subscriptions), len(want))
@@ -549,7 +549,7 @@ func TestGoldenSubscriptionCatalog(t *testing.T) {
 	}
 
 	// Scope holds only the exported subscription.
-	if a := doc.Metadata.Scope.Accounts; len(a) != 1 || a[0] != "00000000-0000-0000-0000-000000000011" {
+	if a := doc.Metadata.Scope.Accounts; len(a) != 1 || a[0] != "00000000-0000-4000-8000-000000000011" {
 		t.Errorf("scope.accounts = %v", a)
 	}
 	// Provider identity on every resource: native_id kept,
@@ -562,7 +562,7 @@ func TestGoldenSubscriptionCatalog(t *testing.T) {
 		if r.Provider.Tenant != "" && r.Provider.Tenant != tA {
 			t.Errorf("%s: unexpected tenant %q", r.Name, r.Provider.Tenant)
 		}
-		if r.Provider.Account == "00000000-0000-0000-0000-000000000011" && r.Provider.Tenant != tA {
+		if r.Provider.Account == "00000000-0000-4000-8000-000000000011" && r.Provider.Tenant != tA {
 			t.Errorf("%s: exported resource without its known tenant", r.Name)
 		}
 	}

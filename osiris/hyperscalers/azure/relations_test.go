@@ -11,7 +11,7 @@ import (
 )
 
 func TestArmLookup(t *testing.T) {
-	const vm = "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/RG-LAB/providers/Microsoft.Compute/virtualMachines/LAB-VM01"
+	const vm = "/subscriptions/00000000-0000-4000-8000-000000000001/resourceGroups/RG-LAB/providers/Microsoft.Compute/virtualMachines/LAB-VM01"
 	m := map[string]string{armKey(vm): "azure::" + vm}
 
 	tests := []struct {
@@ -20,11 +20,11 @@ func TestArmLookup(t *testing.T) {
 		ok   bool
 	}{
 		{"exact", vm, true},
-		{"lower-cased resource group segment", "/subscriptions/00000000-0000-0000-0000-000000000001/resourcegroups/rg-lab/providers/Microsoft.Compute/virtualMachines/LAB-VM01", true},
-		{"upper-cased whole id", "/SUBSCRIPTIONS/00000000-0000-0000-0000-000000000001/RESOURCEGROUPS/RG-LAB/PROVIDERS/MICROSOFT.COMPUTE/VIRTUALMACHINES/LAB-VM01", true},
+		{"lower-cased resource group segment", "/subscriptions/00000000-0000-4000-8000-000000000001/resourcegroups/rg-lab/providers/Microsoft.Compute/virtualMachines/LAB-VM01", true},
+		{"upper-cased whole id", "/SUBSCRIPTIONS/00000000-0000-4000-8000-000000000001/RESOURCEGROUPS/RG-LAB/PROVIDERS/MICROSOFT.COMPUTE/VIRTUALMACHINES/LAB-VM01", true},
 		{"trailing slash", vm + "/", true},
 		{"empty", "", false},
-		{"different resource", "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/RG-LAB/providers/Microsoft.Compute/virtualMachines/LAB-VM02", false},
+		{"different resource", "/subscriptions/00000000-0000-4000-8000-000000000001/resourceGroups/RG-LAB/providers/Microsoft.Compute/virtualMachines/LAB-VM02", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -42,8 +42,8 @@ func TestArmLookup(t *testing.T) {
 // TestArmLookupRawKeys covers maps built with raw (non-canonical) keys,
 // which must still resolve on an exact match.
 func TestArmLookupRawKeys(t *testing.T) {
-	m := map[string]string{"/subscriptions/S/resourceGroups/RG/providers/X/y/Z": "id"}
-	if _, ok := armLookup(m, "/subscriptions/S/resourceGroups/RG/providers/X/y/Z"); !ok {
+	m := map[string]string{"/subscriptions/00000000-0000-4000-8000-000000000092/resourceGroups/RG-LAB/providers/X/y/LAB-Z": "id"}
+	if _, ok := armLookup(m, "/subscriptions/00000000-0000-4000-8000-000000000092/resourceGroups/RG-LAB/providers/X/y/LAB-Z"); !ok {
 		t.Fatal("exact raw key not resolved")
 	}
 }

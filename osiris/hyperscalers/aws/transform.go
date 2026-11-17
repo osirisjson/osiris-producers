@@ -50,7 +50,7 @@ const (
 
 // resourceID generates a deterministic resource ID from an AWS ARN or constructed ID.
 // Per OSIRIS JSON Producer Guidelines section 2.2.1, hyperscaler resource IDs use the
-// pattern: provider::native-id (e.g. aws::arn:aws:ec2:us-east-1:123456789012:vpc/vpc-123).
+// pattern: provider::native-id (e.g. aws::arn:aws:ec2:us-east-1:123456789012:vpc/vpc-00000000000000123).
 func resourceID(accountID, region, resourceType, nativeID string) string {
 	return fmt.Sprintf("aws::arn:aws:%s:%s:%s:%s", resourceType, region, accountID, nativeID)
 }
