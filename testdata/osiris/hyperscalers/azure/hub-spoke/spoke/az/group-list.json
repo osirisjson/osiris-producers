@@ -1,8 +1,8 @@
 [
   {
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-NET",
     "location": "westeurope",
-    "name": "RG-SPOKE-NET",
+    "name": "RG-LAB-SPOKE-NET",
     "properties": {
       "provisioningState": "Succeeded"
     },
@@ -13,9 +13,9 @@
     "type": "Microsoft.Resources/resourceGroups"
   },
   {
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-APP",
     "location": "westeurope",
-    "name": "RG-SPOKE-APP",
+    "name": "RG-LAB-SPOKE-APP",
     "properties": {
       "provisioningState": "Succeeded"
     },
@@ -26,9 +26,9 @@
     "type": "Microsoft.Resources/resourceGroups"
   },
   {
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-DATA",
     "location": "westeurope",
-    "name": "RG-SPOKE-DATA",
+    "name": "RG-LAB-SPOKE-DATA",
     "properties": {
       "provisioningState": "Succeeded"
     },

@@ -1,6 +1,6 @@
 [
   {
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA01/providers/microsoft.insights/diagnosticSettings/LAB-TO-LA02",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA01/providers/microsoft.insights/diagnosticSettings/LAB-TO-LA02",
     "logs": [
       {
         "category": null,
@@ -15,8 +15,8 @@
       }
     ],
     "name": "LAB-TO-LA02",
-    "resourceGroup": "RG-HUB-MGMT",
+    "resourceGroup": "RG-LAB-HUB-MGMT",
     "type": "Microsoft.Insights/diagnosticSettings",
-    "workspaceId": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA02"
+    "workspaceId": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA02"
   }
 ]

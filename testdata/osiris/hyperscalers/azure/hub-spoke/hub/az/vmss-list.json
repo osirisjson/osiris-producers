@@ -1,12 +1,12 @@
 [
   {
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachineScaleSets/LAB-HUB-VMSS01",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/virtualMachineScaleSets/LAB-HUB-VMSS01",
     "location": "westeurope",
     "name": "LAB-HUB-VMSS01",
     "orchestrationMode": "Uniform",
     "platformFaultDomainCount": 1,
     "provisioningState": "Succeeded",
-    "resourceGroup": "RG-HUB-NVA",
+    "resourceGroup": "RG-LAB-HUB-NVA",
     "sku": {
       "capacity": 2,
       "name": "Standard_D2s_v5",
@@ -29,21 +29,21 @@
               {
                 "loadBalancerBackendAddressPools": [
                   {
-                    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB/backendAddressPools/LAB-POOL-VMSS",
-                    "resourceGroup": "RG-HUB-NET"
+                    "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB/backendAddressPools/LAB-POOL-VMSS",
+                    "resourceGroup": "RG-LAB-HUB-NET"
                   }
                 ],
                 "name": "ipconfig1",
                 "subnet": {
-                  "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-VMSS",
-                  "resourceGroup": "RG-HUB-NET"
+                  "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-VMSS",
+                  "resourceGroup": "RG-LAB-HUB-NET"
                 }
               }
             ],
             "name": "LAB-HUB-VMSS01-nic",
             "networkSecurityGroup": {
-              "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
-              "resourceGroup": "RG-HUB-NET"
+              "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
+              "resourceGroup": "RG-LAB-HUB-NET"
             },
             "primary": true
           }

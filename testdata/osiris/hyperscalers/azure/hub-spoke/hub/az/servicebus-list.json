@@ -1,13 +1,13 @@
 [
   {
     "disableLocalAuth": true,
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.ServiceBus/namespaces/LAB-HUB-SB01",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.ServiceBus/namespaces/LAB-HUB-SB01",
     "location": "westeurope",
     "minimumTlsVersion": "1.2",
     "name": "LAB-HUB-SB01",
     "provisioningState": "Succeeded",
     "publicNetworkAccess": "Disabled",
-    "resourceGroup": "RG-HUB-MGMT",
+    "resourceGroup": "RG-LAB-HUB-MGMT",
     "serviceBusEndpoint": "https://lab-hub-sb01.example.com:443/",
     "sku": {
       "name": "Premium",

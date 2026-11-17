@@ -15,7 +15,7 @@
         "azure"
       ],
       "accounts": [
-        "00000000-0000-0000-0000-000000000011"
+        "00000000-0000-4000-8000-000000000011"
       ],
       "regions": [
         "westeurope"
@@ -23,30 +23,30 @@
     },
     "osiris.azure": {
       "tenants": {
-        "00000000-0000-0000-0000-0000000000aa": {
+        "00000000-0000-4000-8000-0000000000aa": {
           "name": "LAB-TENANT"
         },
-        "00000000-0000-0000-0000-0000000000bb": {
+        "00000000-0000-4000-8000-0000000000bb": {
           "name": "LAB-PARTNER"
         }
       },
       "subscriptions": {
-        "00000000-0000-0000-0000-000000000011": {
+        "00000000-0000-4000-8000-000000000011": {
           "coverage": "exported",
           "name": "LAB-HUB-SUB",
-          "tenant_id": "00000000-0000-0000-0000-0000000000aa"
+          "tenant_id": "00000000-0000-4000-8000-0000000000aa"
         },
-        "00000000-0000-0000-0000-000000000012": {
+        "00000000-0000-4000-8000-000000000012": {
           "coverage": "reference_only",
           "name": "LAB-SPOKE-SUB",
-          "tenant_id": "00000000-0000-0000-0000-0000000000aa"
+          "tenant_id": "00000000-0000-4000-8000-0000000000aa"
         },
-        "00000000-0000-0000-0000-000000000014": {
+        "00000000-0000-4000-8000-000000000014": {
           "coverage": "reference_only",
           "name": "LAB-PARTNER-SUB",
-          "tenant_id": "00000000-0000-0000-0000-0000000000bb"
+          "tenant_id": "00000000-0000-4000-8000-0000000000bb"
         },
-        "00000000-0000-0000-0000-000000000015": {
+        "00000000-0000-4000-8000-000000000015": {
           "coverage": "reference_only"
         }
       }
@@ -55,15 +55,15 @@
   "topology": {
     "resources": [
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT",
         "type": "container.resourcegroup",
-        "name": "RG-HUB-MGMT",
-        "description": "RG-HUB-MGMT",
+        "name": "RG-LAB-HUB-MGMT",
+        "description": "RG-LAB-HUB-MGMT",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Resources/resourceGroups",
           "region": "westeurope",
           "source": "azure-cli",
@@ -77,15 +77,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Automation/automationAccounts/LAB-HUB-AA01",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Automation/automationAccounts/LAB-HUB-AA01",
         "type": "osiris.azure.automation.account",
         "name": "LAB-HUB-AA01",
-        "description": "LAB-HUB-AA01 in RG-HUB-MGMT",
+        "description": "LAB-HUB-AA01 in RG-LAB-HUB-MGMT",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Automation/automationAccounts/LAB-HUB-AA01",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Automation/automationAccounts/LAB-HUB-AA01",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Automation/automationAccounts",
           "region": "westeurope",
           "source": "azure-cli"
@@ -98,15 +98,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Insights/dataCollectionEndpoints/LAB-HUB-DCE01",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Insights/dataCollectionEndpoints/LAB-HUB-DCE01",
         "type": "osiris.azure.monitor.datacollectionendpoint",
         "name": "LAB-HUB-DCE01",
-        "description": "LAB-HUB-DCE01 in RG-HUB-MGMT",
+        "description": "LAB-HUB-DCE01 in RG-LAB-HUB-MGMT",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Insights/dataCollectionEndpoints/LAB-HUB-DCE01",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Insights/dataCollectionEndpoints/LAB-HUB-DCE01",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Insights/dataCollectionEndpoints",
           "region": "westeurope",
           "source": "azure-cli"
@@ -119,15 +119,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Insights/dataCollectionRules/LAB-HUB-DCR01",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Insights/dataCollectionRules/LAB-HUB-DCR01",
         "type": "osiris.azure.monitor.datacollectionrule",
         "name": "LAB-HUB-DCR01",
-        "description": "LAB-HUB-DCR01 in RG-HUB-MGMT",
+        "description": "LAB-HUB-DCR01 in RG-LAB-HUB-MGMT",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Insights/dataCollectionRules/LAB-HUB-DCR01",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Insights/dataCollectionRules/LAB-HUB-DCR01",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Insights/dataCollectionRules",
           "region": "westeurope",
           "source": "azure-cli"
@@ -140,15 +140,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.KeyVault/vaults/LAB-HUB-KV01",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.KeyVault/vaults/LAB-HUB-KV01",
         "type": "osiris.azure.keyvault",
         "name": "LAB-HUB-KV01",
-        "description": "LAB-HUB-KV01 in RG-HUB-MGMT",
+        "description": "LAB-HUB-KV01 in RG-LAB-HUB-MGMT",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.KeyVault/vaults/LAB-HUB-KV01",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.KeyVault/vaults/LAB-HUB-KV01",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.KeyVault/vaults",
           "region": "westeurope",
           "source": "azure-cli",
@@ -162,15 +162,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Logic/workflows/LAB-HUB-LOGIC01",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Logic/workflows/LAB-HUB-LOGIC01",
         "type": "osiris.azure.logic.workflow",
         "name": "LAB-HUB-LOGIC01",
-        "description": "LAB-HUB-LOGIC01 in RG-HUB-MGMT",
+        "description": "LAB-HUB-LOGIC01 in RG-LAB-HUB-MGMT",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Logic/workflows/LAB-HUB-LOGIC01",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Logic/workflows/LAB-HUB-LOGIC01",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Logic/workflows",
           "region": "westeurope",
           "source": "azure-cli"
@@ -183,15 +183,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA01",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA01",
         "type": "osiris.azure.loganalytics",
         "name": "LAB-HUB-LA01",
-        "description": "LAB-HUB-LA01 in RG-HUB-MGMT",
+        "description": "LAB-HUB-LA01 in RG-LAB-HUB-MGMT",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA01",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA01",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.OperationalInsights/workspaces",
           "region": "westeurope",
           "source": "azure-cli",
@@ -205,15 +205,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA02",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/MXP/providers/Microsoft.OperationalInsights/workspaces/DAD",
         "type": "osiris.azure.loganalytics",
         "name": "LAB-HUB-LA02",
-        "description": "LAB-HUB-LA02 in RG-HUB-MGMT",
+        "description": "LAB-HUB-LA02 in RG-LAB-HUB-MGMT",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA02",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA02",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.OperationalInsights/workspaces",
           "region": "westeurope",
           "source": "azure-cli",
@@ -227,15 +227,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.RecoveryServices/vaults/LAB-HUB-RSV01",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.RecoveryServices/vaults/LAB-HUB-RSV01",
         "type": "osiris.azure.recoveryservicesvault",
         "name": "LAB-HUB-RSV01",
-        "description": "LAB-HUB-RSV01 in RG-HUB-MGMT",
+        "description": "LAB-HUB-RSV01 in RG-LAB-HUB-MGMT",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.RecoveryServices/vaults/LAB-HUB-RSV01",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.RecoveryServices/vaults/LAB-HUB-RSV01",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.RecoveryServices/vaults",
           "region": "westeurope",
           "source": "azure-cli",
@@ -249,15 +249,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.ServiceBus/namespaces/LAB-HUB-SB01",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.ServiceBus/namespaces/LAB-HUB-SB01",
         "type": "application.queue",
         "name": "LAB-HUB-SB01",
-        "description": "LAB-HUB-SB01 in RG-HUB-MGMT",
+        "description": "LAB-HUB-SB01 in RG-LAB-HUB-MGMT",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.ServiceBus/namespaces/LAB-HUB-SB01",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.ServiceBus/namespaces/LAB-HUB-SB01",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.ServiceBus/namespaces",
           "region": "westeurope",
           "source": "azure-cli",
@@ -271,15 +271,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Storage/storageAccounts/labhubsa01",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Storage/storageAccounts/labhubsa01",
         "type": "osiris.azure.storage",
         "name": "labhubsa01",
-        "description": "labhubsa01 in RG-HUB-MGMT",
+        "description": "labhubsa01 in RG-LAB-HUB-MGMT",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Storage/storageAccounts/labhubsa01",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Storage/storageAccounts/labhubsa01",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Storage/storageAccounts",
           "region": "westeurope",
           "source": "azure-cli",
@@ -293,15 +293,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.StreamAnalytics/streamingjobs/LAB-HUB-ASA01",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.StreamAnalytics/streamingjobs/LAB-HUB-ASA01",
         "type": "osiris.azure.streamanalytics",
         "name": "LAB-HUB-ASA01",
-        "description": "LAB-HUB-ASA01 in RG-HUB-MGMT",
+        "description": "LAB-HUB-ASA01 in RG-LAB-HUB-MGMT",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.StreamAnalytics/streamingjobs/LAB-HUB-ASA01",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.StreamAnalytics/streamingjobs/LAB-HUB-ASA01",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.StreamAnalytics/streamingjobs",
           "region": "westeurope",
           "source": "azure-cli"
@@ -314,15 +314,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Web/connections/LAB-HUB-APICONN01",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Web/connections/LAB-HUB-APICONN01",
         "type": "osiris.azure.logic.apiconnection",
         "name": "LAB-HUB-APICONN01",
-        "description": "LAB-HUB-APICONN01 in RG-HUB-MGMT",
+        "description": "LAB-HUB-APICONN01 in RG-LAB-HUB-MGMT",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Web/connections/LAB-HUB-APICONN01",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Web/connections/LAB-HUB-APICONN01",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Web/connections",
           "region": "westeurope",
           "source": "azure-cli"
@@ -335,15 +335,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET",
         "type": "container.resourcegroup",
-        "name": "RG-HUB-NET",
-        "description": "RG-HUB-NET",
+        "name": "RG-LAB-HUB-NET",
+        "description": "RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Resources/resourceGroups",
           "region": "westeurope",
           "source": "azure-cli",
@@ -357,15 +357,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/connections/LAB-HUB-ER01-CONN",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/connections/LAB-HUB-ER01-CONN",
         "type": "osiris.azure.expressroute.connection",
         "name": "LAB-HUB-ER01-CONN",
-        "description": "LAB-HUB-ER01-CONN in RG-HUB-NET",
+        "description": "LAB-HUB-ER01-CONN in RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/connections/LAB-HUB-ER01-CONN",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/connections/LAB-HUB-ER01-CONN",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/connections",
           "region": "westeurope",
           "source": "azure-cli",
@@ -375,15 +375,15 @@
         "state": "Succeeded"
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/dnsForwardingRulesets/LAB-HUB-DNSFRS01",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/dnsForwardingRulesets/LAB-HUB-DNSFRS01",
         "type": "osiris.azure.dns.forwardingruleset",
         "name": "LAB-HUB-DNSFRS01",
-        "description": "LAB-HUB-DNSFRS01 in RG-HUB-NET",
+        "description": "LAB-HUB-DNSFRS01 in RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/dnsForwardingRulesets/LAB-HUB-DNSFRS01",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/dnsForwardingRulesets/LAB-HUB-DNSFRS01",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/dnsForwardingRulesets",
           "region": "westeurope",
           "source": "azure-cli",
@@ -397,15 +397,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/dnsResolvers/LAB-HUB-DNSR01",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/dnsResolvers/LAB-HUB-DNSR01",
         "type": "osiris.azure.dns.resolver",
         "name": "LAB-HUB-DNSR01",
-        "description": "LAB-HUB-DNSR01 in RG-HUB-NET",
+        "description": "LAB-HUB-DNSR01 in RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/dnsResolvers/LAB-HUB-DNSR01",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/dnsResolvers/LAB-HUB-DNSR01",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/dnsResolvers",
           "region": "westeurope",
           "source": "azure-cli",
@@ -419,15 +419,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/expressRouteCircuits/LAB-HUB-ER01",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/expressRouteCircuits/LAB-HUB-ER01",
         "type": "osiris.azure.expressroute",
         "name": "LAB-HUB-ER01",
-        "description": "LAB-HUB-ER01 in RG-HUB-NET",
+        "description": "LAB-HUB-ER01 in RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/expressRouteCircuits/LAB-HUB-ER01",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/expressRouteCircuits/LAB-HUB-ER01",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/expressRouteCircuits",
           "region": "westeurope",
           "source": "azure-cli",
@@ -441,15 +441,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB",
         "type": "network.loadbalancer",
         "name": "LAB-HUB-ILB",
-        "description": "LAB-HUB-ILB in RG-HUB-NET",
+        "description": "LAB-HUB-ILB in RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/loadBalancers",
           "region": "westeurope",
           "source": "azure-cli",
@@ -463,15 +463,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB",
         "type": "network.loadbalancer",
         "name": "LAB-HUB-PLB",
-        "description": "LAB-HUB-PLB in RG-HUB-NET",
+        "description": "LAB-HUB-PLB in RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/loadBalancers",
           "region": "westeurope",
           "source": "azure-cli",
@@ -485,15 +485,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkInterfaces/LAB-HUB-PE-AA01-nic",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/networkInterfaces/LAB-HUB-PE-AA01-nic",
         "type": "network.interface",
         "name": "LAB-HUB-PE-AA01-nic",
-        "description": "LAB-HUB-PE-AA01-nic in RG-HUB-NET",
+        "description": "LAB-HUB-PE-AA01-nic in RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkInterfaces/LAB-HUB-PE-AA01-nic",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/networkInterfaces/LAB-HUB-PE-AA01-nic",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/networkInterfaces",
           "region": "westeurope",
           "source": "azure-cli",
@@ -507,15 +507,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
         "type": "network.security.group",
         "name": "LAB-HUB-NSG",
-        "description": "LAB-HUB-NSG in RG-HUB-NET",
+        "description": "LAB-HUB-NSG in RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/networkSecurityGroups",
           "region": "westeurope",
           "source": "azure-cli",
@@ -529,15 +529,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/privateEndpoints/LAB-HUB-PE-AA01",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/privateEndpoints/LAB-HUB-PE-AA01",
         "type": "network.endpoint",
         "name": "LAB-HUB-PE-AA01",
-        "description": "LAB-HUB-PE-AA01 in RG-HUB-NET",
+        "description": "LAB-HUB-PE-AA01 in RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/privateEndpoints/LAB-HUB-PE-AA01",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/privateEndpoints/LAB-HUB-PE-AA01",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/privateEndpoints",
           "region": "westeurope",
           "source": "azure-cli",
@@ -551,15 +551,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ARS-PIP",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ARS-PIP",
         "type": "osiris.azure.publicip",
         "name": "LAB-HUB-ARS-PIP",
-        "description": "LAB-HUB-ARS-PIP in RG-HUB-NET",
+        "description": "LAB-HUB-ARS-PIP in RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ARS-PIP",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ARS-PIP",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/publicIPAddresses",
           "region": "westeurope",
           "zone": "1,2,3",
@@ -574,15 +574,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ERGW-PIP",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ERGW-PIP",
         "type": "osiris.azure.publicip",
         "name": "LAB-HUB-ERGW-PIP",
-        "description": "LAB-HUB-ERGW-PIP in RG-HUB-NET",
+        "description": "LAB-HUB-ERGW-PIP in RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ERGW-PIP",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ERGW-PIP",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/publicIPAddresses",
           "region": "westeurope",
           "zone": "1,2,3",
@@ -597,15 +597,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-PLB-PIP",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-PLB-PIP",
         "type": "osiris.azure.publicip",
         "name": "LAB-HUB-PLB-PIP",
-        "description": "LAB-HUB-PLB-PIP in RG-HUB-NET",
+        "description": "LAB-HUB-PLB-PIP in RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-PLB-PIP",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-PLB-PIP",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/publicIPAddresses",
           "region": "westeurope",
           "zone": "1,2,3",
@@ -620,15 +620,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-NVA01-PIP",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-NVA01-PIP",
         "type": "osiris.azure.publicip",
         "name": "LAB-NVA01-PIP",
-        "description": "LAB-NVA01-PIP in RG-HUB-NET",
+        "description": "LAB-NVA01-PIP in RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-NVA01-PIP",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-NVA01-PIP",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/publicIPAddresses",
           "region": "westeurope",
           "zone": "1,2,3",
@@ -643,15 +643,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPPrefixes/LAB-HUB-PIPPFX",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPPrefixes/LAB-HUB-PIPPFX",
         "type": "osiris.azure.publicipprefix",
         "name": "LAB-HUB-PIPPFX",
-        "description": "LAB-HUB-PIPPFX in RG-HUB-NET",
+        "description": "LAB-HUB-PIPPFX in RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPPrefixes/LAB-HUB-PIPPFX",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPPrefixes/LAB-HUB-PIPPFX",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/publicIPPrefixes",
           "region": "westeurope",
           "zone": "1,2,3",
@@ -666,15 +666,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/routeTables/LAB-HUB-RT-MGMT",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/routeTables/LAB-HUB-RT-MGMT",
         "type": "osiris.azure.routetable",
         "name": "LAB-HUB-RT-MGMT",
-        "description": "LAB-HUB-RT-MGMT in RG-HUB-NET",
+        "description": "LAB-HUB-RT-MGMT in RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/routeTables/LAB-HUB-RT-MGMT",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/routeTables/LAB-HUB-RT-MGMT",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/routeTables",
           "region": "westeurope",
           "source": "azure-cli",
@@ -688,15 +688,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualHubs/LAB-HUB-ARS",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualHubs/LAB-HUB-ARS",
         "type": "osiris.azure.routeserver",
         "name": "LAB-HUB-ARS",
-        "description": "LAB-HUB-ARS in RG-HUB-NET",
+        "description": "LAB-HUB-ARS in RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualHubs/LAB-HUB-ARS",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualHubs/LAB-HUB-ARS",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/virtualHubs",
           "region": "westeurope",
           "source": "azure-cli",
@@ -710,15 +710,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworkGateways/LAB-HUB-ERGW",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworkGateways/LAB-HUB-ERGW",
         "type": "network.gateway",
         "name": "LAB-HUB-ERGW",
-        "description": "LAB-HUB-ERGW in RG-HUB-NET",
+        "description": "LAB-HUB-ERGW in RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworkGateways/LAB-HUB-ERGW",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworkGateways/LAB-HUB-ERGW",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/virtualNetworkGateways",
           "region": "westeurope",
           "source": "azure-cli",
@@ -732,15 +732,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
         "type": "network.vpc",
         "name": "LAB-HUB-VNET",
-        "description": "LAB-HUB-VNET in RG-HUB-NET",
+        "description": "LAB-HUB-VNET in RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/virtualNetworks",
           "region": "westeurope",
           "source": "azure-cli",
@@ -754,15 +754,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/GatewaySubnet",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/GatewaySubnet",
         "type": "network.subnet",
         "name": "GatewaySubnet",
-        "description": "GatewaySubnet in RG-HUB-NET",
+        "description": "GatewaySubnet in RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/GatewaySubnet",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/GatewaySubnet",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/virtualNetworks/subnets",
           "region": "westeurope",
           "source": "azure-cli",
@@ -772,15 +772,15 @@
         "state": "Succeeded"
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-DNSIN",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-DNSIN",
         "type": "network.subnet",
         "name": "LAB-SNET-DNSIN",
-        "description": "LAB-SNET-DNSIN in RG-HUB-NET",
+        "description": "LAB-SNET-DNSIN in RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-DNSIN",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-DNSIN",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/virtualNetworks/subnets",
           "region": "westeurope",
           "source": "azure-cli",
@@ -790,15 +790,15 @@
         "state": "Succeeded"
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-MGMT",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-MGMT",
         "type": "network.subnet",
         "name": "LAB-SNET-MGMT",
-        "description": "LAB-SNET-MGMT in RG-HUB-NET",
+        "description": "LAB-SNET-MGMT in RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-MGMT",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-MGMT",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/virtualNetworks/subnets",
           "region": "westeurope",
           "source": "azure-cli",
@@ -808,15 +808,15 @@
         "state": "Succeeded"
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-NVA",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-NVA",
         "type": "network.subnet",
         "name": "LAB-SNET-NVA",
-        "description": "LAB-SNET-NVA in RG-HUB-NET",
+        "description": "LAB-SNET-NVA in RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-NVA",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-NVA",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/virtualNetworks/subnets",
           "region": "westeurope",
           "source": "azure-cli",
@@ -826,15 +826,15 @@
         "state": "Succeeded"
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-PE",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-PE",
         "type": "network.subnet",
         "name": "LAB-SNET-PE",
-        "description": "LAB-SNET-PE in RG-HUB-NET",
+        "description": "LAB-SNET-PE in RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-PE",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-PE",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/virtualNetworks/subnets",
           "region": "westeurope",
           "source": "azure-cli",
@@ -844,15 +844,15 @@
         "state": "Succeeded"
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-VMSS",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-VMSS",
         "type": "network.subnet",
         "name": "LAB-SNET-VMSS",
-        "description": "LAB-SNET-VMSS in RG-HUB-NET",
+        "description": "LAB-SNET-VMSS in RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-VMSS",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-VMSS",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/virtualNetworks/subnets",
           "region": "westeurope",
           "source": "azure-cli",
@@ -862,15 +862,15 @@
         "state": "Succeeded"
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/RouteServerSubnet",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/RouteServerSubnet",
         "type": "network.subnet",
         "name": "RouteServerSubnet",
-        "description": "RouteServerSubnet in RG-HUB-NET",
+        "description": "RouteServerSubnet in RG-LAB-HUB-NET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/RouteServerSubnet",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/RouteServerSubnet",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/virtualNetworks/subnets",
           "region": "westeurope",
           "source": "azure-cli",
@@ -880,15 +880,15 @@
         "state": "Succeeded"
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA",
         "type": "container.resourcegroup",
-        "name": "RG-HUB-NVA",
-        "description": "RG-HUB-NVA",
+        "name": "RG-LAB-HUB-NVA",
+        "description": "RG-LAB-HUB-NVA",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Resources/resourceGroups",
           "region": "westeurope",
           "source": "azure-cli",
@@ -902,15 +902,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/disks/LAB-NVA01-os",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/disks/LAB-NVA01-os",
         "type": "storage.volume",
         "name": "LAB-NVA01-os",
-        "description": "LAB-NVA01-os in RG-HUB-NVA",
+        "description": "LAB-NVA01-os in RG-LAB-HUB-NVA",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/disks/LAB-NVA01-os",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/disks/LAB-NVA01-os",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Compute/disks",
           "region": "westeurope",
           "source": "azure-cli",
@@ -924,15 +924,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/disks/LAB-NVA02-os",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/disks/LAB-NVA02-os",
         "type": "storage.volume",
         "name": "LAB-NVA02-os",
-        "description": "LAB-NVA02-os in RG-HUB-NVA",
+        "description": "LAB-NVA02-os in RG-LAB-HUB-NVA",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/disks/LAB-NVA02-os",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/disks/LAB-NVA02-os",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Compute/disks",
           "region": "westeurope",
           "source": "azure-cli",
@@ -946,15 +946,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachineScaleSets/LAB-HUB-VMSS01",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/virtualMachineScaleSets/LAB-HUB-VMSS01",
         "type": "compute.cluster",
         "name": "LAB-HUB-VMSS01",
-        "description": "LAB-HUB-VMSS01 in RG-HUB-NVA",
+        "description": "LAB-HUB-VMSS01 in RG-LAB-HUB-NVA",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachineScaleSets/LAB-HUB-VMSS01",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/virtualMachineScaleSets/LAB-HUB-VMSS01",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Compute/virtualMachineScaleSets",
           "region": "westeurope",
           "source": "azure-cli"
@@ -967,15 +967,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA01",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA01",
         "type": "compute.vm",
         "name": "LAB-NVA01",
-        "description": "LAB-NVA01 in RG-HUB-NVA",
+        "description": "LAB-NVA01 in RG-LAB-HUB-NVA",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA01",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA01",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Compute/virtualMachines",
           "region": "westeurope",
           "source": "azure-cli",
@@ -989,15 +989,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA02",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA02",
         "type": "compute.vm",
         "name": "LAB-NVA02",
-        "description": "LAB-NVA02 in RG-HUB-NVA",
+        "description": "LAB-NVA02 in RG-LAB-HUB-NVA",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA02",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA02",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Compute/virtualMachines",
           "region": "westeurope",
           "source": "azure-cli",
@@ -1011,15 +1011,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic",
         "type": "network.interface",
         "name": "LAB-NVA01-nic",
-        "description": "LAB-NVA01-nic in RG-HUB-NVA",
+        "description": "LAB-NVA01-nic in RG-LAB-HUB-NVA",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/networkInterfaces",
           "region": "westeurope",
           "source": "azure-cli",
@@ -1033,15 +1033,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA02-nic",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA02-nic",
         "type": "network.interface",
         "name": "LAB-NVA02-nic",
-        "description": "LAB-NVA02-nic in RG-HUB-NVA",
+        "description": "LAB-NVA02-nic in RG-LAB-HUB-NVA",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA02-nic",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA02-nic",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/networkInterfaces",
           "region": "westeurope",
           "source": "azure-cli",
@@ -1055,15 +1055,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/microsoft.insights/autoscalesettings/LAB-HUB-VMSS01-AUTOSCALE",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/microsoft.insights/autoscalesettings/LAB-HUB-VMSS01-AUTOSCALE",
         "type": "osiris.azure.monitor.autoscale",
         "name": "LAB-HUB-VMSS01-AUTOSCALE",
-        "description": "LAB-HUB-VMSS01-AUTOSCALE in RG-HUB-NVA",
+        "description": "LAB-HUB-VMSS01-AUTOSCALE in RG-LAB-HUB-NVA",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/microsoft.insights/autoscalesettings/LAB-HUB-VMSS01-AUTOSCALE",
-          "account": "00000000-0000-0000-0000-000000000011",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/microsoft.insights/autoscalesettings/LAB-HUB-VMSS01-AUTOSCALE",
+          "account": "00000000-0000-4000-8000-000000000011",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Insights/autoscalesettings",
           "region": "westeurope",
           "source": "azure-cli"
@@ -1076,15 +1076,15 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET",
         "type": "network.vpc",
         "name": "LAB-SPOKE-VNET",
         "description": "LAB-SPOKE-VNET",
         "provider": {
           "name": "azure",
-          "native_id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET",
-          "account": "00000000-0000-0000-0000-000000000012",
-          "tenant": "00000000-0000-0000-0000-0000000000aa",
+          "native_id": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET",
+          "account": "00000000-0000-4000-8000-000000000012",
+          "tenant": "00000000-0000-4000-8000-0000000000aa",
           "type": "Microsoft.Network/virtualNetworks"
         },
         "status": "unknown"
@@ -1092,10 +1092,10 @@
     ],
     "connections": [
       {
-        "id": "conn-contains-lab-hub-vnet-to-gatewaysubnet-de27790a075336ef",
+        "id": "conn-contains-lab-hub-vnet-to-gatewaysubnet-376a0e766826294d",
         "type": "contains",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/GatewaySubnet",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/GatewaySubnet",
         "direction": "forward",
         "name": "LAB-HUB-VNET -> GatewaySubnet",
         "tags": {
@@ -1104,10 +1104,10 @@
         }
       },
       {
-        "id": "conn-contains-lab-hub-vnet-to-lab-snet-dnsin-27d567b4acc4404b",
+        "id": "conn-contains-lab-hub-vnet-to-lab-snet-dnsin-90bf900c4b50a590",
         "type": "contains",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-DNSIN",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-DNSIN",
         "direction": "forward",
         "name": "LAB-HUB-VNET -> LAB-SNET-DNSIN",
         "tags": {
@@ -1116,10 +1116,10 @@
         }
       },
       {
-        "id": "conn-contains-lab-hub-vnet-to-lab-snet-mgmt-36d811e9dab72cc0",
+        "id": "conn-contains-lab-hub-vnet-to-lab-snet-mgmt-4f75cd02146fd0f7",
         "type": "contains",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-MGMT",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-MGMT",
         "direction": "forward",
         "name": "LAB-HUB-VNET -> LAB-SNET-MGMT",
         "tags": {
@@ -1128,10 +1128,10 @@
         }
       },
       {
-        "id": "conn-contains-lab-hub-vnet-to-lab-snet-nva-6002fc4f4869a2db",
+        "id": "conn-contains-lab-hub-vnet-to-lab-snet-nva-8bc08cf3121e488e",
         "type": "contains",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-NVA",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-NVA",
         "direction": "forward",
         "name": "LAB-HUB-VNET -> LAB-SNET-NVA",
         "tags": {
@@ -1140,10 +1140,10 @@
         }
       },
       {
-        "id": "conn-contains-lab-hub-vnet-to-lab-snet-pe-260c096575eadc48",
+        "id": "conn-contains-lab-hub-vnet-to-lab-snet-pe-0441705026093dcd",
         "type": "contains",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-PE",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-PE",
         "direction": "forward",
         "name": "LAB-HUB-VNET -> LAB-SNET-PE",
         "tags": {
@@ -1152,10 +1152,10 @@
         }
       },
       {
-        "id": "conn-contains-lab-hub-vnet-to-lab-snet-vmss-864a18462e5dd86d",
+        "id": "conn-contains-lab-hub-vnet-to-lab-snet-vmss-0ab71a4296e911da",
         "type": "contains",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-VMSS",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-VMSS",
         "direction": "forward",
         "name": "LAB-HUB-VNET -> LAB-SNET-VMSS",
         "tags": {
@@ -1164,10 +1164,10 @@
         }
       },
       {
-        "id": "conn-contains-lab-hub-vnet-to-routeserversubnet-10659c40d72a5647",
+        "id": "conn-contains-lab-hub-vnet-to-routeserversubnet-d20dfb08558807a8",
         "type": "contains",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/RouteServerSubnet",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/RouteServerSubnet",
         "direction": "forward",
         "name": "LAB-HUB-VNET -> RouteServerSubnet",
         "tags": {
@@ -1176,10 +1176,10 @@
         }
       },
       {
-        "id": "conn-contains-lab-nva01-to-lab-nva01-nic-478689f55af5b0d8",
+        "id": "conn-contains-lab-nva01-to-lab-nva01-nic-037d7eb357086147",
         "type": "contains",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA01",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA01",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic",
         "direction": "forward",
         "name": "LAB-NVA01 -> LAB-NVA01-nic",
         "tags": {
@@ -1188,10 +1188,10 @@
         }
       },
       {
-        "id": "conn-contains-lab-nva02-to-lab-nva02-nic-d1fdd8493c3dd4e9",
+        "id": "conn-contains-lab-nva02-to-lab-nva02-nic-6c776f2b40935c86",
         "type": "contains",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA02",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA02-nic",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA02",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA02-nic",
         "direction": "forward",
         "name": "LAB-NVA02 -> LAB-NVA02-nic",
         "tags": {
@@ -1200,10 +1200,10 @@
         }
       },
       {
-        "id": "conn-dataflow-lab-nva01-to-lab-hub-rsv01-db9e1cf2d2b8834f",
+        "id": "conn-dataflow-lab-nva01-to-lab-hub-rsv01-f350cd176f777723",
         "type": "dataflow",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA01",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.RecoveryServices/vaults/LAB-HUB-RSV01",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA01",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.RecoveryServices/vaults/LAB-HUB-RSV01",
         "direction": "forward",
         "name": "lab-nva01 -> LAB-HUB-RSV01",
         "tags": {
@@ -1212,10 +1212,10 @@
         }
       },
       {
-        "id": "conn-dependency-lab-hub-dcr01-to-lab-hub-la01-6b944a308688e603",
+        "id": "conn-dependency-lab-hub-dcr01-to-lab-hub-la01-8a8f666a7e6814ce",
         "type": "dependency",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Insights/dataCollectionRules/LAB-HUB-DCR01",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA01",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Insights/dataCollectionRules/LAB-HUB-DCR01",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA01",
         "direction": "forward",
         "name": "LAB-HUB-DCR01 -> LAB-HUB-LA01",
         "tags": {
@@ -1224,10 +1224,10 @@
         }
       },
       {
-        "id": "conn-dependency-lab-hub-dnsfrs01-to-lab-hub-dnsr01-eb1589b252dc649d",
+        "id": "conn-dependency-lab-hub-dnsfrs01-to-lab-hub-dnsr01-3b851d76dcb8a000",
         "type": "dependency",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/dnsForwardingRulesets/LAB-HUB-DNSFRS01",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/dnsResolvers/LAB-HUB-DNSR01",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/dnsForwardingRulesets/LAB-HUB-DNSFRS01",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/dnsResolvers/LAB-HUB-DNSR01",
         "direction": "forward",
         "name": "LAB-HUB-DNSFRS01 -> lab-hub-dnsr01",
         "tags": {
@@ -1236,10 +1236,10 @@
         }
       },
       {
-        "id": "conn-dependency-lab-hub-nsg-to-labhubsa01-bf80da58ed64df31",
+        "id": "conn-dependency-lab-hub-nsg-to-labhubsa01-b498d242cdf1210b",
         "type": "dependency",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Storage/storageAccounts/labhubsa01",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Storage/storageAccounts/labhubsa01",
         "direction": "forward",
         "name": "LAB-HUB-NSG-FLOW",
         "tags": {
@@ -1248,10 +1248,10 @@
         }
       },
       {
-        "id": "conn-dependency-lab-hub-vmss01-autoscale-to-lab-hub-vmss01-fccebb238ffd7059",
+        "id": "conn-dependency-lab-hub-vmss01-autoscale-to-lab-hub-vmss01-e4f98c5756c86c30",
         "type": "dependency",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/microsoft.insights/autoscalesettings/LAB-HUB-VMSS01-AUTOSCALE",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachineScaleSets/LAB-HUB-VMSS01",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/microsoft.insights/autoscalesettings/LAB-HUB-VMSS01-AUTOSCALE",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/virtualMachineScaleSets/LAB-HUB-VMSS01",
         "direction": "forward",
         "name": "LAB-HUB-VMSS01-AUTOSCALE governs LAB-HUB-VMSS01",
         "tags": {
@@ -1260,10 +1260,10 @@
         }
       },
       {
-        "id": "conn-dependency.storage-lab-nva01-to-lab-nva01-os-7c54b581ca94fcdf",
+        "id": "conn-dependency.storage-lab-nva01-to-lab-nva01-os-2a25c3d410c5b23a",
         "type": "dependency.storage",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA01",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/disks/LAB-NVA01-os",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA01",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/disks/LAB-NVA01-os",
         "direction": "forward",
         "name": "LAB-NVA01 -> LAB-NVA01-os",
         "tags": {
@@ -1272,10 +1272,10 @@
         }
       },
       {
-        "id": "conn-dependency.storage-lab-nva02-to-lab-nva02-os-66911416aad14dcb",
+        "id": "conn-dependency.storage-lab-nva02-to-lab-nva02-os-e3dfcd33237fd71a",
         "type": "dependency.storage",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA02",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/disks/LAB-NVA02-os",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA02",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/disks/LAB-NVA02-os",
         "direction": "forward",
         "name": "LAB-NVA02 -> lab-nva02-os",
         "tags": {
@@ -1284,10 +1284,10 @@
         }
       },
       {
-        "id": "conn-network-lab-hub-ars-to-lab-hub-ars-pip-616ca4b673de5677",
+        "id": "conn-network-lab-hub-ars-to-lab-hub-ars-pip-709ff195774661b3",
         "type": "network",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualHubs/LAB-HUB-ARS",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ARS-PIP",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualHubs/LAB-HUB-ARS",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ARS-PIP",
         "direction": "forward",
         "name": "LAB-HUB-ARS -> public IP",
         "tags": {
@@ -1296,10 +1296,10 @@
         }
       },
       {
-        "id": "conn-network-lab-hub-ars-to-routeserversubnet-ce30e1d577fe5eb3",
+        "id": "conn-network-lab-hub-ars-to-routeserversubnet-b8e0ee56502b1b6d",
         "type": "network",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualHubs/LAB-HUB-ARS",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/RouteServerSubnet",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualHubs/LAB-HUB-ARS",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/RouteServerSubnet",
         "direction": "forward",
         "name": "LAB-HUB-ARS -> subnet",
         "tags": {
@@ -1308,10 +1308,10 @@
         }
       },
       {
-        "id": "conn-network-lab-hub-dnsr01-to-lab-hub-vnet-4766e3d47c03653b",
+        "id": "conn-network-lab-hub-dnsr01-to-lab-hub-vnet-fbd59dc8f0a37340",
         "type": "network",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/dnsResolvers/LAB-HUB-DNSR01",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/dnsResolvers/LAB-HUB-DNSR01",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
         "direction": "forward",
         "name": "LAB-HUB-DNSR01 -> LAB-HUB-VNET",
         "tags": {
@@ -1320,10 +1320,10 @@
         }
       },
       {
-        "id": "conn-network-lab-hub-er01-to-lab-hub-ergw-fbb847e2b187b54f",
+        "id": "conn-network-lab-hub-er01-to-lab-hub-ergw-80ad4f09b4a4630f",
         "type": "network",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworkGateways/LAB-HUB-ERGW",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/expressRouteCircuits/LAB-HUB-ER01",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworkGateways/LAB-HUB-ERGW",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/expressRouteCircuits/LAB-HUB-ER01",
         "direction": "bidirectional",
         "name": "LAB-HUB-ER01-CONN",
         "status": "active",
@@ -1334,10 +1334,10 @@
         }
       },
       {
-        "id": "conn-network-lab-hub-ergw-to-gatewaysubnet-bc92b246e87f72ab",
+        "id": "conn-network-lab-hub-ergw-to-gatewaysubnet-6a8aaf5b45222d9b",
         "type": "network",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworkGateways/LAB-HUB-ERGW",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/GatewaySubnet",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworkGateways/LAB-HUB-ERGW",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/GatewaySubnet",
         "direction": "forward",
         "name": "LAB-HUB-ERGW -> GatewaySubnet",
         "tags": {
@@ -1346,10 +1346,10 @@
         }
       },
       {
-        "id": "conn-network-lab-hub-ergw-to-lab-hub-ergw-pip-751ac0d4a4009488",
+        "id": "conn-network-lab-hub-ergw-to-lab-hub-ergw-pip-02366c102968a130",
         "type": "network",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworkGateways/LAB-HUB-ERGW",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ERGW-PIP",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworkGateways/LAB-HUB-ERGW",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ERGW-PIP",
         "direction": "forward",
         "name": "LAB-HUB-ERGW -> LAB-HUB-ERGW-PIP",
         "tags": {
@@ -1358,10 +1358,10 @@
         }
       },
       {
-        "id": "conn-network-lab-hub-ilb-to-lab-nva01-nic-e0e77dbbd2c39b25",
+        "id": "conn-network-lab-hub-ilb-to-lab-nva01-nic-92a731bf22105a7c",
         "type": "network",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic",
         "direction": "forward",
         "name": "LAB-HUB-ILB -> LAB-NVA01-nic",
         "tags": {
@@ -1370,10 +1370,10 @@
         }
       },
       {
-        "id": "conn-network-lab-hub-ilb-to-lab-nva02-nic-66c842e960e32f5d",
+        "id": "conn-network-lab-hub-ilb-to-lab-nva02-nic-e1fed925caf70d62",
         "type": "network",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA02-nic",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA02-nic",
         "direction": "forward",
         "name": "LAB-HUB-ILB -> LAB-NVA02-nic",
         "tags": {
@@ -1382,10 +1382,10 @@
         }
       },
       {
-        "id": "conn-network-lab-hub-ilb-to-lab-snet-nva-30df53e910e064f2",
+        "id": "conn-network-lab-hub-ilb-to-lab-snet-nva-a3a077e54a553a74",
         "type": "network",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-NVA",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-NVA",
         "direction": "forward",
         "name": "LAB-HUB-ILB -> LAB-SNET-NVA",
         "tags": {
@@ -1394,10 +1394,10 @@
         }
       },
       {
-        "id": "conn-network-lab-hub-pe-aa01-nic-to-lab-snet-pe-db56ab743a7a35ef",
+        "id": "conn-network-lab-hub-pe-aa01-nic-to-lab-snet-pe-21a6df2aceef9b4e",
         "type": "network",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkInterfaces/LAB-HUB-PE-AA01-nic",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-PE",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/networkInterfaces/LAB-HUB-PE-AA01-nic",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-PE",
         "direction": "forward",
         "name": "LAB-HUB-PE-AA01-nic -> LAB-SNET-PE",
         "tags": {
@@ -1406,10 +1406,10 @@
         }
       },
       {
-        "id": "conn-network-lab-hub-pe-aa01-to-lab-hub-aa01-cb278f699ced9512",
+        "id": "conn-network-lab-hub-pe-aa01-to-lab-hub-aa01-1253b69aa40463f4",
         "type": "network",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/privateEndpoints/LAB-HUB-PE-AA01",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Automation/automationAccounts/LAB-HUB-AA01",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/privateEndpoints/LAB-HUB-PE-AA01",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Automation/automationAccounts/LAB-HUB-AA01",
         "direction": "forward",
         "name": "LAB-HUB-PE-AA01 -> LAB-HUB-AA01",
         "status": "active",
@@ -1420,10 +1420,10 @@
         }
       },
       {
-        "id": "conn-network-lab-hub-pe-aa01-to-lab-hub-pe-aa01-nic-f8bd3dc1da27b9c0",
+        "id": "conn-network-lab-hub-pe-aa01-to-lab-hub-pe-aa01-nic-33681f43f0945408",
         "type": "network",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/privateEndpoints/LAB-HUB-PE-AA01",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkInterfaces/LAB-HUB-PE-AA01-nic",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/privateEndpoints/LAB-HUB-PE-AA01",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/networkInterfaces/LAB-HUB-PE-AA01-nic",
         "direction": "forward",
         "name": "LAB-HUB-PE-AA01 -> LAB-HUB-PE-AA01-nic",
         "tags": {
@@ -1432,10 +1432,10 @@
         }
       },
       {
-        "id": "conn-network-lab-hub-pe-aa01-to-lab-snet-pe-5d12a265219f7502",
+        "id": "conn-network-lab-hub-pe-aa01-to-lab-snet-pe-f47401837d572d22",
         "type": "network",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/privateEndpoints/LAB-HUB-PE-AA01",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-PE",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/privateEndpoints/LAB-HUB-PE-AA01",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-PE",
         "direction": "forward",
         "name": "LAB-HUB-PE-AA01 -> LAB-SNET-PE",
         "tags": {
@@ -1444,10 +1444,10 @@
         }
       },
       {
-        "id": "conn-network-lab-hub-plb-to-lab-hub-plb-pip-d1890f7e1c79d2c6",
+        "id": "conn-network-lab-hub-plb-to-lab-hub-plb-pip-4bb7770cef5fe16b",
         "type": "network",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-PLB-PIP",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-PLB-PIP",
         "direction": "forward",
         "name": "LAB-HUB-PLB frontend -> LAB-HUB-PLB-PIP",
         "tags": {
@@ -1456,10 +1456,10 @@
         }
       },
       {
-        "id": "conn-network-lab-hub-plb-to-lab-hub-vmss01-23b9e6b996448478",
+        "id": "conn-network-lab-hub-plb-to-lab-hub-vmss01-731a87c47dd209c5",
         "type": "network",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachineScaleSets/LAB-HUB-VMSS01",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/virtualMachineScaleSets/LAB-HUB-VMSS01",
         "direction": "forward",
         "name": "LAB-HUB-PLB -> LAB-HUB-VMSS01",
         "tags": {
@@ -1468,10 +1468,10 @@
         }
       },
       {
-        "id": "conn-network-lab-hub-vmss01-to-lab-snet-vmss-7ef7d314f38fe0b3",
+        "id": "conn-network-lab-hub-vmss01-to-lab-snet-vmss-95a82d2367ff6c22",
         "type": "network",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachineScaleSets/LAB-HUB-VMSS01",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-VMSS",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/virtualMachineScaleSets/LAB-HUB-VMSS01",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-VMSS",
         "direction": "forward",
         "name": "LAB-HUB-VMSS01 -> LAB-SNET-VMSS",
         "tags": {
@@ -1480,10 +1480,10 @@
         }
       },
       {
-        "id": "conn-network-lab-nva01-nic-to-lab-nva01-pip-36f55b704af3eb07",
+        "id": "conn-network-lab-nva01-nic-to-lab-nva01-pip-73b76a371a6eb2c1",
         "type": "network",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-NVA01-PIP",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-NVA01-PIP",
         "direction": "forward",
         "name": "LAB-NVA01-nic -> LAB-NVA01-PIP",
         "tags": {
@@ -1492,10 +1492,10 @@
         }
       },
       {
-        "id": "conn-network-lab-nva01-nic-to-lab-snet-nva-6ae98413af6690e0",
+        "id": "conn-network-lab-nva01-nic-to-lab-snet-nva-b8dd7e50d334497b",
         "type": "network",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-NVA",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-NVA",
         "direction": "forward",
         "name": "LAB-NVA01-nic -> LAB-SNET-NVA",
         "tags": {
@@ -1504,10 +1504,10 @@
         }
       },
       {
-        "id": "conn-network-lab-nva02-nic-to-lab-snet-nva-8ed030496a43ed81",
+        "id": "conn-network-lab-nva02-nic-to-lab-snet-nva-28016ffccd47eba4",
         "type": "network",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA02-nic",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-NVA",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA02-nic",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-NVA",
         "direction": "forward",
         "name": "LAB-NVA02-nic -> LAB-SNET-NVA",
         "tags": {
@@ -1516,10 +1516,10 @@
         }
       },
       {
-        "id": "conn-network.bgp-lab-hub-ars-to-lab-nva01-nic-d3c671ba8f00c449",
+        "id": "conn-network.bgp-lab-hub-ars-to-lab-nva01-nic-b932104ce3bdaddb",
         "type": "network.bgp",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualHubs/LAB-HUB-ARS",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualHubs/LAB-HUB-ARS",
         "direction": "bidirectional",
         "name": "LAB-NVA01-nic <-> LAB-HUB-ARS",
         "state": "Connected",
@@ -1529,10 +1529,10 @@
         }
       },
       {
-        "id": "conn-network.bgp-lab-hub-ars-to-lab-nva02-nic-e33d74a8cbb58fec",
+        "id": "conn-network.bgp-lab-hub-ars-to-lab-nva02-nic-b87251efc3dd2e0f",
         "type": "network.bgp",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA02-nic",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualHubs/LAB-HUB-ARS",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA02-nic",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualHubs/LAB-HUB-ARS",
         "direction": "bidirectional",
         "name": "LAB-NVA02-nic <-> LAB-HUB-ARS",
         "state": "Connected",
@@ -1542,10 +1542,10 @@
         }
       },
       {
-        "id": "conn-network.peering-lab-hub-vnet-to-lab-spoke-vnet-bc8ceb6e648ed2c1",
+        "id": "conn-network.peering-lab-hub-vnet-to-lab-spoke-vnet-ce6b49aadad29d4f",
         "type": "network.peering",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET",
         "direction": "bidirectional",
         "name": "LAB-HUB-TO-SPOKE",
         "status": "active",
@@ -1556,26 +1556,26 @@
         }
       },
       {
-        "id": "conn-osiris.azure.expressroute.connection.endpoint-lab-hub-er01-conn-to-lab-hub-er01-7ba447c6c7925464",
+        "id": "conn-osiris.azure.expressroute.connection.endpoint-lab-hub-er01-conn-to-lab-hub-er01-7c6a6a6482745b59",
         "type": "osiris.azure.expressroute.connection.endpoint",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/connections/LAB-HUB-ER01-CONN",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/expressRouteCircuits/LAB-HUB-ER01",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/connections/LAB-HUB-ER01-CONN",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/expressRouteCircuits/LAB-HUB-ER01",
         "direction": "forward",
         "name": "LAB-HUB-ER01-CONN -> LAB-HUB-ER01"
       },
       {
-        "id": "conn-osiris.azure.expressroute.connection.endpoint-lab-hub-er01-conn-to-lab-hub-ergw-5e425b1aab510ec4",
+        "id": "conn-osiris.azure.expressroute.connection.endpoint-lab-hub-er01-conn-to-lab-hub-ergw-94247b7b1f41faac",
         "type": "osiris.azure.expressroute.connection.endpoint",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/connections/LAB-HUB-ER01-CONN",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworkGateways/LAB-HUB-ERGW",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/connections/LAB-HUB-ER01-CONN",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworkGateways/LAB-HUB-ERGW",
         "direction": "forward",
         "name": "LAB-HUB-ER01-CONN -> LAB-HUB-ERGW"
       },
       {
-        "id": "conn-osiris.azure.nsg.association-lab-hub-vmss01-to-lab-hub-nsg-510e21bdae820957",
+        "id": "conn-osiris.azure.nsg.association-lab-hub-vmss01-to-lab-hub-nsg-831ae1fa6545202e",
         "type": "osiris.azure.nsg.association",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachineScaleSets/LAB-HUB-VMSS01",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/virtualMachineScaleSets/LAB-HUB-VMSS01",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
         "direction": "forward",
         "name": "LAB-HUB-VMSS01 -> LAB-HUB-NSG",
         "tags": {
@@ -1584,10 +1584,10 @@
         }
       },
       {
-        "id": "conn-osiris.azure.nsg.association-lab-nva01-nic-to-lab-hub-nsg-1a700adf7ffcf191",
+        "id": "conn-osiris.azure.nsg.association-lab-nva01-nic-to-lab-hub-nsg-fd6da39c091c365b",
         "type": "osiris.azure.nsg.association",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
         "direction": "forward",
         "name": "LAB-NVA01-nic -> LAB-HUB-NSG",
         "tags": {
@@ -1596,26 +1596,26 @@
         }
       },
       {
-        "id": "conn-osiris.azure.nsg.association-lab-snet-nva-to-lab-hub-nsg-4cb679c6078e51f7",
+        "id": "conn-osiris.azure.nsg.association-lab-snet-nva-to-lab-hub-nsg-987920436954f5b2",
         "type": "osiris.azure.nsg.association",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-NVA",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-NVA",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
         "direction": "forward",
         "name": "LAB-SNET-NVA -> LAB-HUB-NSG"
       },
       {
-        "id": "conn-osiris.azure.nsg.association-lab-snet-vmss-to-lab-hub-nsg-fe61e48c86c76c5e",
+        "id": "conn-osiris.azure.nsg.association-lab-snet-vmss-to-lab-hub-nsg-0450586e26484093",
         "type": "osiris.azure.nsg.association",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-VMSS",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-VMSS",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
         "direction": "forward",
         "name": "LAB-SNET-VMSS -> LAB-HUB-NSG"
       },
       {
-        "id": "conn-osiris.azure.route.nexthop-lab-hub-rt-mgmt-to-lab-hub-ilb-31711e524049c9fc",
+        "id": "conn-osiris.azure.route.nexthop-lab-hub-rt-mgmt-to-lab-hub-ilb-c394c68dcb210905",
         "type": "osiris.azure.route.nexthop",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/routeTables/LAB-HUB-RT-MGMT",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/routeTables/LAB-HUB-RT-MGMT",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB",
         "direction": "forward",
         "name": "LAB-HUB-RT-MGMT -> LAB-HUB-ILB",
         "tags": {
@@ -1624,72 +1624,72 @@
         }
       },
       {
-        "id": "conn-osiris.azure.routetable.association-lab-snet-mgmt-to-lab-hub-rt-mgmt-7623b979aa6d1586",
+        "id": "conn-osiris.azure.routetable.association-lab-snet-mgmt-to-lab-hub-rt-mgmt-9d95c3cb04227297",
         "type": "osiris.azure.routetable.association",
-        "source": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-MGMT",
-        "target": "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/routeTables/LAB-HUB-RT-MGMT",
+        "source": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-MGMT",
+        "target": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/routeTables/LAB-HUB-RT-MGMT",
         "direction": "forward",
         "name": "LAB-SNET-MGMT -> route table"
       }
     ],
     "groups": [
       {
-        "id": "group-container.region-westeurope-f2bc8c8cbe1fa773",
+        "id": "group-container.region-westeurope-a407af4aafe4fadc",
         "type": "container.region",
         "name": "westeurope",
         "members": [
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Automation/automationAccounts/LAB-HUB-AA01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Insights/dataCollectionEndpoints/LAB-HUB-DCE01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Insights/dataCollectionRules/LAB-HUB-DCR01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.KeyVault/vaults/LAB-HUB-KV01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Logic/workflows/LAB-HUB-LOGIC01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA02",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.RecoveryServices/vaults/LAB-HUB-RSV01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.ServiceBus/namespaces/LAB-HUB-SB01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Storage/storageAccounts/labhubsa01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.StreamAnalytics/streamingjobs/LAB-HUB-ASA01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Web/connections/LAB-HUB-APICONN01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/connections/LAB-HUB-ER01-CONN",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/dnsForwardingRulesets/LAB-HUB-DNSFRS01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/dnsResolvers/LAB-HUB-DNSR01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/expressRouteCircuits/LAB-HUB-ER01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkInterfaces/LAB-HUB-PE-AA01-nic",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/privateEndpoints/LAB-HUB-PE-AA01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ARS-PIP",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ERGW-PIP",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-PLB-PIP",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-NVA01-PIP",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPPrefixes/LAB-HUB-PIPPFX",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/routeTables/LAB-HUB-RT-MGMT",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualHubs/LAB-HUB-ARS",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworkGateways/LAB-HUB-ERGW",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/GatewaySubnet",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-DNSIN",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-MGMT",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-NVA",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-PE",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-VMSS",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/RouteServerSubnet",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/disks/LAB-NVA01-os",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/disks/LAB-NVA02-os",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachineScaleSets/LAB-HUB-VMSS01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA02",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA02-nic",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/microsoft.insights/autoscalesettings/LAB-HUB-VMSS01-AUTOSCALE"
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Automation/automationAccounts/LAB-HUB-AA01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Insights/dataCollectionEndpoints/LAB-HUB-DCE01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Insights/dataCollectionRules/LAB-HUB-DCR01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.KeyVault/vaults/LAB-HUB-KV01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Logic/workflows/LAB-HUB-LOGIC01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA02",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.RecoveryServices/vaults/LAB-HUB-RSV01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.ServiceBus/namespaces/LAB-HUB-SB01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Storage/storageAccounts/labhubsa01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.StreamAnalytics/streamingjobs/LAB-HUB-ASA01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Web/connections/LAB-HUB-APICONN01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/connections/LAB-HUB-ER01-CONN",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/dnsForwardingRulesets/LAB-HUB-DNSFRS01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/dnsResolvers/LAB-HUB-DNSR01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/expressRouteCircuits/LAB-HUB-ER01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/networkInterfaces/LAB-HUB-PE-AA01-nic",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/privateEndpoints/LAB-HUB-PE-AA01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ARS-PIP",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ERGW-PIP",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-PLB-PIP",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-NVA01-PIP",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPPrefixes/LAB-HUB-PIPPFX",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/routeTables/LAB-HUB-RT-MGMT",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualHubs/LAB-HUB-ARS",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworkGateways/LAB-HUB-ERGW",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/GatewaySubnet",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-DNSIN",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-MGMT",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-NVA",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-PE",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-VMSS",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/RouteServerSubnet",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/disks/LAB-NVA01-os",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/disks/LAB-NVA02-os",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/virtualMachineScaleSets/LAB-HUB-VMSS01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA02",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA02-nic",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/microsoft.insights/autoscalesettings/LAB-HUB-VMSS01-AUTOSCALE"
         ]
       },
       {
-        "id": "group-logical.managementgroup-00000000-0000-0000-0000--7d6099bf7981b5b0",
+        "id": "group-logical.managementgroup-00000000-0000-4000-8000--52101b636b105e1c",
         "type": "logical.managementgroup",
         "name": "Tenant Root Group",
         "children": [
@@ -1701,28 +1701,28 @@
         "type": "logical.managementgroup",
         "name": "LAB-MG-PLATFORM",
         "children": [
-          "group-logical.subscription-00000000-0000-0000-0000--a93334e98f0eca2f"
+          "group-logical.subscription-00000000-0000-4000-8000--35ae43d573f806b6"
         ]
       },
       {
-        "id": "group-logical.resourcegroup-rg-hub-mgmt-4f67eb37236be026",
+        "id": "group-logical.resourcegroup-rg-lab-hub-mgmt-7f7c2e1480af3712",
         "type": "logical.resourcegroup",
-        "name": "RG-HUB-MGMT",
-        "description": "RG-HUB-MGMT",
+        "name": "RG-LAB-HUB-MGMT",
+        "description": "RG-LAB-HUB-MGMT",
         "members": [
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Automation/automationAccounts/LAB-HUB-AA01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Insights/dataCollectionEndpoints/LAB-HUB-DCE01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Insights/dataCollectionRules/LAB-HUB-DCR01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.KeyVault/vaults/LAB-HUB-KV01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Logic/workflows/LAB-HUB-LOGIC01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA02",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.RecoveryServices/vaults/LAB-HUB-RSV01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.ServiceBus/namespaces/LAB-HUB-SB01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Storage/storageAccounts/labhubsa01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.StreamAnalytics/streamingjobs/LAB-HUB-ASA01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Web/connections/LAB-HUB-APICONN01"
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Automation/automationAccounts/LAB-HUB-AA01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Insights/dataCollectionEndpoints/LAB-HUB-DCE01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Insights/dataCollectionRules/LAB-HUB-DCR01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.KeyVault/vaults/LAB-HUB-KV01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Logic/workflows/LAB-HUB-LOGIC01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA02",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.RecoveryServices/vaults/LAB-HUB-RSV01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.ServiceBus/namespaces/LAB-HUB-SB01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Storage/storageAccounts/labhubsa01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.StreamAnalytics/streamingjobs/LAB-HUB-ASA01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Web/connections/LAB-HUB-APICONN01"
         ],
         "tags": {
           "env": "LAB",
@@ -1730,37 +1730,37 @@
         }
       },
       {
-        "id": "group-logical.resourcegroup-rg-hub-net-f36fae137fe4c6b6",
+        "id": "group-logical.resourcegroup-rg-lab-hub-net-a515f3b3ffdbde72",
         "type": "logical.resourcegroup",
-        "name": "RG-HUB-NET",
-        "description": "RG-HUB-NET",
+        "name": "RG-LAB-HUB-NET",
+        "description": "RG-LAB-HUB-NET",
         "members": [
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/connections/LAB-HUB-ER01-CONN",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/dnsForwardingRulesets/LAB-HUB-DNSFRS01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/dnsResolvers/LAB-HUB-DNSR01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/expressRouteCircuits/LAB-HUB-ER01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkInterfaces/LAB-HUB-PE-AA01-nic",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/privateEndpoints/LAB-HUB-PE-AA01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ARS-PIP",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ERGW-PIP",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-PLB-PIP",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-NVA01-PIP",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPPrefixes/LAB-HUB-PIPPFX",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/routeTables/LAB-HUB-RT-MGMT",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualHubs/LAB-HUB-ARS",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworkGateways/LAB-HUB-ERGW",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/GatewaySubnet",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-DNSIN",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-MGMT",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-NVA",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-PE",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-VMSS",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/RouteServerSubnet"
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/connections/LAB-HUB-ER01-CONN",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/dnsForwardingRulesets/LAB-HUB-DNSFRS01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/dnsResolvers/LAB-HUB-DNSR01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/expressRouteCircuits/LAB-HUB-ER01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/networkInterfaces/LAB-HUB-PE-AA01-nic",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/privateEndpoints/LAB-HUB-PE-AA01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ARS-PIP",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ERGW-PIP",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-PLB-PIP",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-NVA01-PIP",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPPrefixes/LAB-HUB-PIPPFX",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/routeTables/LAB-HUB-RT-MGMT",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualHubs/LAB-HUB-ARS",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworkGateways/LAB-HUB-ERGW",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/GatewaySubnet",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-DNSIN",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-MGMT",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-NVA",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-PE",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/LAB-SNET-VMSS",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET/subnets/RouteServerSubnet"
         ],
         "tags": {
           "env": "LAB",
@@ -1768,20 +1768,20 @@
         }
       },
       {
-        "id": "group-logical.resourcegroup-rg-hub-nva-2fbc7ff12247ed08",
+        "id": "group-logical.resourcegroup-rg-lab-hub-nva-222e4a74fc70c479",
         "type": "logical.resourcegroup",
-        "name": "RG-HUB-NVA",
-        "description": "RG-HUB-NVA",
+        "name": "RG-LAB-HUB-NVA",
+        "description": "RG-LAB-HUB-NVA",
         "members": [
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/disks/LAB-NVA01-os",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/disks/LAB-NVA02-os",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachineScaleSets/LAB-HUB-VMSS01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA01",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA02",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA02-nic",
-          "azure::/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/microsoft.insights/autoscalesettings/LAB-HUB-VMSS01-AUTOSCALE"
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/disks/LAB-NVA01-os",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/disks/LAB-NVA02-os",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/virtualMachineScaleSets/LAB-HUB-VMSS01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA01",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA02",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA02-nic",
+          "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/microsoft.insights/autoscalesettings/LAB-HUB-VMSS01-AUTOSCALE"
         ],
         "tags": {
           "env": "LAB",
@@ -1789,13 +1789,13 @@
         }
       },
       {
-        "id": "group-logical.subscription-00000000-0000-0000-0000--a93334e98f0eca2f",
+        "id": "group-logical.subscription-00000000-0000-4000-8000--35ae43d573f806b6",
         "type": "logical.subscription",
         "name": "LAB-HUB-SUB",
         "children": [
-          "group-logical.resourcegroup-rg-hub-mgmt-4f67eb37236be026",
-          "group-logical.resourcegroup-rg-hub-net-f36fae137fe4c6b6",
-          "group-logical.resourcegroup-rg-hub-nva-2fbc7ff12247ed08"
+          "group-logical.resourcegroup-rg-lab-hub-mgmt-7f7c2e1480af3712",
+          "group-logical.resourcegroup-rg-lab-hub-net-a515f3b3ffdbde72",
+          "group-logical.resourcegroup-rg-lab-hub-nva-222e4a74fc70c479"
         ]
       }
     ]

@@ -5,13 +5,13 @@
     },
     "diskSizeGB": 64,
     "diskState": "Attached",
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Compute/disks/LAB-APP01-os",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-APP/providers/Microsoft.Compute/disks/LAB-APP01-os",
     "location": "westeurope",
-    "managedBy": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Compute/virtualMachines/LAB-APP01",
+    "managedBy": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-APP/providers/Microsoft.Compute/virtualMachines/LAB-APP01",
     "name": "LAB-APP01-os",
     "osType": "Linux",
     "provisioningState": "Succeeded",
-    "resourceGroup": "RG-SPOKE-APP",
+    "resourceGroup": "RG-LAB-SPOKE-APP",
     "sku": {
       "name": "Premium_LRS",
       "tier": "Premium"

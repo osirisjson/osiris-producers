@@ -3,7 +3,7 @@
     "adminUserEnabled": false,
     "anonymousPullEnabled": false,
     "dataEndpointEnabled": false,
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.ContainerRegistry/registries/labspokeacr01",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-APP/providers/Microsoft.ContainerRegistry/registries/labspokeacr01",
     "location": "westeurope",
     "loginServer": "labspokeacr01.example.com",
     "name": "labspokeacr01",
@@ -14,24 +14,24 @@
     },
     "privateEndpointConnections": [
       {
-        "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.ContainerRegistry/registries/labspokeacr01/privateEndpointConnections/LAB-PE-ACR01",
+        "id": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-APP/providers/Microsoft.ContainerRegistry/registries/labspokeacr01/privateEndpointConnections/LAB-PE-ACR01",
         "name": "LAB-PE-ACR01",
         "privateEndpoint": {
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-ACR01",
-          "resourceGroup": "RG-SPOKE-NET"
+          "id": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-NET/providers/Microsoft.Network/privateEndpoints/LAB-PE-ACR01",
+          "resourceGroup": "RG-LAB-SPOKE-NET"
         },
         "privateLinkServiceConnectionState": {
           "description": "Auto-Approved",
           "status": "Approved"
         },
         "provisioningState": "Succeeded",
-        "resourceGroup": "RG-SPOKE-APP",
+        "resourceGroup": "RG-LAB-SPOKE-APP",
         "type": "Microsoft.ContainerRegistry/registries/privateEndpointConnections"
       }
     ],
     "provisioningState": "Succeeded",
     "publicNetworkAccess": "Disabled",
-    "resourceGroup": "RG-SPOKE-APP",
+    "resourceGroup": "RG-LAB-SPOKE-APP",
     "sku": {
       "name": "Premium",
       "tier": "Premium"

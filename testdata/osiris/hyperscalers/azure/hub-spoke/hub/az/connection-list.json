@@ -2,14 +2,14 @@
   {
     "connectionType": "ExpressRoute",
     "enableBgp": false,
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/connections/LAB-HUB-ER01-CONN",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/connections/LAB-HUB-ER01-CONN",
     "location": "westeurope",
     "name": "LAB-HUB-ER01-CONN",
     "peer": {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourcegroups/rg-hub-net/providers/Microsoft.Network/expressRouteCircuits/LAB-HUB-ER01"
+      "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourcegroups/rg-lab-hub-net/providers/Microsoft.Network/expressRouteCircuits/LAB-HUB-ER01"
     },
     "provisioningState": "Succeeded",
-    "resourceGroup": "RG-HUB-NET",
+    "resourceGroup": "RG-LAB-HUB-NET",
     "routingWeight": 0,
     "tags": {
       "env": "LAB",
@@ -17,7 +17,7 @@
     },
     "type": "Microsoft.Network/connections",
     "virtualNetworkGateway1": {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworkGateways/LAB-HUB-ERGW"
+      "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworkGateways/LAB-HUB-ERGW"
     }
   }
 ]

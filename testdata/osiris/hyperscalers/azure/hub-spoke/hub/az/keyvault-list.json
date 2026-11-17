@@ -1,9 +1,9 @@
 [
   {
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.KeyVault/vaults/LAB-HUB-KV01",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.KeyVault/vaults/LAB-HUB-KV01",
     "location": "westeurope",
     "name": "LAB-HUB-KV01",
-    "resourceGroup": "RG-HUB-MGMT",
+    "resourceGroup": "RG-LAB-HUB-MGMT",
     "tags": {
       "env": "LAB",
       "owner": "LAB-TEAM"

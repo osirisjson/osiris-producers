@@ -1,13 +1,13 @@
 [
   {
-    "customerId": "00000000-0000-0000-0000-0000000001a1",
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA01",
+    "customerId": "00000000-0000-4000-8000-0000000001a1",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA01",
     "location": "westeurope",
     "name": "LAB-HUB-LA01",
     "provisioningState": "Succeeded",
     "publicNetworkAccessForIngestion": "Enabled",
     "publicNetworkAccessForQuery": "Enabled",
-    "resourceGroup": "RG-HUB-MGMT",
+    "resourceGroup": "RG-LAB-HUB-MGMT",
     "retentionInDays": 30,
     "sku": {
       "name": "PerGB2018"
@@ -19,14 +19,14 @@
     "type": "Microsoft.OperationalInsights/workspaces"
   },
   {
-    "customerId": "00000000-0000-0000-0000-0000000001a2",
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA02",
+    "customerId": "00000000-0000-4000-8000-0000000001a2",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA02",
     "location": "westeurope",
     "name": "LAB-HUB-LA02",
     "provisioningState": "Succeeded",
     "publicNetworkAccessForIngestion": "Enabled",
     "publicNetworkAccessForQuery": "Enabled",
-    "resourceGroup": "RG-HUB-MGMT",
+    "resourceGroup": "RG-LAB-HUB-MGMT",
     "retentionInDays": 30,
     "sku": {
       "name": "PerGB2018"

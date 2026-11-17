@@ -1,12 +1,12 @@
 [
   {
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.RecoveryServices/vaults/LAB-SPOKE-RSV01",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-APP/providers/Microsoft.RecoveryServices/vaults/LAB-SPOKE-RSV01",
     "location": "westeurope",
     "name": "LAB-SPOKE-RSV01",
     "properties": {
       "provisioningState": "Succeeded"
     },
-    "resourceGroup": "RG-SPOKE-APP",
+    "resourceGroup": "RG-LAB-SPOKE-APP",
     "sku": {
       "name": "RS0",
       "tier": "Standard"

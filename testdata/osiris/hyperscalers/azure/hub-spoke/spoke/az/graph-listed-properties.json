@@ -2,7 +2,7 @@
   "count": 3,
   "data": [
     {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourcegroups/rg-spoke-app/providers/microsoft.insights/autoscalesettings/lab-asp01-autoscale",
+      "id": "/subscriptions/00000000-0000-4000-8000-000000000012/resourcegroups/rg-lab-spoke-app/providers/microsoft.insights/autoscalesettings/lab-asp01-autoscale",
       "properties": {
         "enabled": true,
         "name": "LAB-ASP01-AUTOSCALE",
@@ -19,15 +19,15 @@
           }
         ],
         "provisioningState": "Succeeded",
-        "targetResourceUri": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/serverfarms/LAB-ASP01"
+        "targetResourceUri": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-APP/providers/Microsoft.Web/serverfarms/LAB-ASP01"
       }
     },
     {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourcegroups/rg-spoke-app/providers/microsoft.web/connections/lab-spoke-apiconn01",
+      "id": "/subscriptions/00000000-0000-4000-8000-000000000012/resourcegroups/rg-lab-spoke-app/providers/microsoft.web/connections/lab-spoke-apiconn01",
       "properties": {
         "api": {
           "displayName": "Azure Blob Storage",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000012/providers/Microsoft.Web/locations/westeurope/managedApis/azureblob",
+          "id": "/subscriptions/00000000-0000-4000-8000-000000000012/providers/Microsoft.Web/locations/westeurope/managedApis/azureblob",
           "name": "azureblob",
           "type": "Microsoft.Web/locations/managedApis"
         },
@@ -35,7 +35,7 @@
         "displayName": "LAB-SPOKE-APICONN01",
         "overallStatus": "Connected",
         "parameterValues": {
-          "accessKey": "changeme-apiconn",
+          "accessKey": "changeme-7",
           "accountName": "labspokesa01"
         },
         "provisioningState": "Succeeded",
@@ -47,7 +47,7 @@
       }
     },
     {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourcegroups/rg-spoke-data/providers/microsoft.datafactory/factories/lab-spoke-adf01",
+      "id": "/subscriptions/00000000-0000-4000-8000-000000000012/resourcegroups/rg-lab-spoke-data/providers/microsoft.datafactory/factories/lab-spoke-adf01",
       "properties": {
         "createTime": "2026-01-01T00:00:00Z",
         "provisioningState": "Succeeded",

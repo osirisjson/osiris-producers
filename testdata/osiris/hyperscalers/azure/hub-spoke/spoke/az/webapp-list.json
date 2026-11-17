@@ -13,10 +13,10 @@
       "lab-web01.example.com"
     ],
     "httpsOnly": true,
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/sites/LAB-WEB01",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-APP/providers/Microsoft.Web/sites/LAB-WEB01",
     "identity": {
-      "principalId": "00000000-0000-0000-0000-0000000002e1",
-      "tenantId": "00000000-0000-0000-0000-0000000000aa",
+      "principalId": "00000000-0000-4000-8000-0000000002e1",
+      "tenantId": "00000000-0000-4000-8000-0000000000aa",
       "type": "SystemAssigned"
     },
     "kind": "app,linux",
@@ -34,8 +34,8 @@
     "publicNetworkAccess": "Disabled",
     "redundancyMode": "None",
     "reserved": true,
-    "resourceGroup": "RG-SPOKE-APP",
-    "serverFarmId": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/serverfarms/LAB-ASP01",
+    "resourceGroup": "RG-LAB-SPOKE-APP",
+    "serverFarmId": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-APP/providers/Microsoft.Web/serverfarms/LAB-ASP01",
     "siteConfig": {
       "alwaysOn": true,
       "http20Enabled": true,
@@ -49,6 +49,6 @@
     },
     "type": "Microsoft.Web/sites",
     "usageState": "Normal",
-    "virtualNetworkSubnetId": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-INTEG"
+    "virtualNetworkSubnetId": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-NET/providers/Microsoft.Network/virtualNetworks/LAB-SPOKE-VNET/subnets/LAB-SNET-INTEG"
   }
 ]

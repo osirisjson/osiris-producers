@@ -3,7 +3,7 @@
     "configurationAccess": {
       "endpoint": "https://lab-hub-dce01.example.com"
     },
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Insights/dataCollectionEndpoints/LAB-HUB-DCE01",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Insights/dataCollectionEndpoints/LAB-HUB-DCE01",
     "immutableId": "dce-00000000000000000000000000000001",
     "location": "westeurope",
     "logsIngestion": {
@@ -14,7 +14,7 @@
       "publicNetworkAccess": "Disabled"
     },
     "provisioningState": "Succeeded",
-    "resourceGroup": "RG-HUB-MGMT",
+    "resourceGroup": "RG-LAB-HUB-MGMT",
     "tags": {
       "env": "LAB",
       "owner": "LAB-TEAM"

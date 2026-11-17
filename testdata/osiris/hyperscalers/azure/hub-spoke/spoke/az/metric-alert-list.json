@@ -2,7 +2,7 @@
   {
     "actions": [
       {
-        "actionGroupId": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/microsoft.insights/actionGroups/LAB-SPOKE-AG01",
+        "actionGroupId": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-APP/providers/microsoft.insights/actionGroups/LAB-SPOKE-AG01",
         "webHookProperties": {}
       }
     ],
@@ -26,12 +26,12 @@
     "description": "LAB-WEB01-HTTP5XX threshold",
     "enabled": true,
     "evaluationFrequency": "PT1M",
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Insights/metricAlerts/LAB-WEB01-HTTP5XX",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-APP/providers/Microsoft.Insights/metricAlerts/LAB-WEB01-HTTP5XX",
     "location": "global",
     "name": "LAB-WEB01-HTTP5XX",
-    "resourceGroup": "RG-SPOKE-APP",
+    "resourceGroup": "RG-LAB-SPOKE-APP",
     "scopes": [
-      "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/sites/LAB-WEB01"
+      "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-APP/providers/Microsoft.Web/sites/LAB-WEB01"
     ],
     "severity": 2,
     "tags": {
@@ -46,7 +46,7 @@
   {
     "actions": [
       {
-        "actionGroupId": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/microsoft.insights/actionGroups/LAB-SPOKE-AG01",
+        "actionGroupId": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-APP/providers/microsoft.insights/actionGroups/LAB-SPOKE-AG01",
         "webHookProperties": {}
       }
     ],
@@ -70,12 +70,12 @@
     "description": "LAB-SQLMI01-CPU threshold",
     "enabled": true,
     "evaluationFrequency": "PT1M",
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Insights/metricAlerts/LAB-SQLMI01-CPU",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-APP/providers/Microsoft.Insights/metricAlerts/LAB-SQLMI01-CPU",
     "location": "global",
     "name": "LAB-SQLMI01-CPU",
-    "resourceGroup": "RG-SPOKE-APP",
+    "resourceGroup": "RG-LAB-SPOKE-APP",
     "scopes": [
-      "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Sql/managedInstances/lab-sqlmi01"
+      "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-DATA/providers/Microsoft.Sql/managedInstances/lab-sqlmi01"
     ],
     "severity": 2,
     "tags": {
@@ -90,7 +90,7 @@
   {
     "actions": [
       {
-        "actionGroupId": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/microsoft.insights/actionGroups/LAB-SPOKE-AG01",
+        "actionGroupId": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-APP/providers/microsoft.insights/actionGroups/LAB-SPOKE-AG01",
         "webHookProperties": {}
       }
     ],
@@ -114,12 +114,12 @@
     "description": "LAB-SPOKE-SA01-AVAIL threshold",
     "enabled": true,
     "evaluationFrequency": "PT1M",
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Insights/metricAlerts/LAB-SPOKE-SA01-AVAIL",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-APP/providers/Microsoft.Insights/metricAlerts/LAB-SPOKE-SA01-AVAIL",
     "location": "global",
     "name": "LAB-SPOKE-SA01-AVAIL",
-    "resourceGroup": "RG-SPOKE-APP",
+    "resourceGroup": "RG-LAB-SPOKE-APP",
     "scopes": [
-      "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.Storage/storageAccounts/labspokesa01"
+      "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-DATA/providers/Microsoft.Storage/storageAccounts/labspokesa01"
     ],
     "severity": 2,
     "tags": {
@@ -134,7 +134,7 @@
   {
     "actions": [
       {
-        "actionGroupId": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/microsoft.insights/actionGroups/LAB-SPOKE-AG01",
+        "actionGroupId": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-APP/providers/microsoft.insights/actionGroups/LAB-SPOKE-AG01",
         "webHookProperties": {}
       }
     ],
@@ -158,12 +158,12 @@
     "description": "LAB-SPOKE-KV01-AVAIL threshold",
     "enabled": true,
     "evaluationFrequency": "PT1M",
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Insights/metricAlerts/LAB-SPOKE-KV01-AVAIL",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-APP/providers/Microsoft.Insights/metricAlerts/LAB-SPOKE-KV01-AVAIL",
     "location": "global",
     "name": "LAB-SPOKE-KV01-AVAIL",
-    "resourceGroup": "RG-SPOKE-APP",
+    "resourceGroup": "RG-LAB-SPOKE-APP",
     "scopes": [
-      "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.KeyVault/vaults/LAB-SPOKE-KV01"
+      "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-DATA/providers/Microsoft.KeyVault/vaults/LAB-SPOKE-KV01"
     ],
     "severity": 2,
     "tags": {

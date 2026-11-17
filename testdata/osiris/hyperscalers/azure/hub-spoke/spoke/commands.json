@@ -21,15 +21,15 @@
       "file": "az/group-list.json"
     },
     {
-      "prefix": "network vnet subnet list --vnet-name LAB-SPOKE-VNET --resource-group RG-SPOKE-NET",
+      "prefix": "network vnet subnet list --vnet-name LAB-SPOKE-VNET --resource-group RG-LAB-SPOKE-NET",
       "file": "az/subnet-list.json"
     },
     {
-      "prefix": "network vnet peering list --vnet-name LAB-SPOKE-VNET --resource-group RG-SPOKE-NET",
+      "prefix": "network vnet peering list --vnet-name LAB-SPOKE-VNET --resource-group RG-LAB-SPOKE-NET",
       "file": "az/peering-list.json"
     },
     {
-      "prefix": "network vnet list --resource-group RG-SPOKE-NET",
+      "prefix": "network vnet list --resource-group RG-LAB-SPOKE-NET",
       "file": "az/vnet-list.json"
     },
     {
@@ -41,7 +41,7 @@
       "file": "az/asg-list.json"
     },
     {
-      "prefix": "network route-table list --resource-group RG-SPOKE-NET",
+      "prefix": "network route-table list --resource-group RG-LAB-SPOKE-NET",
       "file": "az/route-table-list.json"
     },
     {
@@ -57,11 +57,11 @@
       "file": "az/vm-list.json"
     },
     {
-      "prefix": "disk list --resource-group RG-SPOKE-APP",
+      "prefix": "disk list --resource-group RG-LAB-SPOKE-APP",
       "file": "az/disk-list-app.json"
     },
     {
-      "prefix": "disk list --resource-group RG-SPOKE-DATA",
+      "prefix": "disk list --resource-group RG-LAB-SPOKE-DATA",
       "file": "az/disk-list-data.json"
     },
     {
@@ -77,7 +77,7 @@
       "file": "az/webapp-list.json"
     },
     {
-      "prefix": "sql midb list --managed-instance lab-sqlmi01 --resource-group RG-SPOKE-DATA",
+      "prefix": "sql midb list --managed-instance lab-sqlmi01 --resource-group RG-LAB-SPOKE-DATA",
       "file": "az/sqlmi-db-list.json"
     },
     {

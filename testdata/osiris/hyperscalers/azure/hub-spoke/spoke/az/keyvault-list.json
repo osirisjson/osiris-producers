@@ -1,9 +1,9 @@
 [
   {
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.KeyVault/vaults/LAB-SPOKE-KV01",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-DATA/providers/Microsoft.KeyVault/vaults/LAB-SPOKE-KV01",
     "location": "westeurope",
     "name": "LAB-SPOKE-KV01",
-    "resourceGroup": "RG-SPOKE-DATA",
+    "resourceGroup": "RG-LAB-SPOKE-DATA",
     "tags": {
       "env": "LAB",
       "owner": "LAB-TEAM"
