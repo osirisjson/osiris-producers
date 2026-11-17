@@ -2,12 +2,12 @@
   {
     "allowBranchToBranchTraffic": true,
     "hubRoutingPreference": "ExpressRoute",
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualHubs/LAB-HUB-ARS",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualHubs/LAB-HUB-ARS",
     "kind": "RouteServer",
     "location": "westeurope",
     "name": "LAB-HUB-ARS",
     "provisioningState": "Succeeded",
-    "resourceGroup": "RG-HUB-NET",
+    "resourceGroup": "RG-LAB-HUB-NET",
     "routeTable": {
       "routes": []
     },

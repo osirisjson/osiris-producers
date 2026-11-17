@@ -1,7 +1,7 @@
 [
   {
     "circuitProvisioningState": "Enabled",
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/expressRouteCircuits/LAB-HUB-ER01",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/expressRouteCircuits/LAB-HUB-ER01",
     "location": "westeurope",
     "name": "LAB-HUB-ER01",
     "peerings": [
@@ -16,8 +16,8 @@
       }
     ],
     "provisioningState": "Succeeded",
-    "resourceGroup": "RG-HUB-NET",
-    "serviceKey": "00000000-0000-0000-0000-00000000beef",
+    "resourceGroup": "RG-LAB-HUB-NET",
+    "serviceKey": "00000000-0000-4000-8000-00000000beef",
     "serviceProviderProperties": {
       "bandwidthInMbps": 1000,
       "peeringLocation": "MXP",

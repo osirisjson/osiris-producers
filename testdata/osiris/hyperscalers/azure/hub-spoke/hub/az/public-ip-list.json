@@ -1,18 +1,18 @@
 [
   {
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-NVA01-PIP",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-NVA01-PIP",
     "idleTimeoutInMinutes": 4,
     "ipAddress": "203.0.113.10",
     "ipConfiguration": {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic/ipConfigurations/ipconfig1",
-      "resourceGroup": "RG-HUB-NET"
+      "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Network/networkInterfaces/LAB-NVA01-nic/ipConfigurations/ipconfig1",
+      "resourceGroup": "RG-LAB-HUB-NET"
     },
     "location": "westeurope",
     "name": "LAB-NVA01-PIP",
     "provisioningState": "Succeeded",
     "publicIPAddressVersion": "IPv4",
     "publicIPAllocationMethod": "Static",
-    "resourceGroup": "RG-HUB-NET",
+    "resourceGroup": "RG-LAB-HUB-NET",
     "sku": {
       "name": "Standard",
       "tier": "Regional"
@@ -29,12 +29,12 @@
     ]
   },
   {
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-PLB-PIP",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-PLB-PIP",
     "idleTimeoutInMinutes": 4,
     "ipAddress": "203.0.113.16",
     "ipConfiguration": {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB/frontendIPConfigurations/LAB-FE-PUBLIC",
-      "resourceGroup": "RG-HUB-NET"
+      "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-PLB/frontendIPConfigurations/LAB-FE-PUBLIC",
+      "resourceGroup": "RG-LAB-HUB-NET"
     },
     "location": "westeurope",
     "name": "LAB-HUB-PLB-PIP",
@@ -42,10 +42,10 @@
     "publicIPAddressVersion": "IPv4",
     "publicIPAllocationMethod": "Static",
     "publicIPPrefix": {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPPrefixes/LAB-HUB-PIPPFX",
-      "resourceGroup": "RG-HUB-NET"
+      "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPPrefixes/LAB-HUB-PIPPFX",
+      "resourceGroup": "RG-LAB-HUB-NET"
     },
-    "resourceGroup": "RG-HUB-NET",
+    "resourceGroup": "RG-LAB-HUB-NET",
     "sku": {
       "name": "Standard",
       "tier": "Regional"
@@ -62,7 +62,7 @@
     ]
   },
   {
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ARS-PIP",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ARS-PIP",
     "idleTimeoutInMinutes": 4,
     "ipAddress": "203.0.113.20",
     "location": "westeurope",
@@ -70,7 +70,7 @@
     "provisioningState": "Succeeded",
     "publicIPAddressVersion": "IPv4",
     "publicIPAllocationMethod": "Static",
-    "resourceGroup": "RG-HUB-NET",
+    "resourceGroup": "RG-LAB-HUB-NET",
     "sku": {
       "name": "Standard",
       "tier": "Regional"
@@ -87,19 +87,19 @@
     ]
   },
   {
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ERGW-PIP",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ERGW-PIP",
     "idleTimeoutInMinutes": 4,
     "ipAddress": "203.0.113.21",
     "ipConfiguration": {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworkGateways/LAB-HUB-ERGW/ipConfigurations/default",
-      "resourceGroup": "RG-HUB-NET"
+      "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworkGateways/LAB-HUB-ERGW/ipConfigurations/default",
+      "resourceGroup": "RG-LAB-HUB-NET"
     },
     "location": "westeurope",
     "name": "LAB-HUB-ERGW-PIP",
     "provisioningState": "Succeeded",
     "publicIPAddressVersion": "IPv4",
     "publicIPAllocationMethod": "Static",
-    "resourceGroup": "RG-HUB-NET",
+    "resourceGroup": "RG-LAB-HUB-NET",
     "sku": {
       "name": "Standard",
       "tier": "Regional"

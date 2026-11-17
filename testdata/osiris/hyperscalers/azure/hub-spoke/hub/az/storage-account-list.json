@@ -2,7 +2,7 @@
   {
     "allowBlobPublicAccess": false,
     "enableHttpsTrafficOnly": true,
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.Storage/storageAccounts/labhubsa01",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.Storage/storageAccounts/labhubsa01",
     "kind": "StorageV2",
     "location": "westeurope",
     "minimumTlsVersion": "TLS1_2",
@@ -15,7 +15,7 @@
         {
           "action": "Allow",
           "state": "Succeeded",
-          "virtualNetworkResourceId": "/subscriptions/00000000-0000-0000-0000-000000000015/resourceGroups/RG-LAB-EXT/providers/Microsoft.Network/virtualNetworks/LAB-VNET-EXT/subnets/LAB-SNET-EXT"
+          "virtualNetworkResourceId": "/subscriptions/00000000-0000-4000-8000-000000000015/resourceGroups/RG-LAB-EXT/providers/Microsoft.Network/virtualNetworks/LAB-VNET-EXT/subnets/LAB-SNET-EXT"
         }
       ]
     },
@@ -25,14 +25,14 @@
     "privateEndpointConnections": [],
     "provisioningState": "Succeeded",
     "publicNetworkAccess": "Disabled",
-    "resourceGroup": "RG-HUB-MGMT",
+    "resourceGroup": "RG-LAB-HUB-MGMT",
     "sku": {
       "name": "Standard_LRS",
       "tier": "Standard"
     },
     "tags": {
       "env": "LAB",
-      "hidden-link": "InstrumentationKey=00000000-0000-0000-0000-0000000000cc;IngestionEndpoint=https://lab-ai.example.com/"
+      "hidden-link": "InstrumentationKey=00000000-0000-4000-8000-0000000000cc;IngestionEndpoint=https://lab-ai.example.com/"
     },
     "type": "Microsoft.Storage/storageAccounts"
   }

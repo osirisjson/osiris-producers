@@ -2,7 +2,7 @@
   {
     "elasticScaleEnabled": false,
     "geoRegion": "West Europe",
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Web/serverfarms/LAB-ASP01",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-APP/providers/Microsoft.Web/serverfarms/LAB-ASP01",
     "isSpot": false,
     "kind": "linux",
     "location": "westeurope",
@@ -14,7 +14,7 @@
     "perSiteScaling": false,
     "provisioningState": "Succeeded",
     "reserved": true,
-    "resourceGroup": "RG-SPOKE-APP",
+    "resourceGroup": "RG-LAB-SPOKE-APP",
     "sku": {
       "capacity": 2,
       "family": "Pv3",

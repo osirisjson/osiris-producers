@@ -1,6 +1,6 @@
 [
   {
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ARS-PIP/providers/microsoft.insights/diagnosticSettings/LAB-TO-LA",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ARS-PIP/providers/microsoft.insights/diagnosticSettings/LAB-TO-LA",
     "logs": [
       {
         "category": null,
@@ -15,8 +15,8 @@
       }
     ],
     "name": "LAB-TO-LA",
-    "resourceGroup": "RG-HUB-NET",
+    "resourceGroup": "RG-LAB-HUB-NET",
     "type": "Microsoft.Insights/diagnosticSettings",
-    "workspaceId": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA01"
+    "workspaceId": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA01"
   }
 ]

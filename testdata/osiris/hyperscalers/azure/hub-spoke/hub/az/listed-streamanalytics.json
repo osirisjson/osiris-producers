@@ -1,10 +1,10 @@
 [
   {
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.StreamAnalytics/streamingjobs/LAB-HUB-ASA01",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.StreamAnalytics/streamingjobs/LAB-HUB-ASA01",
     "location": "westeurope",
     "name": "LAB-HUB-ASA01",
     "properties": null,
-    "resourceGroup": "RG-HUB-MGMT",
+    "resourceGroup": "RG-LAB-HUB-MGMT",
     "sku": {
       "capacity": 3,
       "name": "StandardV2"

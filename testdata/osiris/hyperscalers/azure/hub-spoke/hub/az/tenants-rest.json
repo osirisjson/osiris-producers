@@ -3,16 +3,16 @@
     {
       "defaultDomain": "lab.example.com",
       "displayName": "LAB-TENANT",
-      "id": "/tenants/00000000-0000-0000-0000-0000000000aa",
+      "id": "/tenants/00000000-0000-4000-8000-0000000000aa",
       "tenantCategory": "Home",
-      "tenantId": "00000000-0000-0000-0000-0000000000aa"
+      "tenantId": "00000000-0000-4000-8000-0000000000aa"
     },
     {
       "defaultDomain": "partner.example.com",
       "displayName": "LAB-PARTNER",
-      "id": "/tenants/00000000-0000-0000-0000-0000000000bb",
+      "id": "/tenants/00000000-0000-4000-8000-0000000000bb",
       "tenantCategory": "Home",
-      "tenantId": "00000000-0000-0000-0000-0000000000bb"
+      "tenantId": "00000000-0000-4000-8000-0000000000bb"
     }
   ]
 }

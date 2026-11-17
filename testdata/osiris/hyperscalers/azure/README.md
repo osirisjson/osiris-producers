@@ -28,7 +28,7 @@ compared on its own:
 
 `commands.json` holds an ordered list of rules. A rule with `prefix`
 matches a command line that starts with it (for example
-`network nic list`, or `disk list --resource-group RG-HUB-NVA` for a
+`network nic list`, or `disk list --resource-group RG-LAB-HUB-NVA` for a
 per resource group command); a rule with `contains` matches a fragment
 of a Resource Graph query or an `az rest` URL. The first matching rule
 wins. A rule without a `file`, and any command no rule matches, answers

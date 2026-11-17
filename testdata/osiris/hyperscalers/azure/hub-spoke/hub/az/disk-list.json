@@ -5,13 +5,13 @@
     },
     "diskSizeGB": 64,
     "diskState": "Attached",
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/disks/LAB-NVA01-os",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/disks/LAB-NVA01-os",
     "location": "westeurope",
-    "managedBy": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA01",
+    "managedBy": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA01",
     "name": "LAB-NVA01-os",
     "osType": "Linux",
     "provisioningState": "Succeeded",
-    "resourceGroup": "RG-HUB-NVA",
+    "resourceGroup": "RG-LAB-HUB-NVA",
     "sku": {
       "name": "Premium_LRS",
       "tier": "Premium"
@@ -28,13 +28,13 @@
     },
     "diskSizeGB": 64,
     "diskState": "Attached",
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/disks/LAB-NVA02-os",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/disks/LAB-NVA02-os",
     "location": "westeurope",
-    "managedBy": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA02",
+    "managedBy": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/virtualMachines/LAB-NVA02",
     "name": "LAB-NVA02-os",
     "osType": "Linux",
     "provisioningState": "Succeeded",
-    "resourceGroup": "RG-HUB-NVA",
+    "resourceGroup": "RG-LAB-HUB-NVA",
     "sku": {
       "name": "Premium_LRS",
       "tier": "Premium"

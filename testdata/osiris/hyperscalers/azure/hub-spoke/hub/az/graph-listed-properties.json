@@ -2,7 +2,7 @@
   "count": 5,
   "data": [
     {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourcegroups/rg-hub-mgmt/providers/microsoft.streamanalytics/streamingjobs/lab-hub-asa01",
+      "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourcegroups/rg-lab-hub-mgmt/providers/microsoft.streamanalytics/streamingjobs/lab-hub-asa01",
       "properties": {
         "compatibilityLevel": "1.2",
         "jobState": "Running",
@@ -14,11 +14,11 @@
       }
     },
     {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourcegroups/rg-hub-mgmt/providers/microsoft.web/connections/lab-hub-apiconn01",
+      "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourcegroups/rg-lab-hub-mgmt/providers/microsoft.web/connections/lab-hub-apiconn01",
       "properties": {
         "api": {
           "displayName": "Azure Blob Storage",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/providers/Microsoft.Web/locations/westeurope/managedApis/azureblob",
+          "id": "/subscriptions/00000000-0000-4000-8000-000000000011/providers/Microsoft.Web/locations/westeurope/managedApis/azureblob",
           "name": "azureblob",
           "type": "Microsoft.Web/locations/managedApis"
         },
@@ -26,7 +26,7 @@
         "displayName": "LAB-HUB-APICONN01",
         "overallStatus": "Connected",
         "parameterValues": {
-          "accessKey": "changeme-apiconn",
+          "accessKey": "changeme-7",
           "accountName": "labhubsa01"
         },
         "provisioningState": "Succeeded",
@@ -38,28 +38,28 @@
       }
     },
     {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourcegroups/rg-hub-net/providers/microsoft.network/dnsforwardingrulesets/lab-hub-dnsfrs01",
+      "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourcegroups/rg-lab-hub-net/providers/microsoft.network/dnsforwardingrulesets/lab-hub-dnsfrs01",
       "properties": {
         "dnsResolverOutboundEndpoints": [
           {
-            "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/dnsResolvers/LAB-HUB-DNSR01/outboundEndpoints/LAB-HUB-DNSOUT"
+            "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/dnsResolvers/LAB-HUB-DNSR01/outboundEndpoints/LAB-HUB-DNSOUT"
           }
         ],
         "provisioningState": "Succeeded"
       }
     },
     {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourcegroups/rg-hub-net/providers/microsoft.network/dnsresolvers/lab-hub-dnsr01",
+      "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourcegroups/rg-lab-hub-net/providers/microsoft.network/dnsresolvers/lab-hub-dnsr01",
       "properties": {
         "dnsResolverState": "Connected",
         "provisioningState": "Succeeded",
         "virtualNetwork": {
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET"
+          "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET"
         }
       }
     },
     {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourcegroups/rg-hub-nva/providers/microsoft.insights/autoscalesettings/lab-hub-vmss01-autoscale",
+      "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourcegroups/rg-lab-hub-nva/providers/microsoft.insights/autoscalesettings/lab-hub-vmss01-autoscale",
       "properties": {
         "enabled": true,
         "name": "LAB-HUB-VMSS01-AUTOSCALE",
@@ -76,7 +76,7 @@
           }
         ],
         "provisioningState": "Succeeded",
-        "targetResourceUri": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA/providers/Microsoft.Compute/virtualMachineScaleSets/LAB-HUB-VMSS01"
+        "targetResourceUri": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA/providers/Microsoft.Compute/virtualMachineScaleSets/LAB-HUB-VMSS01"
       }
     }
   ]

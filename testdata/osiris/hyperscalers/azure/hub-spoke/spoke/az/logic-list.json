@@ -1,6 +1,6 @@
 [
   {
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-APP/providers/Microsoft.Logic/workflows/LAB-SPOKE-LOGIC01",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-APP/providers/Microsoft.Logic/workflows/LAB-SPOKE-LOGIC01",
     "location": "westeurope",
     "name": "LAB-SPOKE-LOGIC01",
     "properties": {
@@ -26,7 +26,7 @@
       "provisioningState": "Succeeded",
       "state": "Enabled"
     },
-    "resourceGroup": "RG-SPOKE-APP",
+    "resourceGroup": "RG-LAB-SPOKE-APP",
     "tags": {
       "env": "LAB",
       "owner": "LAB-TEAM"

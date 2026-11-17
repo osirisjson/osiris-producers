@@ -1,10 +1,10 @@
 [
   {
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
     "location": "westeurope",
     "name": "LAB-HUB-NSG",
     "provisioningState": "Succeeded",
-    "resourceGroup": "RG-HUB-NET",
+    "resourceGroup": "RG-LAB-HUB-NET",
     "securityRules": [
       {
         "access": "Allow",

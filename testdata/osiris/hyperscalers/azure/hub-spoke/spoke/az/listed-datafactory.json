@@ -1,15 +1,15 @@
 [
   {
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000012/resourceGroups/RG-SPOKE-DATA/providers/Microsoft.DataFactory/factories/LAB-SPOKE-ADF01",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000012/resourceGroups/RG-LAB-SPOKE-DATA/providers/Microsoft.DataFactory/factories/LAB-SPOKE-ADF01",
     "identity": {
-      "principalId": "00000000-0000-0000-0000-0000000002e5",
-      "tenantId": "00000000-0000-0000-0000-0000000000aa",
+      "principalId": "00000000-0000-4000-8000-0000000002e5",
+      "tenantId": "00000000-0000-4000-8000-0000000000aa",
       "type": "SystemAssigned"
     },
     "location": "westeurope",
     "name": "LAB-SPOKE-ADF01",
     "properties": null,
-    "resourceGroup": "RG-SPOKE-DATA",
+    "resourceGroup": "RG-LAB-SPOKE-DATA",
     "tags": {
       "env": "LAB",
       "owner": "LAB-TEAM"

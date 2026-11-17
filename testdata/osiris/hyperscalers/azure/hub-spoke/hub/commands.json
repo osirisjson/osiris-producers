@@ -25,23 +25,23 @@
       "file": "az/group-list.json"
     },
     {
-      "prefix": "network vnet subnet list --vnet-name LAB-HUB-VNET --resource-group RG-HUB-NET",
+      "prefix": "network vnet subnet list --vnet-name LAB-HUB-VNET --resource-group RG-LAB-HUB-NET",
       "file": "az/subnet-list.json"
     },
     {
-      "prefix": "network vnet peering list --vnet-name LAB-HUB-VNET --resource-group RG-HUB-NET",
+      "prefix": "network vnet peering list --vnet-name LAB-HUB-VNET --resource-group RG-LAB-HUB-NET",
       "file": "az/peering-list.json"
     },
     {
-      "prefix": "network vnet list --resource-group RG-HUB-NET",
+      "prefix": "network vnet list --resource-group RG-LAB-HUB-NET",
       "file": "az/vnet-list.json"
     },
     {
-      "prefix": "network vnet-gateway list --resource-group RG-HUB-NET",
+      "prefix": "network vnet-gateway list --resource-group RG-LAB-HUB-NET",
       "file": "az/vnet-gateway-list.json"
     },
     {
-      "prefix": "network vpn-connection list --resource-group RG-HUB-NET",
+      "prefix": "network vpn-connection list --resource-group RG-LAB-HUB-NET",
       "file": "az/connection-list.json"
     },
     {
@@ -61,7 +61,7 @@
       "file": "az/nsg-list.json"
     },
     {
-      "prefix": "network route-table list --resource-group RG-HUB-NET",
+      "prefix": "network route-table list --resource-group RG-LAB-HUB-NET",
       "file": "az/route-table-list.json"
     },
     {
@@ -93,7 +93,7 @@
       "file": "az/vmss-list.json"
     },
     {
-      "prefix": "disk list --resource-group RG-HUB-NVA",
+      "prefix": "disk list --resource-group RG-LAB-HUB-NVA",
       "file": "az/disk-list.json"
     },
     {
@@ -169,35 +169,35 @@
       "file": "az/listed-streamanalytics.json"
     },
     {
-      "prefix": "monitor diagnostic-settings list --resource /subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
+      "prefix": "monitor diagnostic-settings list --resource /subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/virtualNetworks/LAB-HUB-VNET",
       "file": "az/diag-vnet.json"
     },
     {
-      "prefix": "monitor diagnostic-settings list --resource /subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
+      "prefix": "monitor diagnostic-settings list --resource /subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/networkSecurityGroups/LAB-HUB-NSG",
       "file": "az/diag-nsg.json"
     },
     {
-      "prefix": "monitor diagnostic-settings list --resource /subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB",
+      "prefix": "monitor diagnostic-settings list --resource /subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/loadBalancers/LAB-HUB-ILB",
       "file": "az/diag-ilb.json"
     },
     {
-      "prefix": "monitor diagnostic-settings list --resource /subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ARS-PIP",
+      "prefix": "monitor diagnostic-settings list --resource /subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET/providers/Microsoft.Network/publicIPAddresses/LAB-HUB-ARS-PIP",
       "file": "az/diag-pip.json"
     },
     {
-      "prefix": "monitor diagnostic-settings list --resource /subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.KeyVault/vaults/LAB-HUB-KV01",
+      "prefix": "monitor diagnostic-settings list --resource /subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.KeyVault/vaults/LAB-HUB-KV01",
       "file": "az/diag-kv.json"
     },
     {
-      "prefix": "monitor diagnostic-settings list --resource /subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.ServiceBus/namespaces/LAB-HUB-SB01",
+      "prefix": "monitor diagnostic-settings list --resource /subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.ServiceBus/namespaces/LAB-HUB-SB01",
       "file": "az/diag-sb.json"
     },
     {
-      "prefix": "monitor diagnostic-settings list --resource /subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.RecoveryServices/vaults/LAB-HUB-RSV01",
+      "prefix": "monitor diagnostic-settings list --resource /subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.RecoveryServices/vaults/LAB-HUB-RSV01",
       "file": "az/diag-rsv.json"
     },
     {
-      "prefix": "monitor diagnostic-settings list --resource /subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA01",
+      "prefix": "monitor diagnostic-settings list --resource /subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA01",
       "file": "az/diag-la.json"
     },
     {

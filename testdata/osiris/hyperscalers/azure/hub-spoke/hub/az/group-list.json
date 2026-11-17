@@ -1,8 +1,8 @@
 [
   {
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NET",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NET",
     "location": "westeurope",
-    "name": "RG-HUB-NET",
+    "name": "RG-LAB-HUB-NET",
     "properties": {
       "provisioningState": "Succeeded"
     },
@@ -13,9 +13,9 @@
     "type": "Microsoft.Resources/resourceGroups"
   },
   {
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-NVA",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-NVA",
     "location": "westeurope",
-    "name": "RG-HUB-NVA",
+    "name": "RG-LAB-HUB-NVA",
     "properties": {
       "provisioningState": "Succeeded"
     },
@@ -26,9 +26,9 @@
     "type": "Microsoft.Resources/resourceGroups"
   },
   {
-    "id": "/subscriptions/00000000-0000-0000-0000-000000000011/resourceGroups/RG-HUB-MGMT",
+    "id": "/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT",
     "location": "westeurope",
-    "name": "RG-HUB-MGMT",
+    "name": "RG-LAB-HUB-MGMT",
     "properties": {
       "provisioningState": "Succeeded"
     },
