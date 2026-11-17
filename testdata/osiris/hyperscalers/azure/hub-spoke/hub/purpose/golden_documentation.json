@@ -205,7 +205,7 @@
         }
       },
       {
-        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/MXP/providers/Microsoft.OperationalInsights/workspaces/DAD",
+        "id": "azure::/subscriptions/00000000-0000-4000-8000-000000000011/resourceGroups/RG-LAB-HUB-MGMT/providers/Microsoft.OperationalInsights/workspaces/LAB-HUB-LA02",
         "type": "osiris.azure.loganalytics",
         "name": "LAB-HUB-LA02",
         "description": "LAB-HUB-LA02 in RG-LAB-HUB-MGMT",
