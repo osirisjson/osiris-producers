@@ -15,7 +15,7 @@ from them.
 Every value in every fixture MUST follow the data rules below.
 They summarize the [OSIRIS JSON Producers Test Data Policy](../docs/policies/OSIRIS-PRODUCER-TEST-DATA-POLICY.md),
 which is authoritative and is enforced on every tracked file by
-`go test ./internal/testdatapolicy`.
+`go test ./internal/policies/testdatapolicy`.
 
 ## OSIRIS JSON Producer approved test data by type
 
