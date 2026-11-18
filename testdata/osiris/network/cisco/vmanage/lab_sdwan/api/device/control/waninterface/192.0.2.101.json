@@ -1,0 +1,5 @@
+{
+  "data": [
+    {"vdevice-host-name": "LAB-CONTROLLER01", "interface": "eth1", "color": "default", "private-ip": "198.51.100.101", "public-ip": "198.51.100.101", "operation-state": "up"}
+  ]
+}

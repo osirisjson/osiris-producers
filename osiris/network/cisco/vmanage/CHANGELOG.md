@@ -23,6 +23,16 @@ the release-level index of which producers shipped under each tag.
 
 ## [Unreleased]
 
+### Added
+- Source-to-golden test (`TestGolden`): an in-memory HTTPS vManage
+  serves synthetic `/dataservice` response bodies for a control-plane
+  site (Manager, Controller and Validator) and the emitted document is
+  compared byte for byte with the expected documents at both
+  `--purpose` levels. `TestGolden_PurposeContract` and
+  `TestGolden_GraphIntegrity` check the audit-only fields and that
+  every connection endpoint and group member is an emitted resource.
+  Emitted documents are unchanged.
+
 ### Changed
 - `--secrets-file` now loads through the shared
   `osiris/network/cisco/run` credential-file loader (also used by
