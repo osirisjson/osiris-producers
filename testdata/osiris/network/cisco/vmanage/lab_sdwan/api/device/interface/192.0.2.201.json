@@ -1,0 +1,7 @@
+{
+  "data": [
+    {"vdevice-host-name": "LAB-VALIDATOR01", "ifname": "eth0", "af-type": "ipv4", "ip-address": "-", "hwaddr": "00:00:5e:00:53:30", "if-admin-status": "Down", "if-oper-status": "Up", "vpn-id": "0", "port-type": "service", "duplex": "full", "speed-mbps": "1000"},
+    {"vdevice-host-name": "LAB-VALIDATOR01", "ifname": "ge0/0", "af-type": "ipv4", "ip-address": "198.51.100.201/24", "hwaddr": "00:00:5e:00:53:31", "if-admin-status": "Up", "if-oper-status": "Up", "vpn-id": "0", "port-type": "transport", "duplex": "full", "speed-mbps": "1000"},
+    {"vdevice-host-name": "LAB-VALIDATOR01", "ifname": "system", "af-type": "ipv4", "ip-address": "192.0.2.201/32", "if-admin-status": "Up", "if-oper-status": "Up", "vpn-id": "0", "duplex": "full", "speed-mbps": "1000"}
+  ]
+}

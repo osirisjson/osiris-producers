@@ -1,0 +1,11 @@
+{
+  "data": [
+    {"vdevice-host-name": "LAB-MANAGER01", "ifname": "cbr-vmanage", "af-type": "ipv4", "ip-address": "203.0.113.1/24", "hwaddr": "02:00:5e:00:53:01", "if-admin-status": "Down", "if-oper-status": "Up", "vpn-id": "0", "duplex": "full", "speed-mbps": "1000"},
+    {"vdevice-host-name": "LAB-MANAGER01", "ifname": "eth0", "af-type": "ipv6", "ip-address": "2001:db8:512::90/64", "hwaddr": "00:00:5e:00:53:10", "if-admin-status": "Up", "if-oper-status": "Up", "vpn-id": "512", "duplex": "full", "speed-mbps": "1000"},
+    {"vdevice-host-name": "LAB-MANAGER01", "ifname": "eth0", "af-type": "ipv4", "ip-address": "203.0.113.90/24", "hwaddr": "00:00:5e:00:53:10", "if-admin-status": "Up", "if-oper-status": "Up", "vpn-id": "512", "duplex": "full", "speed-mbps": "1000"},
+    {"vdevice-host-name": "LAB-MANAGER01", "ifname": "eth1", "af-type": "ipv4", "ip-address": "198.51.100.1/24", "hwaddr": "00:00:5e:00:53:11", "if-admin-status": "Up", "if-oper-status": "Up", "vpn-id": "0", "port-type": "transport", "duplex": "full", "speed-mbps": "1000"},
+    {"vdevice-host-name": "LAB-MANAGER01", "ifname": "eth2", "af-type": "ipv4", "ip-address": "-", "hwaddr": "00:00:5e:00:53:12", "if-admin-status": "Down", "if-oper-status": "Down", "vpn-id": "0", "duplex": "full", "speed-mbps": "1000"},
+    {"vdevice-host-name": "LAB-MANAGER01", "ifname": "eth3", "af-type": "ipv4", "ip-address": "-", "hwaddr": "00:00:5e:00:53:13", "if-admin-status": "Down", "if-oper-status": "Down", "vpn-id": "0", "duplex": "full", "speed-mbps": "1000"},
+    {"vdevice-host-name": "LAB-MANAGER01", "ifname": "system", "af-type": "ipv4", "ip-address": "192.0.2.1/32", "if-admin-status": "Up", "if-oper-status": "Up", "vpn-id": "0", "duplex": "full", "speed-mbps": "1000"}
+  ]
+}
