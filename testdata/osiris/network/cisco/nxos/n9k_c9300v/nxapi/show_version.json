@@ -1,0 +1,23 @@
+{
+  "header_str": "Cisco Nexus Operating System (NX-OS) Software",
+  "bios_ver_str": "",
+  "kickstart_ver_str": "10.6(4)",
+  "nxos_ver_str": "10.6(4)",
+  "bios_cmpl_time": "",
+  "nxos_image_file": "bootflash:///nxos64-cs.10.6.4.M.bin",
+  "chassis_id": "cisco Nexus9000 C9300v Chassis",
+  "cpu_name": "Intel(R) Xeon(R) CPU",
+  "memory": 8071696,
+  "mem_type": "kB",
+  "proc_board_id": "TST0000001",
+  "host_name": "LAB-N9K01",
+  "bootflash_size": 4287040,
+  "kern_uptm_days": 23,
+  "kern_uptm_hrs": 23,
+  "kern_uptm_mins": 27,
+  "kern_uptm_secs": 26,
+  "rr_reason": "Unknown",
+  "rr_sys_ver": "",
+  "rr_service": "",
+  "manufacturer": "Cisco Systems, Inc."
+}

@@ -1,0 +1,8 @@
+{
+  "global_deadtime": "0",
+  "global_secure_mode": "none",
+  "global_source_intf": "any available",
+  "global_timeout": "5",
+  "retransmissionCount": "1",
+  "server_count": "0"
+}

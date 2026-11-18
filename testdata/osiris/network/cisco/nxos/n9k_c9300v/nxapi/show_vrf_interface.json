@@ -1,0 +1,450 @@
+{
+  "TABLE_if": {
+    "ROW_if": [
+      {
+        "if_name": "mgmt0",
+        "vrf_name": "management",
+        "vrf_id": 2,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/2",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/3",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/26",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/27",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/28",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/29",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/30",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/31",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/32",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/33",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/34",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/35",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/36",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/37",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/38",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/39",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/40",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/41",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/42",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/43",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/44",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/45",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/46",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/47",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/48",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/49",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/50",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/51",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/52",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/53",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/54",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/55",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/56",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/57",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/58",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/59",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/60",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/61",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/62",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/63",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Ethernet1/64",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Vlan1",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "Vlan101",
+        "vrf_name": "VRF-CORP",
+        "vrf_id": 4,
+        "soo": "--"
+      },
+      {
+        "if_name": "Vlan102",
+        "vrf_name": "VRF-CORP",
+        "vrf_id": 4,
+        "soo": "--"
+      },
+      {
+        "if_name": "Vlan103",
+        "vrf_name": "VRF-SERVICES",
+        "vrf_id": 5,
+        "soo": "--"
+      },
+      {
+        "if_name": "Vlan104",
+        "vrf_name": "VRF-SERVICES",
+        "vrf_id": 5,
+        "soo": "--"
+      },
+      {
+        "if_name": "Vlan105",
+        "vrf_name": "VRF-DATA",
+        "vrf_id": 6,
+        "soo": "--"
+      },
+      {
+        "if_name": "Vlan106",
+        "vrf_name": "VRF-DATA",
+        "vrf_id": 6,
+        "soo": "--"
+      },
+      {
+        "if_name": "Vlan107",
+        "vrf_name": "VRF-DMZ",
+        "vrf_id": 7,
+        "soo": "--"
+      },
+      {
+        "if_name": "Vlan108",
+        "vrf_name": "VRF-DMZ",
+        "vrf_id": 7,
+        "soo": "--"
+      },
+      {
+        "if_name": "Vlan109",
+        "vrf_name": "VRF-SECURITY",
+        "vrf_id": 8,
+        "soo": "--"
+      },
+      {
+        "if_name": "Vlan110",
+        "vrf_name": "VRF-SECURITY",
+        "vrf_id": 8,
+        "soo": "--"
+      },
+      {
+        "if_name": "Vlan111",
+        "vrf_name": "VRF-OT",
+        "vrf_id": 9,
+        "soo": "--"
+      },
+      {
+        "if_name": "Vlan112",
+        "vrf_name": "VRF-OT",
+        "vrf_id": 9,
+        "soo": "--"
+      },
+      {
+        "if_name": "Vlan113",
+        "vrf_name": "VRF-DEV",
+        "vrf_id": 10,
+        "soo": "--"
+      },
+      {
+        "if_name": "Vlan114",
+        "vrf_name": "VRF-DEV",
+        "vrf_id": 10,
+        "soo": "--"
+      },
+      {
+        "if_name": "Vlan115",
+        "vrf_name": "VRF-TEST",
+        "vrf_id": 11,
+        "soo": "--"
+      },
+      {
+        "if_name": "Vlan116",
+        "vrf_name": "VRF-TEST",
+        "vrf_id": 11,
+        "soo": "--"
+      },
+      {
+        "if_name": "Vlan117",
+        "vrf_name": "VRF-BACKUP",
+        "vrf_id": 12,
+        "soo": "--"
+      },
+      {
+        "if_name": "Vlan118",
+        "vrf_name": "VRF-BACKUP",
+        "vrf_id": 12,
+        "soo": "--"
+      },
+      {
+        "if_name": "Vlan119",
+        "vrf_name": "VRF-EDGE",
+        "vrf_id": 13,
+        "soo": "--"
+      },
+      {
+        "if_name": "Vlan120",
+        "vrf_name": "VRF-EDGE",
+        "vrf_id": 13,
+        "soo": "--"
+      },
+      {
+        "if_name": "loopback0",
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "soo": "--"
+      },
+      {
+        "if_name": "loopback10",
+        "vrf_name": "VRF-CORP",
+        "vrf_id": 4,
+        "soo": "--"
+      },
+      {
+        "if_name": "loopback11",
+        "vrf_name": "VRF-SERVICES",
+        "vrf_id": 5,
+        "soo": "--"
+      },
+      {
+        "if_name": "loopback12",
+        "vrf_name": "VRF-DATA",
+        "vrf_id": 6,
+        "soo": "--"
+      },
+      {
+        "if_name": "loopback13",
+        "vrf_name": "VRF-DMZ",
+        "vrf_id": 7,
+        "soo": "--"
+      },
+      {
+        "if_name": "loopback14",
+        "vrf_name": "VRF-SECURITY",
+        "vrf_id": 8,
+        "soo": "--"
+      },
+      {
+        "if_name": "loopback15",
+        "vrf_name": "VRF-OT",
+        "vrf_id": 9,
+        "soo": "--"
+      },
+      {
+        "if_name": "loopback16",
+        "vrf_name": "VRF-DEV",
+        "vrf_id": 10,
+        "soo": "--"
+      },
+      {
+        "if_name": "loopback17",
+        "vrf_name": "VRF-TEST",
+        "vrf_id": 11,
+        "soo": "--"
+      },
+      {
+        "if_name": "loopback18",
+        "vrf_name": "VRF-BACKUP",
+        "vrf_id": 12,
+        "soo": "--"
+      },
+      {
+        "if_name": "loopback19",
+        "vrf_name": "VRF-EDGE",
+        "vrf_id": 13,
+        "soo": "--"
+      }
+    ]
+  }
+}

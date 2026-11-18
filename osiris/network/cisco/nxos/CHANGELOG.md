@@ -22,6 +22,18 @@ the release-level index of which producers shipped under each tag.
 
 ## [Unreleased]
 
+### Added
+
+- Source-to-golden test (`TestGolden`): an in-memory NX-API serves
+  synthetic command bodies for a Nexus 9300v (trunk, access and routed
+  ports, SVIs and loopbacks in thirteen VRFs, one BGP neighbor and
+  three rejected commands) and the emitted document is compared byte
+  for byte with the expected documents at both `--purpose` levels.
+  `TestGolden_FixturesMatchCommands`, `TestGolden_PurposeContract` and
+  `TestGolden_GraphIntegrity` check fixture coverage, the audit-only
+  data and that every connection endpoint and group member is an
+  emitted resource. Emitted documents are unchanged.
+
 ### Changed
 
 - CLI usage example targets `lab-sw01.example.com`, a reserved example

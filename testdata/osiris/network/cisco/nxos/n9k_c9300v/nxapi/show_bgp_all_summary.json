@@ -1,0 +1,36 @@
+{
+  "TABLE_vrf": {
+    "ROW_vrf": {
+      "vrf-name-out": "default",
+      "vrf-router-id": "192.0.2.254",
+      "vrf-local-as": "64496",
+      "TABLE_af": {
+        "ROW_af": {
+          "af-id": 1,
+          "TABLE_saf": {
+            "ROW_saf": {
+              "safi": 1,
+              "af-name": "IPv4 Unicast",
+              "tableversion": 1,
+              "TABLE_neighbor": {
+                "ROW_neighbor": {
+                  "neighborid": "203.0.113.6",
+                  "neighborversion": 4,
+                  "msgrecvd": 0,
+                  "msgsent": 0,
+                  "neighbortableversion": 0,
+                  "inq": 0,
+                  "outq": 0,
+                  "neighboras": "64497",
+                  "time": "3w2d",
+                  "state": "Idle",
+                  "prefixreceived": "0"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

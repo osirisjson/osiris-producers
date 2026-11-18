@@ -1,0 +1,14 @@
+{
+  "TABLE_AuthenMethods": {
+    "ROW_AuthenMethods": [
+      {
+        "service": "default",
+        "method": "local"
+      },
+      {
+        "service": "console",
+        "method": "local"
+      }
+    ]
+  }
+}

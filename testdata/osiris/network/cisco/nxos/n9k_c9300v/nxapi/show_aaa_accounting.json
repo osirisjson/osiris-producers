@@ -1,0 +1,8 @@
+{
+  "TABLE_acctMethods": {
+    "ROW_acctMethods": {
+      "service": "default",
+      "methods": "local"
+    }
+  }
+}
