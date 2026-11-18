@@ -37,6 +37,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"io/fs"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -78,12 +79,11 @@ const emptyList = `{"data":[]}`
 // api/device/interface/192.0.2.1.json and /dataservice/device/omp/links?state=up
 // from api/device/omp/links/up.json.
 // An endpoint without a fixture file is answered with an empty list.
+// Every fixture is read before the server starts, so a request only
+// selects one by name and never reaches the file system.
 func goldenServer(t *testing.T, dir string) *httptest.Server {
 	t.Helper()
-	apiDir := filepath.Join(dir, "api")
-	if _, err := os.Stat(apiDir); err != nil {
-		t.Fatalf("api: %v", err)
-	}
+	bodies := loadAPIBodies(t, filepath.Join(dir, "api"))
 	return httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/j_security_check":
@@ -112,13 +112,40 @@ func goldenServer(t *testing.T, dir string) *httptest.Server {
 			rel += "/" + v
 		}
 		w.Header().Set("Content-Type", "application/json")
-		body, err := os.ReadFile(filepath.Join(apiDir, filepath.FromSlash(rel)+".json"))
-		if err != nil {
+		body, ok := bodies[rel]
+		if !ok {
 			_, _ = io.WriteString(w, emptyList)
 			return
 		}
 		_, _ = w.Write(body)
 	}))
+}
+
+// loadAPIBodies reads every .json file under apiDir, keyed by its
+// slash-separated path relative to apiDir without the extension:
+// api/device/interface/192.0.2.1.json is "device/interface/192.0.2.1".
+func loadAPIBodies(t *testing.T, apiDir string) map[string][]byte {
+	t.Helper()
+	bodies := map[string][]byte{}
+	err := filepath.WalkDir(apiDir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() || filepath.Ext(path) != ".json" {
+			return err
+		}
+		rel, err := filepath.Rel(apiDir, path)
+		if err != nil {
+			return err
+		}
+		body, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		bodies[strings.TrimSuffix(filepath.ToSlash(rel), ".json")] = body
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("api: %v", err)
+	}
+	return bodies
 }
 
 // collectGolden runs runExport for one scenario and purpose and
