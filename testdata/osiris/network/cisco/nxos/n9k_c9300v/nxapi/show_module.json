@@ -1,0 +1,48 @@
+{
+  "TABLE_modinfo": {
+    "ROW_modinfo": [
+      {
+        "modinf": "1",
+        "ports": "64",
+        "modtype": "Nexus 9000v 64 port Ethernet Module",
+        "model": "N9K-X9364v",
+        "status": "ok"
+      },
+      {
+        "modinf": "27",
+        "ports": "0",
+        "modtype": "Virtual Supervisor Module",
+        "model": "N9K-vSUP",
+        "status": "active *"
+      }
+    ]
+  },
+  "TABLE_moddiaginfo": {
+    "ROW_moddiaginfo": [
+      {
+        "mod": "1",
+        "diagstatus": "Pass"
+      },
+      {
+        "mod": "27",
+        "diagstatus": "Pass"
+      }
+    ]
+  },
+  "TABLE_modwwninfo": {
+    "ROW_modwwninfo": [
+      {
+        "modwwn": "1",
+        "hw": "0.0",
+        "sw": "10.6(4)",
+        "slottype": "LC1"
+      },
+      {
+        "modwwn": "27",
+        "hw": "0.0",
+        "sw": "10.6(4)",
+        "slottype": "SUP1"
+      }
+    ]
+  }
+}

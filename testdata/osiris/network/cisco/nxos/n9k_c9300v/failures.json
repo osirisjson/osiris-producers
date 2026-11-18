@@ -1,0 +1,14 @@
+{
+  "show tacacs-server": {
+    "code": "400",
+    "msg": "Input CLI command error"
+  },
+  "show vpc brief": {
+    "code": "400",
+    "msg": "CLI execution error"
+  },
+  "show vpc peer-keepalive": {
+    "code": "400",
+    "msg": "CLI execution error"
+  }
+}

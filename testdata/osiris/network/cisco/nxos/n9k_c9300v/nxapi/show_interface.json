@@ -1,0 +1,841 @@
+{
+  "TABLE_interface": {
+    "ROW_interface": [
+      {
+        "interface": "mgmt0",
+        "admin_state": "up",
+        "eth_mtu": "1500",
+        "eth_bw": 1000000,
+        "eth_duplex": "full",
+        "eth_hw_addr": "0200.5e10.ff01",
+        "eth_bia_addr": "0200.5e10.ff01",
+        "desc": "LAB_MXP_LAB-MGMT"
+      },
+      {
+        "interface": "Ethernet1/1",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.0101",
+        "eth_bia_addr": "0200.5e10.0101",
+        "desc": "LAB-HOST01_TRUNK_V101-120_MAC0210.0000.1001"
+      },
+      {
+        "interface": "Ethernet1/2",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08",
+        "desc": "LAB-RTR01_OSPF_PEER203.0.113.2_MAC0210.0000.1002"
+      },
+      {
+        "interface": "Ethernet1/3",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08",
+        "desc": "LAB-RTR02_EBGP_PEER203.0.113.6_MAC0210.0000.1003"
+      },
+      {
+        "interface": "Ethernet1/4",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.0104",
+        "eth_bia_addr": "0200.5e10.0104",
+        "desc": "LAB-SW02_PLAN_TRUNK_IP203.0.113.211_MAC0000.5e00.538c"
+      },
+      {
+        "interface": "Ethernet1/5",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.0105",
+        "eth_bia_addr": "0200.5e10.0105",
+        "desc": "LAB-SW03_PLAN_TRUNK_IP203.0.113.212_MAC0000.5e00.5381"
+      },
+      {
+        "interface": "Ethernet1/6",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.0106",
+        "eth_bia_addr": "0200.5e10.0106",
+        "desc": "LAB-WS01_PLAN_V101_IP192.0.2.12_MAC0000.5e00.5359"
+      },
+      {
+        "interface": "Ethernet1/7",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.0107",
+        "eth_bia_addr": "0200.5e10.0107",
+        "desc": "LAB-AP01_PLAN_V102_IP192.0.2.20_MAC0000.5e00.5352"
+      },
+      {
+        "interface": "Ethernet1/8",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.0108",
+        "eth_bia_addr": "0200.5e10.0108",
+        "desc": "LAB-DNS01_PLAN_V103_IP192.0.2.46_MAC0000.5e00.53cd"
+      },
+      {
+        "interface": "Ethernet1/9",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.0109",
+        "eth_bia_addr": "0200.5e10.0109",
+        "desc": "LAB-TOOLS01_PLAN_V104_IP192.0.2.58_MAC0000.5e00.53d8"
+      },
+      {
+        "interface": "Ethernet1/10",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.010a",
+        "eth_bia_addr": "0200.5e10.010a",
+        "desc": "LAB-DB01_PLAN_V105_IP192.0.2.76_MAC0000.5e00.53b2"
+      },
+      {
+        "interface": "Ethernet1/11",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.010b",
+        "eth_bia_addr": "0200.5e10.010b",
+        "desc": "LAB-STORAGE01_PLAN_V106_IP192.0.2.83_MAC0000.5e00.5391"
+      },
+      {
+        "interface": "Ethernet1/12",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.010c",
+        "eth_bia_addr": "0200.5e10.010c",
+        "desc": "LAB-WEB01_PLAN_V107_IP192.0.2.108_MAC0000.5e00.5332"
+      },
+      {
+        "interface": "Ethernet1/13",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.010d",
+        "eth_bia_addr": "0200.5e10.010d",
+        "desc": "LAB-API01_PLAN_V108_IP192.0.2.125_MAC0000.5e00.5388"
+      },
+      {
+        "interface": "Ethernet1/14",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.010e",
+        "eth_bia_addr": "0200.5e10.010e",
+        "desc": "LAB-MON01_PLAN_V109_IP192.0.2.131_MAC0000.5e00.537d"
+      },
+      {
+        "interface": "Ethernet1/15",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.010f",
+        "eth_bia_addr": "0200.5e10.010f",
+        "desc": "LAB-LOG01_PLAN_V110_IP192.0.2.148_MAC0000.5e00.5344"
+      },
+      {
+        "interface": "Ethernet1/16",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.0110",
+        "eth_bia_addr": "0200.5e10.0110",
+        "desc": "LAB-SCADA01_PLAN_V111_IP192.0.2.163_MAC0000.5e00.53d0"
+      },
+      {
+        "interface": "Ethernet1/17",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.0111",
+        "eth_bia_addr": "0200.5e10.0111",
+        "desc": "LAB-PLC01_PLAN_V112_IP192.0.2.183_MAC0000.5e00.5342"
+      },
+      {
+        "interface": "Ethernet1/18",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.0112",
+        "eth_bia_addr": "0200.5e10.0112",
+        "desc": "LAB-APP01_PLAN_V113_IP192.0.2.201_MAC0000.5e00.532d"
+      },
+      {
+        "interface": "Ethernet1/19",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.0113",
+        "eth_bia_addr": "0200.5e10.0113",
+        "desc": "LAB-CI01_PLAN_V114_IP192.0.2.218_MAC0000.5e00.5376"
+      },
+      {
+        "interface": "Ethernet1/20",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.0114",
+        "eth_bia_addr": "0200.5e10.0114",
+        "desc": "LAB-QA01_PLAN_V115_IP192.0.2.230_MAC0000.5e00.5390"
+      },
+      {
+        "interface": "Ethernet1/21",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.0115",
+        "eth_bia_addr": "0200.5e10.0115",
+        "desc": "LAB-SANDBOX01_PLAN_V116_IP192.0.2.250_MAC0000.5e00.5383"
+      },
+      {
+        "interface": "Ethernet1/22",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.0116",
+        "eth_bia_addr": "0200.5e10.0116",
+        "desc": "LAB-BACKUP01_PLAN_V117_IP198.51.100.3_MAC0000.5e00.53c0"
+      },
+      {
+        "interface": "Ethernet1/23",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.0117",
+        "eth_bia_addr": "0200.5e10.0117",
+        "desc": "LAB-DR01_PLAN_V118_IP198.51.100.19_MAC0000.5e00.5333"
+      },
+      {
+        "interface": "Ethernet1/24",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.0118",
+        "eth_bia_addr": "0200.5e10.0118",
+        "desc": "LAB-EDGE01_PLAN_V119_IP198.51.100.45_MAC0000.5e00.537b"
+      },
+      {
+        "interface": "Ethernet1/25",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.0119",
+        "eth_bia_addr": "0200.5e10.0119",
+        "desc": "LAB-SVC01_PLAN_V120_IP198.51.100.56_MAC0000.5e00.53b5"
+      },
+      {
+        "interface": "Ethernet1/26",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/27",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/28",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/29",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/30",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/31",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/32",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/33",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/34",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/35",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/36",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/37",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/38",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/39",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/40",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/41",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/42",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/43",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/44",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/45",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/46",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/47",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/48",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/49",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/50",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/51",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/52",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/53",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/54",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/55",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/56",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/57",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/58",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/59",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/60",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/61",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/62",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/63",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Ethernet1/64",
+        "admin_state": "down",
+        "eth_mtu": "1500",
+        "eth_bw": 10000000,
+        "eth_duplex": "auto",
+        "eth_hw_addr": "0200.5e10.1b08",
+        "eth_bia_addr": "0200.5e10.1b08"
+      },
+      {
+        "interface": "Vlan1",
+        "svi_admin_state": "down",
+        "svi_line_proto": "down",
+        "svi_mtu": 1500,
+        "svi_bw": 1000000
+      },
+      {
+        "interface": "Vlan101",
+        "svi_admin_state": "down",
+        "svi_line_proto": "down",
+        "svi_mtu": 1500,
+        "svi_bw": 1000000
+      },
+      {
+        "interface": "Vlan102",
+        "svi_admin_state": "down",
+        "svi_line_proto": "down",
+        "svi_mtu": 1500,
+        "svi_bw": 1000000
+      },
+      {
+        "interface": "Vlan103",
+        "svi_admin_state": "down",
+        "svi_line_proto": "down",
+        "svi_mtu": 1500,
+        "svi_bw": 1000000
+      },
+      {
+        "interface": "Vlan104",
+        "svi_admin_state": "down",
+        "svi_line_proto": "down",
+        "svi_mtu": 1500,
+        "svi_bw": 1000000
+      },
+      {
+        "interface": "Vlan105",
+        "svi_admin_state": "down",
+        "svi_line_proto": "down",
+        "svi_mtu": 1500,
+        "svi_bw": 1000000
+      },
+      {
+        "interface": "Vlan106",
+        "svi_admin_state": "down",
+        "svi_line_proto": "down",
+        "svi_mtu": 1500,
+        "svi_bw": 1000000
+      },
+      {
+        "interface": "Vlan107",
+        "svi_admin_state": "down",
+        "svi_line_proto": "down",
+        "svi_mtu": 1500,
+        "svi_bw": 1000000
+      },
+      {
+        "interface": "Vlan108",
+        "svi_admin_state": "down",
+        "svi_line_proto": "down",
+        "svi_mtu": 1500,
+        "svi_bw": 1000000
+      },
+      {
+        "interface": "Vlan109",
+        "svi_admin_state": "down",
+        "svi_line_proto": "down",
+        "svi_mtu": 1500,
+        "svi_bw": 1000000
+      },
+      {
+        "interface": "Vlan110",
+        "svi_admin_state": "down",
+        "svi_line_proto": "down",
+        "svi_mtu": 1500,
+        "svi_bw": 1000000
+      },
+      {
+        "interface": "Vlan111",
+        "svi_admin_state": "down",
+        "svi_line_proto": "down",
+        "svi_mtu": 1500,
+        "svi_bw": 1000000
+      },
+      {
+        "interface": "Vlan112",
+        "svi_admin_state": "down",
+        "svi_line_proto": "down",
+        "svi_mtu": 1500,
+        "svi_bw": 1000000
+      },
+      {
+        "interface": "Vlan113",
+        "svi_admin_state": "down",
+        "svi_line_proto": "down",
+        "svi_mtu": 1500,
+        "svi_bw": 1000000
+      },
+      {
+        "interface": "Vlan114",
+        "svi_admin_state": "down",
+        "svi_line_proto": "down",
+        "svi_mtu": 1500,
+        "svi_bw": 1000000
+      },
+      {
+        "interface": "Vlan115",
+        "svi_admin_state": "down",
+        "svi_line_proto": "down",
+        "svi_mtu": 1500,
+        "svi_bw": 1000000
+      },
+      {
+        "interface": "Vlan116",
+        "svi_admin_state": "down",
+        "svi_line_proto": "down",
+        "svi_mtu": 1500,
+        "svi_bw": 1000000
+      },
+      {
+        "interface": "Vlan117",
+        "svi_admin_state": "down",
+        "svi_line_proto": "down",
+        "svi_mtu": 1500,
+        "svi_bw": 1000000
+      },
+      {
+        "interface": "Vlan118",
+        "svi_admin_state": "down",
+        "svi_line_proto": "down",
+        "svi_mtu": 1500,
+        "svi_bw": 1000000
+      },
+      {
+        "interface": "Vlan119",
+        "svi_admin_state": "down",
+        "svi_line_proto": "down",
+        "svi_mtu": 1500,
+        "svi_bw": 1000000
+      },
+      {
+        "interface": "Vlan120",
+        "svi_admin_state": "down",
+        "svi_line_proto": "down",
+        "svi_mtu": 1500,
+        "svi_bw": 1000000
+      },
+      {
+        "interface": "loopback0",
+        "admin_state": "up",
+        "eth_mtu": "1500",
+        "eth_bw": 8000000,
+        "desc": "LAB_MXP_LAB-ROUTING-LOOPBACK"
+      },
+      {
+        "interface": "loopback10",
+        "admin_state": "up",
+        "eth_mtu": "1500",
+        "eth_bw": 8000000,
+        "desc": "LAB_MXP_VRF-CORP_ROUTER-ID-TEST"
+      },
+      {
+        "interface": "loopback11",
+        "admin_state": "up",
+        "eth_mtu": "1500",
+        "eth_bw": 8000000,
+        "desc": "LAB_MXP_VRF-SERVICES_ROUTER-ID-TEST"
+      },
+      {
+        "interface": "loopback12",
+        "admin_state": "up",
+        "eth_mtu": "1500",
+        "eth_bw": 8000000,
+        "desc": "LAB_MXP_VRF-DATA_ROUTER-ID-TEST"
+      },
+      {
+        "interface": "loopback13",
+        "admin_state": "up",
+        "eth_mtu": "1500",
+        "eth_bw": 8000000,
+        "desc": "LAB_MXP_VRF-DMZ_ROUTER-ID-TEST"
+      },
+      {
+        "interface": "loopback14",
+        "admin_state": "up",
+        "eth_mtu": "1500",
+        "eth_bw": 8000000,
+        "desc": "LAB_MXP_VRF-SECURITY_ROUTER-ID-TEST"
+      },
+      {
+        "interface": "loopback15",
+        "admin_state": "up",
+        "eth_mtu": "1500",
+        "eth_bw": 8000000,
+        "desc": "LAB_MXP_VRF-OT_ROUTER-ID-TEST"
+      },
+      {
+        "interface": "loopback16",
+        "admin_state": "up",
+        "eth_mtu": "1500",
+        "eth_bw": 8000000,
+        "desc": "LAB_MXP_VRF-DEV_ROUTER-ID-TEST"
+      },
+      {
+        "interface": "loopback17",
+        "admin_state": "up",
+        "eth_mtu": "1500",
+        "eth_bw": 8000000,
+        "desc": "LAB_MXP_VRF-TEST_ROUTER-ID-TEST"
+      },
+      {
+        "interface": "loopback18",
+        "admin_state": "up",
+        "eth_mtu": "1500",
+        "eth_bw": 8000000,
+        "desc": "LAB_MXP_VRF-BACKUP_ROUTER-ID-TEST"
+      },
+      {
+        "interface": "loopback19",
+        "admin_state": "up",
+        "eth_mtu": "1500",
+        "eth_bw": 8000000,
+        "desc": "LAB_MXP_VRF-EDGE_ROUTER-ID-TEST"
+      }
+    ]
+  }
+}

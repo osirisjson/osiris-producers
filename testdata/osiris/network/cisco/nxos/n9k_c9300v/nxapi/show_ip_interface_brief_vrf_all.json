@@ -1,0 +1,276 @@
+{
+  "TABLE_vrf": {
+    "ROW_vrf": [
+      {
+        "vrf-name-out": "VRF-BACKUP"
+      },
+      {
+        "vrf-name-out": "VRF-CORP"
+      },
+      {
+        "vrf-name-out": "VRF-DATA"
+      },
+      {
+        "vrf-name-out": "VRF-DEV"
+      },
+      {
+        "vrf-name-out": "VRF-DMZ"
+      },
+      {
+        "vrf-name-out": "VRF-EDGE"
+      },
+      {
+        "vrf-name-out": "VRF-OT"
+      },
+      {
+        "vrf-name-out": "VRF-SECURITY"
+      },
+      {
+        "vrf-name-out": "VRF-SERVICES"
+      },
+      {
+        "vrf-name-out": "VRF-TEST"
+      },
+      {
+        "vrf-name-out": "default"
+      },
+      {
+        "vrf-name-out": "management"
+      }
+    ]
+  },
+  "TABLE_intf": {
+    "ROW_intf": [
+      {
+        "vrf-name-out": "management",
+        "intf-name": "mgmt0",
+        "prefix": "203.0.113.200",
+        "ip-disabled": "FALSE",
+        "iod": 10,
+        "proto-state": "up",
+        "link-state": "up",
+        "admin-state": "up"
+      },
+      {
+        "vrf-name-out": "default",
+        "intf-name": "Ethernet1/2",
+        "prefix": "203.0.113.1",
+        "ip-disabled": "FALSE",
+        "iod": 11,
+        "proto-state": "down",
+        "link-state": "down",
+        "admin-state": "down"
+      },
+      {
+        "vrf-name-out": "default",
+        "intf-name": "Ethernet1/3",
+        "prefix": "203.0.113.5",
+        "ip-disabled": "FALSE",
+        "iod": 12,
+        "proto-state": "down",
+        "link-state": "down",
+        "admin-state": "down"
+      },
+      {
+        "vrf-name-out": "VRF-CORP",
+        "intf-name": "Vlan101",
+        "prefix": "192.0.2.1",
+        "ip-disabled": "FALSE",
+        "iod": 13,
+        "proto-state": "down",
+        "link-state": "down",
+        "admin-state": "down"
+      },
+      {
+        "vrf-name-out": "VRF-CORP",
+        "intf-name": "Vlan102",
+        "prefix": "192.0.2.17",
+        "ip-disabled": "FALSE",
+        "iod": 14,
+        "proto-state": "down",
+        "link-state": "down",
+        "admin-state": "down"
+      },
+      {
+        "vrf-name-out": "VRF-SERVICES",
+        "intf-name": "Vlan103",
+        "prefix": "192.0.2.33",
+        "ip-disabled": "FALSE",
+        "iod": 15,
+        "proto-state": "down",
+        "link-state": "down",
+        "admin-state": "down"
+      },
+      {
+        "vrf-name-out": "VRF-SERVICES",
+        "intf-name": "Vlan104",
+        "prefix": "192.0.2.49",
+        "ip-disabled": "FALSE",
+        "iod": 16,
+        "proto-state": "down",
+        "link-state": "down",
+        "admin-state": "down"
+      },
+      {
+        "vrf-name-out": "VRF-DATA",
+        "intf-name": "Vlan105",
+        "prefix": "192.0.2.65",
+        "ip-disabled": "FALSE",
+        "iod": 17,
+        "proto-state": "down",
+        "link-state": "down",
+        "admin-state": "down"
+      },
+      {
+        "vrf-name-out": "VRF-DATA",
+        "intf-name": "Vlan106",
+        "prefix": "192.0.2.81",
+        "ip-disabled": "FALSE",
+        "iod": 18,
+        "proto-state": "down",
+        "link-state": "down",
+        "admin-state": "down"
+      },
+      {
+        "vrf-name-out": "VRF-DMZ",
+        "intf-name": "Vlan107",
+        "prefix": "192.0.2.97",
+        "ip-disabled": "FALSE",
+        "iod": 19,
+        "proto-state": "down",
+        "link-state": "down",
+        "admin-state": "down"
+      },
+      {
+        "vrf-name-out": "VRF-DMZ",
+        "intf-name": "Vlan108",
+        "prefix": "192.0.2.113",
+        "ip-disabled": "FALSE",
+        "iod": 20,
+        "proto-state": "down",
+        "link-state": "down",
+        "admin-state": "down"
+      },
+      {
+        "vrf-name-out": "VRF-SECURITY",
+        "intf-name": "Vlan109",
+        "prefix": "192.0.2.129",
+        "ip-disabled": "FALSE",
+        "iod": 21,
+        "proto-state": "down",
+        "link-state": "down",
+        "admin-state": "down"
+      },
+      {
+        "vrf-name-out": "VRF-SECURITY",
+        "intf-name": "Vlan110",
+        "prefix": "192.0.2.145",
+        "ip-disabled": "FALSE",
+        "iod": 22,
+        "proto-state": "down",
+        "link-state": "down",
+        "admin-state": "down"
+      },
+      {
+        "vrf-name-out": "VRF-OT",
+        "intf-name": "Vlan111",
+        "prefix": "192.0.2.161",
+        "ip-disabled": "FALSE",
+        "iod": 23,
+        "proto-state": "down",
+        "link-state": "down",
+        "admin-state": "down"
+      },
+      {
+        "vrf-name-out": "VRF-OT",
+        "intf-name": "Vlan112",
+        "prefix": "192.0.2.177",
+        "ip-disabled": "FALSE",
+        "iod": 24,
+        "proto-state": "down",
+        "link-state": "down",
+        "admin-state": "down"
+      },
+      {
+        "vrf-name-out": "VRF-DEV",
+        "intf-name": "Vlan113",
+        "prefix": "192.0.2.193",
+        "ip-disabled": "FALSE",
+        "iod": 25,
+        "proto-state": "down",
+        "link-state": "down",
+        "admin-state": "down"
+      },
+      {
+        "vrf-name-out": "VRF-DEV",
+        "intf-name": "Vlan114",
+        "prefix": "192.0.2.209",
+        "ip-disabled": "FALSE",
+        "iod": 26,
+        "proto-state": "down",
+        "link-state": "down",
+        "admin-state": "down"
+      },
+      {
+        "vrf-name-out": "VRF-TEST",
+        "intf-name": "Vlan115",
+        "prefix": "192.0.2.225",
+        "ip-disabled": "FALSE",
+        "iod": 27,
+        "proto-state": "down",
+        "link-state": "down",
+        "admin-state": "down"
+      },
+      {
+        "vrf-name-out": "VRF-TEST",
+        "intf-name": "Vlan116",
+        "prefix": "192.0.2.241",
+        "ip-disabled": "FALSE",
+        "iod": 28,
+        "proto-state": "down",
+        "link-state": "down",
+        "admin-state": "down"
+      },
+      {
+        "vrf-name-out": "VRF-BACKUP",
+        "intf-name": "Vlan117",
+        "prefix": "198.51.100.1",
+        "ip-disabled": "FALSE",
+        "iod": 29,
+        "proto-state": "down",
+        "link-state": "down",
+        "admin-state": "down"
+      },
+      {
+        "vrf-name-out": "VRF-BACKUP",
+        "intf-name": "Vlan118",
+        "prefix": "198.51.100.17",
+        "ip-disabled": "FALSE",
+        "iod": 30,
+        "proto-state": "down",
+        "link-state": "down",
+        "admin-state": "down"
+      },
+      {
+        "vrf-name-out": "VRF-EDGE",
+        "intf-name": "Vlan119",
+        "prefix": "198.51.100.33",
+        "ip-disabled": "FALSE",
+        "iod": 31,
+        "proto-state": "down",
+        "link-state": "down",
+        "admin-state": "down"
+      },
+      {
+        "vrf-name-out": "VRF-EDGE",
+        "intf-name": "Vlan120",
+        "prefix": "198.51.100.49",
+        "ip-disabled": "FALSE",
+        "iod": 32,
+        "proto-state": "down",
+        "link-state": "down",
+        "admin-state": "down"
+      }
+    ]
+  }
+}

@@ -1,0 +1,173 @@
+{
+  "TABLE_vlanbriefxbrief": {
+    "ROW_vlanbriefxbrief": [
+      {
+        "vlanshowbr-vlanid": 1,
+        "vlanshowbr-vlanid-utf": 1,
+        "vlanshowbr-vlanname": "default",
+        "vlanshowbr-vlanstate": "active",
+        "vlanshowbr-shutstate": "noshutdown"
+      },
+      {
+        "vlanshowbr-vlanid": 101,
+        "vlanshowbr-vlanid-utf": 101,
+        "vlanshowbr-vlanname": "LAB-CORP-USERS",
+        "vlanshowbr-vlanstate": "active",
+        "vlanshowbr-shutstate": "noshutdown",
+        "vlanshowplist-ifidx": "Ethernet1/6"
+      },
+      {
+        "vlanshowbr-vlanid": 102,
+        "vlanshowbr-vlanid-utf": 102,
+        "vlanshowbr-vlanname": "LAB-CORP-WIFI",
+        "vlanshowbr-vlanstate": "active",
+        "vlanshowbr-shutstate": "noshutdown",
+        "vlanshowplist-ifidx": "Ethernet1/7"
+      },
+      {
+        "vlanshowbr-vlanid": 103,
+        "vlanshowbr-vlanid-utf": 103,
+        "vlanshowbr-vlanname": "LAB-SHARED-DNS",
+        "vlanshowbr-vlanstate": "active",
+        "vlanshowbr-shutstate": "noshutdown",
+        "vlanshowplist-ifidx": "Ethernet1/8"
+      },
+      {
+        "vlanshowbr-vlanid": 104,
+        "vlanshowbr-vlanid-utf": 104,
+        "vlanshowbr-vlanname": "LAB-SHARED-TOOLS",
+        "vlanshowbr-vlanstate": "active",
+        "vlanshowbr-shutstate": "noshutdown",
+        "vlanshowplist-ifidx": "Ethernet1/9"
+      },
+      {
+        "vlanshowbr-vlanid": 105,
+        "vlanshowbr-vlanid-utf": 105,
+        "vlanshowbr-vlanname": "LAB-DATA-DB",
+        "vlanshowbr-vlanstate": "active",
+        "vlanshowbr-shutstate": "noshutdown",
+        "vlanshowplist-ifidx": "Ethernet1/10"
+      },
+      {
+        "vlanshowbr-vlanid": 106,
+        "vlanshowbr-vlanid-utf": 106,
+        "vlanshowbr-vlanname": "LAB-DATA-STORAGE",
+        "vlanshowbr-vlanstate": "active",
+        "vlanshowbr-shutstate": "noshutdown",
+        "vlanshowplist-ifidx": "Ethernet1/11"
+      },
+      {
+        "vlanshowbr-vlanid": 107,
+        "vlanshowbr-vlanid-utf": 107,
+        "vlanshowbr-vlanname": "LAB-DMZ-WEB",
+        "vlanshowbr-vlanstate": "active",
+        "vlanshowbr-shutstate": "noshutdown",
+        "vlanshowplist-ifidx": "Ethernet1/12"
+      },
+      {
+        "vlanshowbr-vlanid": 108,
+        "vlanshowbr-vlanid-utf": 108,
+        "vlanshowbr-vlanname": "LAB-DMZ-API",
+        "vlanshowbr-vlanstate": "active",
+        "vlanshowbr-shutstate": "noshutdown",
+        "vlanshowplist-ifidx": "Ethernet1/13"
+      },
+      {
+        "vlanshowbr-vlanid": 109,
+        "vlanshowbr-vlanid-utf": 109,
+        "vlanshowbr-vlanname": "LAB-SEC-MONITOR",
+        "vlanshowbr-vlanstate": "active",
+        "vlanshowbr-shutstate": "noshutdown",
+        "vlanshowplist-ifidx": "Ethernet1/14"
+      },
+      {
+        "vlanshowbr-vlanid": 110,
+        "vlanshowbr-vlanid-utf": 110,
+        "vlanshowbr-vlanname": "LAB-SEC-LOGS",
+        "vlanshowbr-vlanstate": "active",
+        "vlanshowbr-shutstate": "noshutdown",
+        "vlanshowplist-ifidx": "Ethernet1/15"
+      },
+      {
+        "vlanshowbr-vlanid": 111,
+        "vlanshowbr-vlanid-utf": 111,
+        "vlanshowbr-vlanname": "LAB-OT-SCADA",
+        "vlanshowbr-vlanstate": "active",
+        "vlanshowbr-shutstate": "noshutdown",
+        "vlanshowplist-ifidx": "Ethernet1/16"
+      },
+      {
+        "vlanshowbr-vlanid": 112,
+        "vlanshowbr-vlanid-utf": 112,
+        "vlanshowbr-vlanname": "LAB-OT-PLC",
+        "vlanshowbr-vlanstate": "active",
+        "vlanshowbr-shutstate": "noshutdown",
+        "vlanshowplist-ifidx": "Ethernet1/17"
+      },
+      {
+        "vlanshowbr-vlanid": 113,
+        "vlanshowbr-vlanid-utf": 113,
+        "vlanshowbr-vlanname": "LAB-DEV-APP",
+        "vlanshowbr-vlanstate": "active",
+        "vlanshowbr-shutstate": "noshutdown",
+        "vlanshowplist-ifidx": "Ethernet1/18"
+      },
+      {
+        "vlanshowbr-vlanid": 114,
+        "vlanshowbr-vlanid-utf": 114,
+        "vlanshowbr-vlanname": "LAB-DEV-CI",
+        "vlanshowbr-vlanstate": "active",
+        "vlanshowbr-shutstate": "noshutdown",
+        "vlanshowplist-ifidx": "Ethernet1/19"
+      },
+      {
+        "vlanshowbr-vlanid": 115,
+        "vlanshowbr-vlanid-utf": 115,
+        "vlanshowbr-vlanname": "LAB-TEST-APP",
+        "vlanshowbr-vlanstate": "active",
+        "vlanshowbr-shutstate": "noshutdown",
+        "vlanshowplist-ifidx": "Ethernet1/20"
+      },
+      {
+        "vlanshowbr-vlanid": 116,
+        "vlanshowbr-vlanid-utf": 116,
+        "vlanshowbr-vlanname": "LAB-TEST-SANDBOX",
+        "vlanshowbr-vlanstate": "active",
+        "vlanshowbr-shutstate": "noshutdown",
+        "vlanshowplist-ifidx": "Ethernet1/21"
+      },
+      {
+        "vlanshowbr-vlanid": 117,
+        "vlanshowbr-vlanid-utf": 117,
+        "vlanshowbr-vlanname": "LAB-BACKUP-REPO",
+        "vlanshowbr-vlanstate": "active",
+        "vlanshowbr-shutstate": "noshutdown",
+        "vlanshowplist-ifidx": "Ethernet1/22"
+      },
+      {
+        "vlanshowbr-vlanid": 118,
+        "vlanshowbr-vlanid-utf": 118,
+        "vlanshowbr-vlanname": "LAB-BACKUP-DR",
+        "vlanshowbr-vlanstate": "active",
+        "vlanshowbr-shutstate": "noshutdown",
+        "vlanshowplist-ifidx": "Ethernet1/23"
+      },
+      {
+        "vlanshowbr-vlanid": 119,
+        "vlanshowbr-vlanid-utf": 119,
+        "vlanshowbr-vlanname": "LAB-EDGE-SERVICES",
+        "vlanshowbr-vlanstate": "active",
+        "vlanshowbr-shutstate": "noshutdown",
+        "vlanshowplist-ifidx": "Ethernet1/24"
+      },
+      {
+        "vlanshowbr-vlanid": 120,
+        "vlanshowbr-vlanid-utf": 120,
+        "vlanshowbr-vlanname": "LAB-EDGE-TRANSIT",
+        "vlanshowbr-vlanstate": "active",
+        "vlanshowbr-shutstate": "noshutdown",
+        "vlanshowplist-ifidx": "Ethernet1/25"
+      }
+    ]
+  }
+}

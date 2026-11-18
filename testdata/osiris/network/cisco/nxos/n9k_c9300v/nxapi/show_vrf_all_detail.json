@@ -1,0 +1,214 @@
+{
+  "TABLE_vrf": {
+    "ROW_vrf": [
+      {
+        "vrf_name": "default",
+        "vrf_id": 1,
+        "vrf_state": "Up",
+        "vpnid": "unknown",
+        "rd": "0:0",
+        "max_routes": 0,
+        "mid_threshold": 0,
+        "TABLE_tib": {
+          "ROW_tib": {
+            "tib_id": 1,
+            "tib_af": "IPv4",
+            "tib_state": "Up"
+          }
+        }
+      },
+      {
+        "vrf_name": "management",
+        "vrf_id": 2,
+        "vrf_state": "Up",
+        "vpnid": "unknown",
+        "rd": "0:0",
+        "max_routes": 0,
+        "mid_threshold": 0,
+        "TABLE_tib": {
+          "ROW_tib": {
+            "tib_id": 2,
+            "tib_af": "IPv4",
+            "tib_state": "Up"
+          }
+        }
+      },
+      {
+        "vrf_name": "egress-loadbalance-resolution-",
+        "vrf_id": 3,
+        "vrf_state": "Up",
+        "vpnid": "unknown",
+        "rd": "0:0",
+        "max_routes": 0,
+        "mid_threshold": 0,
+        "TABLE_tib": {
+          "ROW_tib": {
+            "tib_id": 3,
+            "tib_af": "IPv4",
+            "tib_state": "Up"
+          }
+        }
+      },
+      {
+        "vrf_name": "VRF-CORP",
+        "vrf_id": 4,
+        "vrf_state": "Up",
+        "vpnid": "unknown",
+        "rd": "0:0",
+        "max_routes": 0,
+        "mid_threshold": 0,
+        "TABLE_tib": {
+          "ROW_tib": {
+            "tib_id": 4,
+            "tib_af": "IPv4",
+            "tib_state": "Up"
+          }
+        }
+      },
+      {
+        "vrf_name": "VRF-SERVICES",
+        "vrf_id": 5,
+        "vrf_state": "Up",
+        "vpnid": "unknown",
+        "rd": "0:0",
+        "max_routes": 0,
+        "mid_threshold": 0,
+        "TABLE_tib": {
+          "ROW_tib": {
+            "tib_id": 5,
+            "tib_af": "IPv4",
+            "tib_state": "Up"
+          }
+        }
+      },
+      {
+        "vrf_name": "VRF-DATA",
+        "vrf_id": 6,
+        "vrf_state": "Up",
+        "vpnid": "unknown",
+        "rd": "0:0",
+        "max_routes": 0,
+        "mid_threshold": 0,
+        "TABLE_tib": {
+          "ROW_tib": {
+            "tib_id": 6,
+            "tib_af": "IPv4",
+            "tib_state": "Up"
+          }
+        }
+      },
+      {
+        "vrf_name": "VRF-DMZ",
+        "vrf_id": 7,
+        "vrf_state": "Up",
+        "vpnid": "unknown",
+        "rd": "0:0",
+        "max_routes": 0,
+        "mid_threshold": 0,
+        "TABLE_tib": {
+          "ROW_tib": {
+            "tib_id": 7,
+            "tib_af": "IPv4",
+            "tib_state": "Up"
+          }
+        }
+      },
+      {
+        "vrf_name": "VRF-SECURITY",
+        "vrf_id": 8,
+        "vrf_state": "Up",
+        "vpnid": "unknown",
+        "rd": "0:0",
+        "max_routes": 0,
+        "mid_threshold": 0,
+        "TABLE_tib": {
+          "ROW_tib": {
+            "tib_id": 8,
+            "tib_af": "IPv4",
+            "tib_state": "Up"
+          }
+        }
+      },
+      {
+        "vrf_name": "VRF-OT",
+        "vrf_id": 9,
+        "vrf_state": "Up",
+        "vpnid": "unknown",
+        "rd": "0:0",
+        "max_routes": 0,
+        "mid_threshold": 0,
+        "TABLE_tib": {
+          "ROW_tib": {
+            "tib_id": 9,
+            "tib_af": "IPv4",
+            "tib_state": "Up"
+          }
+        }
+      },
+      {
+        "vrf_name": "VRF-DEV",
+        "vrf_id": 10,
+        "vrf_state": "Up",
+        "vpnid": "unknown",
+        "rd": "0:0",
+        "max_routes": 0,
+        "mid_threshold": 0,
+        "TABLE_tib": {
+          "ROW_tib": {
+            "tib_id": 10,
+            "tib_af": "IPv4",
+            "tib_state": "Up"
+          }
+        }
+      },
+      {
+        "vrf_name": "VRF-TEST",
+        "vrf_id": 11,
+        "vrf_state": "Up",
+        "vpnid": "unknown",
+        "rd": "0:0",
+        "max_routes": 0,
+        "mid_threshold": 0,
+        "TABLE_tib": {
+          "ROW_tib": {
+            "tib_id": 11,
+            "tib_af": "IPv4",
+            "tib_state": "Up"
+          }
+        }
+      },
+      {
+        "vrf_name": "VRF-BACKUP",
+        "vrf_id": 12,
+        "vrf_state": "Up",
+        "vpnid": "unknown",
+        "rd": "0:0",
+        "max_routes": 0,
+        "mid_threshold": 0,
+        "TABLE_tib": {
+          "ROW_tib": {
+            "tib_id": 12,
+            "tib_af": "IPv4",
+            "tib_state": "Up"
+          }
+        }
+      },
+      {
+        "vrf_name": "VRF-EDGE",
+        "vrf_id": 13,
+        "vrf_state": "Up",
+        "vpnid": "unknown",
+        "rd": "0:0",
+        "max_routes": 0,
+        "mid_threshold": 0,
+        "TABLE_tib": {
+          "ROW_tib": {
+            "tib_id": 13,
+            "tib_af": "IPv4",
+            "tib_state": "Up"
+          }
+        }
+      }
+    ]
+  }
+}
