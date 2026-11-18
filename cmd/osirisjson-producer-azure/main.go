@@ -3,7 +3,7 @@ main.go - Standalone Azure OSIRIS JSON producer binary.
 
 This binary is fully self-contained and can be invoked directly:
 
-	osirisjson-producer-azure -S a1b2c3d4-e5f6-7890-abcd-ef1234567890
+	osirisjson-producer-azure -S 00000000-0000-4000-8000-00000000a1b2
 	osirisjson-producer-azure -s subscriptions.csv -o ./output
 	osirisjson-producer-azure template --generate
 	osirisjson-producer-azure --help
@@ -11,7 +11,7 @@ This binary is fully self-contained and can be invoked directly:
 It is also discovered automatically by the core osirisjson-producer
 dispatcher when the user runs:
 
-	osirisjson-producer azure -S a1b2c3d4-e5f6-7890-abcd-ef1234567890
+	osirisjson-producer azure -S 00000000-0000-4000-8000-00000000a1b2
 
 Exit codes:
 
