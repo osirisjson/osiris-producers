@@ -1,0 +1,166 @@
+{
+  "exceptions": [
+    {
+      "path": ".github/media/osiris-json-demo-cisco-apic.gif",
+      "rule": "OSIRIS-PR-TDP-017",
+      "fingerprint": "sha256:3cafd65806c9fa6ca870c585d166bfc2",
+      "reason": "README demo recording frames reviewed: only the public Cisco DevNet sandbox host, the admin placeholder user, APIC class names and object counts",
+      "owner": "Tia Zanella @skhell <tiazanella@osirisjson.org>",
+      "issue": "feature/ci-test-data-policy",
+      "review_by": "2027-11-18"
+    },
+    {
+      "path": "osiris/network/cisco/apic/security_test.go",
+      "rule": "OSIRIS-PR-TDP-010",
+      "fingerprint": "sha256:0ee5177cd44ad69fb4a2d613959492a0",
+      "reason": "Fabricated canary in the access key ID format (an SDK secret value pattern) placed in APIC tenant, application profile, vPC domain and neighbour fields proves a fail-closed APIC build aborts without echoing it",
+      "owner": "Tia Zanella @skhell <tiazanella@osirisjson.org>",
+      "issue": "feature/ci-test-data-policy",
+      "review_by": "2027-11-18"
+    },
+    {
+      "path": "osiris/network/cisco/iosxe/transform_interfaces_test.go",
+      "rule": "OSIRIS-PR-TDP-001",
+      "fingerprint": "sha256:4c777b1f6f69736ffae00753f72e181a",
+      "reason": "Non-contiguous netmask is the negative case proving invalid masks are rejected",
+      "owner": "Tia Zanella @skhell <tiazanella@osirisjson.org>",
+      "issue": "feature/ci-test-data-policy",
+      "review_by": "2027-11-18"
+    },
+    {
+      "path": "osiris/network/cisco/iosxe/transform_interfaces_test.go",
+      "rule": "OSIRIS-PR-TDP-001",
+      "fingerprint": "sha256:7aaa064cfa12f78456b4e7531850b46b",
+      "reason": "Non-contiguous netmask is the negative case proving invalid masks are rejected",
+      "owner": "Tia Zanella @skhell <tiazanella@osirisjson.org>",
+      "issue": "feature/ci-test-data-policy",
+      "review_by": "2027-11-18"
+    },
+    {
+      "path": "osiris/network/cisco/iosxe/transform_routing_test.go",
+      "rule": "OSIRIS-PR-TDP-001",
+      "fingerprint": "sha256:5fd6d72663e9a44ef47b1ccee82b5678",
+      "reason": "Non-contiguous netmask is the negative case proving invalid static route masks are skipped",
+      "owner": "Tia Zanella @skhell <tiazanella@osirisjson.org>",
+      "issue": "feature/ci-test-data-policy",
+      "review_by": "2027-11-18"
+    },
+    {
+      "path": "osiris/network/cisco/iosxe/transform_routing_test.go",
+      "rule": "OSIRIS-PR-TDP-002",
+      "fingerprint": "sha256:9d388bdb797ab9586d9887c19a242c1f",
+      "reason": "Link-local prefix proves subnets skip IPv6 link-local addresses, the exact want list asserts it",
+      "owner": "Tia Zanella @skhell <tiazanella@osirisjson.org>",
+      "issue": "feature/ci-test-data-policy",
+      "review_by": "2027-11-18"
+    },
+    {
+      "path": "osiris/network/cisco/nxos/nxos_test.go",
+      "rule": "OSIRIS-PR-TDP-010",
+      "fingerprint": "sha256:098abeead9baa309509538f71ecf088b",
+      "reason": "Truncated OpenSSH private key header with no key material, placed in a non-sensitive field, proves redactRawBody removes key material from raw command bodies",
+      "owner": "Tia Zanella @skhell <tiazanella@osirisjson.org>",
+      "issue": "feature/ci-test-data-policy",
+      "review_by": "2027-11-18"
+    },
+    {
+      "path": "osiris/network/hpe/arubacentral/arubacentral_test.go",
+      "rule": "OSIRIS-PR-TDP-009",
+      "fingerprint": "sha256:9d0397edca0a203630ef5b153ca1bbce",
+      "reason": "Fabricated tpd_ pseudo-serial with too few hex digits is the negative case proving the MAC decoder rejects it",
+      "owner": "Tia Zanella @skhell <tiazanella@osirisjson.org>",
+      "issue": "feature/ci-test-data-policy",
+      "review_by": "2027-11-18"
+    },
+    {
+      "path": "osiris/network/hpe/arubacentral/arubacentral_test.go",
+      "rule": "OSIRIS-PR-TDP-009",
+      "fingerprint": "sha256:ed26a0b96b8b41172231d4b50568bfef",
+      "reason": "Fabricated tpd_ pseudo-serial with non-hex characters is the negative case proving the MAC decoder rejects it",
+      "owner": "Tia Zanella @skhell <tiazanella@osirisjson.org>",
+      "issue": "feature/ci-test-data-policy",
+      "review_by": "2027-11-18"
+    },
+    {
+      "path": "pkg/sdk/redact_test.go",
+      "rule": "OSIRIS-PR-TDP-010",
+      "fingerprint": "sha256:3c0f0bfd3b054b30e48f6d3386cf3bd4",
+      "reason": "Bare RSA private key PEM header with no key material verifies the SDK pem_private_key value rule",
+      "owner": "Tia Zanella @skhell <tiazanella@osirisjson.org>",
+      "issue": "feature/ci-test-data-policy",
+      "review_by": "2027-11-18"
+    },
+    {
+      "path": "pkg/sdk/redact_test.go",
+      "rule": "OSIRIS-PR-TDP-010",
+      "fingerprint": "sha256:738d5f13a27a92149748438eff3d1b20",
+      "reason": "Bare PKCS 8 private key PEM header with no key material verifies the SDK pem_private_key value rule",
+      "owner": "Tia Zanella @skhell <tiazanella@osirisjson.org>",
+      "issue": "feature/ci-test-data-policy",
+      "review_by": "2027-11-18"
+    },
+    {
+      "path": "pkg/sdk/redact_test.go",
+      "rule": "OSIRIS-PR-TDP-010",
+      "fingerprint": "sha256:a0d2bd02d581ae2991fa201ff237cd3f",
+      "reason": "Fabricated access key ID after a Basic prefix proves the aws_access_key rule takes precedence over basic_auth",
+      "owner": "Tia Zanella @skhell <tiazanella@osirisjson.org>",
+      "issue": "feature/ci-test-data-policy",
+      "review_by": "2027-11-18"
+    },
+    {
+      "path": "pkg/sdk/redact_test.go",
+      "rule": "OSIRIS-PR-TDP-010",
+      "fingerprint": "sha256:a5a466cf2070032c07cb2a5b34933c78",
+      "reason": "Fabricated GitHub OAuth token of placeholder characters verifies the SDK github_oauth value rule",
+      "owner": "Tia Zanella @skhell <tiazanella@osirisjson.org>",
+      "issue": "feature/ci-test-data-policy",
+      "review_by": "2027-11-18"
+    },
+    {
+      "path": "pkg/sdk/redact_test.go",
+      "rule": "OSIRIS-PR-TDP-010",
+      "fingerprint": "sha256:b86bf9cee05ff9d289abbe4b10e37b85",
+      "reason": "Fabricated GitHub personal access token of placeholder characters verifies the SDK github_pat value rule",
+      "owner": "Tia Zanella @skhell <tiazanella@osirisjson.org>",
+      "issue": "feature/ci-test-data-policy",
+      "review_by": "2027-11-18"
+    },
+    {
+      "path": "pkg/sdk/redact_test.go",
+      "rule": "OSIRIS-PR-TDP-010",
+      "fingerprint": "sha256:cdc849d45af9a3337de3f53a4224579a",
+      "reason": "Fabricated JSON Web Token with a placeholder payload and signature verifies the SDK jwt value rule",
+      "owner": "Tia Zanella @skhell <tiazanella@osirisjson.org>",
+      "issue": "feature/ci-test-data-policy",
+      "review_by": "2027-11-18"
+    },
+    {
+      "path": "pkg/sdk/redact_test.go",
+      "rule": "OSIRIS-PR-TDP-010",
+      "fingerprint": "sha256:f72af45e00f79d4a333459d3e0043180",
+      "reason": "Fabricated access key ID (the published AWS documentation example) verifies the SDK aws_access_key value rule",
+      "owner": "Tia Zanella @skhell <tiazanella@osirisjson.org>",
+      "issue": "feature/ci-test-data-policy",
+      "review_by": "2027-11-18"
+    },
+    {
+      "path": "testdata/osiris/hyperscalers/azure/hub-spoke/hub/az/backup-item-list-hub.json",
+      "rule": "OSIRIS-PR-TDP-015",
+      "fingerprint": "sha256:0d0910f56f524731c30bc8d49118d9ce",
+      "reason": "Recovery Services backup fabric name Azure is fixed by the service and cannot carry a LAB prefix",
+      "owner": "Tia Zanella @skhell <tiazanella@osirisjson.org>",
+      "issue": "feature/ci-test-data-policy",
+      "review_by": "2027-11-18"
+    },
+    {
+      "path": "testdata/osiris/hyperscalers/azure/hub-spoke/spoke/az/backup-item-list-spoke.json",
+      "rule": "OSIRIS-PR-TDP-015",
+      "fingerprint": "sha256:317470c8c8bc1526b99de8f107ced3ca",
+      "reason": "Recovery Services backup fabric name Azure is fixed by the service and cannot carry a LAB prefix",
+      "owner": "Tia Zanella @skhell <tiazanella@osirisjson.org>",
+      "issue": "feature/ci-test-data-policy",
+      "review_by": "2027-11-18"
+    }
+  ]
+}
