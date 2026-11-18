@@ -1,63 +1,83 @@
 # CONTRIBUTING.md
-OSIRIS is developed in public and warmly welcomes contributions of any size: questions, clarifications, examples, reviews and tooling improvements. As an open source project, we believe in giving back to our contributors and are happy to help with guidance on PRs, technical writing and turning any feature idea into a reality.
+OSIRIS JSON Producers are developed in public and warmly welcomes
+contributions of any size: questions, clarifications, examples, reviews
+and tooling improvements.
+
+As an Open Source Software project, we believe in giving back to our
+contributors and are happy to help with guidance on PRs, technical
+writing and turning any feature idea into a reality.
 
 ## Quick principles
-- **Quality > volume.** A few well-scoped contributions beat many low-impact issues/PRs.
-- **Context matters.** Explain *why* a change is needed, not only *what* you changed.
-- **Be kind and patient.** As volunteers reviews, responding and closing issues are conducted alonside regular job mostly over night or weekend.
+- **Quality > volume.** A few well-scoped contributions beat many
+  low-impact issues/PRs.
+- **Context matters.** Explain *why* a change is needed, not only
+  *what* you changed.
+- **Be kind and patient.** As volunteers reviews, responding and closing
+  issues are conducted alonside regular job mostly over night or weekend.
 
 ---
 
 ## What you can contribute
 ### Documentation (recommended starting point)
-Documentation improvements are always valuable and usually the fastest to review:
+Documentation improvements are always valuable and usually the fastest
+to review:
 - fixing typos and broken links
 - clarifying wording where the spec is ambiguous
 - improving explanations and navigation between pages
-- expanding “how to validate” or “how to read an OSIRIS document” guidance
+- expanding “how to validate” or “how to read an OSIRIS document”
+  guidance
 
 
 ### Examples
 You can contribute by:
-- proposing new example scenarios
+- developing a new OSIRIS JSON producer or contribute to an existing one
+- proposing new example testdata scenarios
 - improving readability and consistency of existing examples
-- adding comments or accompanying notes that help readers understand why certain fields are present
+- adding comments or accompanying notes that help readers understand why
+  certain fields are present
 
 ### Specification and schema
-For spec/schema-related contributions:
+For OSIRIS specification and schema-related contributions:
 - open an issue describing the change and motivation
 - include a minimal example that demonstrates the problem
 - propose the smallest change that preserves compatibility
 
 ## How to keep contributions easy to review
 - Prefer small, focused PRs.
-- Avoid mixing unrelated changes (e.g., refactor + new feature in the same PR).
-- Keep language precise (normative statements should use MUST/SHOULD/MAY only where appropriate).
-- If a change could affect compatibility, call it out explicitly in the PR description.
+- Avoid mixing unrelated changes (e.g., refactor + new feature in the
+  same PR).
+- Keep language precise (normative statements SHOULD use MUST/SHOULD/MAY
+  only where appropriate).
+- If a change could affect compatibility, call it out explicitly in the
+  PR description.
 
 ## Contributors
-This project is currently maintained by a single lead maintainer. Contributors will be listed here and in the maintainer page over time.
+This project is currently maintained by a single lead maintainer.
+Contributors will be listed here and in the maintainers page over time.
 
 ## Code of Conduct
-Participation in the OSIRIS community is governed by the Code of Conduct.  
-[Read the Code of Conduct](https://osirisjson.org/en/commitments/codeofconduct)
+Participation in the OSIRIS JSON community is governed by the
+Code of Conduct. [Read the Code of Conduct](https://osirisjson.org/en/commitments/codeofconduct)
 
 ---
 
 ## AI-assisted contributions (allowed, but be responsible)
-Using AI as a helper is fine. What’s not fine is **mass-producing issues/PRs without understanding the project**.
+Using AI as a helper is fine.
+What’s not fine is **mass-producing issues/PRs without understanding the project**.
 
 **If you use AI:**
 - You are responsible for correctness and scope
 - Read and understand the code/spec you’re changing
 - Validate outputs (tests, linters, schema validation, examples)
 - Don’t open “speculative” issues you haven’t reproduced
-- Avoid drive-by refactors that rename/reformat large areas without purpose
+- Avoid drive-by refactors that rename/reformat large areas without
+  purpose
 
 **Maintainers may close without extended discussion:**
 - Duplicate issues
 - Issues missing reproducible steps/context
-- PRs that are clearly low-effort, auto-generated or not aligned with project direction
+- PRs that are clearly low-effort, auto-generated or not aligned with
+  project direction
 
 ---
 
@@ -69,7 +89,7 @@ Using AI as a helper is fine. What’s not fine is **mass-producing issues/PRs w
 4. Open a Draft PR early if you want feedback
 5. Mark ready when:
    - Tests pass
-   - Docs/examples updated
+   - Docs/examples are updated
    - PR description is complete
 
 ---
@@ -90,7 +110,7 @@ Please include in your PR description:
 - [ ] I ran formatting/linking/tools used by this repo (if applicable)
 - [ ] `go vet ./...` pass clean
 - [ ] `go build ./...` pass clean
-- [ ] `go test ./...` pass clean including the `go test ./internal/policies/testdatapolicy` [test data policy](docs/policies/OSIRIS-PRODUCER-TEST-DATA-POLICY.md) check on every example address, name and credential I added
+- [ ] `go test ./...` pass clean including the `TDP_INCLUDE_UNTRACKED=1 go test -count=1 ./internal/policies/testdatapolicy` [test data policy](docs/policies/OSIRIS-PRODUCER-TEST-DATA-POLICY.md) check on every example address, name and credential I added
 - [ ] `./scripts/validate_golden.sh`: all golden documents pass clean the canonical CLI at the strict profile.
 
 ---
@@ -105,12 +125,14 @@ Use clear messages, optionally Conventional Commits:
 ---
 
 ## Licensing
-By contributing, you agree that your contributions are licensed under the project’s license.
+By contributing, you agree that your contributions are licensed under
+the project’s license.
 
 ---
 
 ## GSoC (or similar programs)
 If you’re contributing with an application in mind:
 - Focus on **one meaningful area**
-- Show that you can **communicate clearly**, **ship small improvements** and **iterate on feedback**
+- Show that you can **communicate clearly**, **ship small improvements**
+  and **iterate on feedback**
 - A short design doc or proposal discussion beats many low-impact PRs
