@@ -69,7 +69,7 @@ is `MXP`.
 ### Cisco Nexus 9000 c9300v virtual model
 
 **Shape:** a virtual Nexus 9300v (`N9K-C9300v`, supervisor `N9K-vSUP`,
-one 64-port `N9K-X9364v` line card), NX-OS 10.6(4), observed on 
+one 64-port `N9K-X9364v` line card), NX-OS 10.6(4), observed on
 2026-11-18.
 
 **Contains:** `LAB-N9K01`, collected from `203.0.113.200`:
