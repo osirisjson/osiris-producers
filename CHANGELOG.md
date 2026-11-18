@@ -68,6 +68,10 @@ emitted documents changed and no behavior version changed.
   synthetic `/dataservice` response bodies for a control-plane site and
   the expected documents at both `--purpose` levels, checked byte for
   byte by `TestGolden`. The vManage behavior version is unchanged.
+- Cisco NX-OS source-to-golden `/testdata` fixtures (`n9k_c9300v`):
+  synthetic NX-API command bodies for a Nexus 9300v and the expected
+  documents at both `--purpose` levels, checked byte for byte by
+  `TestGolden`. The NX-OS behavior version is unchanged.
 
 ### Changed
 - Tests, fixtures, help text and changelog examples across the AWS,
