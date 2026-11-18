@@ -64,6 +64,10 @@ emitted documents changed and no behavior version changed.
   Recovery Services backup fabric name.
 - `test-data-policy.yml` workflow: a dedicated check on pushes, pull
   requests to `main` and `dev` and manual runs.
+- Cisco vManage source-to-golden `/testdata` fixtures (`lab_sdwan`):
+  synthetic `/dataservice` response bodies for a control-plane site and
+  the expected documents at both `--purpose` levels, checked byte for
+  byte by `TestGolden`. The vManage behavior version is unchanged.
 
 ### Changed
 - Tests, fixtures, help text and changelog examples across the AWS,
