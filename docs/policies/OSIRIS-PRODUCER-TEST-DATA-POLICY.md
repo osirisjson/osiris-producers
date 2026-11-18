@@ -767,6 +767,8 @@ The run ends with a summary:
 
 ```text
 Test Data Policy
+Inventory: tracked files (Git index)|tracked and untracked files
+Allowlist: testdata-policy-allowlist.json, N entries applied|invalid|NOT USED|none
 Files inventoried: N
 Text files scanned: N
 Binary/unsupported files accounted for: N
@@ -776,6 +778,13 @@ Approved exceptions: N
 Stale exceptions: N
 Result: PASS|FAIL
 ```
+
+`Inventory` states whether untracked files were included (section 8).
+`Allowlist` states whether exceptions were applied. An allowlist present
+in the working tree but not tracked by Git is `NOT USED` in the default
+mode: its entries are not applied, the occurrences it covers are
+reported as violations and the summary ends with a note explaining how
+to stage the file or use local untracked mode.
 
 `Violations` counts unsuppressed findings. `Approved exceptions` counts
 findings matched by valid entries.
@@ -789,7 +798,8 @@ proof that every policy-relevant value was detected. CI evidence
 **MUST** also record the revision, tracked/untracked inventory mode,
 working-tree content source and UTC evaluation date.
 
-These are not currently emitted as fields in the summary above.
+The summary emits the inventory mode, the revision, content source
+and evaluation date are not currently emitted.
 
 ## 7. Exceptions
 
