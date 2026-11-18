@@ -41,7 +41,40 @@ OSIRIS JSON core schema itself, see the [OSIRIS JSON Repository](https://github.
 
 ## [Unreleased]
 
----
+Repository test data policy and its CI gate. No OSIRIS JSON producer's
+emitted documents changed and no behavior version changed.
+
+### Added
+- [OSIRIS JSON Producers Test Data Policy](docs/policies/OSIRIS-PRODUCER-TEST-DATA-POLICY.md):
+  the approved example addresses, MACs, hostnames, device names,
+  coordinates, sites, AS numbers, serial numbers and credentials for
+  every committed file, with a reviewed exception contract. Policy
+  changes are tracked in [`docs/policies/CHANGELOG.md`](docs/policies/CHANGELOG.md).
+- `internal/policies/testdatapolicy`: an offline, standard-library
+  checker run by `go test ./...` that scans every file in the
+  repository index and fails on any non-approved identifier, stale or
+  expired exception, symlink, submodule or unreviewed binary.
+- Hyperscalers identity rules for Microsoft Azure (tenant and
+  subscription GUIDs, Azure Resource Manager paths, resource groups and
+  resource names) and Amazon AWS (account IDs, ARNs, hexadecimal
+  resource IDs and resource names).
+- `testdata-policy-allowlist.json`: reviewed, per-occurrence exceptions
+  for protocol-semantic literals (link-local and non-contiguous mask
+  negative tests), secret-detection test shapes and the service-defined
+  Recovery Services backup fabric name.
+- `test-data-policy.yml` workflow: a dedicated check on pushes, pull
+  requests to `main` and `dev` and manual runs.
+
+### Changed
+- Tests, fixtures, help text and changelog examples across the AWS,
+  Azure, Cisco, HPE Aruba Networking Central, SDK and `osirismeta`
+  packages now use only approved example values. Changed golden
+  documents: the Cisco IOS-XE `c8000v` audit golden (`TST`
+  certificate serial numbers) and the four Microsoft Azure hub-spoke
+  goldens (synthetic GUIDs and `RG-LAB-*` resource groups). Resource,
+  connection and group counts and relationships are unchanged.
+- Cisco command help no longer documents a `-p` password flag; the
+  password is prompted for.
 
 ## [0.12.0] - 2026-11-15
 
