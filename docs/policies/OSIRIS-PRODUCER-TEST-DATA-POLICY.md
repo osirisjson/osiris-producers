@@ -489,7 +489,8 @@ authorize a hardcoded credential in another part.
 
 Well-known real credential shapes are reported in every file, including
 production sources: AWS access key IDs, GitHub tokens, JSON Web Tokens
-and PEM private key headers.
+and private key headers (`-----BEGIN ... PRIVATE KEY-----`, such as
+RSA, EC, PKCS 8 and OpenSSH keys).
 
 Fabricated credential-shaped values **MAY** be retained only where a
 detector, redaction or authentication-handling test requires that shape
@@ -895,10 +896,12 @@ encoding of the first 16 bytes of SHA-256 over that serialization
 printed by the scanner rather than computing it manually.
 
 Canonicalization is rule-specific, the authoritative current definitions
-are in the [address evaluators](../../internal/testdatapolicy/identifiers.go),
-[context evaluators](../../internal/testdatapolicy/context.go) and
-[hyperscalers evaluators](../../internal/testdatapolicy/hyperscalers.go)
-serialization and ordinal assignment are in [diagnostics.go](../../internal/testdatapolicy/diagnostics.go).
+are in the [address evaluators](../../internal/policies/testdatapolicy/identifiers.go),
+[context evaluators](../../internal/policies/testdatapolicy/context.go) and
+hyperscaler evaluators ([shared](../../internal/policies/testdatapolicy/hyperscalers.go),
+[Microsoft Azure](../../internal/policies/testdatapolicy/hyperscalers_azure.go),
+[Amazon AWS](../../internal/policies/testdatapolicy/hyperscalers_aws.go)),
+serialization and ordinal assignment are in [diagnostics.go](../../internal/policies/testdatapolicy/diagnostics.go).
 
 Absolute line numbers are not hashed, stability depends on the
 canonical value, normalized line context and duplicate-occurrence
@@ -945,7 +948,7 @@ Run commands from the repository root.
 Focused run:
 
 ```bash
-go test ./internal/testdatapolicy -run TestRepositoryDataPolicy -count=1 -v
+go test ./internal/policies/testdatapolicy -run TestRepositoryDataPolicy -count=1 -v
 ```
 
 The same test also runs as part of the full suite:
@@ -969,7 +972,7 @@ described in section 1.
 To also scan untracked files that are not ignored, before staging them:
 
 ```bash
-TDP_INCLUDE_UNTRACKED=1 go test ./internal/testdatapolicy -run TestRepositoryDataPolicy -count=1 -v
+TDP_INCLUDE_UNTRACKED=1 go test ./internal/policies/testdatapolicy -run TestRepositoryDataPolicy -count=1 -v
 ```
 
 CI uses the tracked-path inventory on a complete checkout of the
