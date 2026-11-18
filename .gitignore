@@ -30,7 +30,7 @@ Thumbs.db
 *.tar.gz
 *.rar
 
-# Secrets and tests (just in case collaborators accidentally commit them)
+# Secrets and tests
 .env
 .env.local
 .env.*.local
@@ -39,8 +39,11 @@ secrets/
 *.key
 *.json
 
-# Synthetic test fixtures and golden documents are versioned.
+# Synthetic test fixtures and golden documents are versioned
 !/testdata/**/*.json
+
+# The reviewed test data policy allowlist is versioned
+!/testdata-policy-allowlist.json
 
 # Go and test builds
 bin/
