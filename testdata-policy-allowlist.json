@@ -10,6 +10,24 @@
       "review_by": "2027-11-18"
     },
     {
+      "path": "README.md",
+      "rule": "OSIRIS-PR-TDP-004",
+      "fingerprint": "sha256:0047c2a15c876d1e30ba8ef79aee532a",
+      "reason": "Try-it example targets the public Cisco DevNet ACI Simulator Always On sandbox host, which readers must use verbatim to reproduce the demo",
+      "owner": "Tia Zanella @skhell <tiazanella@osirisjson.org>",
+      "issue": "feature/ci-test-data-policy",
+      "review_by": "2027-11-19"
+    },
+    {
+      "path": "README.md",
+      "rule": "OSIRIS-PR-TDP-004",
+      "fingerprint": "sha256:1908274e2a1ca9273cd7c10066112ec0",
+      "reason": "Audit-purpose try-it example targets the same public Cisco DevNet ACI Simulator Always On sandbox host",
+      "owner": "Tia Zanella @skhell <tiazanella@osirisjson.org>",
+      "issue": "feature/ci-test-data-policy",
+      "review_by": "2027-11-19"
+    },
+    {
       "path": "osiris/network/cisco/apic/security_test.go",
       "rule": "OSIRIS-PR-TDP-010",
       "fingerprint": "sha256:0ee5177cd44ad69fb4a2d613959492a0",
