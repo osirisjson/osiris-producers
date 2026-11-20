@@ -7,9 +7,16 @@
 [![Docs](https://img.shields.io/badge/Docs_OSIRIS_JSON-142C49?style=flat-square&labelColor=23355F&logo=readthedocs&logoColor=white)](https://docs.osirisjson.org/osiris-producers/getting-started/)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=osirisjson_osiris-producers&metric=security_rating)](https://sonarcloud.io/component_measures?metric=security_rating&id=osirisjson_osiris-producers)
 
-An **OSIRIS JSON Producer** is a lightweight, **read-only** infrastructure discovery software written in Go that **transforms** proprietary, vendor-specific infrastructure data into **portable, vendor-neutral [OSIRIS JSON snapshots](https://github.com/osirisjson/osiris)**.
+An **OSIRIS JSON Producer** is a lightweight, **read-only**
+infrastructure discovery software written in Go that **transforms**
+proprietary, vendor-specific infrastructure data into **portable, vendor-neutral [OSIRIS JSON](https://github.com/osirisjson/osiris)** snapshots
+documents.
 
-It connects to supported public platforms and private on-premises environments, discovers resources and their relationships, normalizes vendor-specific data, applies sensitive-data redaction and generates a structured representation of the infrastructure at a specific point in time.
+It connects to supported public platforms and private on-premises
+environments, discovers resources and their relationships, normalizes
+vendor-specific data, applies sensitive-data redaction and generates a
+structured representation of the infrastructure at a specific point in
+time.
 
 **OSIRIS JSON Producers run under your control, without requiring proprietary intermediary platforms, separate SaaS services, external consultancy, or AI integration.**
 
@@ -21,8 +28,28 @@ It connects to supported public platforms and private on-premises environments, 
 
 ## Installation
 
-[Pre-built binaries are available on the releases page](https://github.com/osirisjson/osiris-producers/releases) for Linux, macOS and Windows.
-See the official guidelines available on [docs.osirisjson.org/osiris-producers/installation](https://docs.osirisjson.org/osiris-producers/installation/)
+OSIRIS JSON Producers are available as pre-built binaries for
+**Linux, macOS, and Windows**. See [INSTALL](INSTALL.md) for more
+informations.
+
+| OS | Quick install |
+|---|---|
+| **Linux** | Download the `.deb` or `.rpm` package from [GitHub Releases](https://github.com/osirisjson/osiris-producers/releases), then install using `sudo apt install` or `sudo dnf install` or `sudo zypper install`. |
+| **macOS** | `brew tap osirisjson/osiris-producers && brew install osirisjson-producer` |
+| **Windows** | `winget install osirisjson.osirisjson-producer` |
+
+**Verify your installation:**
+
+```bash
+osirisjson-producer --version
+```
+
+For alternative installation methods (Scoop, manual archives, Go),
+supported architectures, checksum verification, and troubleshooting,
+see [INSTALL.md](INSTALL.md).
+Once installed, follow the [Getting Started Guide](https://docs.osirisjson.org/osiris-producers/getting-started/) to generate your first OSIRIS JSON
+snapshot.
+
 
 ### Try the OSIRIS JSON Cisco APIC Producer on Cisco DevNet
 
@@ -41,7 +68,7 @@ osirisjson-producer cisco apic -h sandboxapicdc.cisco.com --insecure
 osirisjson-producer cisco apic -h sandboxapicdc.cisco.com --insecure --purpose audit
 ```
 
-## Supported infrastructure environments
+## Supported IT infrastructure environments
 
 | OSIRIS JSON Producer | Category | Status |
 |---|---|---|
@@ -52,14 +79,23 @@ osirisjson-producer cisco apic -h sandboxapicdc.cisco.com --insecure --purpose a
 | **Arista EOS** | Network | Planned |
 | **Ciena SAOS** | Network | Planned |
 | **Cisco (APIC, NX-OS, IOS-XE, Catalyst SD-WAN Manager)** | Network | [Available](https://docs.osirisjson.org/osiris-producers/network/cisco) |
+| **F5 BIG-IP** | Network | Planned |
 | **HPE Aruba Networking Central** | Network | [Available](https://docs.osirisjson.org/osiris-producers/network/hpe-aruba-networking-central) |
 | **HPE Aruba AOS** | Network | Planned |
 | **MikroTik RouterOS** | Network | Planned |
 | **Nokia SR** | Network | Planned |
 | **SONiC** | Network | Planned |
 | **Ubiquiti UniFi (ui.com)** | Network | Planned |
+| **Check Point** | Security | Planned |
+| **Palo Alto** | Security | Planned |
 | **Proxmox VE** | Hypervisor | Planned |
 | **VMware vSphere** | Hypervisor | Planned |
+
+## Supported OT infrastructure environments
+
+| OSIRIS JSON Producer | Category | Status |
+|---|---|---|
+| **Zebra PPME LinkOS** | Industrial Printers | Planned |
 
 *For the complete roadmap, visit [osirisjson.org/en/commitments/roadmap](https://osirisjson.org/en/commitments/roadmap).*
 
@@ -67,7 +103,8 @@ osirisjson-producer cisco apic -h sandboxapicdc.cisco.com --insecure --purpose a
 
 ## The OSIRIS JSON Manifesto in practice
 
-End-to-end infrastructure visibility should not depend on tribal knowledge, expensive consultancy, or closed, proprietary platforms.
+End-to-end infrastructure visibility should not depend on tribal
+knowledge, expensive consultancy, or closed, proprietary platforms.
 
 With OSIRIS JSON:
 
@@ -154,7 +191,11 @@ flowchart TD
 
 ## Security
 
-OSIRIS JSON Producers are designed to exclude credentials and authentication secrets from generated OSIRIS JSON documents. Snapshots may still contain sensitive infrastructure information, including internal addresses, resource identifiers, network topology and asset names. Review generated documents before sharing them publicly.
+OSIRIS JSON Producers are designed to exclude credentials and
+authentication secrets from generated OSIRIS JSON documents.
+Snapshots may still contain sensitive infrastructure information,
+including internal addresses, resource identifiers, network topology and 
+asset names. Review generated documents before sharing them publicly.
 
 Additional security resources:
 - [The OSIRIS JSON Security Policy](https://osirisjson.org/en/commitments/security)
