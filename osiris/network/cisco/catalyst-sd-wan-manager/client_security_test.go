@@ -105,7 +105,7 @@ func TestClient_RefusesCrossOriginRedirect(t *testing.T) {
 		t.Run(fmt.Sprintf("login %d", code), func(t *testing.T) {
 			leaked.Store(false)
 			ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				http.Redirect(w, r, other.URL+r.URL.Path, code)
+				http.Redirect(w, r, other.URL+"/j_security_check", code)
 			}))
 			defer ts.Close()
 			err := newSecureTestClient(t, ts).Login("admin", "changeme")
@@ -127,7 +127,7 @@ func TestClient_RefusesCrossOriginRedirect(t *testing.T) {
 	t.Run("GET carries no XSRF token off origin", func(t *testing.T) {
 		leaked.Store(false)
 		ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			http.Redirect(w, r, other.URL+r.URL.Path, http.StatusTemporaryRedirect)
+			http.Redirect(w, r, other.URL+"/dataservice/device", http.StatusTemporaryRedirect)
 		}))
 		defer ts.Close()
 		c := newSecureTestClient(t, ts)
@@ -162,7 +162,7 @@ func TestClient_FollowsSameOriginRedirect(t *testing.T) {
 
 func TestClient_StopsRedirectLoop(t *testing.T) {
 	ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, r.URL.Path, http.StatusFound)
+		http.Redirect(w, r, "/dataservice/device", http.StatusFound)
 	}))
 	defer ts.Close()
 	if _, err := newSecureTestClient(t, ts).GetDevices(); err == nil || !strings.Contains(err.Error(), "redirects") {
