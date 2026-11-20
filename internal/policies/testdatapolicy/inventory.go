@@ -2,7 +2,8 @@
 // scanner.
 //
 // The authoritative inventory is the Git index, read with
-// "git ls-files -z -s" through exec.CommandContext (no shell). Files
+// "git ls-files -z -s" through exec.CommandContext (no shell), with
+// git resolved from fixed system directories rather than PATH. Files
 // are read through an os.Root confined to the repository root, so a
 // path can never resolve outside it, and symlinks are never followed.
 // Any enumeration or read failure is returned as an error: the scanner
@@ -18,6 +19,8 @@ import (
 	"io/fs"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 )
@@ -136,8 +139,61 @@ func (g *GitSource) ReadFile(path string) ([]byte, error) {
 	return data, nil
 }
 
+// trustedGitDirs are the only directories git is run from. They are
+// fixed system install locations that ordinary users cannot write,
+// so the scanner never depends on the caller's PATH: a writable PATH
+// entry could otherwise put a different git in front of the real
+// one. The same list is the PATH handed to git itself.
+var trustedGitDirs = map[string][]string{
+	"windows": {`C:\Program Files\Git\cmd`, `C:\Program Files\Git\bin`},
+	"darwin":  {"/usr/bin", "/usr/local/bin", "/opt/homebrew/bin"},
+	"":        {"/usr/bin", "/bin", "/usr/local/bin"},
+}
+
+// gitBinary returns the absolute path of the first git executable
+// found in trustedGitDirs for the running OS. Outside Windows a
+// candidate that is group or world writable is skipped.
+func gitBinary() (path string, dirs []string, err error) {
+	dirs, ok := trustedGitDirs[runtime.GOOS]
+	if !ok {
+		dirs = trustedGitDirs[""]
+	}
+	name := "git"
+	if runtime.GOOS == "windows" {
+		name = "git.exe"
+	}
+	for _, d := range dirs {
+		p := filepath.Join(d, name)
+		fi, err := os.Stat(p)
+		if err != nil || !fi.Mode().IsRegular() {
+			continue
+		}
+		if runtime.GOOS != "windows" && (fi.Mode().Perm()&0o111 == 0 || fi.Mode().Perm()&0o022 != 0) {
+			continue
+		}
+		return p, dirs, nil
+	}
+	return "", nil, fmt.Errorf("git not found in %s", strings.Join(dirs, string(filepath.ListSeparator)))
+}
+
+// gitCommand returns a command running the trusted git with args,
+// with PATH reduced to the trusted directories. The rest of the
+// environment (GIT_INDEX_FILE, HOME) is kept.
+func gitCommand(ctx context.Context, args ...string) (*exec.Cmd, error) {
+	bin, dirs, err := gitBinary()
+	if err != nil {
+		return nil, err
+	}
+	cmd := exec.CommandContext(ctx, bin, args...)
+	cmd.Env = append(os.Environ(), "PATH="+strings.Join(dirs, string(filepath.ListSeparator)))
+	return cmd, nil
+}
+
 func runGit(ctx context.Context, dir string, args ...string) ([]byte, error) {
-	cmd := exec.CommandContext(ctx, "git", append([]string{"-C", dir}, args...)...)
+	cmd, err := gitCommand(ctx, append([]string{"-C", dir}, args...)...)
+	if err != nil {
+		return nil, err
+	}
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 	out, err := cmd.Output()
