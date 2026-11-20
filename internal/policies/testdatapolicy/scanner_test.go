@@ -14,7 +14,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -457,7 +456,10 @@ func TestGitSourceRealRepository(t *testing.T) {
 	}
 	git := func(args ...string) {
 		t.Helper()
-		cmd := exec.CommandContext(t.Context(), "git", append([]string{"-C", dir}, args...)...)
+		cmd, err := gitCommand(t.Context(), append([]string{"-C", dir}, args...)...)
+		if err != nil {
+			t.Fatal(err)
+		}
 		if out, err := cmd.CombinedOutput(); err != nil {
 			t.Fatalf("git %v: %v\n%s", args, err, out)
 		}
@@ -510,5 +512,35 @@ func TestGitSourceRealRepository(t *testing.T) {
 	}
 	if len(entries) != 3 || entries[2].Path != "new.md" {
 		t.Errorf("entries with untracked %v, want new.md included", entries)
+	}
+}
+
+// TestGitBinaryIsTrusted checks that git is resolved to an absolute
+// path inside a trusted directory and that the child PATH holds only
+// trusted directories, whatever the caller's PATH is.
+func TestGitBinaryIsTrusted(t *testing.T) {
+	t.Setenv("PATH", t.TempDir())
+	bin, dirs, err := gitBinary()
+	if err != nil {
+		t.Skip(err)
+	}
+	if !filepath.IsAbs(bin) || !slices.Contains(dirs, filepath.Dir(bin)) {
+		t.Errorf("git = %s, want a file in %v", bin, dirs)
+	}
+	cmd, err := gitCommand(t.Context(), "version")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var path string
+	for _, kv := range cmd.Environ() {
+		if v, ok := strings.CutPrefix(kv, "PATH="); ok {
+			path = v
+		}
+	}
+	if want := strings.Join(dirs, string(filepath.ListSeparator)); path != want {
+		t.Errorf("child PATH = %q, want %q", path, want)
+	}
+	if out, err := cmd.Output(); err != nil || !strings.HasPrefix(string(out), "git version") {
+		t.Errorf("git version = %q, %v", out, err)
 	}
 }
