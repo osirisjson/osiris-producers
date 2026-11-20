@@ -46,16 +46,20 @@ osirisjson-producer cisco apic -h sandboxapicdc.cisco.com --insecure --purpose a
 | OSIRIS JSON Producer | Category | Status |
 |---|---|---|
 | **Amazon AWS** | Hyperscaler | [Available](https://docs.osirisjson.org/osiris-producers/hyperscalers/amazon-aws/) |
-| **Microsoft Azure** | Hyperscaler | [Available](https://docs.osirisjson.org/osiris-producers/hyperscalers/microsoft-azure/) |
+| **Cloudflare** | Hyperscaler | Planned |
 | **Google Cloud** | Hyperscaler | [Under development](https://osirisjson.org/en/commitments/roadmap) |
+| **Microsoft Azure** | Hyperscaler | [Available](https://docs.osirisjson.org/osiris-producers/hyperscalers/microsoft-azure/) |
 | **Arista EOS** | Network | Planned |
-| **Ubiquiti UniFi (ui.com)** | Network | Planned |
+| **Ciena SAOS** | Network | Planned |
 | **Cisco (APIC, NX-OS, IOS-XE, Catalyst SD-WAN Manager)** | Network | [Available](https://docs.osirisjson.org/osiris-producers/network/cisco) |
 | **HPE Aruba Networking Central** | Network | [Available](https://docs.osirisjson.org/osiris-producers/network/hpe-aruba-networking-central) |
-| **Ubiquiti UniFi (ui.com)** | Network | Planned |
+| **HPE Aruba AOS** | Network | Planned |
 | **MikroTik RouterOS** | Network | Planned |
-| **VMware vSphere** | Hypervisor | Planned |
+| **Nokia SR** | Network | Planned |
+| **SONiC** | Network | Planned |
+| **Ubiquiti UniFi (ui.com)** | Network | Planned |
 | **Proxmox VE** | Hypervisor | Planned |
+| **VMware vSphere** | Hypervisor | Planned |
 
 *For the complete roadmap, visit [osirisjson.org/en/commitments/roadmap](https://osirisjson.org/en/commitments/roadmap).*
 
@@ -152,7 +156,7 @@ flowchart TD
 
 OSIRIS JSON Producers are designed to exclude credentials and authentication secrets from generated OSIRIS JSON documents. Snapshots may still contain sensitive infrastructure information, including internal addresses, resource identifiers, network topology and asset names. Review generated documents before sharing them publicly.
 
-Additional security resources::
+Additional security resources:
 - [The OSIRIS JSON Security Policy](https://osirisjson.org/en/commitments/security)
 - [SECURITY.md](SECURITY.md)
 
