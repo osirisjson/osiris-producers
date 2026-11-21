@@ -1,0 +1,34 @@
+{
+  "data": [
+    {
+      "domain-id": 1,
+      "lastupdated": 1794571200000,
+      "legit": "yes",
+      "peer": "192.0.2.11",
+      "refresh": "supported",
+      "site-id": 100,
+      "state": "up",
+      "type": "vedge",
+      "up-time": "1:00:00:00",
+      "up-time-date": 1793520000000,
+      "vdevice-dataKey": "192.0.2.1-192.0.2.11",
+      "vdevice-host-name": "LAB-CONTROLLER01",
+      "vdevice-name": "192.0.2.1"
+    },
+    {
+      "domain-id": 1,
+      "lastupdated": 1794571200000,
+      "legit": "yes",
+      "peer": "192.0.2.12",
+      "refresh": "supported",
+      "site-id": 200,
+      "state": "up",
+      "type": "vedge",
+      "up-time": "1:00:00:00",
+      "up-time-date": 1793520000000,
+      "vdevice-dataKey": "192.0.2.1-192.0.2.12",
+      "vdevice-host-name": "LAB-CONTROLLER01",
+      "vdevice-name": "192.0.2.1"
+    }
+  ]
+}

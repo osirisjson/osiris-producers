@@ -1,0 +1,34 @@
+{
+  "data": [
+    {
+      "adeviceId": "192.0.2.11",
+      "ahost-name": "LAB-RTR01",
+      "apersonality": "vedge",
+      "asite-id": "100",
+      "asystem-ip": "192.0.2.11",
+      "bdeviceId": "192.0.2.1",
+      "bhost-name": "LAB-CONTROLLER01",
+      "bpersonality": "vsmart",
+      "bsite-id": "1000",
+      "bsystem-ip": "192.0.2.1",
+      "lastupdated": "1794571200000",
+      "linkKey": "192.0.2.11-192.0.2.1",
+      "state": "up"
+    },
+    {
+      "adeviceId": "192.0.2.12",
+      "ahost-name": "LAB-RTR02",
+      "apersonality": "vedge",
+      "asite-id": "200",
+      "asystem-ip": "192.0.2.12",
+      "bdeviceId": "192.0.2.1",
+      "bhost-name": "LAB-CONTROLLER01",
+      "bpersonality": "vsmart",
+      "bsite-id": "1000",
+      "bsystem-ip": "192.0.2.1",
+      "lastupdated": "1794571200000",
+      "linkKey": "192.0.2.12-192.0.2.1",
+      "state": "up"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "data": [
+    {
+      "circuits": [
+        {
+          "circuit-health": "good",
+          "color": "biz-internet",
+          "system_ip": "192.0.2.12",
+          "tunnels": [
+            {
+              "health": "good",
+              "name": "192.0.2.12:biz-internet-192.0.2.11:biz-internet",
+              "state": "up",
+              "vqoe_score": 9
+            }
+          ]
+        }
+      ],
+      "device-health": "good",
+      "device-id": "192.0.2.12",
+      "if-speed": [
+        {
+          "count": 1,
+          "interface": "GigabitEthernet1",
+          "rx_kbps": 1,
+          "tx_kbps": 1
+        }
+      ]
+    }
+  ]
+}

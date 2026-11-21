@@ -1,0 +1,4 @@
+{"data":[
+  {"vdevice-host-name":"LAB-RTR02","peer":"192.0.2.1","type":"vsmart","state":"down"},
+  {"vdevice-host-name":"LAB-RTR02","peer":"192.0.2.99","type":"vsmart","state":"up"}
+]}

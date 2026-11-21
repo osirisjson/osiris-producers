@@ -1,0 +1,4 @@
+{"data":[
+  {"state":"up","adeviceId":"192.0.2.11","bdeviceId":"192.0.2.1","asystem-ip":"192.0.2.11","bsystem-ip":"192.0.2.1","asite-id":"100","bsite-id":"1000","ahost-name":"LAB-RTR01","bhost-name":"LAB-CONTROLLER01","apersonality":"vedge","bpersonality":"vsmart"},
+  {"state":"up","adeviceId":"192.0.2.12","bdeviceId":"192.0.2.1","asystem-ip":"192.0.2.12","bsystem-ip":"192.0.2.1","asite-id":"200","bsite-id":"1000","ahost-name":"LAB-RTR02","bhost-name":"LAB-CONTROLLER01","apersonality":"vedge","bpersonality":"vsmart"}
+]}

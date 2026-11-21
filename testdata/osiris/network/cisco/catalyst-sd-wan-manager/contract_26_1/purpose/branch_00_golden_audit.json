@@ -1,0 +1,325 @@
+{
+  "$schema": "https://osirisjson.org/schema/v1.0/osiris.schema.json",
+  "version": "1.0.0",
+  "metadata": {
+    "timestamp": "2026-11-13T12:00:00Z",
+    "generator": {
+      "name": "osirisjson-producer-cisco-catalyst-sdwan-manager",
+      "version": "0.2.0",
+      "url": "https://docs.osirisjson.org/osiris-producers/network/cisco"
+    },
+    "scope": {
+      "purpose": "audit",
+      "providers": [
+        "cisco.catalystsdwanmanager"
+      ],
+      "sites": [
+        "BRANCH-00"
+      ],
+      "clusters": [
+        "lab-manager01.example.com"
+      ]
+    },
+    "osiris.cisco.catalystsdwanmanager": {
+      "api_profile": "unverified",
+      "complete": true,
+      "coverage": [
+        {
+          "attempts": 1,
+          "count": 3,
+          "operation": "device",
+          "status": "succeeded"
+        },
+        {
+          "attempts": 1,
+          "count": 2,
+          "operation": "omp_links",
+          "status": "succeeded"
+        },
+        {
+          "attempts": 1,
+          "count": 1,
+          "operation": "site_name",
+          "status": "succeeded"
+        },
+        {
+          "attempts": 1,
+          "count": 2,
+          "operation": "device_interface",
+          "status": "succeeded"
+        },
+        {
+          "attempts": 1,
+          "count": 1,
+          "operation": "wan_interface",
+          "status": "succeeded"
+        },
+        {
+          "attempts": 1,
+          "count": 1,
+          "operation": "omp_peers",
+          "status": "succeeded"
+        },
+        {
+          "attempts": 1,
+          "count": 1,
+          "operation": "site_topology",
+          "status": "succeeded"
+        }
+      ],
+      "graph": {
+        "neighbor_devices": 2,
+        "neighbor_interfaces": 1,
+        "unidentified_devices": 0,
+        "unparsed_tunnels": 0,
+        "unresolved_omp": 0,
+        "unresolved_tunnels": 0
+      }
+    }
+  },
+  "topology": {
+    "resources": [
+      {
+        "id": "cisco.catalystsdwanmanager::00000000-0000-4000-8000-000000000301",
+        "type": "osiris.cisco.controller",
+        "name": "LAB-CONTROLLER01",
+        "provider": {
+          "name": "cisco.catalystsdwanmanager",
+          "native_id": "00000000-0000-4000-8000-000000000301",
+          "type": "vsmart",
+          "site": "MXP",
+          "system": "lab-manager01.example.com"
+        },
+        "extensions": {
+          "osiris.cisco.catalystsdwanmanager": {
+            "site_id": "1000",
+            "site_role": "neighbor"
+          }
+        }
+      },
+      {
+        "id": "cisco.catalystsdwanmanager::TST0000011",
+        "type": "network.router",
+        "name": "LAB-RTR01",
+        "provider": {
+          "name": "cisco.catalystsdwanmanager",
+          "native_id": "TST0000011",
+          "type": "vedge-C8000V",
+          "site": "BRANCH-00",
+          "system": "lab-manager01.example.com"
+        },
+        "status": "active",
+        "state": "reachable",
+        "properties": {
+          "manufacturer": "Cisco",
+          "model": "vedge-C8000V",
+          "serial_number": "TST0000011",
+          "version": "17.15.01a"
+        },
+        "extensions": {
+          "osiris.cisco.catalystsdwanmanager": {
+            "certificate_validity": "Valid",
+            "chassis_number": "C8000V-TST0000011",
+            "connected_manager": [
+              "192.0.2.2"
+            ],
+            "device_groups": [
+              "TEST-GROUP-A"
+            ],
+            "health": "green",
+            "last_update": "2026-11-13T12:00:00Z",
+            "site_id": "100",
+            "state_description": "All daemons up",
+            "system_ip": "192.0.2.11",
+            "up_since": "2026-11-01T08:00:00Z"
+          }
+        }
+      },
+      {
+        "id": "cisco.catalystsdwanmanager::TST0000011-GigabitEthernet1",
+        "type": "network.router.port",
+        "name": "GigabitEthernet1",
+        "provider": {
+          "name": "cisco.catalystsdwanmanager",
+          "native_id": "TST0000011-GigabitEthernet1",
+          "type": "GigabitEthernet1",
+          "site": "BRANCH-00",
+          "system": "lab-manager01.example.com"
+        },
+        "status": "active",
+        "state": "if-oper-state-ready",
+        "properties": {
+          "admin_status": "if-state-up",
+          "duplex": "full",
+          "interface_name": "GigabitEthernet1",
+          "interface_type": "primary",
+          "ip_addresses": {
+            "public_ip": "203.0.113.11"
+          },
+          "mac_address": "02:00:5e:00:53:11",
+          "mtu": 1500,
+          "oper_status": "if-oper-state-ready",
+          "speed_mbps": 1000,
+          "vpn_id": "0"
+        },
+        "extensions": {
+          "osiris.cisco.catalystsdwanmanager": {
+            "color": "biz-internet",
+            "nat_type": "-"
+          }
+        }
+      },
+      {
+        "id": "cisco.catalystsdwanmanager::TST0000011-GigabitEthernet2",
+        "type": "network.router.port",
+        "name": "GigabitEthernet2",
+        "provider": {
+          "name": "cisco.catalystsdwanmanager",
+          "native_id": "TST0000011-GigabitEthernet2",
+          "type": "GigabitEthernet2",
+          "site": "BRANCH-00",
+          "system": "lab-manager01.example.com"
+        },
+        "status": "active",
+        "state": "if-oper-state-ready",
+        "properties": {
+          "admin_status": "if-state-up",
+          "duplex": "full",
+          "interface_name": "GigabitEthernet2",
+          "interface_type": "secondary",
+          "ip_addresses": {
+            "public_ip": "203.0.113.75"
+          },
+          "mac_address": "02:00:5e:00:53:12",
+          "mtu": 1500,
+          "oper_status": "if-oper-state-ready",
+          "speed_mbps": 1000,
+          "vpn_id": "10"
+        }
+      },
+      {
+        "id": "cisco.catalystsdwanmanager::TST0000012",
+        "type": "network.router",
+        "name": "LAB-RTR02",
+        "provider": {
+          "name": "cisco.catalystsdwanmanager",
+          "native_id": "TST0000012",
+          "type": "vedge-C8000V",
+          "site": "OFFICE-00",
+          "system": "lab-manager01.example.com"
+        },
+        "extensions": {
+          "osiris.cisco.catalystsdwanmanager": {
+            "site_id": "200",
+            "site_role": "neighbor"
+          }
+        }
+      },
+      {
+        "id": "cisco.catalystsdwanmanager::TST0000012-GigabitEthernet1",
+        "type": "network.router.port",
+        "name": "GigabitEthernet1",
+        "provider": {
+          "name": "cisco.catalystsdwanmanager",
+          "native_id": "TST0000012-GigabitEthernet1",
+          "type": "GigabitEthernet1",
+          "site": "OFFICE-00",
+          "system": "lab-manager01.example.com"
+        },
+        "properties": {
+          "interface_name": "GigabitEthernet1"
+        },
+        "extensions": {
+          "osiris.cisco.catalystsdwanmanager": {
+            "color": "biz-internet",
+            "site_role": "neighbor"
+          }
+        }
+      }
+    ],
+    "connections": [
+      {
+        "id": "conn-contains-tst0000011-to-tst0000011-gigabitethern-1963c56ca41cf931",
+        "type": "contains",
+        "source": "cisco.catalystsdwanmanager::TST0000011",
+        "target": "cisco.catalystsdwanmanager::TST0000011-GigabitEthernet2",
+        "direction": "forward",
+        "name": "TST0000011 -> GigabitEthernet2"
+      },
+      {
+        "id": "conn-contains-tst0000011-to-tst0000011-gigabitethern-8e1d451d83c44c60",
+        "type": "contains",
+        "source": "cisco.catalystsdwanmanager::TST0000011",
+        "target": "cisco.catalystsdwanmanager::TST0000011-GigabitEthernet1",
+        "direction": "forward",
+        "name": "TST0000011 -> GigabitEthernet1"
+      },
+      {
+        "id": "conn-contains-tst0000012-to-tst0000012-gigabitethern-c73e0c244492f606",
+        "type": "contains",
+        "source": "cisco.catalystsdwanmanager::TST0000012",
+        "target": "cisco.catalystsdwanmanager::TST0000012-GigabitEthernet1",
+        "direction": "forward",
+        "name": "TST0000012 -> GigabitEthernet1"
+      },
+      {
+        "id": "conn-network-00000000-0000-4000-8000--to-tst0000011-090e835025039c7a",
+        "type": "network",
+        "source": "cisco.catalystsdwanmanager::00000000-0000-4000-8000-000000000301",
+        "target": "cisco.catalystsdwanmanager::TST0000011",
+        "direction": "bidirectional",
+        "name": "OMP Peering",
+        "status": "active",
+        "state": "up",
+        "extensions": {
+          "osiris.cisco.catalystsdwanmanager": {
+            "protocol": "omp",
+            "sources": [
+              "omp_links",
+              "omp_peers"
+            ]
+          }
+        }
+      },
+      {
+        "id": "conn-network.vpn-tst0000011-gigabitethern-to-tst0000012-gigabitethern-cb0cc5e0afa00a73",
+        "type": "network.vpn",
+        "source": "cisco.catalystsdwanmanager::TST0000011-GigabitEthernet1",
+        "target": "cisco.catalystsdwanmanager::TST0000012-GigabitEthernet1",
+        "direction": "bidirectional",
+        "name": "SD-WAN Site-to-Site Tunnel",
+        "status": "active",
+        "state": "up",
+        "extensions": {
+          "osiris.cisco.catalystsdwanmanager": {
+            "color": "biz-internet",
+            "vqoe_score": 9
+          }
+        }
+      }
+    ],
+    "groups": [
+      {
+        "id": "group-logical.site-100-d1fcb94a35f7d7b4",
+        "type": "logical.site",
+        "name": "BRANCH-00",
+        "members": [
+          "cisco.catalystsdwanmanager::TST0000011",
+          "cisco.catalystsdwanmanager::TST0000011-GigabitEthernet1",
+          "cisco.catalystsdwanmanager::TST0000011-GigabitEthernet2"
+        ],
+        "properties": {
+          "geo_location": {
+            "latitude": 45.5433411,
+            "longitude": 10.2241237
+          }
+        },
+        "extensions": {
+          "osiris.cisco.catalystsdwanmanager": {
+            "site_id": "100"
+          }
+        }
+      }
+    ]
+  }
+}

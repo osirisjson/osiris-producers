@@ -1,0 +1,1 @@
+{"data":[{"device-id":"192.0.2.12","device-health":"fair","circuits":[{"color":"biz-internet","system_ip":"192.0.2.12","circuit-health":"fair","tunnels":[{"name":"192.0.2.12:biz-internet-192.0.2.11:biz-internet","health":"fair","state":"up","vqoe_score":0}]}]}]}
