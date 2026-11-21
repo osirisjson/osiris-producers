@@ -27,8 +27,8 @@ producer behavior versions shipped under each module tag.
   [`osiris/network/cisco/iosxe/CHANGELOG.md`](osiris/network/cisco/iosxe/CHANGELOG.md)
 - OSIRIS JSON producer for Cisco NX-OS:
   [`osiris/network/cisco/nxos/CHANGELOG.md`](osiris/network/cisco/nxos/CHANGELOG.md)
-- OSIRIS JSON producer for Cisco vManage:
-  [`osiris/network/cisco/vmanage/CHANGELOG.md`](osiris/network/cisco/vmanage/CHANGELOG.md)
+- OSIRIS JSON producer for Cisco Catalyst SD-WAN Manager:
+  [`osiris/network/cisco/catalyst-sd-wan-manager/CHANGELOG.md`](osiris/network/cisco/catalyst-sd-wan-manager/CHANGELOG.md)
 - OSIRIS JSON producer for HPE Aruba Networking Central:
   [`osiris/network/hpe/arubacentral/CHANGELOG.md`](osiris/network/hpe/arubacentral/CHANGELOG.md)
 
@@ -41,8 +41,51 @@ OSIRIS JSON core schema itself, see the [OSIRIS JSON Repository](https://github.
 
 ## [Unreleased]
 
-Repository test data policy and its CI gate. No OSIRIS JSON producer's
-emitted documents changed and no behavior version changed.
+## [0.13.0] - 2026-11-21
+
+Repository test data policy and its CI gate and the Cisco Catalyst
+SD-WAN Manager OSIRIS JSON producer behavior version 0.2.0 (formerly
+vManage). No other OSIRIS JSON producer's emitted documents or behavior
+version changed.
+
+| Producer | Behavior version |
+|----------|------------------|
+| Amazon Web Services OSIRIS JSON producer | 0.1.1 (no change) |
+| Microsoft Azure OSIRIS JSON producer | 0.6.0 (no change) |
+| Cisco APIC OSIRIS JSON producer | 0.4.0 (no change) |
+| Cisco IOS-XE OSIRIS JSON producer | 0.2.0 (no change) |
+| Cisco NX-OS OSIRIS JSON producer | 0.2.1 (no change) |
+| Cisco Catalyst SD-WAN Manager OSIRIS JSON producer (formerly vManage) | [0.2.0](osiris/network/cisco/catalyst-sd-wan-manager/CHANGELOG.md#020---2026-11-19) |
+| HPE Aruba Networking Central OSIRIS JSON producer | 0.1.0 (no change) |
+
+### Highlights (Cisco Catalyst SD-WAN Manager 0.2.0)
+- **Rename:** `cisco catalyst-sdwan-manager` replaces `cisco vmanage`
+  (no alias) with new provider, namespace, generator and file names.
+- **Cross-site graph:** each site document keeps its cross-site OMP
+  sessions and tunnels through neighbor resources whose IDs match
+  their own site documents, so an OSIRIS JSON Consumer can analyze and
+  merge the documents by ID.
+- **Security:** documentation allowlist, redacted raw export, private
+  atomic publication, bounded and classified API errors, same-origin
+  redirects, a coverage record in every document and a strict exit
+  contract (`--require-complete`).
+- **Breaking:** Cisco Catalyst SD-WAN Manager OSIRIS JSON Producer
+  behavior version 0.2.0. The vManage OSIRIS JSON Producer is renamed:
+  `cisco catalyst-sdwan-manager` replaces `cisco vmanage` (no alias),
+  the package moves to `osiris/network/cisco/catalyst-sd-wan-manager`,
+  and documents use `provider.name` `cisco.catalystsdwanmanager`, the
+  `osiris.cisco.catalystsdwanmanager` extension namespace and the
+  `osirisjson-producer-cisco-catalyst-sdwan-manager` generator name.
+  Each site document now keeps its cross-site OMP sessions and tunnels
+  by carrying the remote endpoints as neighbor resources with the same
+  IDs as in their own site documents; sites are `logical.site` groups;
+  `--purpose documentation` keeps an explicit field allowlist;
+  `--include-raw-body` redacts every row; documents are published
+  privately and atomically; diagnostics carry no response bodies;
+  redirects stay on the controller origin; every document records its
+  discovery coverage; and a run fails when a selected site is not
+  written (`--require-complete` also fails on partial documents).
+  See the producer [`CHANGELOG.md`](osiris/network/cisco/catalyst-sd-wan-manager/CHANGELOG.md#020---2026-11-21).
 
 ### Added
 - [OSIRIS JSON Producers Test Data Policy](docs/policies/OSIRIS-PRODUCER-TEST-DATA-POLICY.md):
@@ -64,10 +107,11 @@ emitted documents changed and no behavior version changed.
   Recovery Services backup fabric name.
 - `test-data-policy.yml` workflow: a dedicated check on pushes, pull
   requests to `main` and `dev` and manual runs.
-- Cisco vManage source-to-golden `/testdata` fixtures (`lab_sdwan`):
-  synthetic `/dataservice` response bodies for a control-plane site and
-  the expected documents at both `--purpose` levels, checked byte for
-  byte by `TestGolden`. The vManage behavior version is unchanged.
+- Cisco Catalyst SD-WAN Manager source-to-golden `/testdata` fixtures:
+  `lab_sdwan` (a control-plane site) and `lab_cross_site` (two WAN edge
+  sites and a controller site joined by a cross-site tunnel and OMP
+  sessions), with the expected per-site documents at both `--purpose`
+  levels, checked byte for byte by `TestGolden`.
 - Cisco NX-OS source-to-golden `/testdata` fixtures (`n9k_c9300v`):
   synthetic NX-API command bodies for a Nexus 9300v and the expected
   documents at both `--purpose` levels, checked byte for byte by
@@ -83,6 +127,8 @@ emitted documents changed and no behavior version changed.
   connection and group counts and relationships are unchanged.
 - Cisco command help no longer documents a `-p` password flag; the
   password is prompted for.
+
+---
 
 ## [0.12.0] - 2026-11-15
 
@@ -912,7 +958,8 @@ Initial SDK release. No producers shipped under this tag.
 - Removed empty `common/` stubs (replaced by `pkg/sdk/`).
 - Updated `.gitignore` for Go.
 
-[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.12.0...HEAD
+[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.13.0...HEAD
+[0.13.0]: https://github.com/osirisjson/osiris-producers/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/osirisjson/osiris-producers/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/osirisjson/osiris-producers/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/osirisjson/osiris-producers/compare/v0.9.0...v0.10.0
