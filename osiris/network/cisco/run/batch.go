@@ -22,7 +22,7 @@ import (
 // csvExampleRows gives CSVTemplate its one example row per producer
 // apic gets an APIC controller, nxos an NX-OS switch, iosxe an
 // IOS-XE router, each in the context that producer actually collects
-// from. Showing the other two producers' rows in, like, an
+// from. Showing the other two producers rows in, like, an
 // "iosxe template --generate" output was confusing (a user running
 // iosxe producer has no reason to see apic/nxos examples) one row,
 // matching the producer that generated the file, is clearer.

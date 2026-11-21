@@ -4,10 +4,11 @@
 //
 // This file holds the whole CLI surface (Run, the single/batch runners,
 // --help, template generation) alongside the Producer type and its
-// Collect the same one-file shape osiris/network/cisco/vmanage uses
-// instead of a separate dispatch.go. The per-domain NX-API -> OSIRIS
-// mapping lives in the transform_<area>.go files; wire handling and the
-// typed response DTOs are in client.go and dto.go.
+// Collect the same one-file shape
+// osiris/network/cisco/catalyst-sd-wan-manager uses instead of a
+// separate dispatch.go. The per-domain NX-API -> OSIRIS mapping lives
+// in the transform_<area>.go files; wire handling and the typed
+// response DTOs are in client.go and dto.go.
 //
 // OSIRIS JSON Producer for Cisco introduction:
 // [OSIRIS-JSON-CISCO]: https://docs.osirisjson.org/osiris-producers/network/cisco
@@ -42,10 +43,11 @@ const templateExampleHost = "192.0.2.1"
 func Run(args []string) error {
 	// Only the long form is checked here: -h is the documented short
 	// flag for --host (see flags.go), so it must reach ParseFlags
-	// instead of being intercepted as a help request the same
-	// -h/--host vs. -h/help ambiguity osiris/network/cisco/cisco.go's
-	// runSubProducer already handles for apic/iosxe, and vmanage.go's
-	// own Run handles for vmanage.
+	// instead of being intercepted as a help request the same -h/--host
+	// vs. -h/help ambiguity osiris/network/cisco/cisco.go's
+	// runSubProducer already handles for apic/iosxe, and
+	// catalystsdwanmanager.go's own Run handles for
+	// catalyst-sdwan-manager.
 	if len(args) > 0 {
 		switch args[0] {
 		case "--help":
@@ -71,10 +73,10 @@ func Run(args []string) error {
 // runTemplate writes this producer's CSV batch template
 // (cisco-nxos-template.csv) and both --secrets-file shapes
 // (cisco-nxos-secrets.json, cisco-nxos-secrets-multihost.json) via the
-// shared run.GenerateTemplates CSV batch mode is still this
-// producer's own feature (unlike vmanage), so unlike vmanage's
-// runTemplate this does call GenerateTemplates, not just the two
-// --secrets-file variants.
+// shared run.GenerateTemplates CSV batch mode is still this producer's
+// own feature (unlike catalyst-sdwan-manager), so unlike
+// catalyst-sdwan-manager's runTemplate this does call
+// GenerateTemplates, not just the two --secrets-file variants.
 func runTemplate(args []string) error {
 	if len(args) == 0 || (args[0] != "--generate" && args[0] != "-g") {
 		fmt.Println("Usage: osirisjson-producer cisco nxos template --generate")
@@ -251,7 +253,7 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	// transport-level failure (device unreachable, malformed envelope)
 	// an individual command being rejected by the CLI becomes that
 	// command's own ShowResult.Err instead (see decodeBody), so one
-	// command failing here never erases the others' data.
+	// command failing here never erases the others data.
 	batch1Commands := []string{
 		"show inventory",
 		"show module",

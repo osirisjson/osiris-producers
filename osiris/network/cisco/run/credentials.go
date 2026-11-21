@@ -1,15 +1,14 @@
-// credentials.go - Credential-file loading
-// for Cisco OSIRIS JSON Producer.
-// Replaces (present in the initial release) plaintext -p/--password CLI
-// flags (visible via ps and shell history) with a JSON file the caller
-// points at via --secrets-file (apic/iosxe/nxos and vmanage all use
-// this same flag name, aligning with the --secrets-file convention
-// already established).
-// Loading enforces that the file cannot be read back by anyone but the
-// user who created it: no symlinks, no group/other permission bits, and
-// (where the platform exposes ownership) no owner other than the
-// current user. See credentials_unix.go and credentials_other.go for
-// the platform-specific half of that check.
+// credentials.go - Credential-file loading for Cisco OSIRIS JSON
+// Producer. Replaces (present in the initial release) plaintext
+// -p/--password CLI flags (visible via ps and shell history) with a
+// JSON file the caller points at via --secrets-file (apic/iosxe/nxos
+// and catalyst-sdwan-manager all use this same flag name, aligning with
+// the --secrets-file convention already established). Loading enforces
+// that the file cannot be read back by anyone but the user who created
+// it: no symlinks, no group/other permission bits, and (where the
+// platform exposes ownership) no owner other than the current user. See
+// credentials_unix.go and credentials_other.go for the
+// platform-specific half of that check.
 //
 // OSIRIS JSON Producer for Cisco introduction:
 // [OSIRIS-JSON-CISCO]: https://docs.osirisjson.org/osiris-producers/network/cisco
@@ -26,13 +25,14 @@ import (
 )
 
 // CredentialFile is the on-disk JSON shape read by every cisco producer
-// --secrets-file (apic/iosxe/nxos via LoadCredentialFile below, vmanage
-// via its own ParseFlags). Two shapes are accepted, distinguished by
-// whether Default or Rules is present (either one alone is enough to
-// select the rules shape a file with only "default" and no "rules"
-// array at all is valid and common, e.g. a batch that shares one login
-// across every target but was authored using the rules shape's
-// wrapper instead of the flat shape's bare fields):
+// --secrets-file (apic/iosxe/nxos via LoadCredentialFile below,
+// catalyst-sdwan-manager via its own ParseFlags). Two shapes are
+// accepted, distinguished by whether Default or Rules is present
+// (either one alone is enough to select the rules shape a file with
+// only "default" and no "rules" array at all is valid and common, e.g.
+// a batch that shares one login across every target but was authored
+// using the rules shape's wrapper instead of the flat shape's bare
+// fields):
 //
 //   - flat (the original single host target shape):
 //     {host, username, password} one credential set used for a

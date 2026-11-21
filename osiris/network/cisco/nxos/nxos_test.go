@@ -249,7 +249,7 @@ func fixtureServer(t *testing.T) *httptest.Server {
 // failCmd fail (CLI code 400) instead of returning its normal fixture,
 // while every other command in the same batch still succeeds: one
 // command failing inside a multi-command batch must not erase its
-// siblings' data from the emitted document.
+// siblings data from the emitted document.
 func fixtureServerWithFailingCommand(t *testing.T, failCmd string) *httptest.Server {
 	t.Helper()
 	return newFixtureServer(t, failCmd, nil)
