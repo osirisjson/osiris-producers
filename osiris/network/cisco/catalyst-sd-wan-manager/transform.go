@@ -336,7 +336,7 @@ func deviceNativeKey(d Device, resType string) string {
 
 // setExtension merges a single key into a resource's
 // extensions[osiris.cisco.catalystsdwanmanager] map, preserving
-// whatever else is already there (e.g. TransformDevices' own
+// whatever else is already there (e.g. TransformDevices own
 // site_id/health fields) instead of replacing it used by the
 // --include-raw-body attachment in catalystsdwanmanager.go (see
 // wantRawBody) so raw-body keys never clobber fields a transform

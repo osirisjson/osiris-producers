@@ -282,7 +282,7 @@ func TestShowMulti_SingleCommand(t *testing.T) {
 func TestShowMulti_PerCommandFailureIsolated(t *testing.T) {
 	// one command failing within a multi-command batch must
 	// not erase, or be reported as, a failure of the whole batch its
-	// siblings' results (success or failure) must be unaffected.
+	// siblings results (success or failure) must be unaffected.
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		resp := map[string]any{

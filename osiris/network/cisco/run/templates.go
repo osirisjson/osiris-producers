@@ -6,7 +6,7 @@
 // Centralized here so that behavior (0600 permissions, the confirmation
 // message, the credential skeletons JSON shapes) is implemented once
 // instead of once per producer apic/iosxe/nxos call GenerateTemplates
-// directly; vmanage (which has no CSV batch mode) calls
+// directly; catalyst-sdwan-manager (which has no CSV batch mode) calls
 // WriteTemplateFile, CredentialFileTemplate and
 // CredentialRulesFileTemplate individually, see its own runTemplate.
 //
@@ -53,13 +53,13 @@ type credentialFileTemplateDoc struct {
 
 // CredentialFileTemplate returns a skeleton flat-shape --secrets-file
 // JSON document (the same flag name and shape apic/iosxe/nxos and
-// vmanage all share): a single login, for one target or shared by
-// every target in a batch. exampleHost is shown as the "host" value
-// callers pass whatever best illustrates their own target (an RFC 5737
-// documentation address for apic/iosxe/nxos, a documentation domain
-// for vmanage's controller-style host). See CredentialRulesFileTemplate
-// for the alternate per-host/CIDR shape, generated as its own separate
-// file.
+// catalyst-sdwan-manager all share): a single login, for one target or
+// shared by every target in a batch. exampleHost is shown as the "host"
+// value callers pass whatever best illustrates their own target (an RFC
+// 5737 documentation address for apic/iosxe/nxos, a documentation
+// domain for catalyst-sdwan-manager's controller-style host). See
+// CredentialRulesFileTemplate for the alternate per-host/CIDR shape,
+// generated as its own separate file.
 func CredentialFileTemplate(exampleHost string) string {
 	doc := credentialFileTemplateDoc{
 		Comment:  `osirisjson-producer --secrets-file: one login, used for a single target or shared by every target in a batch. Leave a field out to fall back to its own flag or an interactive prompt. For different credentials per target, see the companion "-multihost" template instead.`,
@@ -89,9 +89,9 @@ type credentialRulesFileTemplateDoc struct {
 // CredentialRulesFileTemplate returns a skeleton rules-shape
 // --secrets-file JSON document: different credentials for different
 // targets in one batch, matched by host or CIDR. hostsA and hostsB are
-// the two example rules' "hosts" patterns callers pass whatever best
+// the two example rules "hosts" patterns callers pass whatever best
 // illustrates their own targets (RFC 5737 CIDR/exact-IP patterns for
-// apic/iosxe/nxos, example.com-based FQDNs for vmanage's
+// apic/iosxe/nxos, example.com-based FQDNs for catalyst-sdwan-manager's
 // controller-style hosts). Every username/password placeholder in the
 // output is the same "user"/"changeme" pair CredentialFileTemplate
 // uses, deliberately not a per-rule name like "user" the
@@ -113,12 +113,12 @@ func CredentialRulesFileTemplate(hostsA, hostsB string) string {
 // GenerateTemplates writes a CSV batch template
 // (cisco-<producerName>-template.csv) plus both --secrets-file shapes
 // flat (cisco-<producerName>-secrets.json) and rules
-// (cisco-<producerName>-secrets-multihost.json) for producerName,
-// used by apic/iosxe/nxos's "<producer> template --generate". vmanage
-// has no CSV batch mode, so it does not use this helper see its own
-// runTemplate, which writes only the two --secrets-file variants via
-// WriteTemplateFile, CredentialFileTemplate and
-// CredentialRulesFileTemplate directly.
+// (cisco-<producerName>-secrets-multihost.json) for producerName, used
+// by apic/iosxe/nxos's "<producer> template --generate".
+// catalyst-sdwan-manager has no CSV batch mode, so it does not use this
+// helper see its own runTemplate, which writes only the two
+// --secrets-file variants via WriteTemplateFile, CredentialFileTemplate
+// and CredentialRulesFileTemplate directly.
 func GenerateTemplates(producerName, exampleHost string) error {
 	csvFilename := fmt.Sprintf("cisco-%s-template.csv", producerName)
 	if err := WriteTemplateFile(csvFilename, CSVTemplate(producerName)); err != nil {

@@ -2,16 +2,17 @@
 // Cisco NX-OS OSIRIS JSON producer.
 //
 // NX-OS is normally one independently authenticated switch per
-// collection target, so, this producer keeps ideally a CSV
-// batch mode (many devices, one document each). This package owns its
-// own flag surface and Config type (see flags.go) instead of going
-// through the shared osiris/network/cisco/run.ParseFlags/RunConfig
-// orchestrator only genuinely vendor-agnostic mechanisms are reused
-// from that package directly (TargetConfig, ParseHostPort, prompting,
+// collection target, so, this producer keeps ideally a CSV batch mode
+// (many devices, one document each). This package owns its own flag
+// surface and Config type (see flags.go) instead of going through the
+// shared osiris/network/cisco/run.ParseFlags/RunConfig orchestrator
+// only genuinely vendor-agnostic mechanisms are reused from that
+// package directly (TargetConfig, ParseHostPort, prompting,
 // credential-file loading/resolution, CSV parsing, path sanitization,
-// timestamp formatting), matching the same reuse pattern vmanage
-// already established and the parent Cisco architecture review's own
-// direction to move orchestration into each producer.
+// timestamp formatting), matching the same reuse pattern
+// catalyst-sdwan-manager already established and the parent Cisco
+// architecture review's own direction to move orchestration into each
+// producer.
 //
 // OSIRIS JSON Producer for Cisco NX-OS introduction:
 // [OSIRIS-JSON-CISCO]: https://docs.osirisjson.org/osiris-producers/network/cisco

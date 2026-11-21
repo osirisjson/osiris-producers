@@ -120,24 +120,25 @@ func TestCredentialRulesFileTemplate_ParsesAndResolves(t *testing.T) {
 }
 
 func TestCredentialRulesFileTemplate_DomainHosts(t *testing.T) {
-	// vmanage passes example.com-based FQDNs (RFC 2606) instead of RFC
-	// 5737 IP/CIDR patterns, since its targets are controller hostnames
-	// not bare IPs. Exact-string matching (hostMatches' non-CIDR
-	// branch) must work identically for a domain name as for an IP.
-	got := CredentialRulesFileTemplate("vmanage01.example.com", "vmanage02.example.com")
+	// catalyst-sdwan-manager passes example.com-based FQDNs (RFC 2606)
+	// instead of RFC 5737 IP/CIDR patterns, since its targets are
+	// controller hostnames not bare IPs.
+	// Exact-string matching (hostMatches non-CIDR branch) must work
+	// identically for a domain name as for an IP.
+	got := CredentialRulesFileTemplate("sdwan-manager01.example.com", "sdwan-manager02.example.com")
 
 	var cf CredentialFile
 	if err := json.Unmarshal([]byte(got), &cf); err != nil {
 		t.Fatalf("generated template is not valid JSON for CredentialFile: %v", err)
 	}
 
-	u, p := cf.ResolveForHost("vmanage01.example.com")
+	u, p := cf.ResolveForHost("sdwan-manager01.example.com")
 	if u != "user" || p != "changeme" {
-		t.Errorf("ResolveForHost(vmanage01.example.com) = %q/%q, want user/changeme", u, p)
+		t.Errorf("ResolveForHost(sdwan-manager01.example.com) = %q/%q, want user/changeme", u, p)
 	}
-	u, p = cf.ResolveForHost("vmanage02.example.com")
+	u, p = cf.ResolveForHost("sdwan-manager02.example.com")
 	if u != "user" || p != "changeme" {
-		t.Errorf("ResolveForHost(vmanage02.example.com) = %q/%q, want user/changeme", u, p)
+		t.Errorf("ResolveForHost(sdwan-manager02.example.com) = %q/%q, want user/changeme", u, p)
 	}
 }
 

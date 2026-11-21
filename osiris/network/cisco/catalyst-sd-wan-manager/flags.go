@@ -65,7 +65,7 @@ type managerFlagValues struct {
 }
 
 // registerFlags binds every SD-WAN Manager CLI flag onto fs and returns
-// their destinations. See managerFlagValues' doc comment for why this
+// their destinations. See managerFlagValues doc comment for why this
 // is factored out instead of living inline in ParseFlags.
 func registerFlags(fs *flag.FlagSet) *managerFlagValues {
 	v := &managerFlagValues{}

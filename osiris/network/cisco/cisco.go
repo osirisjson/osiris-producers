@@ -86,7 +86,7 @@ Subcommands:
 
 	fmt.Print(`
 Each subcommand owns its own flags and has its own --help run
-'osirisjson-producer cisco <subcommand> --help' for the full flag list.
+'osirisjson-producer cisco <subcommand> --help for the full flag list.
 All four share the same broad shape:
 
   -h, --host            Target host (IP or FQDN, optionally with :port);
