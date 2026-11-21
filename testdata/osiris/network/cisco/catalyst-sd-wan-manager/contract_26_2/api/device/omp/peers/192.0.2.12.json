@@ -1,0 +1,19 @@
+{
+  "data": [
+    {
+      "domain-id": 1,
+      "lastupdated": 1794571200000,
+      "legit": "yes",
+      "peer": "192.0.2.1",
+      "refresh": "supported",
+      "site-id": 1000,
+      "state": "up",
+      "type": "vsmart",
+      "up-time": "1:00:00:00",
+      "up-time-date": 1793520000000,
+      "vdevice-dataKey": "192.0.2.12-192.0.2.1",
+      "vdevice-host-name": "LAB-RTR02",
+      "vdevice-name": "192.0.2.12"
+    }
+  ]
+}

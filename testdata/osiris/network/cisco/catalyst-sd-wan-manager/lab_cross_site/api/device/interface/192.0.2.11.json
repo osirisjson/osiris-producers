@@ -1,0 +1,7 @@
+{"data":[
+  {"vdevice-host-name":"LAB-RTR01","ifname":"GigabitEthernet1","af-type":"ipv6","ip-address":"2001:db8:11::1/64","hwaddr":"02:00:5e:00:53:11","if-admin-status":"if-state-up","if-oper-status":"if-oper-state-ready","vpn-id":"0","port-type":"transport","description":"TRANSPORT biz-internet"},
+  {"vdevice-host-name":"LAB-RTR01","ifname":"GigabitEthernet1","af-type":"ipv4","ip-address":"198.51.100.11/24","hwaddr":"02:00:5e:00:53:11","if-admin-status":"if-state-up","if-oper-status":"if-oper-state-ready","vpn-id":"0","port-type":"transport","duplex":"full","mtu":"1500","speed-mbps":1000},
+  {"vdevice-host-name":"LAB-RTR01","ifname":"GigabitEthernet2","af-type":"ipv4","ip-address":"203.0.113.65/27","hwaddr":"02:00:5e:00:53:12","if-admin-status":"if-state-up","if-oper-status":"if-oper-state-ready","vpn-id":"10","port-type":"service","description":"LAN BRANCH-00","speed-mbps":"1000"},
+  {"vdevice-host-name":"LAB-RTR01","ifname":"Loopback1","af-type":"ipv4","ip-address":"203.0.113.97/32","if-admin-status":"if-state-up","if-oper-status":"if-oper-state-ready","vpn-id":"0","port-type":"service"},
+  {"vdevice-host-name":"LAB-RTR01","ifname":"Loopback1","af-type":"ipv4","ip-address":"203.0.113.98/32","if-admin-status":"if-state-up","if-oper-status":"if-oper-state-ready","vpn-id":"10","port-type":"service","description":"VPN 10 router ID"}
+]}

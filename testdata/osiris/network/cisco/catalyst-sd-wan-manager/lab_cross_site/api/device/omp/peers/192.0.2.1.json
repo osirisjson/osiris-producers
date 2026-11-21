@@ -1,0 +1,4 @@
+{"data":[
+  {"vdevice-host-name":"LAB-CONTROLLER01","peer":"192.0.2.11","type":"vedge","state":"up"},
+  {"vdevice-host-name":"LAB-CONTROLLER01","peer":"192.0.2.12","type":"vedge","state":"up"}
+]}

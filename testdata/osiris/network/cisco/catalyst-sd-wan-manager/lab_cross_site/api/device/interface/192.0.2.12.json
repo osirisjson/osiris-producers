@@ -1,0 +1,4 @@
+{"data":[
+  {"vdevice-host-name":"LAB-RTR02","ifname":"GigabitEthernet1","af-type":"ipv4","ip-address":"198.51.100.12/24","hwaddr":"02:00:5e:00:53:21","if-admin-status":"if-state-up","if-oper-status":"if-oper-state-ready","vpn-id":"0","port-type":"transport","description":"TRANSPORT biz-internet","speed-mbps":"1000"},
+  {"vdevice-host-name":"LAB-RTR02","ifname":"GigabitEthernet3","af-type":"ipv4","ip-address":"203.0.113.129/27","hwaddr":"02:00:5e:00:53:23","if-admin-status":"if-state-up","if-oper-status":"if-oper-state-lower-layer-down","vpn-id":"10","port-type":"service","description":"LAN OFFICE-00"}
+]}

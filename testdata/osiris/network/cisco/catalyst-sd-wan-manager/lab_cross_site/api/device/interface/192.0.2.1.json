@@ -1,0 +1,4 @@
+{"data":[
+  {"vdevice-host-name":"LAB-CONTROLLER01","ifname":"eth0","af-type":"ipv4","ip-address":"203.0.113.1/24","hwaddr":"02:00:5e:00:53:31","if-admin-status":"Up","if-oper-status":"Up","vpn-id":"0","port-type":"transport","duplex":"full","speed-mbps":"1000"},
+  {"vdevice-host-name":"LAB-CONTROLLER01","ifname":"system","af-type":"ipv4","ip-address":"192.0.2.1/32","if-admin-status":"Up","if-oper-status":"Up","vpn-id":"0"}
+]}

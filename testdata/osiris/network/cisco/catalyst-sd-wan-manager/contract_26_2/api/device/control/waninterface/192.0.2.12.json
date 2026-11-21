@@ -1,0 +1,39 @@
+{
+  "data": [
+    {
+      "admin-state": "up",
+      "carrier": "default",
+      "color": "biz-internet",
+      "control-str": "Yes",
+      "index": 1,
+      "instance": 1,
+      "interface": "GigabitEthernet1",
+      "last-conn-time": "-",
+      "last-conn-time-date": 1794571200000,
+      "last-resort": "No",
+      "lastupdated": 1794571200000,
+      "low-bandwidth-link": "No",
+      "nat-type": "-",
+      "num-vmanages": 1,
+      "num-vsmarts": 1,
+      "operation-state": "up",
+      "per-wan-max-controllers": 1,
+      "preference": "0",
+      "private-ip": "198.51.100.12",
+      "private-ipv6": "::",
+      "private-port": 1,
+      "public-ip": "203.0.113.12",
+      "public-port": 1,
+      "restrict-str": "no-restrict",
+      "spi-change": "-",
+      "vbond-as-stun-server": "No",
+      "vdevice-dataKey": "192.0.2.12-biz-internet",
+      "vdevice-host-name": "LAB-RTR02",
+      "vdevice-name": "192.0.2.12",
+      "vmanage-connection-preference": "5",
+      "wan-port-hopped": "No",
+      "wan-time-since-port-hop": "-",
+      "weight": 1
+    }
+  ]
+}

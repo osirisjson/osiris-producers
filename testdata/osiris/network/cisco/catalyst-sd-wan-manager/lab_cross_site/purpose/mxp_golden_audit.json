@@ -1,0 +1,291 @@
+{
+  "$schema": "https://osirisjson.org/schema/v1.0/osiris.schema.json",
+  "version": "1.0.0",
+  "metadata": {
+    "timestamp": "2026-11-13T12:00:00Z",
+    "generator": {
+      "name": "osirisjson-producer-cisco-catalyst-sdwan-manager",
+      "version": "0.2.0",
+      "url": "https://docs.osirisjson.org/osiris-producers/network/cisco"
+    },
+    "scope": {
+      "purpose": "audit",
+      "providers": [
+        "cisco.catalystsdwanmanager"
+      ],
+      "sites": [
+        "MXP"
+      ],
+      "clusters": [
+        "lab-manager01.example.com"
+      ]
+    },
+    "osiris.cisco.catalystsdwanmanager": {
+      "api_profile": "unverified",
+      "complete": true,
+      "coverage": [
+        {
+          "attempts": 1,
+          "count": 3,
+          "operation": "device",
+          "status": "succeeded"
+        },
+        {
+          "attempts": 1,
+          "count": 2,
+          "operation": "omp_links",
+          "status": "succeeded"
+        },
+        {
+          "attempts": 1,
+          "count": 1,
+          "operation": "site_name",
+          "status": "succeeded"
+        },
+        {
+          "attempts": 1,
+          "count": 2,
+          "operation": "device_interface",
+          "status": "succeeded"
+        },
+        {
+          "attempts": 1,
+          "count": 1,
+          "operation": "wan_interface",
+          "status": "succeeded"
+        },
+        {
+          "attempts": 1,
+          "count": 2,
+          "operation": "omp_peers",
+          "status": "succeeded"
+        },
+        {
+          "attempts": 1,
+          "count": 0,
+          "operation": "site_topology",
+          "status": "empty"
+        }
+      ],
+      "graph": {
+        "neighbor_devices": 2,
+        "neighbor_interfaces": 0,
+        "unidentified_devices": 0,
+        "unparsed_tunnels": 0,
+        "unresolved_omp": 0,
+        "unresolved_tunnels": 0
+      }
+    }
+  },
+  "topology": {
+    "resources": [
+      {
+        "id": "cisco.catalystsdwanmanager::00000000-0000-4000-8000-000000000301",
+        "type": "osiris.cisco.controller",
+        "name": "LAB-CONTROLLER01",
+        "provider": {
+          "name": "cisco.catalystsdwanmanager",
+          "native_id": "00000000-0000-4000-8000-000000000301",
+          "type": "vsmart",
+          "site": "MXP",
+          "system": "lab-manager01.example.com"
+        },
+        "status": "active",
+        "state": "reachable",
+        "properties": {
+          "manufacturer": "Cisco",
+          "model": "vsmart",
+          "serial_number": "TST0000301",
+          "version": "20.18.2.1"
+        },
+        "extensions": {
+          "osiris.cisco.catalystsdwanmanager": {
+            "certificate_validity": "Valid",
+            "device_groups": [
+              "No groups"
+            ],
+            "health": "green",
+            "last_update": "2026-11-13T12:00:00Z",
+            "site_id": "1000",
+            "state_description": "All daemons up",
+            "system_ip": "192.0.2.1",
+            "up_since": "2026-11-01T08:00:00Z"
+          }
+        }
+      },
+      {
+        "id": "cisco.catalystsdwanmanager::00000000-0000-4000-8000-000000000301-eth0",
+        "type": "network.interface",
+        "name": "eth0",
+        "provider": {
+          "name": "cisco.catalystsdwanmanager",
+          "native_id": "00000000-0000-4000-8000-000000000301-eth0",
+          "type": "eth0",
+          "site": "MXP",
+          "system": "lab-manager01.example.com"
+        },
+        "status": "active",
+        "state": "up",
+        "properties": {
+          "admin_status": "up",
+          "duplex": "full",
+          "interface_name": "eth0",
+          "interface_type": "primary",
+          "ip_addresses": {
+            "public_ip": "203.0.113.1"
+          },
+          "mac_address": "02:00:5e:00:53:31",
+          "oper_status": "up",
+          "speed_mbps": 1000,
+          "vpn_id": "0"
+        },
+        "extensions": {
+          "osiris.cisco.catalystsdwanmanager": {
+            "color": "default"
+          }
+        }
+      },
+      {
+        "id": "cisco.catalystsdwanmanager::00000000-0000-4000-8000-000000000301-system",
+        "type": "network.interface",
+        "name": "system",
+        "provider": {
+          "name": "cisco.catalystsdwanmanager",
+          "native_id": "00000000-0000-4000-8000-000000000301-system",
+          "type": "system",
+          "site": "MXP",
+          "system": "lab-manager01.example.com"
+        },
+        "status": "active",
+        "state": "up",
+        "properties": {
+          "admin_status": "up",
+          "interface_name": "system",
+          "ip_addresses": {
+            "public_ip": "192.0.2.1"
+          },
+          "oper_status": "up",
+          "vpn_id": "0"
+        }
+      },
+      {
+        "id": "cisco.catalystsdwanmanager::TST0000011",
+        "type": "network.router",
+        "name": "LAB-RTR01",
+        "provider": {
+          "name": "cisco.catalystsdwanmanager",
+          "native_id": "TST0000011",
+          "type": "vedge-C8000V",
+          "site": "BRANCH-00",
+          "system": "lab-manager01.example.com"
+        },
+        "extensions": {
+          "osiris.cisco.catalystsdwanmanager": {
+            "site_id": "100",
+            "site_role": "neighbor"
+          }
+        }
+      },
+      {
+        "id": "cisco.catalystsdwanmanager::TST0000012",
+        "type": "network.router",
+        "name": "LAB-RTR02",
+        "provider": {
+          "name": "cisco.catalystsdwanmanager",
+          "native_id": "TST0000012",
+          "type": "vedge-C8000V",
+          "site": "OFFICE-00",
+          "system": "lab-manager01.example.com"
+        },
+        "extensions": {
+          "osiris.cisco.catalystsdwanmanager": {
+            "site_id": "200",
+            "site_role": "neighbor"
+          }
+        }
+      }
+    ],
+    "connections": [
+      {
+        "id": "conn-contains-00000000-0000-4000-8000--to-00000000-0000-4000-8000--11b42c5d91b27833",
+        "type": "contains",
+        "source": "cisco.catalystsdwanmanager::00000000-0000-4000-8000-000000000301",
+        "target": "cisco.catalystsdwanmanager::00000000-0000-4000-8000-000000000301-system",
+        "direction": "forward",
+        "name": "00000000-0000-4000-8000-000000000301 -> system"
+      },
+      {
+        "id": "conn-contains-00000000-0000-4000-8000--to-00000000-0000-4000-8000--344fec5c3af78bb5",
+        "type": "contains",
+        "source": "cisco.catalystsdwanmanager::00000000-0000-4000-8000-000000000301",
+        "target": "cisco.catalystsdwanmanager::00000000-0000-4000-8000-000000000301-eth0",
+        "direction": "forward",
+        "name": "00000000-0000-4000-8000-000000000301 -> eth0"
+      },
+      {
+        "id": "conn-network-00000000-0000-4000-8000--to-tst0000011-090e835025039c7a",
+        "type": "network",
+        "source": "cisco.catalystsdwanmanager::00000000-0000-4000-8000-000000000301",
+        "target": "cisco.catalystsdwanmanager::TST0000011",
+        "direction": "bidirectional",
+        "name": "OMP Peering",
+        "status": "active",
+        "state": "up",
+        "extensions": {
+          "osiris.cisco.catalystsdwanmanager": {
+            "protocol": "omp",
+            "sources": [
+              "omp_links",
+              "omp_peers"
+            ]
+          }
+        }
+      },
+      {
+        "id": "conn-network-00000000-0000-4000-8000--to-tst0000012-020a700b279eb138",
+        "type": "network",
+        "source": "cisco.catalystsdwanmanager::00000000-0000-4000-8000-000000000301",
+        "target": "cisco.catalystsdwanmanager::TST0000012",
+        "direction": "bidirectional",
+        "name": "OMP Peering",
+        "status": "unknown",
+        "extensions": {
+          "osiris.cisco.catalystsdwanmanager": {
+            "observed_states": [
+              "down",
+              "up"
+            ],
+            "protocol": "omp",
+            "sources": [
+              "omp_links",
+              "omp_peers"
+            ]
+          }
+        }
+      }
+    ],
+    "groups": [
+      {
+        "id": "group-logical.site-1000-c6614661399c83ee",
+        "type": "logical.site",
+        "name": "MXP",
+        "members": [
+          "cisco.catalystsdwanmanager::00000000-0000-4000-8000-000000000301",
+          "cisco.catalystsdwanmanager::00000000-0000-4000-8000-000000000301-eth0",
+          "cisco.catalystsdwanmanager::00000000-0000-4000-8000-000000000301-system"
+        ],
+        "properties": {
+          "geo_location": {
+            "latitude": 45.5433411,
+            "longitude": 10.2241237
+          }
+        },
+        "extensions": {
+          "osiris.cisco.catalystsdwanmanager": {
+            "site_id": "1000"
+          }
+        }
+      }
+    ]
+  }
+}
