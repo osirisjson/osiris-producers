@@ -117,7 +117,7 @@ func TestHyperscalerKeysAndScope(t *testing.T) {
 	}
 	// GUIDs outside Azure files and fields are not hyperscaler identities.
 	other := guidOf("11111111", "1111", "1111", "1111", "111111111111")
-	if got := hyperscalerRules(t, "osiris/network/cisco/vmanage/x_test.go", fmt.Sprintf(`{"uuid": %q}`, other)); len(got) != 0 {
+	if got := hyperscalerRules(t, "osiris/network/cisco/catalyst-sd-wan-manager/x_test.go", fmt.Sprintf(`{"uuid": %q}`, other)); len(got) != 0 {
 		t.Errorf("unrelated UUID reported: %v", got)
 	}
 	if got := hyperscalerRules(t, "osiris/hyperscalers/azure/x_test.go", fmt.Sprintf(`{"uuid": %q}`, other)); len(got) != 1 {
