@@ -1,6 +1,6 @@
 // transform_security.go - security and identity resource transforms.
-// Maps KMS customer-managed keys, Secrets Manager secrets, ECR repositories,
-// and WAFv2 web ACLs to OSIRIS JSON types.
+// Maps KMS customer-managed keys, Secrets Manager secrets, ECR
+// repositories and WAFv2 web ACLs to OSIRIS JSON types.
 //
 // All types are custom osiris.aws.* namespace (no standard chapter-7 equivalents):
 //   kms:key                          -> osiris.aws.kms.key
@@ -78,8 +78,8 @@ func TransformKMSKeys(keys []kmstypes.KeyMetadata, region, accountID string) []s
 	return resources
 }
 
-// TransformSecretsManagerSecrets converts Secrets Manager secret list entries to
-// osiris.aws.secretsmanager.secret resources.
+// TransformSecretsManagerSecrets converts Secrets Manager secret list
+// entries to osiris.aws.secretsmanager.secret resources.
 // Only name and ARN are collected, no secret values are accessed.
 func TransformSecretsManagerSecrets(secrets []smtypes.SecretListEntry, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
@@ -169,7 +169,8 @@ func TransformECRRepositories(repos []ecrtypes.Repository, region, accountID str
 	return resources
 }
 
-// TransformWAFv2WebACLs converts WAFv2 web ACL entries to osiris.aws.wafv2.webacl resources.
+// TransformWAFv2WebACLs converts WAFv2 web ACL entries to
+// osiris.aws.wafv2.webacl resources.
 // Returns resources and an aclARN->resourceID map.
 func TransformWAFv2WebACLs(entries []WAFv2WebACLEntry, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
@@ -217,7 +218,7 @@ func mapKMSKeyState(s kmstypes.KeyState) string {
 		return "inactive"
 	case kmstypes.KeyStatePendingDeletion, kmstypes.KeyStatePendingImport,
 		kmstypes.KeyStatePendingReplicaDeletion:
-		return "pending"
+		return "inactive"
 	case kmstypes.KeyStateUnavailable:
 		return "degraded"
 	default:
@@ -225,7 +226,8 @@ func mapKMSKeyState(s kmstypes.KeyState) string {
 	}
 }
 
-// TransformACMCertificates converts ACM certificate details to osiris.aws.acm.certificate resources.
+// TransformACMCertificates converts ACM certificate details to
+// osiris.aws.acm.certificate resources.
 func TransformACMCertificates(certs []acmtypes.CertificateDetail, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 
@@ -279,7 +281,7 @@ func mapACMCertStatus(s acmtypes.CertificateStatus) string {
 		acmtypes.CertificateStatusInactive:
 		return "inactive"
 	case acmtypes.CertificateStatusPendingValidation:
-		return "pending"
+		return "inactive"
 	case acmtypes.CertificateStatusFailed, acmtypes.CertificateStatusValidationTimedOut:
 		return "inactive"
 	default:
@@ -287,7 +289,8 @@ func mapACMCertStatus(s acmtypes.CertificateStatus) string {
 	}
 }
 
-// TransformRAMResourceShares converts RAM resource shares to osiris.aws.ram.resourceshare resources.
+// TransformRAMResourceShares converts RAM resource shares to
+// osiris.aws.ram.resourceshare resources.
 // Only shares owned by this account (ResourceOwner=SELF) are collected.
 func TransformRAMResourceShares(shares []ramtypes.ResourceShare, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
@@ -334,7 +337,7 @@ func mapRAMShareStatus(s ramtypes.ResourceShareStatus) string {
 	case ramtypes.ResourceShareStatusActive:
 		return "active"
 	case ramtypes.ResourceShareStatusPending:
-		return "pending"
+		return "inactive"
 	case ramtypes.ResourceShareStatusFailed, ramtypes.ResourceShareStatusDeleting,
 		ramtypes.ResourceShareStatusDeleted:
 		return "inactive"

@@ -1,5 +1,5 @@
 // transform_data.go - managed data resource transforms.
-// Maps RDS, DynamoDB, and ElastiCache resources to OSIRIS JSON types
+// Maps RDS, DynamoDB and ElastiCache resources to OSIRIS JSON types
 // following the spec chapter 7 type taxonomy.
 //
 // Standard types (OSIRIS JSON spec chapter 7):
@@ -28,8 +28,9 @@ import (
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
-// TransformRDSInstances converts RDS DB instances to application.database resources.
-// Returns resources and an instanceARN->resourceID map for connection wiring.
+// TransformRDSInstances converts RDS DB instances to
+// application.database resources. Returns resources and an
+// instanceARN->resourceID map for connection wiring.
 func TransformRDSInstances(instances []rdstypes.DBInstance, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(instances))
@@ -111,8 +112,10 @@ func TransformRDSInstances(instances []rdstypes.DBInstance, region, accountID st
 	return resources, idMap
 }
 
-// TransformRDSClusters converts Aurora DB clusters to application.database resources.
-// Returns resources and a clusterARN->resourceID map for connection wiring.
+// TransformRDSClusters converts Aurora DB clusters to
+// application.database resources.
+// Returns resources and a clusterARN->resourceID map for connection
+// wiring.
 func TransformRDSClusters(clusters []rdstypes.DBCluster, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(clusters))
@@ -187,8 +190,10 @@ func TransformRDSClusters(clusters []rdstypes.DBCluster, region, accountID strin
 	return resources, idMap
 }
 
-// TransformRDSSubnetGroups converts RDS DB subnet groups to osiris.aws.rds.subnetgroup resources.
-// Returns resources and a subnetGroupName->resourceID map for connection wiring.
+// TransformRDSSubnetGroups converts RDS DB subnet groups to
+// osiris.aws.rds.subnetgroup resources.
+// Returns resources and a subnetGroupName->resourceID map for
+// connection wiring.
 func TransformRDSSubnetGroups(groups []rdstypes.DBSubnetGroup, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(groups))
@@ -241,7 +246,8 @@ func TransformRDSSubnetGroups(groups []rdstypes.DBSubnetGroup, region, accountID
 	return resources, idMap
 }
 
-// TransformDynamoDBTables converts DynamoDB tables to application.database resources.
+// TransformDynamoDBTables converts DynamoDB tables to
+// application.database resources.
 // Returns resources and a tableARN->resourceID map.
 func TransformDynamoDBTables(tables []dynamodbtypes.TableDescription, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
@@ -305,8 +311,9 @@ func TransformDynamoDBTables(tables []dynamodbtypes.TableDescription, region, ac
 	return resources, idMap
 }
 
-// TransformElastiCacheReplicationGroups converts ElastiCache replication groups
-// to application.cache resources. Returns resources and a groupID->resourceID map.
+// TransformElastiCacheReplicationGroups converts ElastiCache
+// replication groups to application.cache resources. Returns resources
+// and a groupID->resourceID map.
 func TransformElastiCacheReplicationGroups(groups []elasticachetypes.ReplicationGroup, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(groups))
@@ -371,8 +378,8 @@ func TransformElastiCacheReplicationGroups(groups []elasticachetypes.Replication
 	return resources, idMap
 }
 
-// TransformElastiCacheSubnetGroups converts ElastiCache cache subnet groups
-// to osiris.aws.elasticache.subnetgroup resources.
+// TransformElastiCacheSubnetGroups converts ElastiCache cache subnet
+// groups to osiris.aws.elasticache.subnetgroup resources.
 // Returns resources and a subnetGroupName->resourceID map.
 func TransformElastiCacheSubnetGroups(groups []elasticachetypes.CacheSubnetGroup, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
@@ -419,8 +426,8 @@ func TransformElastiCacheSubnetGroups(groups []elasticachetypes.CacheSubnetGroup
 	return resources, idMap
 }
 
-
-// TransformRDSInstanceToSubnetGroupConnections wires RDS instances to their subnet groups.
+// TransformRDSInstanceToSubnetGroupConnections wires RDS instances to
+// their subnet groups.
 func TransformRDSInstanceToSubnetGroupConnections(instances []rdstypes.DBInstance, instanceIDMap, sgroupIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, inst := range instances {
@@ -447,7 +454,8 @@ func TransformRDSInstanceToSubnetGroupConnections(instances []rdstypes.DBInstanc
 	return conns
 }
 
-// TransformRDSInstanceToSGConnections wires RDS instances to security groups.
+// TransformRDSInstanceToSGConnections wires RDS instances to
+// security groups.
 func TransformRDSInstanceToSGConnections(instances []rdstypes.DBInstance, instanceIDMap, sgIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, inst := range instances {
@@ -473,7 +481,8 @@ func TransformRDSInstanceToSGConnections(instances []rdstypes.DBInstance, instan
 	return conns
 }
 
-// TransformRDSClusterToSubnetGroupConnections wires Aurora clusters to their subnet groups.
+// TransformRDSClusterToSubnetGroupConnections wires Aurora clusters
+// to their subnet groups.
 func TransformRDSClusterToSubnetGroupConnections(clusters []rdstypes.DBCluster, clusterIDMap, sgroupIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, c := range clusters {
@@ -500,7 +509,8 @@ func TransformRDSClusterToSubnetGroupConnections(clusters []rdstypes.DBCluster, 
 	return conns
 }
 
-// TransformRDSClusterToSGConnections wires Aurora clusters to security groups.
+// TransformRDSClusterToSGConnections wires Aurora clusters to security
+// groups.
 func TransformRDSClusterToSGConnections(clusters []rdstypes.DBCluster, clusterIDMap, sgIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, c := range clusters {
@@ -526,7 +536,8 @@ func TransformRDSClusterToSGConnections(clusters []rdstypes.DBCluster, clusterID
 	return conns
 }
 
-// TransformRDSClusterContainsInstanceConnections wires Aurora clusters to their member instances.
+// TransformRDSClusterContainsInstanceConnections wires Aurora clusters
+// to their member instances.
 func TransformRDSClusterContainsInstanceConnections(clusters []rdstypes.DBCluster, clusterIDMap, instanceIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, c := range clusters {
@@ -536,13 +547,16 @@ func TransformRDSClusterContainsInstanceConnections(clusters []rdstypes.DBCluste
 			continue
 		}
 		clusterName := aws.ToString(c.DBClusterIdentifier)
+		arnParts := strings.SplitN(clusterARN, ":", 6)
+		if len(arnParts) != 6 || arnParts[0] != "arn" {
+			continue
+		}
 		for _, member := range c.DBClusterMembers {
-			// Members only carry DBInstanceIdentifier; reconstruct ARN to look up the resource ID.
+			// Members only carry DBInstanceIdentifier; reconstruct ARN
+			// to look up the resource ID.
 			memberID := aws.ToString(member.DBInstanceIdentifier)
-			memberARN := fmt.Sprintf("arn:aws:rds:%s:%s:db:%s",
-				strings.Split(clusterARN, ":")[3],
-				strings.Split(clusterARN, ":")[4],
-				memberID)
+			memberARN := fmt.Sprintf("arn:%s:rds:%s:%s:db:%s",
+				arnParts[1], arnParts[3], arnParts[4], memberID)
 			tgtID, ok := instanceIDMap[memberARN]
 			if !ok {
 				continue
@@ -557,7 +571,8 @@ func TransformRDSClusterContainsInstanceConnections(clusters []rdstypes.DBCluste
 	return conns
 }
 
-// TransformRDSSubnetGroupToSubnetConnections wires RDS subnet groups to VPC subnets.
+// TransformRDSSubnetGroupToSubnetConnections wires RDS subnet groups
+// to VPC subnets.
 func TransformRDSSubnetGroupToSubnetConnections(groups []rdstypes.DBSubnetGroup, sgroupIDMap, subnetIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, g := range groups {
@@ -582,7 +597,8 @@ func TransformRDSSubnetGroupToSubnetConnections(groups []rdstypes.DBSubnetGroup,
 	return conns
 }
 
-// TransformElastiCacheSubnetGroupToSubnetConnections wires ElastiCache subnet groups to VPC subnets.
+// TransformElastiCacheSubnetGroupToSubnetConnections wires ElastiCache
+// subnet groups to VPC subnets.
 func TransformElastiCacheSubnetGroupToSubnetConnections(groups []elasticachetypes.CacheSubnetGroup, ecsgIDMap, subnetIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, g := range groups {
@@ -607,7 +623,6 @@ func TransformElastiCacheSubnetGroupToSubnetConnections(groups []elasticachetype
 	return conns
 }
 
-
 func mapRDSInstanceStatus(s string) string {
 	switch s {
 	case "available":
@@ -615,7 +630,7 @@ func mapRDSInstanceStatus(s string) string {
 	case "stopped":
 		return "inactive"
 	case "starting", "creating", "deleting", "restoring", "backing-up":
-		return "pending"
+		return "inactive"
 	case "stopping", "rebooting", "modifying", "upgrading", "maintenance",
 		"storage-optimization", "storage-full":
 		return "degraded"
@@ -634,7 +649,7 @@ func mapRDSClusterStatus(s string) string {
 	case "stopped":
 		return "inactive"
 	case "creating", "deleting", "restoring", "migrating", "backtracking":
-		return "pending"
+		return "inactive"
 	case "failing-over", "modifying", "rebooting", "renaming", "upgrading",
 		"storage-optimization":
 		return "degraded"
@@ -653,7 +668,7 @@ func mapDynamoDBTableStatus(s dynamodbtypes.TableStatus) string {
 		return "inactive"
 	case dynamodbtypes.TableStatusCreating, dynamodbtypes.TableStatusDeleting,
 		dynamodbtypes.TableStatusArchiving:
-		return "pending"
+		return "inactive"
 	case dynamodbtypes.TableStatusUpdating:
 		return "degraded"
 	case dynamodbtypes.TableStatusInaccessibleEncryptionCredentials:
@@ -668,7 +683,7 @@ func mapElastiCacheRGStatus(s string) string {
 	case "available":
 		return "active"
 	case "creating", "deleting":
-		return "pending"
+		return "inactive"
 	case "modifying", "snapshotting":
 		return "degraded"
 	case "create-failed":
@@ -677,7 +692,6 @@ func mapElastiCacheRGStatus(s string) string {
 		return "unknown"
 	}
 }
-
 
 // rdsTagMap converts RDS []rdstypes.Tag to a map[string]string.
 func rdsTagMap(tags []rdstypes.Tag) map[string]string {

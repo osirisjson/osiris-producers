@@ -1,5 +1,6 @@
-// transform_serverless.go - serverless and messaging resource transforms.
-// Maps Lambda functions, SQS queues, Kinesis streams, and MSK clusters to OSIRIS JSON
+// transform_serverless.go - serverless and messaging resource
+// transforms. Maps Lambda functions, SQS queues, Kinesis streams and
+// MSK clusters to OSIRIS JSON
 // types following the spec chapter 7 type taxonomy.
 //
 // Standard types (OSIRIS JSON spec chapter 7):
@@ -103,8 +104,8 @@ func TransformLambdaFunctions(fns []lambdatypes.FunctionConfiguration, region, a
 	return resources, idMap
 }
 
-// TransformSQSQueues converts SQS queue info to application.queue resources.
-// Returns resources and a queueARN->resourceID map.
+// TransformSQSQueues converts SQS queue info to application.queue
+// resources. Returns resources and a queueARN->resourceID map.
 func TransformSQSQueues(queues []SQSQueueInfo, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(queues))
@@ -157,8 +158,8 @@ func TransformSQSQueues(queues []SQSQueueInfo, region, accountID string) ([]sdk.
 	return resources, idMap
 }
 
-// TransformKinesisStreams converts Kinesis stream description summaries to
-// application.eventstream resources.
+// TransformKinesisStreams converts Kinesis stream description summaries
+// to application.eventstream resources.
 // Returns resources and a streamARN->resourceID map.
 func TransformKinesisStreams(streams []kinesistypes.StreamDescriptionSummary, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
@@ -263,7 +264,8 @@ func TransformMSKClusters(clusters []kafkatypes.ClusterInfo, region, accountID s
 	return resources, idMap
 }
 
-// TransformLambdaToSubnetConnections wires VPC-attached Lambda functions to their subnets.
+// TransformLambdaToSubnetConnections wires VPC-attached Lambda
+// functions to their subnets.
 func TransformLambdaToSubnetConnections(fns []lambdatypes.FunctionConfiguration, lambdaIDMap, subnetIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, fn := range fns {
@@ -291,7 +293,8 @@ func TransformLambdaToSubnetConnections(fns []lambdatypes.FunctionConfiguration,
 	return conns
 }
 
-// TransformLambdaToSGConnections wires VPC-attached Lambda functions to their security groups.
+// TransformLambdaToSGConnections wires VPC-attached Lambda functions to
+// their security groups.
 func TransformLambdaToSGConnections(fns []lambdatypes.FunctionConfiguration, lambdaIDMap, sgIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, fn := range fns {
@@ -319,7 +322,8 @@ func TransformLambdaToSGConnections(fns []lambdatypes.FunctionConfiguration, lam
 	return conns
 }
 
-// TransformMSKToSubnetConnections wires MSK clusters to their broker subnets.
+// TransformMSKToSubnetConnections wires MSK clusters to their broker
+// subnets.
 func TransformMSKToSubnetConnections(clusters []kafkatypes.ClusterInfo, mskIDMap, subnetIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, c := range clusters {
@@ -347,7 +351,8 @@ func TransformMSKToSubnetConnections(clusters []kafkatypes.ClusterInfo, mskIDMap
 	return conns
 }
 
-// TransformMSKToSGConnections wires MSK clusters to their security groups.
+// TransformMSKToSGConnections wires MSK clusters to their security
+// groups.
 func TransformMSKToSGConnections(clusters []kafkatypes.ClusterInfo, mskIDMap, sgIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, c := range clusters {
@@ -378,13 +383,14 @@ func TransformMSKToSGConnections(clusters []kafkatypes.ClusterInfo, mskIDMap, sg
 func mapLambdaState(s lambdatypes.State) string {
 	switch s {
 	case lambdatypes.StateActive, "":
-		// AWS list-functions omits the State field for actively running functions;
-		// treat an unset state as active (same as the AWS console behaviour).
+		// AWS list-functions omits the State field for actively running
+		// functions; treat an unset state as active (same as the AWS
+		// console behaviour).
 		return "active"
 	case lambdatypes.StateInactive:
 		return "inactive"
 	case lambdatypes.StatePending:
-		return "pending"
+		return "inactive"
 	case lambdatypes.StateFailed:
 		return "inactive" // schema enum: {active,inactive,degraded,retired,unknown}
 	default:
@@ -397,9 +403,9 @@ func mapKinesisStreamStatus(s kinesistypes.StreamStatus) string {
 	case kinesistypes.StreamStatusActive:
 		return "active"
 	case kinesistypes.StreamStatusCreating:
-		return "pending"
+		return "inactive"
 	case kinesistypes.StreamStatusDeleting:
-		return "pending"
+		return "inactive"
 	case kinesistypes.StreamStatusUpdating:
 		return "degraded"
 	default:
@@ -412,7 +418,7 @@ func mapMSKClusterState(s kafkatypes.ClusterState) string {
 	case kafkatypes.ClusterStateActive:
 		return "active"
 	case kafkatypes.ClusterStateCreating, kafkatypes.ClusterStateDeleting:
-		return "pending"
+		return "inactive"
 	case kafkatypes.ClusterStateFailed:
 		return "inactive"
 	case kafkatypes.ClusterStateHealing, kafkatypes.ClusterStateMaintenance,

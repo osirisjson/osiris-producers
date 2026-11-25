@@ -1,5 +1,6 @@
-// transform_observability.go - observability and backup resource transforms.
-// Maps CloudWatch log groups and AWS Backup vaults to OSIRIS JSON types.
+// transform_observability.go - observability and backup resource
+// transforms. Maps CloudWatch log groups and AWS Backup vaults to
+// OSIRIS JSON types.
 //
 // All types are custom osiris.aws.* namespace:
 //   cloudwatchlogs:loggroup   -> osiris.aws.cloudwatch.loggroup
@@ -19,8 +20,8 @@ import (
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
-// TransformCloudWatchLogGroups converts CloudWatch log group descriptions to
-// osiris.aws.cloudwatch.loggroup resources.
+// TransformCloudWatchLogGroups converts CloudWatch log group
+// descriptions to osiris.aws.cloudwatch.loggroup resources.
 func TransformCloudWatchLogGroups(groups []cwlogstypes.LogGroup, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 
@@ -34,7 +35,8 @@ func TransformCloudWatchLogGroups(groups []cwlogstypes.LogGroup, region, account
 		if nativeID == "" {
 			nativeID = fmt.Sprintf("arn:aws:logs:%s:%s:log-group:%s", region, accountID, name)
 		}
-		// CloudWatch ARNs end with :* - strip the trailing :* for a clean ID.
+		// CloudWatch ARNs end with :* - strip the trailing :* for a
+		// clean ID.
 		if len(nativeID) > 2 && nativeID[len(nativeID)-2:] == ":*" {
 			nativeID = nativeID[:len(nativeID)-2]
 		}
@@ -121,13 +123,12 @@ func TransformBackupVaults(vaults []backuptypes.BackupVaultListMember, region, a
 	return resources
 }
 
-
 func mapBackupVaultState(s backuptypes.VaultState) string {
 	switch s {
 	case backuptypes.VaultStateAvailable:
 		return "active"
 	case backuptypes.VaultStateCreating:
-		return "pending"
+		return "inactive"
 	case backuptypes.VaultStateFailed:
 		return "inactive"
 	default:

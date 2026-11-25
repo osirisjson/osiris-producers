@@ -1,5 +1,5 @@
 // transform_databases_ext.go - extended database resource transforms.
-// Maps DocumentDB, Neptune, Redshift, OpenSearch, and MemoryDB resources to
+// Maps DocumentDB, Neptune, Redshift, OpenSearch and MemoryDB resources to
 // OSIRIS JSON types.
 //
 // All types are custom osiris.aws.* namespace:
@@ -88,8 +88,8 @@ func TransformDocDBClusters(clusters []docdbtypes.DBCluster, region, accountID s
 	return resources, idMap
 }
 
-// TransformDocDBSubnetGroups converts DocumentDB subnet group descriptions to
-// osiris.aws.docdb.subnetgroup resources.
+// TransformDocDBSubnetGroups converts DocumentDB subnet group
+// descriptions to osiris.aws.docdb.subnetgroup resources.
 func TransformDocDBSubnetGroups(groups []docdbtypes.DBSubnetGroup, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(groups))
@@ -186,8 +186,8 @@ func TransformNeptuneClusters(clusters []neptunetypes.DBCluster, region, account
 	return resources, idMap
 }
 
-// TransformNeptuneSubnetGroups converts Neptune subnet group descriptions to
-// osiris.aws.neptune.subnetgroup resources.
+// TransformNeptuneSubnetGroups converts Neptune subnet group
+// descriptions to osiris.aws.neptune.subnetgroup resources.
 func TransformNeptuneSubnetGroups(groups []neptunetypes.DBSubnetGroup, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(groups))
@@ -243,8 +243,8 @@ func TransformRedshiftClusters(clusters []redshifttypes.Cluster, region, account
 		if clusterID == "" {
 			continue
 		}
-		// Redshift clusters have ClusterNamespaceArn (namespace) and no standard cluster ARN.
-		// Construct a canonical ARN.
+		// Redshift clusters have ClusterNamespaceArn (namespace) and no
+		// standard cluster ARN. Construct a canonical ARN.
 		nativeID := fmt.Sprintf("arn:aws:redshift:%s:%s:cluster:%s", region, accountID, clusterID)
 		id := resourceIDFromARN(nativeID)
 		idMap[clusterID] = id
@@ -300,8 +300,8 @@ func TransformRedshiftClusters(clusters []redshifttypes.Cluster, region, account
 	return resources, idMap
 }
 
-// TransformRedshiftSubnetGroups converts Redshift cluster subnet group descriptions to
-// osiris.aws.redshift.subnetgroup resources.
+// TransformRedshiftSubnetGroups converts Redshift cluster subnet group
+// descriptions to osiris.aws.redshift.subnetgroup resources.
 func TransformRedshiftSubnetGroups(groups []redshifttypes.ClusterSubnetGroup, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(groups))
@@ -342,8 +342,8 @@ func TransformRedshiftSubnetGroups(groups []redshifttypes.ClusterSubnetGroup, re
 	return resources, idMap
 }
 
-// TransformOpenSearchDomains converts OpenSearch domain status descriptions to
-// osiris.aws.opensearch.domain resources.
+// TransformOpenSearchDomains converts OpenSearch domain status
+// descriptions to osiris.aws.opensearch.domain resources.
 func TransformOpenSearchDomains(domains []openstypes.DomainStatus, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(domains))
@@ -451,8 +451,8 @@ func TransformMemoryDBClusters(clusters []memorydbtypes.Cluster, region, account
 	return resources, idMap
 }
 
-// TransformMemoryDBSubnetGroups converts MemoryDB subnet group descriptions to
-// osiris.aws.memorydb.subnetgroup resources.
+// TransformMemoryDBSubnetGroups converts MemoryDB subnet group
+// descriptions to osiris.aws.memorydb.subnetgroup resources.
 func TransformMemoryDBSubnetGroups(groups []memorydbtypes.SubnetGroup, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(groups))
@@ -497,7 +497,8 @@ func TransformMemoryDBSubnetGroups(groups []memorydbtypes.SubnetGroup, region, a
 	return resources, idMap
 }
 
-// TransformDocDBClusterToSGConnections wires DocumentDB clusters to their security groups.
+// TransformDocDBClusterToSGConnections wires DocumentDB clusters to
+// their security groups.
 func TransformDocDBClusterToSGConnections(clusters []docdbtypes.DBCluster, clusterIDMap, sgIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, c := range clusters {
@@ -523,7 +524,8 @@ func TransformDocDBClusterToSGConnections(clusters []docdbtypes.DBCluster, clust
 	return conns
 }
 
-// TransformDocDBClusterToSubnetGroupConnections wires DocumentDB clusters to their subnet groups.
+// TransformDocDBClusterToSubnetGroupConnections wires DocumentDB
+// clusters to their subnet groups.
 func TransformDocDBClusterToSubnetGroupConnections(clusters []docdbtypes.DBCluster, clusterIDMap, sgroupIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, c := range clusters {
@@ -546,7 +548,8 @@ func TransformDocDBClusterToSubnetGroupConnections(clusters []docdbtypes.DBClust
 	return conns
 }
 
-// TransformDocDBSubnetGroupToSubnetConnections wires DocDB subnet groups to their subnets.
+// TransformDocDBSubnetGroupToSubnetConnections wires DocDB subnet
+// groups to their subnets.
 func TransformDocDBSubnetGroupToSubnetConnections(groups []docdbtypes.DBSubnetGroup, sgroupIDMap, subnetIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, g := range groups {
@@ -571,7 +574,8 @@ func TransformDocDBSubnetGroupToSubnetConnections(groups []docdbtypes.DBSubnetGr
 	return conns
 }
 
-// TransformNeptuneClusterToSGConnections wires Neptune clusters to their security groups.
+// TransformNeptuneClusterToSGConnections wires Neptune clusters to
+// their security groups.
 func TransformNeptuneClusterToSGConnections(clusters []neptunetypes.DBCluster, clusterIDMap, sgIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, c := range clusters {
@@ -597,7 +601,8 @@ func TransformNeptuneClusterToSGConnections(clusters []neptunetypes.DBCluster, c
 	return conns
 }
 
-// TransformNeptuneClusterToSubnetGroupConnections wires Neptune clusters to their subnet groups.
+// TransformNeptuneClusterToSubnetGroupConnections wires Neptune
+// clusters to their subnet groups.
 func TransformNeptuneClusterToSubnetGroupConnections(clusters []neptunetypes.DBCluster, clusterIDMap, sgroupIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, c := range clusters {
@@ -620,7 +625,8 @@ func TransformNeptuneClusterToSubnetGroupConnections(clusters []neptunetypes.DBC
 	return conns
 }
 
-// TransformNeptuneSubnetGroupToSubnetConnections wires Neptune subnet groups to their subnets.
+// TransformNeptuneSubnetGroupToSubnetConnections wires Neptune subnet
+// groups to their subnets.
 func TransformNeptuneSubnetGroupToSubnetConnections(groups []neptunetypes.DBSubnetGroup, sgroupIDMap, subnetIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, g := range groups {
@@ -645,7 +651,8 @@ func TransformNeptuneSubnetGroupToSubnetConnections(groups []neptunetypes.DBSubn
 	return conns
 }
 
-// TransformRedshiftClusterToSGConnections wires Redshift clusters to their VPC security groups.
+// TransformRedshiftClusterToSGConnections wires Redshift clusters to
+// their VPC security groups.
 func TransformRedshiftClusterToSGConnections(clusters []redshifttypes.Cluster, clusterIDMap, sgIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, c := range clusters {
@@ -670,7 +677,8 @@ func TransformRedshiftClusterToSGConnections(clusters []redshifttypes.Cluster, c
 	return conns
 }
 
-// TransformRedshiftClusterToSubnetGroupConnections wires Redshift clusters to their subnet groups.
+// TransformRedshiftClusterToSubnetGroupConnections wires Redshift
+// clusters to their subnet groups.
 func TransformRedshiftClusterToSubnetGroupConnections(clusters []redshifttypes.Cluster, clusterIDMap, sgroupIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, c := range clusters {
@@ -693,7 +701,8 @@ func TransformRedshiftClusterToSubnetGroupConnections(clusters []redshifttypes.C
 	return conns
 }
 
-// TransformRedshiftSubnetGroupToSubnetConnections wires Redshift subnet groups to their subnets.
+// TransformRedshiftSubnetGroupToSubnetConnections wires Redshift
+// subnet groups to their subnets.
 func TransformRedshiftSubnetGroupToSubnetConnections(groups []redshifttypes.ClusterSubnetGroup, sgroupIDMap, subnetIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, g := range groups {
@@ -718,7 +727,8 @@ func TransformRedshiftSubnetGroupToSubnetConnections(groups []redshifttypes.Clus
 	return conns
 }
 
-// TransformOpenSearchToSubnetConnections wires VPC-attached OpenSearch domains to their subnets.
+// TransformOpenSearchToSubnetConnections wires VPC-attached OpenSearch
+// domains to their subnets.
 func TransformOpenSearchToSubnetConnections(domains []openstypes.DomainStatus, domainIDMap, subnetIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, d := range domains {
@@ -746,7 +756,8 @@ func TransformOpenSearchToSubnetConnections(domains []openstypes.DomainStatus, d
 	return conns
 }
 
-// TransformOpenSearchToSGConnections wires VPC-attached OpenSearch domains to their security groups.
+// TransformOpenSearchToSGConnections wires VPC-attached OpenSearch
+// domains to their security groups.
 func TransformOpenSearchToSGConnections(domains []openstypes.DomainStatus, domainIDMap, sgIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, d := range domains {
@@ -774,7 +785,8 @@ func TransformOpenSearchToSGConnections(domains []openstypes.DomainStatus, domai
 	return conns
 }
 
-// TransformMemoryDBClusterToSGConnections wires MemoryDB clusters to their security groups.
+// TransformMemoryDBClusterToSGConnections wires MemoryDB clusters to
+// their security groups.
 func TransformMemoryDBClusterToSGConnections(clusters []memorydbtypes.Cluster, clusterIDMap, sgIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, c := range clusters {
@@ -800,7 +812,8 @@ func TransformMemoryDBClusterToSGConnections(clusters []memorydbtypes.Cluster, c
 	return conns
 }
 
-// TransformMemoryDBClusterToSubnetGroupConnections wires MemoryDB clusters to their subnet groups.
+// TransformMemoryDBClusterToSubnetGroupConnections wires MemoryDB
+// clusters to their subnet groups.
 func TransformMemoryDBClusterToSubnetGroupConnections(clusters []memorydbtypes.Cluster, clusterIDMap, sgroupIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, c := range clusters {
@@ -823,7 +836,8 @@ func TransformMemoryDBClusterToSubnetGroupConnections(clusters []memorydbtypes.C
 	return conns
 }
 
-// TransformMemoryDBSubnetGroupToSubnetConnections wires MemoryDB subnet groups to their subnets.
+// TransformMemoryDBSubnetGroupToSubnetConnections wires MemoryDB subnet
+// groups to their subnets.
 func TransformMemoryDBSubnetGroupToSubnetConnections(groups []memorydbtypes.SubnetGroup, sgroupIDMap, subnetIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, g := range groups {
@@ -856,18 +870,17 @@ func mapSimpleStatus(status, activeVal string) string {
 	}
 	switch status {
 	case "creating", "modifying", "rebooting", "starting":
-		return "pending"
-	case "deleting", "deleted", "stopped":
+		return "inactive"
+	case "deleting", "deleted":
+		return "retired"
+	case "stopped":
 		return "inactive"
 	case "failed", "incompatible-parameters", "incompatible-network":
 		return "inactive"
 	case "maintenance", "upgrading", "resizing":
 		return "degraded"
 	default:
-		if status == "" {
-			return "unknown"
-		}
-		return status
+		return "unknown"
 	}
 }
 
@@ -876,13 +889,13 @@ func mapOpenSearchStatus(d openstypes.DomainStatus) string {
 		return "inactive"
 	}
 	if d.Created != nil && !aws.ToBool(d.Created) {
-		return "pending"
+		return "inactive"
 	}
 	switch d.DomainProcessingStatus {
 	case openstypes.DomainProcessingStatusTypeActive:
 		return "active"
 	case openstypes.DomainProcessingStatusTypeCreating, openstypes.DomainProcessingStatusTypeUpdating:
-		return "pending"
+		return "inactive"
 	case openstypes.DomainProcessingStatusTypeDeleting:
 		return "inactive"
 	case openstypes.DomainProcessingStatusTypeIsolated:
