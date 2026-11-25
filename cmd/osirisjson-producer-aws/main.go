@@ -5,6 +5,7 @@ This binary is fully self-contained and can be invoked directly:
 
 	osirisjson-producer-aws --profile prod --region us-east-1
 	osirisjson-producer-aws --profile prod --all-regions -o ./output
+	osirisjson-producer-aws --account dev,prod --region us-east-1 -o ./output
 	osirisjson-producer-aws -s accounts.csv -o ./output
 	osirisjson-producer-aws template --generate
 	osirisjson-producer-aws --help

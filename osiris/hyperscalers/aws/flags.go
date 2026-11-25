@@ -3,6 +3,7 @@
 //
 //   - Single mode: --profile <profile> --region <region>
 //   - Multi-region mode: --profile <profile> --all-regions -o dir
+//   - Account mode: --account <name>[,<name>...] --region <region> -o dir
 //   - CSV mode: --source accounts.csv -o dir
 //
 // Authentication relies on standard AWS credential resolution
@@ -30,10 +31,39 @@ import (
 
 // ParseFlags parses CLI flags for the AWS producer and returns a Config.
 func ParseFlags(args []string) (*Config, error) {
+	cfg, err := parseFlags(args)
+	if err != nil {
+		return nil, err
+	}
+	if err := validateTargets(cfg.Targets); err != nil {
+		return nil, err
+	}
+	return cfg, nil
+}
+
+// validateTargets rejects a target whose account ID or region is not
+// syntactically valid, before any AWS call or output path uses it.
+func validateTargets(targets []AccountTarget) error {
+	for _, t := range targets {
+		if t.AccountID != "" && !validAccountID(t.AccountID) {
+			return fmt.Errorf("target %q: invalid account ID %q: must be 12 digits", t.Profile, t.AccountID)
+		}
+		for _, r := range t.Regions {
+			if !validRegion(r) {
+				return fmt.Errorf("target %q: invalid region %q", t.Profile, r)
+			}
+		}
+	}
+	return nil
+}
+
+// parseFlags parses args into a Config without target validation.
+func parseFlags(args []string) (*Config, error) {
 	fs := flag.NewFlagSet("osirisjson-producer aws", flag.ContinueOnError)
 
 	var (
 		profile        string
+		account        string
 		region         string
 		allRegions     bool
 		source         string
@@ -45,6 +75,8 @@ func ParseFlags(args []string) (*Config, error) {
 
 	fs.StringVar(&profile, "P", "", "AWS CLI profile name")
 	fs.StringVar(&profile, "profile", "", "AWS CLI profile name")
+	fs.StringVar(&account, "A", "", "account profile name(s), comma-separated")
+	fs.StringVar(&account, "account", "", "account profile name(s), comma-separated")
 	fs.StringVar(&region, "R", "", "AWS region(s), comma-separated")
 	fs.StringVar(&region, "region", "", "AWS region(s), comma-separated")
 	fs.BoolVar(&allRegions, "all-regions", false, "iterate all default AWS regions")
@@ -52,9 +84,9 @@ func ParseFlags(args []string) (*Config, error) {
 	fs.StringVar(&source, "source", "", "CSV file for batch mode")
 	fs.StringVar(&output, "o", "", "output directory (required for --all-regions, --source, or multi-region)")
 	fs.StringVar(&output, "output", "", "output directory")
-	fs.StringVar(&safeFail, "safe-failure-mode", "fail-closed", "secret handling: fail-closed, log-and-redact, or off")
+	fs.StringVar(&safeFail, "safe-failure-mode", "fail-closed", "secret handling: fail-closed or log-and-redact")
 	fs.StringVar(&purposeStr, "purpose", "", "OSIRIS JSON spec chapter 13.1.3 output grade: documentation (default) or audit")
-	fs.BoolVar(&includeRawBody, "include-raw-body", false, "attach full AWS SDK response body under extensions[\"osiris.aws.sdk\"].body (audit mode only; lossless fallback for unmodelled fields)")
+	fs.BoolVar(&includeRawBody, "include-raw-body", false, "attach the redacted AWS SDK response body under extensions[\"osiris.aws.sdk\"].body (audit mode only; fallback for unmodelled fields)")
 
 	if err := fs.Parse(args); err != nil {
 		return nil, err
@@ -62,15 +94,22 @@ func ParseFlags(args []string) (*Config, error) {
 
 	// Validate safe failure mode.
 	switch safeFail {
-	case "fail-closed", "log-and-redact", "off":
+	case "fail-closed", "log-and-redact":
 		// valid
 	default:
-		return nil, fmt.Errorf("invalid --safe-failure-mode value %q: must be fail-closed, log-and-redact, or off", safeFail)
+		return nil, fmt.Errorf("invalid --safe-failure-mode value %q: must be fail-closed or log-and-redact", safeFail)
 	}
 
 	purpose, err := osirismeta.ParsePurpose(purposeStr)
 	if err != nil {
 		return nil, err
+	}
+	if includeRawBody && purpose != osirismeta.PurposeAudit {
+		fmt.Fprintln(os.Stderr, "warning: --include-raw-body is ignored unless --purpose audit is set")
+	}
+
+	if account != "" && (profile != "" || source != "") {
+		return nil, fmt.Errorf("--account cannot be combined with --profile or --source")
 	}
 
 	// Mutual exclusivity checks.
@@ -84,7 +123,10 @@ func ParseFlags(args []string) (*Config, error) {
 	if profile != "" {
 		modes++
 	}
-	// region alone is not a "mode" - it's used with or without other flags.
+	if account != "" {
+		modes++
+	}
+	// region alone is not "mode" it's used with or without other flags.
 
 	cfg := &Config{
 		OutputDir:       output,
@@ -144,11 +186,84 @@ func ParseFlags(args []string) (*Config, error) {
 		}
 	}
 
+	if account != "" {
+		available, err := discoverAWSProfiles()
+		if err != nil {
+			return nil, err
+		}
+		profiles, err := resolveAccountProfiles(account, available)
+		if err != nil {
+			return nil, err
+		}
+		if len(profiles) > 1 && output == "" {
+			return nil, fmt.Errorf("multiple accounts require --output directory")
+		}
+		for _, p := range profiles {
+			cfg.Targets = append(cfg.Targets, AccountTarget{Profile: p, Regions: target.Regions})
+		}
+		return cfg, nil
+	}
+
 	cfg.Targets = []AccountTarget{target}
 	return cfg, nil
 }
 
-// CSVTemplate returns a CSV template string for batch collection of AWS accounts.
+// resolveAccountProfiles resolves a comma-separated --account value to
+// profile names from available, in the given order without duplicates.
+// Each entry is a profile name or, when no profile has that name, the
+// account name that [stripIAMSuffix] leaves of exactly one profile. An
+// unknown or ambiguous entry is an error; no role is chosen on behalf
+// of the user. Two profiles whose documents would share a file name are
+// rejected as well.
+func resolveAccountProfiles(list string, available []string) ([]string, error) {
+	exact := map[string]bool{}
+	byAccount := map[string][]string{}
+	for _, p := range available {
+		exact[p] = true
+		short := stripIAMSuffix(p)
+		byAccount[short] = append(byAccount[short], p)
+	}
+
+	var profiles []string
+	seen := map[string]bool{}
+	fileNames := map[string]string{}
+	for _, entry := range strings.Split(list, ",") {
+		entry = strings.TrimSpace(entry)
+		if entry == "" {
+			continue
+		}
+		profile := entry
+		if !exact[entry] {
+			matches := byAccount[entry]
+			switch len(matches) {
+			case 0:
+				return nil, fmt.Errorf("--account %q: no such AWS CLI profile", entry)
+			case 1:
+				profile = matches[0]
+			default:
+				return nil, fmt.Errorf("--account %q matches several AWS CLI profiles, use one of: %s", entry, strings.Join(matches, ", "))
+			}
+		}
+		if seen[profile] {
+			continue
+		}
+		seen[profile] = true
+
+		name := targetName(AccountTarget{Profile: profile}, "")
+		if other, ok := fileNames[name]; ok {
+			return nil, fmt.Errorf("--account: profiles %q and %q would write the same file name %q, select one of them", other, profile, name)
+		}
+		fileNames[name] = profile
+		profiles = append(profiles, profile)
+	}
+	if len(profiles) == 0 {
+		return nil, fmt.Errorf("--account: no account profile given")
+	}
+	return profiles, nil
+}
+
+// CSVTemplate returns a CSV template string for batch collection of AWS
+// accounts.
 //
 // Columns:
 //
@@ -159,7 +274,8 @@ func ParseFlags(args []string) (*Config, error) {
 //	environment       - Deployment stage: dv, np, pr (optional)
 //	notes             - Free-text user notes (ignored by OSIRIS JSON producer)
 //
-// Authentication uses the AWS credential chain (profiles, env vars, IAM roles, SSO).
+// Authentication uses the AWS credential chain (profiles, env vars, IAM
+// roles, SSO).
 // Ensure the credentials have ReadOnly access to all target accounts.
 // Output hierarchy: <output-dir>/<AccountID>/<timestamp>/<region>.json
 func CSVTemplate() string {
@@ -296,7 +412,8 @@ func parseCSV(path string) ([]AccountTarget, error) {
 
 // selectProfilesInteractive discovers AWS CLI profiles from ~/.aws/config
 // and presents an interactive numbered list for the user to pick from.
-// Returns the selected targets and the output directory (may be empty for single-region).
+// Returns the selected targets and the output directory (may be empty
+// for single-region).
 func selectProfilesInteractive() ([]AccountTarget, string, error) {
 	profiles, err := discoverAWSProfiles()
 	if err != nil {
@@ -306,7 +423,7 @@ func selectProfilesInteractive() ([]AccountTarget, string, error) {
 		return nil, "", fmt.Errorf("no AWS profiles found in ~/.aws/config or ~/.aws/credentials\n\nConfigure profiles with:\n  aws configure --profile <name>\n  aws configure sso\n  osirisjson-producer aws setup-sso --start-url <URL>")
 	}
 
-	fmt.Fprintf(os.Stderr, "\nDiscovered AWS CLI profiles:\n\n")
+	fmt.Fprintf(os.Stderr, "\nDiscovered AWS Accounts:\n\n")
 
 	// Calculate column widths.
 	maxName := len("Profile")
@@ -317,14 +434,14 @@ func selectProfilesInteractive() ([]AccountTarget, string, error) {
 	}
 
 	noW := 4
-	fmt.Fprintf(os.Stderr, "%-*s  %s\n", noW, "No", "Profile")
+	fmt.Fprintf(os.Stderr, "%-*s  %s\n", noW, "ID", "Account name")
 	fmt.Fprintf(os.Stderr, "%-*s  %s\n", noW, strings.Repeat("-", noW), strings.Repeat("-", maxName))
 
 	for i, p := range profiles {
 		fmt.Fprintf(os.Stderr, "%-*d  %s\n", noW, i+1, p)
 	}
 
-	fmt.Fprintf(os.Stderr, "\nSelect profiles (e.g. 1,3,5 or 30-55 or 'all'): ")
+	fmt.Fprintf(os.Stderr, "\nSelect an account (e.g. 1,3,5 or 30-55 or 'all'): ")
 	reader := bufio.NewReader(os.Stdin)
 	input, err := reader.ReadString('\n')
 	if err != nil {
@@ -394,9 +511,11 @@ func selectProfilesInteractive() ([]AccountTarget, string, error) {
 	return targets, "", nil
 }
 
-// discoverAWSProfiles reads AWS CLI profile names from ~/.aws/config and
-// ~/.aws/credentials. In config, profiles appear as [profile <name>] sections
-// (plus [default]). In credentials, every section header [<name>] is a profile.
+// discoverAWSProfiles reads AWS CLI profile names from ~/.aws/config
+// and ~/.aws/credentials, or from the files named by AWS_CONFIG_FILE
+// and AWS_SHARED_CREDENTIALS_FILE, as the AWS SDK does. In config,
+// profiles appear as [profile <name>] sections (plus [default]).
+// In credentials, every section header [<name>] is a profile.
 // Results from both files are merged and deduplicated.
 func discoverAWSProfiles() ([]string, error) {
 	home, err := os.UserHomeDir()
@@ -407,13 +526,20 @@ func discoverAWSProfiles() ([]string, error) {
 	seen := map[string]bool{}
 
 	// Parse ~/.aws/config - sections are [default] or [profile <name>].
-	configPath := filepath.Join(home, ".aws", "config")
+	configPath := os.Getenv("AWS_CONFIG_FILE")
+	if configPath == "" {
+		configPath = filepath.Join(home, ".aws", "config")
+	}
 	if err := parseINISections(configPath, true, seen); err != nil {
 		return nil, err
 	}
 
-	// Parse ~/.aws/credentials - every section [<name>] is a profile directly.
-	credPath := filepath.Join(home, ".aws", "credentials")
+	// Parse ~/.aws/credentials - every section [<name>] is a profile
+	// directly.
+	credPath := os.Getenv("AWS_SHARED_CREDENTIALS_FILE")
+	if credPath == "" {
+		credPath = filepath.Join(home, ".aws", "credentials")
+	}
 	if err := parseINISections(credPath, false, seen); err != nil {
 		return nil, err
 	}
@@ -426,10 +552,11 @@ func discoverAWSProfiles() ([]string, error) {
 	return profiles, nil
 }
 
-// parseINISections reads INI-style section headers from a file and adds profile
-// names to the seen map. When isConfig is true, sections follow the config file
-// convention ([default] or [profile <name>]). When false, every section header
-// is treated as a profile name (credentials file convention).
+// parseINISections reads INI-style section headers from a file and adds
+// profile names to the seen map. When isConfig is true, sections follow
+// the config file convention ([default] or [profile <name>]).
+// When false, every section header is treated as a profile name
+// (credentials file convention).
 func parseINISections(path string, isConfig bool, seen map[string]bool) error {
 	f, err := os.Open(path)
 	if err != nil {
@@ -466,8 +593,9 @@ func parseINISections(path string, isConfig bool, seen map[string]bool) error {
 	return scanner.Err()
 }
 
-// parseSelection parses an interactive selection string into 0-based indices.
-// Supports: "all", individual numbers "1,3,5", ranges "30-55", and combinations "1,3,30-55".
+// parseSelection parses an interactive selection string into 0-based
+// indices. Supports: "all", individual numbers "1,3,5", ranges "30-55"
+// and combinations "1,3,30-55".
 func parseSelection(input string, count int) ([]int, error) {
 	if strings.EqualFold(strings.TrimSpace(input), "all") {
 		indices := make([]int, count)
