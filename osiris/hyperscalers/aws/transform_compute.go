@@ -1,6 +1,6 @@
 // transform_compute.go - compute orchestration resource transforms.
-// Maps EKS clusters/node groups, ECS clusters/services, and Auto Scaling Groups
-// to OSIRIS JSON types following the spec chapter 7 type taxonomy.
+// Maps EKS clusters/node groups, ECS clusters/services and Auto Scaling
+// Groups to OSIRIS JSON types following the chapter 7 type taxonomy.
 //
 // Standard types (OSIRIS JSON spec chapter 7):
 //   ecs:service              -> application.service (7.2.5)
@@ -28,8 +28,10 @@ import (
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
-// TransformEKSClusters converts EKS clusters to osiris.aws.eks.cluster resources.
-// Returns resources and a clusterName->resourceID map for node group connection wiring.
+// TransformEKSClusters converts EKS clusters to osiris.aws.eks.cluster
+// resources.
+// Returns resources and a clusterName->resourceID map for node group
+// connection wiring.
 func TransformEKSClusters(clusters []ekstypes.Cluster, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(clusters))
@@ -104,8 +106,8 @@ func TransformEKSClusters(clusters []ekstypes.Cluster, region, accountID string)
 	return resources, idMap
 }
 
-// TransformEKSNodeGroups converts EKS node groups to osiris.aws.eks.nodegroup resources.
-// Returns resources and a nodegroupARN->resourceID map.
+// TransformEKSNodeGroups converts EKS node groups to osiris.aws.eks.nodegroup
+// resources. Returns resources and a nodegroupARN->resourceID map.
 func TransformEKSNodeGroups(entries []EKSNodeGroupEntry, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(entries))
@@ -169,8 +171,8 @@ func TransformEKSNodeGroups(entries []EKSNodeGroupEntry, region, accountID strin
 	return resources, idMap
 }
 
-// TransformECSClusters converts ECS clusters to osiris.aws.ecs.cluster resources.
-// Returns resources and a clusterARN->resourceID map.
+// TransformECSClusters converts ECS clusters to osiris.aws.ecs.cluster
+// resources. Returns resources and a clusterARN->resourceID map.
 func TransformECSClusters(clusters []ecstypes.Cluster, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(clusters))
@@ -216,9 +218,10 @@ func TransformECSClusters(clusters []ecstypes.Cluster, region, accountID string)
 	return resources, idMap
 }
 
-// TransformECSServices converts ECS services to application.service resources.
-// subnetVPCMap (subnetID->vpcID) is used to populate vpc_id for VPC group wiring.
-// Returns resources and a serviceARN->resourceID map.
+// TransformECSServices converts ECS services to application.service
+// resources. subnetVPCMap (subnetID->vpcID) is used to populate vpc_id
+// for VPC group wiring. Returns resources and a serviceARN->resourceID
+// map.
 func TransformECSServices(services []ecstypes.Service, subnetVPCMap map[string]string, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(services))
@@ -288,8 +291,8 @@ func TransformECSServices(services []ecstypes.Service, subnetVPCMap map[string]s
 }
 
 // TransformAutoScalingGroups converts ASGs to osiris.aws.asg resources.
-// subnetVPCMap (subnetID->vpcID) is used to populate vpc_id for VPC group wiring.
-// Returns resources and an asgName->resourceID map.
+// subnetVPCMap (subnetID->vpcID) is used to populate vpc_id for VPC
+// group wiring. Returns resources and an asgName->resourceID map.
 func TransformAutoScalingGroups(groups []astypes.AutoScalingGroup, subnetVPCMap map[string]string, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(groups))
@@ -365,7 +368,8 @@ func TransformAutoScalingGroups(groups []astypes.AutoScalingGroup, subnetVPCMap 
 	return resources, idMap
 }
 
-// TransformEKSClusterToSubnetConnections creates network connections from EKS clusters to their subnets.
+// TransformEKSClusterToSubnetConnections creates network connections
+// from EKS clusters to their subnets.
 func TransformEKSClusterToSubnetConnections(clusters []ekstypes.Cluster, clusterIDMap, subnetIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, c := range clusters {
@@ -392,7 +396,8 @@ func TransformEKSClusterToSubnetConnections(clusters []ekstypes.Cluster, cluster
 	return connections
 }
 
-// TransformEKSClusterContainsNodeGroupConnections creates contains edges from EKS clusters to node groups.
+// TransformEKSClusterContainsNodeGroupConnections creates contains
+// edges from EKS clusters to node groups.
 func TransformEKSClusterContainsNodeGroupConnections(entries []EKSNodeGroupEntry, clusterIDMap, nodegroupIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, e := range entries {
@@ -414,7 +419,8 @@ func TransformEKSClusterContainsNodeGroupConnections(entries []EKSNodeGroupEntry
 	return connections
 }
 
-// TransformEKSNodeGroupToSubnetConnections creates network connections from node groups to their subnets.
+// TransformEKSNodeGroupToSubnetConnections creates network connections
+// from node groups to their subnets.
 func TransformEKSNodeGroupToSubnetConnections(entries []EKSNodeGroupEntry, nodegroupIDMap, subnetIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, e := range entries {
@@ -438,7 +444,8 @@ func TransformEKSNodeGroupToSubnetConnections(entries []EKSNodeGroupEntry, nodeg
 	return connections
 }
 
-// TransformECSClusterContainsServiceConnections creates contains edges from ECS clusters to services.
+// TransformECSClusterContainsServiceConnections creates contains edges
+// from ECS clusters to services.
 func TransformECSClusterContainsServiceConnections(services []ecstypes.Service, clusterIDMap, serviceIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, s := range services {
@@ -461,7 +468,8 @@ func TransformECSClusterContainsServiceConnections(services []ecstypes.Service, 
 	return connections
 }
 
-// TransformECSServiceToSubnetConnections creates network connections from ECS services to their subnets.
+// TransformECSServiceToSubnetConnections creates network connections
+// from ECS services to their subnets.
 func TransformECSServiceToSubnetConnections(services []ecstypes.Service, serviceIDMap, subnetIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, s := range services {
@@ -488,7 +496,8 @@ func TransformECSServiceToSubnetConnections(services []ecstypes.Service, service
 	return connections
 }
 
-// TransformECSServiceToSGConnections creates network connections from ECS services to their security groups.
+// TransformECSServiceToSGConnections creates network connections from
+// ECS services to their security groups.
 func TransformECSServiceToSGConnections(services []ecstypes.Service, serviceIDMap, sgIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, s := range services {
@@ -515,7 +524,8 @@ func TransformECSServiceToSGConnections(services []ecstypes.Service, serviceIDMa
 	return connections
 }
 
-// TransformASGToSubnetConnections creates network connections from ASGs to their subnets.
+// TransformASGToSubnetConnections creates network connections from
+// ASGs to their subnets.
 func TransformASGToSubnetConnections(groups []astypes.AutoScalingGroup, asgIDMap, subnetIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, g := range groups {
@@ -539,7 +549,8 @@ func TransformASGToSubnetConnections(groups []astypes.AutoScalingGroup, asgIDMap
 	return connections
 }
 
-// TransformASGToInstanceConnections creates containment connections from ASGs to their current EC2 instances.
+// TransformASGToInstanceConnections creates containment connections
+// from ASGs to their current EC2 instances.
 func TransformASGToInstanceConnections(groups []astypes.AutoScalingGroup, asgIDMap map[string]string, region, accountID string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, g := range groups {
@@ -569,11 +580,11 @@ func mapEKSClusterStatus(s ekstypes.ClusterStatus) string {
 	case ekstypes.ClusterStatusActive:
 		return "active"
 	case ekstypes.ClusterStatusCreating:
-		return "provisioning"
+		return "inactive"
 	case ekstypes.ClusterStatusUpdating:
-		return "maintenance"
+		return "active"
 	case ekstypes.ClusterStatusDeleting:
-		return "decommissioned"
+		return "retired"
 	case ekstypes.ClusterStatusFailed:
 		return "degraded"
 	default:
@@ -586,11 +597,11 @@ func mapEKSNodeGroupStatus(s ekstypes.NodegroupStatus) string {
 	case ekstypes.NodegroupStatusActive:
 		return "active"
 	case ekstypes.NodegroupStatusCreating:
-		return "provisioning"
+		return "inactive"
 	case ekstypes.NodegroupStatusUpdating:
-		return "maintenance"
+		return "active"
 	case ekstypes.NodegroupStatusDeleting:
-		return "decommissioned"
+		return "retired"
 	case ekstypes.NodegroupStatusDegraded, ekstypes.NodegroupStatusCreateFailed, ekstypes.NodegroupStatusDeleteFailed:
 		return "degraded"
 	default:
@@ -603,9 +614,9 @@ func mapECSClusterStatus(s string) string {
 	case "ACTIVE":
 		return "active"
 	case "INACTIVE", "DEPROVISIONING":
-		return "decommissioned"
+		return "retired"
 	case "PROVISIONING":
-		return "provisioning"
+		return "inactive"
 	case "FAILED":
 		return "degraded"
 	default:
@@ -618,9 +629,9 @@ func mapECSServiceStatus(s string) string {
 	case "ACTIVE":
 		return "active"
 	case "INACTIVE":
-		return "decommissioned"
+		return "retired"
 	case "DRAINING":
-		return "maintenance"
+		return "inactive"
 	default:
 		return "unknown"
 	}
@@ -631,13 +642,13 @@ func mapASGStatus(s *string) string {
 		return "active"
 	}
 	if strings.Contains(*s, "Delete") {
-		return "decommissioned"
+		return "retired"
 	}
 	return "active"
 }
 
-// makeConn builds an sdk.Connection using the canonical key pattern, returning
-// nil on error so callers can skip with a single nil check.
+// makeConn builds an sdk.Connection using the canonical key pattern,
+// returning nil on error so callers can skip with a single nil check.
 func makeConn(connType, direction, sourceID, targetID, name string) *sdk.Connection {
 	canonicalKey := sdk.ConnectionCanonicalKey(sdk.ConnectionIDInput{
 		Type:      connType,
@@ -671,8 +682,9 @@ func parseVPCZoneIdentifier(s string) []string {
 	return ids
 }
 
-// buildSubnetVPCMap builds a subnetID->vpcID lookup from collected subnets.
-// Used by ECS service and ASG transforms to derive vpc_id for group wiring.
+// buildSubnetVPCMap builds a subnetID->vpcID lookup from collected
+// subnets. Used by ECS service and ASG transforms to derive vpc_id for
+// group wiring.
 func buildSubnetVPCMap(subnets []ec2types.Subnet) map[string]string {
 	m := make(map[string]string, len(subnets))
 	for _, s := range subnets {
