@@ -1,29 +1,20 @@
 # OSIRIS JSON Maintainers
 
-## Descriptions of section entries and preferred order
-| Tag | Field | Description | Format / Allowed values | Notes / Examples |
-|---|---|---|---|---|
-| M | Mail | Patches should be sent to | `FullName <address@domain>` | Example: `Jane Doe <jdoe@example.com>` |
-| S | Status | Maintenance status | `Maintained` \| `Orphan` \| `Obsolete` | **Maintained:** actively maintained<br>**Orphan:** no current maintainer<br>**Obsolete:** replaced by a better system |
-| F | Files | File/dir wildcard patterns | One pattern per line (multiple `F:` lines allowed) | Trailing `/` includes all files and subdirectories. See examples below. |
+We develop OSIRIS JSON as an open-source community project and welcome
+contributions, questions and feedback.
 
-| Pattern example | Meaning |
-|---|---|
-| `osiris/` | All files in and below `osiris/` |
-| `osiris/*` | All files in `osiris/`, but not below it |
-| `*/osiris/*` | All files in `osiris/` under any top-level directory |
+## Maintainers (in alphabetical order)
 
+- [Tia Zanella (@skhell)](https://github.com/skhell)
 
-## Maintainers List
+## Contributing and contacting us
 
-When reading this list, please look for the most precise areas first. When adding to this list, please keep the entries in alphabetical order.
+Please use [GitHub Discussions](https://github.com/orgs/osirisjson/discussions)
+for questions, ideas and general feedback, GitHub issues for specific
+problems or actionable proposals, and pull requests for changes.
+This keeps conversations available to the community.
 
-**ORIGINAL CREATOR & LEAD MAINTAINER**
-| Tag | Field |
-|---|---|
-|M|Tia Zanella @skhell <tiazanella@osirisjson.org>|
-|S|Maintained|
-|F|*|
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidance.
 
-**CONTRIBUTORS**
-
+We maintain OSIRIS JSON alongside other commitments, so responses and
+reviews may take some time. Thank you for your patience.
