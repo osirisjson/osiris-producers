@@ -120,8 +120,16 @@ type catalogAccount struct {
 }
 
 // collectAccountCatalog reads the caller's organization and account
-// name into data. A caller outside any organization is not an error.
+// name into data. Each read has its own catalogTimeout budget.
 func (c *Client) collectAccountCatalog(data *RegionData) {
+	c.collectOrganization(data)
+	c.collectAccountName(data)
+}
+
+// collectOrganization reads the caller's organization and, when it
+// exists, the names of its accounts into data. A caller outside any
+// organization is not an error.
+func (c *Client) collectOrganization(data *RegionData) {
 	ctx, cancel := context.WithTimeout(context.Background(), catalogTimeout)
 	defer cancel()
 	org, err := organizations.NewFromConfig(c.awsCfg).DescribeOrganization(ctx, &organizations.DescribeOrganizationInput{})
@@ -138,10 +146,14 @@ func (c *Client) collectAccountCatalog(data *RegionData) {
 		}
 		c.collectOrganizationAccounts(data)
 	}
+}
 
-	nameCtx, cancelName := context.WithTimeout(context.Background(), catalogTimeout)
-	defer cancelName()
-	info, err := account.NewFromConfig(c.awsCfg).GetAccountInformation(nameCtx, &account.GetAccountInformationInput{})
+// collectAccountName reads the verified caller's account name into
+// data.
+func (c *Client) collectAccountName(data *RegionData) {
+	ctx, cancel := context.WithTimeout(context.Background(), catalogTimeout)
+	defer cancel()
+	info, err := account.NewFromConfig(c.awsCfg).GetAccountInformation(ctx, &account.GetAccountInformationInput{})
 	if err != nil {
 		c.logCollectErr("account name", err)
 		return
