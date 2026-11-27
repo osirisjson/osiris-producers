@@ -1,0 +1,25 @@
+{
+  "Identity": {
+    "AccountID": "123456789012",
+    "Arn": "arn:aws:iam::123456789012:user/TEST-USER",
+    "UserID": "TESTUSERID",
+    "Partition": "aws"
+  },
+  "Region": "eu-west-1",
+  "S3Buckets": [
+    {
+      "Name": "test-bucket-read",
+      "Region": "eu-west-1",
+      "Tags": {"Name": "TEST-BUCKET-READ"},
+      "Versioning": "Enabled",
+      "EncryptionAlgorithm": "aws:kms",
+      "BlockPublicAccess": true
+    },
+    {
+      "Name": "test-bucket-denied",
+      "Region": "eu-west-1",
+      "Tags": {"Name": "TEST-BUCKET-DENIED", "api_token": "changeme"},
+      "Unverified": ["versioning", "encryption", "block_public_access"]
+    }
+  ]
+}

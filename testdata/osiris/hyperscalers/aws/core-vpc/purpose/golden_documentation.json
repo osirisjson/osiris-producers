@@ -1,0 +1,388 @@
+{
+  "$schema": "https://osirisjson.org/schema/v1.0/osiris.schema.json",
+  "version": "1.0.0",
+  "metadata": {
+    "timestamp": "2026-01-02T03:04:05Z",
+    "generator": {
+      "name": "osirisjson-producer-aws",
+      "version": "0.2.0",
+      "url": "https://docs.osirisjson.org/osiris-producers/hyperscalers/amazon-aws/"
+    },
+    "scope": {
+      "name": "TEST-ACCOUNT",
+      "purpose": "documentation",
+      "providers": [
+        "aws"
+      ],
+      "accounts": [
+        "123456789012"
+      ],
+      "regions": [
+        "eu-west-1"
+      ],
+      "environments": [
+        "test"
+      ]
+    },
+    "coverage": {
+      "services_attempted": [
+        "acm",
+        "apigateway",
+        "apigatewayv2",
+        "autoscaling",
+        "backup",
+        "cloudwatchlogs",
+        "directconnect",
+        "docdb",
+        "dynamodb",
+        "ec2",
+        "ecr",
+        "ecs",
+        "efs",
+        "eks",
+        "elasticache",
+        "elb",
+        "elbv2",
+        "eventbridge",
+        "fsx",
+        "kafka",
+        "kinesis",
+        "kms",
+        "lambda",
+        "memorydb",
+        "neptune",
+        "networkfirewall",
+        "opensearch",
+        "ram",
+        "rds",
+        "redshift",
+        "route53resolver",
+        "s3",
+        "secretsmanager",
+        "sfn",
+        "sns",
+        "sqs",
+        "wafv2"
+      ],
+      "services_succeeded": [
+        "ec2"
+      ]
+    },
+    "osiris.aws": {
+      "accounts": {
+        "123456789012": {
+          "coverage": "exported"
+        }
+      },
+      "coverage": {
+        "core_complete": true,
+        "core_operations": [
+          {
+            "service": "ec2",
+            "operation": "DescribeInstances",
+            "outcome": "succeeded",
+            "pages": 1,
+            "items": 1
+          },
+          {
+            "service": "ec2",
+            "operation": "DescribeNetworkInterfaces",
+            "outcome": "succeeded",
+            "pages": 1,
+            "items": 2
+          },
+          {
+            "service": "ec2",
+            "operation": "DescribeRouteTables",
+            "outcome": "succeeded",
+            "pages": 1,
+            "items": 2
+          },
+          {
+            "service": "ec2",
+            "operation": "DescribeSubnets",
+            "outcome": "succeeded",
+            "pages": 1,
+            "items": 2
+          },
+          {
+            "service": "ec2",
+            "operation": "DescribeVpcs",
+            "outcome": "succeeded",
+            "pages": 1,
+            "items": 1
+          }
+        ],
+        "schema": "operation-outcomes/v1",
+        "unverified_pagination": [
+          "acm",
+          "apigateway",
+          "apigatewayv2",
+          "autoscaling",
+          "backup",
+          "cloudwatchlogs",
+          "directconnect",
+          "docdb",
+          "dynamodb",
+          "ec2",
+          "ecr",
+          "ecs",
+          "efs",
+          "eks",
+          "elasticache",
+          "elb",
+          "elbv2",
+          "eventbridge",
+          "fsx",
+          "kafka",
+          "kinesis",
+          "kms",
+          "lambda",
+          "memorydb",
+          "neptune",
+          "networkfirewall",
+          "opensearch",
+          "ram",
+          "rds",
+          "redshift",
+          "route53resolver",
+          "s3",
+          "secretsmanager",
+          "sfn",
+          "sns",
+          "sqs",
+          "wafv2"
+        ]
+      }
+    }
+  },
+  "topology": {
+    "resources": [
+      {
+        "id": "aws::arn:aws:ec2:eu-west-1:123456789012:instance/i-00000000000000001",
+        "type": "compute.vm",
+        "name": "TEST-VM01",
+        "provider": {
+          "name": "aws",
+          "native_id": "i-00000000000000001",
+          "account": "123456789012",
+          "type": "AWS::EC2::Instance",
+          "region": "eu-west-1",
+          "zone": "eu-west-1a",
+          "source": "aws-sdk-go-v2"
+        },
+        "status": "active",
+        "state": "running",
+        "tags": {
+          "Name": "TEST-VM01"
+        }
+      },
+      {
+        "id": "aws::arn:aws:ec2:eu-west-1:123456789012:network-interface/eni-00000000000000001",
+        "type": "network.interface",
+        "name": "TEST-ENI-ATTACHED",
+        "provider": {
+          "name": "aws",
+          "native_id": "eni-00000000000000001",
+          "account": "123456789012",
+          "type": "AWS::EC2::NetworkInterface",
+          "region": "eu-west-1",
+          "zone": "eu-west-1a",
+          "source": "aws-sdk-go-v2"
+        },
+        "status": "active",
+        "tags": {
+          "Name": "TEST-ENI-ATTACHED"
+        }
+      },
+      {
+        "id": "aws::arn:aws:ec2:eu-west-1:123456789012:network-interface/eni-00000000000000002",
+        "type": "network.interface",
+        "name": "TEST-ENI-DETACHED",
+        "provider": {
+          "name": "aws",
+          "native_id": "eni-00000000000000002",
+          "account": "123456789012",
+          "type": "AWS::EC2::NetworkInterface",
+          "region": "eu-west-1",
+          "zone": "eu-west-1b",
+          "source": "aws-sdk-go-v2"
+        },
+        "status": "inactive",
+        "tags": {
+          "Name": "TEST-ENI-DETACHED"
+        }
+      },
+      {
+        "id": "aws::arn:aws:ec2:eu-west-1:123456789012:route-table/rtb-00000000000000001",
+        "type": "osiris.aws.routetable",
+        "name": "TEST-RTB-MAIN",
+        "provider": {
+          "name": "aws",
+          "native_id": "rtb-00000000000000001",
+          "account": "123456789012",
+          "type": "AWS::EC2::RouteTable",
+          "region": "eu-west-1",
+          "source": "aws-sdk-go-v2"
+        },
+        "status": "active",
+        "tags": {
+          "Name": "TEST-RTB-MAIN"
+        }
+      },
+      {
+        "id": "aws::arn:aws:ec2:eu-west-1:123456789012:route-table/rtb-00000000000000002",
+        "type": "osiris.aws.routetable",
+        "name": "TEST-RTB-EXPLICIT",
+        "provider": {
+          "name": "aws",
+          "native_id": "rtb-00000000000000002",
+          "account": "123456789012",
+          "type": "AWS::EC2::RouteTable",
+          "region": "eu-west-1",
+          "source": "aws-sdk-go-v2"
+        },
+        "status": "active",
+        "tags": {
+          "Name": "TEST-RTB-EXPLICIT"
+        }
+      },
+      {
+        "id": "aws::arn:aws:ec2:eu-west-1:123456789012:subnet/subnet-00000000000000001",
+        "type": "network.subnet",
+        "name": "TEST-SUBNET-EXPLICIT",
+        "provider": {
+          "name": "aws",
+          "native_id": "subnet-00000000000000001",
+          "account": "123456789012",
+          "type": "AWS::EC2::Subnet",
+          "region": "eu-west-1",
+          "zone": "eu-west-1a",
+          "source": "aws-sdk-go-v2"
+        },
+        "status": "active",
+        "tags": {
+          "Name": "TEST-SUBNET-EXPLICIT"
+        }
+      },
+      {
+        "id": "aws::arn:aws:ec2:eu-west-1:123456789012:subnet/subnet-00000000000000002",
+        "type": "network.subnet",
+        "name": "TEST-SUBNET-MAIN",
+        "provider": {
+          "name": "aws",
+          "native_id": "subnet-00000000000000002",
+          "account": "123456789012",
+          "type": "AWS::EC2::Subnet",
+          "region": "eu-west-1",
+          "zone": "eu-west-1b",
+          "source": "aws-sdk-go-v2"
+        },
+        "status": "active",
+        "tags": {
+          "Name": "TEST-SUBNET-MAIN"
+        }
+      },
+      {
+        "id": "aws::arn:aws:ec2:eu-west-1:123456789012:vpc/vpc-00000000000000001",
+        "type": "network.vpc",
+        "name": "TEST-VPC",
+        "provider": {
+          "name": "aws",
+          "native_id": "vpc-00000000000000001",
+          "account": "123456789012",
+          "type": "AWS::EC2::VPC",
+          "region": "eu-west-1",
+          "source": "aws-sdk-go-v2"
+        },
+        "status": "active",
+        "tags": {
+          "Name": "TEST-VPC",
+          "webhook": "[REDACTED]"
+        }
+      }
+    ],
+    "connections": [
+      {
+        "id": "conn-contains-vpc-00000000000000001-to-subnet-00000000000000001-48f927b15db40e96",
+        "type": "contains",
+        "source": "aws::arn:aws:ec2:eu-west-1:123456789012:vpc/vpc-00000000000000001",
+        "target": "aws::arn:aws:ec2:eu-west-1:123456789012:subnet/subnet-00000000000000001",
+        "direction": "forward",
+        "name": "vpc-00000000000000001 contains subnet-00000000000000001"
+      },
+      {
+        "id": "conn-contains-vpc-00000000000000001-to-subnet-00000000000000002-cc88023000371db9",
+        "type": "contains",
+        "source": "aws::arn:aws:ec2:eu-west-1:123456789012:vpc/vpc-00000000000000001",
+        "target": "aws::arn:aws:ec2:eu-west-1:123456789012:subnet/subnet-00000000000000002",
+        "direction": "forward",
+        "name": "vpc-00000000000000001 contains subnet-00000000000000002"
+      },
+      {
+        "id": "conn-network-eni-00000000000000001-to-subnet-00000000000000001-41fa6e6f6ce32004",
+        "type": "network",
+        "source": "aws::arn:aws:ec2:eu-west-1:123456789012:network-interface/eni-00000000000000001",
+        "target": "aws::arn:aws:ec2:eu-west-1:123456789012:subnet/subnet-00000000000000001",
+        "direction": "forward",
+        "name": "eni-00000000000000001 -> subnet-00000000000000001"
+      },
+      {
+        "id": "conn-network-eni-00000000000000002-to-subnet-00000000000000002-5d8d7a344b739845",
+        "type": "network",
+        "source": "aws::arn:aws:ec2:eu-west-1:123456789012:network-interface/eni-00000000000000002",
+        "target": "aws::arn:aws:ec2:eu-west-1:123456789012:subnet/subnet-00000000000000002",
+        "direction": "forward",
+        "name": "eni-00000000000000002 -> subnet-00000000000000002"
+      },
+      {
+        "id": "conn-osiris.aws.eni.attachment-i-00000000000000001-to-eni-00000000000000001-614d8bdfbe139ac2",
+        "type": "osiris.aws.eni.attachment",
+        "source": "aws::arn:aws:ec2:eu-west-1:123456789012:instance/i-00000000000000001",
+        "target": "aws::arn:aws:ec2:eu-west-1:123456789012:network-interface/eni-00000000000000001",
+        "direction": "forward",
+        "name": "i-00000000000000001 -> eni-00000000000000001"
+      },
+      {
+        "id": "conn-osiris.aws.routetable.association-rtb-00000000000000001-to-subnet-00000000000000002-bf5261189daa9919",
+        "type": "osiris.aws.routetable.association",
+        "source": "aws::arn:aws:ec2:eu-west-1:123456789012:route-table/rtb-00000000000000001",
+        "target": "aws::arn:aws:ec2:eu-west-1:123456789012:subnet/subnet-00000000000000002",
+        "direction": "forward",
+        "name": "rtb-00000000000000001 -> subnet-00000000000000002"
+      },
+      {
+        "id": "conn-osiris.aws.routetable.association-rtb-00000000000000002-to-subnet-00000000000000001-3b5d8e221057bcaf",
+        "type": "osiris.aws.routetable.association",
+        "source": "aws::arn:aws:ec2:eu-west-1:123456789012:route-table/rtb-00000000000000002",
+        "target": "aws::arn:aws:ec2:eu-west-1:123456789012:subnet/subnet-00000000000000001",
+        "direction": "forward",
+        "name": "rtb-00000000000000002 -> subnet-00000000000000001"
+      }
+    ],
+    "groups": [
+      {
+        "id": "group-network.vpc-vpc-00000000000000001-a74074b93c261525",
+        "type": "network.vpc",
+        "name": "VPC TEST-VPC",
+        "members": [
+          "aws::arn:aws:ec2:eu-west-1:123456789012:instance/i-00000000000000001",
+          "aws::arn:aws:ec2:eu-west-1:123456789012:network-interface/eni-00000000000000001",
+          "aws::arn:aws:ec2:eu-west-1:123456789012:network-interface/eni-00000000000000002",
+          "aws::arn:aws:ec2:eu-west-1:123456789012:route-table/rtb-00000000000000001",
+          "aws::arn:aws:ec2:eu-west-1:123456789012:route-table/rtb-00000000000000002",
+          "aws::arn:aws:ec2:eu-west-1:123456789012:subnet/subnet-00000000000000001",
+          "aws::arn:aws:ec2:eu-west-1:123456789012:subnet/subnet-00000000000000002"
+        ]
+      },
+      {
+        "id": "group-osiris.aws.account-123456789012-8e2149d318cc8d30",
+        "type": "osiris.aws.account",
+        "name": "AWS Account 123456789012",
+        "children": [
+          "group-network.vpc-vpc-00000000000000001-a74074b93c261525"
+        ]
+      }
+    ]
+  }
+}

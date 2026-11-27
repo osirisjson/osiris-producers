@@ -1,0 +1,332 @@
+{
+  "$schema": "https://osirisjson.org/schema/v1.0/osiris.schema.json",
+  "version": "1.0.0",
+  "metadata": {
+    "timestamp": "2026-01-02T03:04:05Z",
+    "generator": {
+      "name": "osirisjson-producer-aws",
+      "version": "0.2.0",
+      "url": "https://docs.osirisjson.org/osiris-producers/hyperscalers/amazon-aws/"
+    },
+    "scope": {
+      "name": "TEST-PARTICIPANT",
+      "purpose": "documentation",
+      "providers": [
+        "aws"
+      ],
+      "accounts": [
+        "123456789012"
+      ],
+      "regions": [
+        "eu-central-1"
+      ],
+      "environments": [
+        "test"
+      ]
+    },
+    "coverage": {
+      "services_attempted": [
+        "acm",
+        "apigateway",
+        "apigatewayv2",
+        "autoscaling",
+        "backup",
+        "cloudwatchlogs",
+        "directconnect",
+        "docdb",
+        "dynamodb",
+        "ec2",
+        "ecr",
+        "ecs",
+        "efs",
+        "eks",
+        "elasticache",
+        "elb",
+        "elbv2",
+        "eventbridge",
+        "fsx",
+        "kafka",
+        "kinesis",
+        "kms",
+        "lambda",
+        "memorydb",
+        "neptune",
+        "networkfirewall",
+        "opensearch",
+        "ram",
+        "rds",
+        "redshift",
+        "route53resolver",
+        "s3",
+        "secretsmanager",
+        "sfn",
+        "sns",
+        "sqs",
+        "wafv2"
+      ],
+      "services_succeeded": [
+        "ec2"
+      ]
+    },
+    "osiris.aws": {
+      "organizations": {
+        "o-testorg0001": {
+          "management_account_id": "444455556666"
+        }
+      },
+      "accounts": {
+        "111122223333": {
+          "coverage": "reference_only",
+          "name": "TEST-NETWORK",
+          "organization_id": "o-testorg0001"
+        },
+        "123456789012": {
+          "coverage": "exported",
+          "name": "TEST-PARTICIPANT",
+          "organization_id": "o-testorg0001"
+        },
+        "444455556666": {
+          "coverage": "reference_only",
+          "organization_id": "o-testorg0001"
+        }
+      },
+      "coverage": {
+        "core_complete": true,
+        "core_operations": [
+          {
+            "service": "ec2",
+            "operation": "DescribeInstances",
+            "outcome": "succeeded-empty",
+            "pages": 1,
+            "items": 0
+          },
+          {
+            "service": "ec2",
+            "operation": "DescribeNetworkInterfaces",
+            "outcome": "succeeded-empty",
+            "pages": 1,
+            "items": 0
+          },
+          {
+            "service": "ec2",
+            "operation": "DescribeRouteTables",
+            "outcome": "succeeded-empty",
+            "pages": 1,
+            "items": 0
+          },
+          {
+            "service": "ec2",
+            "operation": "DescribeSubnets",
+            "outcome": "succeeded-empty",
+            "pages": 1,
+            "items": 0
+          },
+          {
+            "service": "ec2",
+            "operation": "DescribeVpcs",
+            "outcome": "succeeded",
+            "pages": 1,
+            "items": 2
+          }
+        ],
+        "schema": "operation-outcomes/v1",
+        "unverified_pagination": [
+          "acm",
+          "apigateway",
+          "apigatewayv2",
+          "autoscaling",
+          "backup",
+          "cloudwatchlogs",
+          "directconnect",
+          "docdb",
+          "dynamodb",
+          "ec2",
+          "ecr",
+          "ecs",
+          "efs",
+          "eks",
+          "elasticache",
+          "elb",
+          "elbv2",
+          "eventbridge",
+          "fsx",
+          "kafka",
+          "kinesis",
+          "kms",
+          "lambda",
+          "memorydb",
+          "neptune",
+          "networkfirewall",
+          "opensearch",
+          "ram",
+          "rds",
+          "redshift",
+          "route53resolver",
+          "s3",
+          "secretsmanager",
+          "sfn",
+          "sns",
+          "sqs",
+          "wafv2"
+        ]
+      }
+    }
+  },
+  "topology": {
+    "resources": [
+      {
+        "id": "aws::arn:aws:ec2:eu-central-1:111122223333:transit-gateway/tgw-00000000000000001",
+        "type": "osiris.aws.transitgateway",
+        "name": "TEST-TGW-SHARED",
+        "provider": {
+          "name": "aws",
+          "native_id": "arn:aws:ec2:eu-central-1:111122223333:transit-gateway/tgw-00000000000000001",
+          "account": "111122223333",
+          "type": "AWS::EC2::TransitGateway",
+          "region": "eu-central-1",
+          "source": "aws-sdk-go-v2"
+        },
+        "status": "active"
+      },
+      {
+        "id": "aws::arn:aws:ec2:eu-central-1:123456789012:transit-gateway-attachment/tgw-attach-00000000000000001",
+        "type": "osiris.aws.transitgateway.attachment",
+        "name": "TEST-ATTACH-SHARED",
+        "provider": {
+          "name": "aws",
+          "native_id": "tgw-attach-00000000000000001",
+          "account": "123456789012",
+          "type": "AWS::EC2::TransitGatewayAttachment",
+          "region": "eu-central-1",
+          "source": "aws-sdk-go-v2"
+        },
+        "status": "active",
+        "tags": {
+          "Name": "TEST-ATTACH-SHARED"
+        }
+      },
+      {
+        "id": "aws::arn:aws:ec2:eu-central-1:123456789012:transit-gateway-attachment/tgw-attach-00000000000000002",
+        "type": "osiris.aws.transitgateway.attachment",
+        "name": "TEST-ATTACH-REMOTE",
+        "provider": {
+          "name": "aws",
+          "native_id": "tgw-attach-00000000000000002",
+          "account": "123456789012",
+          "type": "AWS::EC2::TransitGatewayAttachment",
+          "region": "eu-central-1",
+          "source": "aws-sdk-go-v2"
+        },
+        "status": "active",
+        "tags": {
+          "Name": "TEST-ATTACH-REMOTE"
+        }
+      },
+      {
+        "id": "aws::arn:aws:ec2:eu-central-1:123456789012:vpc/vpc-00000000000000001",
+        "type": "network.vpc",
+        "name": "TEST-VPC-SPOKE",
+        "provider": {
+          "name": "aws",
+          "native_id": "vpc-00000000000000001",
+          "account": "123456789012",
+          "type": "AWS::EC2::VPC",
+          "region": "eu-central-1",
+          "source": "aws-sdk-go-v2"
+        },
+        "status": "active",
+        "tags": {
+          "Name": "TEST-VPC-SPOKE"
+        }
+      },
+      {
+        "id": "aws::arn:aws:ec2:eu-central-1:123456789012:vpc/vpc-00000000000000002",
+        "type": "network.vpc",
+        "name": "TEST-VPC-REMOTE",
+        "provider": {
+          "name": "aws",
+          "native_id": "vpc-00000000000000002",
+          "account": "123456789012",
+          "type": "AWS::EC2::VPC",
+          "region": "eu-central-1",
+          "source": "aws-sdk-go-v2"
+        },
+        "status": "active",
+        "tags": {
+          "Name": "TEST-VPC-REMOTE"
+        }
+      },
+      {
+        "id": "aws::arn:aws:ec2:eu-central-1:444455556666:transit-gateway/tgw-00000000000000002",
+        "type": "osiris.aws.transitgateway",
+        "name": "tgw-00000000000000002",
+        "description": "Cross-account resource (not accessible via current profile; owner account 444455556666)",
+        "provider": {
+          "name": "aws",
+          "native_id": "tgw-00000000000000002",
+          "account": "444455556666",
+          "type": "ec2:transit-gateway",
+          "region": "eu-central-1",
+          "source": "aws-sdk-go-v2"
+        },
+        "status": "unknown",
+        "state": "cross-account"
+      }
+    ],
+    "connections": [
+      {
+        "id": "conn-network-tgw-attach-0000000000000-to-tgw-00000000000000001-20d46c156039417e",
+        "type": "network",
+        "source": "aws::arn:aws:ec2:eu-central-1:123456789012:transit-gateway-attachment/tgw-attach-00000000000000001",
+        "target": "aws::arn:aws:ec2:eu-central-1:111122223333:transit-gateway/tgw-00000000000000001",
+        "direction": "forward",
+        "name": "tgw-attach-00000000000000001 -> tgw-00000000000000001"
+      },
+      {
+        "id": "conn-network-tgw-attach-0000000000000-to-tgw-00000000000000002-2056d118c4f740e6",
+        "type": "network",
+        "source": "aws::arn:aws:ec2:eu-central-1:123456789012:transit-gateway-attachment/tgw-attach-00000000000000002",
+        "target": "aws::arn:aws:ec2:eu-central-1:444455556666:transit-gateway/tgw-00000000000000002",
+        "direction": "forward",
+        "name": "tgw-attach-00000000000000002 -> tgw-00000000000000002"
+      },
+      {
+        "id": "conn-network-tgw-attach-0000000000000-to-vpc-00000000000000001-8adf2730b99fb5d8",
+        "type": "network",
+        "source": "aws::arn:aws:ec2:eu-central-1:123456789012:transit-gateway-attachment/tgw-attach-00000000000000001",
+        "target": "aws::arn:aws:ec2:eu-central-1:123456789012:vpc/vpc-00000000000000001",
+        "direction": "forward",
+        "name": "tgw-attach-00000000000000001 -> vpc-00000000000000001"
+      },
+      {
+        "id": "conn-network-tgw-attach-0000000000000-to-vpc-00000000000000002-a3a5b74a930e1e0d",
+        "type": "network",
+        "source": "aws::arn:aws:ec2:eu-central-1:123456789012:transit-gateway-attachment/tgw-attach-00000000000000002",
+        "target": "aws::arn:aws:ec2:eu-central-1:123456789012:vpc/vpc-00000000000000002",
+        "direction": "forward",
+        "name": "tgw-attach-00000000000000002 -> vpc-00000000000000002"
+      }
+    ],
+    "groups": [
+      {
+        "id": "group-network.vpc-vpc-00000000000000001-259236ca02159de7",
+        "type": "network.vpc",
+        "name": "VPC TEST-VPC-SPOKE"
+      },
+      {
+        "id": "group-network.vpc-vpc-00000000000000002-98379c6464c67a4d",
+        "type": "network.vpc",
+        "name": "VPC TEST-VPC-REMOTE"
+      },
+      {
+        "id": "group-osiris.aws.account-123456789012-8e2149d318cc8d30",
+        "type": "osiris.aws.account",
+        "name": "AWS Account 123456789012",
+        "children": [
+          "group-network.vpc-vpc-00000000000000001-259236ca02159de7",
+          "group-network.vpc-vpc-00000000000000002-98379c6464c67a4d"
+        ]
+      }
+    ]
+  }
+}
