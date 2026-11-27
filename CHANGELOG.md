@@ -39,7 +39,57 @@ OSIRIS JSON core schema itself, see the [OSIRIS JSON Repository](https://github.
 
 ---
 
-## [Unreleased]
+## [0.14.0] - 2026-11-27
+
+The Amazon AWS OSIRIS JSON producer behavior version 0.2.0: safe export,
+verified caller identity, account selection, an organization and account
+catalog, paged core collection with operation outcomes and a
+schema-valid VPC graph. No other OSIRIS JSON producer's emitted
+documents or behavior version changed.
+
+| Producer | Behavior version |
+|----------|------------------|
+| Amazon Web Services OSIRIS JSON producer | [0.2.0](osiris/hyperscalers/aws/CHANGELOG.md#020---2026-11-27) |
+| Microsoft Azure OSIRIS JSON producer | 0.6.0 (no change) |
+| Cisco APIC OSIRIS JSON producer | 0.4.0 (no change) |
+| Cisco IOS-XE OSIRIS JSON producer | 0.2.0 (no change) |
+| Cisco NX-OS OSIRIS JSON producer | 0.2.1 (no change) |
+| Cisco Catalyst SD-WAN Manager OSIRIS JSON producer | 0.2.0 (no change) |
+| HPE Aruba Networking Central OSIRIS JSON producer | 0.1.0 (no change) |
+
+### Highlights (Amazon AWS 0.2.0)
+- **Security:** raw SDK bodies are built only for `--purpose audit`
+  with `--include-raw-body` and are redacted, every document is
+  checked for secrets before it is written, AWS error text is reduced
+  to service, operation and error code, `--safe-failure-mode off` is
+  removed.
+- **Identity and output:** every target is verified with STS and an
+  account mismatch is rejected, documents are written privately and
+  atomically and never overwrite an existing file, regions and account
+  IDs are validated.
+- **Account selection:** flag `-A` / `--account` collects one or more
+  comma-separated account profiles.
+- **Account catalog:** `metadata["osiris.aws"]` carries the AWS
+  organization and the exported and referenced accounts. Adds the
+  official AWS SDK modules `service/account` and `service/organizations`.
+- **Coverage:** VPCs, subnets, route tables, network interfaces and
+  instances are paged, `metadata["osiris.aws"].coverage` reports
+  per-operation outcomes; a batch in which every target fails exits
+  nonzero.
+- **Graph:** schema-valid statuses everywhere, effective route table
+  associations (explicit and main) and instance network interface
+  attachments.
+- **S3:** bucket security settings that could not be read are listed
+  as unverified instead of being reported as disabled.
+- **Breaking:** route table to subnet connections use type
+  `osiris.aws.routetable.association`, so their IDs change, connection
+  endpoints that were not collected no longer become fabricated
+  cross-account stubs, a transit gateway shared through AWS RAM is
+  keyed by its owner account, so it is emitted once and its ID changes.
+- `testdata/`: synthetic Amazon AWS `core-vpc`, `s3-unverified` and
+  `shared-tgw` source and golden fixtures for both purposes.
+
+See the [Amazon AWS changelog](osiris/hyperscalers/aws/CHANGELOG.md#020---2026-11-27).
 
 ## [0.13.0] - 2026-11-21
 
@@ -958,7 +1008,8 @@ Initial SDK release. No producers shipped under this tag.
 - Removed empty `common/` stubs (replaced by `pkg/sdk/`).
 - Updated `.gitignore` for Go.
 
-[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.13.0...HEAD
+[Unreleased]: https://github.com/osirisjson/osiris-producers/compare/v0.14.0...HEAD
+[0.14.0]: https://github.com/osirisjson/osiris-producers/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/osirisjson/osiris-producers/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/osirisjson/osiris-producers/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/osirisjson/osiris-producers/compare/v0.10.0...v0.11.0
