@@ -1,15 +1,16 @@
 // client.go - AWS SDK v2 wrapper for the AWS OSIRIS JSON producer.
-// Uses the AWS Go SDK v2 to collect networking and compute resources from
-// an AWS account and region. Requires valid AWS credentials (profiles,
-// environment variables, IAM roles, or SSO).
+// Uses the AWS Go SDK v2 to collect networking and compute resources
+// from an AWS account and region. Requires valid AWS credentials
+// (profiles, environment variables, IAM roles, or SSO).
 //
-// The client fetches all resource types that appear in real AWS production
-// environments: VPCs, subnets, security groups, ENIs, route tables, internet
-// gateways, NAT gateways, elastic IPs, load balancers, VPC endpoints, transit
-// gateways, Direct Connect, VPN, network firewalls, EC2 instances and more.
+// The client fetches all resource types that appear in real AWS
+// production environments: VPCs, subnets, security groups, ENIs,
+// route tables, internet gateways, NAT gateways, elastic IPs,
+// load balancers, VPC endpoints, transit gateways, Direct Connect, VPN,
+// network firewalls, EC2 instances and more.
 //
-// For an introduction to OSIRIS JSON Producer for Amazon Web Services see:
-// [OSIRIS-JSON-AWS]: https://osirisjson.org/en/docs/producers/hyperscalers/amazon-aws
+// For an introduction to OSIRIS JSON Producer for Amazon AWS see:
+// [OSIRIS-JSON-AWS]: https://docs.osirisjson.org/osiris-producers/hyperscalers/amazon-aws/
 
 package aws
 
@@ -120,11 +121,14 @@ type CallerIdentity struct {
 	AccountID string
 	Arn       string
 	UserID    string
+	Partition string // ARN partition of the caller (aws, aws-cn, aws-us-gov, ...).
 }
 
 // RegionData holds all collected AWS resources for a single region.
 type RegionData struct {
 	Identity                         CallerIdentity
+	Organization                     OrganizationInfo // see account_catalog.go.
+	AccountName                      string           // name of the verified caller account.
 	Region                           string
 	VPCs                             []ec2types.Vpc
 	VPCDNSAttributes                 map[string]map[string]bool // vpcID -> {"enableDnsHostnames", "enableDnsSupport"}
@@ -234,14 +238,15 @@ type RegionData struct {
 }
 
 // SQSQueueInfo pairs a queue URL with its resolved attributes.
-// The SQS API does not return a unified queue object - ListQueues gives URLs
-// and GetQueueAttributes gives the rest (ARN, type, depth, etc.).
+// The SQS API does not return a unified queue object - ListQueues gives
+// URLs and GetQueueAttributes gives the rest (ARN, type, depth, etc.).
 type SQSQueueInfo struct {
 	URL        string
 	Attributes map[string]string
 }
 
-// S3BucketInfo holds the name, resolved region, and optional tags for an S3 bucket.
+// S3BucketInfo holds the name, resolved region and optional tags for an
+// S3 bucket.
 type S3BucketInfo struct {
 	Name                string
 	Region              string
@@ -250,6 +255,11 @@ type S3BucketInfo struct {
 	EncryptionAlgorithm string // "AES256", "aws:kms", or ""
 	EncryptionKeyARN    string // KMS key ARN when EncryptionAlgorithm == "aws:kms"
 	BlockPublicAccess   bool   // true when all four public-access-block settings are enabled
+	// Unverified lists the security settings whose read failed for a
+	// reason other than "not configured" (for example access denied):
+	// any of "versioning", "encryption", "block_public_access". Their
+	// fields above carry no meaning and are not emitted.
+	Unverified []string
 }
 
 // EFSFileSystemEntry pairs an EFS file system with its mount targets so
@@ -259,8 +269,8 @@ type EFSFileSystemEntry struct {
 	MountTargets []efstypes.MountTargetDescription
 }
 
-// WAFv2WebACLEntry pairs a WAFv2 web ACL with the ARNs of resources it protects
-// (ALBs, API Gateways, etc.) from ListResourcesForWebACL.
+// WAFv2WebACLEntry pairs a WAFv2 web ACL with the ARNs of resources it
+// protects (ALBs, API Gateways, etc.) from ListResourcesForWebACL.
 type WAFv2WebACLEntry struct {
 	WebACL                 wafv2types.WebACL
 	AssociatedResourceARNs []string
@@ -268,15 +278,21 @@ type WAFv2WebACLEntry struct {
 
 // Client wraps the AWS SDK v2 to collect resources for a region.
 type Client struct {
-	accountID     string
-	region        string
-	profile       string
-	awsCfg        aws.Config
-	logger        *slog.Logger
-	collectErrors []sdk.CoverageError
+	// expectedAccountID is the account the target declares (CSV
+	// account_id). It is never used as identity; a verified caller in a
+	// different account is rejected.
+	expectedAccountID string
+	accountID         string
+	region            string
+	profile           string
+	awsCfg            aws.Config
+	logger            *slog.Logger
+	collectErrors     []sdk.CoverageError
+	outcomes          []operationOutcome // core operations, see coverage.go.
 }
 
-// NewClient creates a new AWS SDK v2 client for the given profile and region.
+// NewClient creates a new AWS SDK v2 client for the given profile and
+// region.
 func NewClient(profile, region string, logger *slog.Logger) (*Client, error) {
 	var opts []func(*awsconfig.LoadOptions) error
 	if profile != "" {
@@ -299,36 +315,50 @@ func NewClient(profile, region string, logger *slog.Logger) (*Client, error) {
 	}, nil
 }
 
-// ResolveIdentity calls STS GetCallerIdentity to resolve the account ID.
-// Uses the global STS endpoint (us-east-1) to avoid enterprise SCPs that
-// restrict regional sts:GetCallerIdentity calls while allowing the global one.
+// ResolveIdentity calls STS GetCallerIdentity to verify the caller. It
+// tries the client region first and, in the commercial partition,
+// retries once on the us-east-1 endpoint for organizations whose
+// policies allow only that one. It returns an error wrapping
+// [errIdentityUnverified] when no call succeeds or the response is
+// malformed and [errIdentityMismatch] when the verified account differs
+// from the expected one. No resource is collected without a verified
+// identity.
 func (c *Client) ResolveIdentity() (CallerIdentity, error) {
-	stsClient := sts.NewFromConfig(c.awsCfg, func(o *sts.Options) {
-		o.Region = GlobalRegion
-	})
-	out, err := stsClient.GetCallerIdentity(context.Background(), &sts.GetCallerIdentityInput{})
-	if err != nil {
-		if c.accountID != "" {
-			// STS failed but we have a pre-configured account ID (e.g. from the
-			// CSV target). This can happen when enterprise SCPs restrict STS even
-			// on the global endpoint. Log a warning and continue with collection.
-			c.logger.Warn("STS identity resolution failed, using pre-configured account ID",
-				"account_id", c.accountID, "error", err)
-			return CallerIdentity{AccountID: c.accountID}, nil
+	var lastErr error
+	for _, region := range stsRegions(c.region) {
+		stsClient := sts.NewFromConfig(c.awsCfg, func(o *sts.Options) {
+			o.Region = region
+		})
+		out, err := stsClient.GetCallerIdentity(context.Background(), &sts.GetCallerIdentityInput{})
+		if err != nil {
+			lastErr = err
+			if isExpiredTokenError(err) {
+				break
+			}
+			continue
 		}
-		return CallerIdentity{}, fmt.Errorf("STS GetCallerIdentity: %w", err)
+		id := CallerIdentity{
+			AccountID: aws.ToString(out.Account),
+			Arn:       aws.ToString(out.Arn),
+			UserID:    aws.ToString(out.UserId),
+		}
+		id.Partition = arnPartition(id.Arn)
+		if !validAccountID(id.AccountID) || id.Partition == "" {
+			return CallerIdentity{}, fmt.Errorf("%w: malformed STS GetCallerIdentity response", errIdentityUnverified)
+		}
+		if c.expectedAccountID != "" && c.expectedAccountID != id.AccountID {
+			return CallerIdentity{}, fmt.Errorf("%w: caller account %s, target account %s",
+				errIdentityMismatch, id.AccountID, c.expectedAccountID)
+		}
+		c.accountID = id.AccountID
+		return id, nil
 	}
-	id := CallerIdentity{
-		AccountID: aws.ToString(out.Account),
-		Arn:       aws.ToString(out.Arn),
-		UserID:    aws.ToString(out.UserId),
-	}
-	c.accountID = id.AccountID
-	return id, nil
+	return CallerIdentity{}, fmt.Errorf("%w: STS GetCallerIdentity: %w", errIdentityUnverified, lastErr)
 }
 
-// isExpiredTokenError returns true if the error indicates expired or invalid
-// AWS credentials (SSO session expired, temporary creds expired, etc.).
+// isExpiredTokenError returns true if the error indicates expired or
+// invalid AWS credentials (SSO session expired, temporary creds
+// expired, etc.).
 func isExpiredTokenError(err error) bool {
 	if err == nil {
 		return false
@@ -345,9 +375,10 @@ func isExpiredTokenError(err error) bool {
 		strings.Contains(s, "token has expired")
 }
 
-// isPermissionDeniedError returns true if the error is an IAM permission denial
-// (UnauthorizedOperation, AccessDenied, 403). These occur on restricted IAM roles
-// and should be logged at Debug rather than Warn - they are expected, not transient.
+// isPermissionDeniedError returns true if the error is an IAM
+// permission denial (UnauthorizedOperation, AccessDenied, 403).
+// These occur on restricted IAM roles and should be logged at Debug
+// rather than Warn they are expected, not transient.
 func isPermissionDeniedError(err error) bool {
 	if err == nil {
 		return false
@@ -360,28 +391,57 @@ func isPermissionDeniedError(err error) bool {
 		strings.Contains(s, "is not authorized to perform")
 }
 
-// logCollectErr logs a resource collection failure and records it for coverage telemetry.
-// RBAC/permission denials (expected on restricted IAM roles) go to Debug;
-// all other failures go to Warn.
+// logCollectErr logs a resource collection failure and records it for
+// coverage telemetry.
+// RBAC/permission denials (expected on restricted IAM roles) go to
+// Debug; all other failures go to Warn.
 func (c *Client) logCollectErr(resource string, err error) {
 	if isPermissionDeniedError(err) {
-		c.logger.Debug("permission denied collecting resource", "resource", resource, "error", err)
+		c.logger.Debug("permission denied collecting resource", "resource", resource, "error", logErr(err))
 	} else {
-		c.logger.Warn("failed to collect "+resource, "error", err)
+		c.logger.Warn("failed to collect "+resource, "error", logErr(err))
 	}
 	c.collectErrors = append(c.collectErrors, sdk.CoverageError{
 		Region:       c.region,
 		Resource:     resource,
-		ErrorMessage: err.Error(),
+		ErrorMessage: coverageErrorMessage(err),
 	})
 }
 
-// CollectedErrors returns all resource collection failures recorded during the last Collect call.
+// recordCore records the outcome of a core EC2 operation. A failed or
+// partial read is also recorded as a legacy coverage error and a
+// budget-limited read as a coverage error with a fixed reason.
+func (c *Client) recordCore(operation, resource string, items int, res pageResult) {
+	o := classifyPages("ec2", operation, items, res)
+	c.outcomes = append(c.outcomes, o)
+	switch {
+	case res.Err != nil:
+		c.logCollectErr(resource, res.Err)
+	case res.Truncated:
+		c.logger.Warn("page limit reached, result incomplete", "resource", resource, "pages", res.Pages)
+		c.collectErrors = append(c.collectErrors, sdk.CoverageError{
+			Region:       c.region,
+			Resource:     resource,
+			ErrorMessage: o.Reason,
+		})
+	}
+	c.logger.Info("collected", "type", resource, "count", items, "pages", res.Pages, "outcome", o.Outcome)
+}
+
+// CoreOutcomes returns the core operation outcomes of the last Collect
+// call.
+func (c *Client) CoreOutcomes() []operationOutcome {
+	return c.outcomes
+}
+
+// CollectedErrors returns all resource collection failures recorded
+// during the last Collect call.
 func (c *Client) CollectedErrors() []sdk.CoverageError {
 	return c.collectErrors
 }
 
-// Collect fetches all networking and compute resources for the configured region.
+// Collect fetches all networking and compute resources for the
+// configured region.
 func (c *Client) Collect(includeGlobals bool) (*RegionData, error) {
 	data := &RegionData{Region: c.region}
 
@@ -391,10 +451,12 @@ func (c *Client) Collect(includeGlobals bool) (*RegionData, error) {
 		return nil, err
 	}
 	data.Identity = id
+	c.collectAccountCatalog(data)
 
 	ec2Client := ec2.NewFromConfig(c.awsCfg)
 
-	// Collect all resource types. Partial failures are logged and skipped.
+	// Collect all resource types. Partial failures are logged and
+	// skipped.
 	c.collectEC2Resources(ec2Client, data)
 	c.collectELBResources(data)
 	c.collectDirectConnectResources(data)
@@ -421,43 +483,43 @@ func (c *Client) Collect(includeGlobals bool) (*RegionData, error) {
 func (c *Client) collectEC2Resources(ec2Client *ec2.Client, data *RegionData) {
 	ctx := context.Background()
 
+	// Core slice: VPCs, subnets, network interfaces, route tables and
+	// instances are read with bounded paginators (see coverage.go).
 	// VPCs
-	if out, err := ec2Client.DescribeVpcs(ctx, &ec2.DescribeVpcsInput{}); err != nil {
-		c.logCollectErr("VPCs", err)
-	} else {
-		data.VPCs = out.Vpcs
-		c.logger.Info("collected", "type", "VPCs", "count", len(out.Vpcs))
+	vpcPager := ec2.NewDescribeVpcsPaginator(ec2Client, &ec2.DescribeVpcsInput{MaxResults: aws.Int32(1000)},
+		func(o *ec2.DescribeVpcsPaginatorOptions) { o.StopOnDuplicateToken = true })
+	vpcs, vpcRes := collectPages(ctx, vpcPager, maxCorePages, func(o *ec2.DescribeVpcsOutput) []ec2types.Vpc { return o.Vpcs })
+	c.recordCore("DescribeVpcs", "VPCs", len(vpcs), vpcRes)
+	data.VPCs = vpcs
 
-		// Fetch DNS attributes per VPC (2 calls each: enableDnsHostnames + enableDnsSupport).
-		if len(out.Vpcs) > 0 {
-			data.VPCDNSAttributes = make(map[string]map[string]bool, len(out.Vpcs))
-			for _, v := range out.Vpcs {
-				vid := aws.ToString(v.VpcId)
-				attrs := map[string]bool{}
-				if r, err := ec2Client.DescribeVpcAttribute(ctx, &ec2.DescribeVpcAttributeInput{
-					VpcId:     aws.String(vid),
-					Attribute: ec2types.VpcAttributeNameEnableDnsHostnames,
-				}); err == nil && r.EnableDnsHostnames != nil {
-					attrs["enableDnsHostnames"] = aws.ToBool(r.EnableDnsHostnames.Value)
-				}
-				if r, err := ec2Client.DescribeVpcAttribute(ctx, &ec2.DescribeVpcAttributeInput{
-					VpcId:     aws.String(vid),
-					Attribute: ec2types.VpcAttributeNameEnableDnsSupport,
-				}); err == nil && r.EnableDnsSupport != nil {
-					attrs["enableDnsSupport"] = aws.ToBool(r.EnableDnsSupport.Value)
-				}
-				data.VPCDNSAttributes[vid] = attrs
+	// Fetch DNS attributes per VPC (2 calls each: enableDnsHostnames + enableDnsSupport).
+	if len(vpcs) > 0 {
+		data.VPCDNSAttributes = make(map[string]map[string]bool, len(vpcs))
+		for _, v := range vpcs {
+			vid := aws.ToString(v.VpcId)
+			attrs := map[string]bool{}
+			if r, err := ec2Client.DescribeVpcAttribute(ctx, &ec2.DescribeVpcAttributeInput{
+				VpcId:     aws.String(vid),
+				Attribute: ec2types.VpcAttributeNameEnableDnsHostnames,
+			}); err == nil && r.EnableDnsHostnames != nil {
+				attrs["enableDnsHostnames"] = aws.ToBool(r.EnableDnsHostnames.Value)
 			}
+			if r, err := ec2Client.DescribeVpcAttribute(ctx, &ec2.DescribeVpcAttributeInput{
+				VpcId:     aws.String(vid),
+				Attribute: ec2types.VpcAttributeNameEnableDnsSupport,
+			}); err == nil && r.EnableDnsSupport != nil {
+				attrs["enableDnsSupport"] = aws.ToBool(r.EnableDnsSupport.Value)
+			}
+			data.VPCDNSAttributes[vid] = attrs
 		}
 	}
 
 	// Subnets
-	if out, err := ec2Client.DescribeSubnets(ctx, &ec2.DescribeSubnetsInput{}); err != nil {
-		c.logCollectErr("subnets", err)
-	} else {
-		data.Subnets = out.Subnets
-		c.logger.Info("collected", "type", "subnets", "count", len(out.Subnets))
-	}
+	subnetPager := ec2.NewDescribeSubnetsPaginator(ec2Client, &ec2.DescribeSubnetsInput{MaxResults: aws.Int32(1000)},
+		func(o *ec2.DescribeSubnetsPaginatorOptions) { o.StopOnDuplicateToken = true })
+	subnets, subnetRes := collectPages(ctx, subnetPager, maxCorePages, func(o *ec2.DescribeSubnetsOutput) []ec2types.Subnet { return o.Subnets })
+	c.recordCore("DescribeSubnets", "subnets", len(subnets), subnetRes)
+	data.Subnets = subnets
 
 	// Security Groups
 	if out, err := ec2Client.DescribeSecurityGroups(ctx, &ec2.DescribeSecurityGroupsInput{}); err != nil {
@@ -468,20 +530,20 @@ func (c *Client) collectEC2Resources(ec2Client *ec2.Client, data *RegionData) {
 	}
 
 	// Network Interfaces
-	if out, err := ec2Client.DescribeNetworkInterfaces(ctx, &ec2.DescribeNetworkInterfacesInput{}); err != nil {
-		c.logCollectErr("network interfaces", err)
-	} else {
-		data.NetworkInterfaces = out.NetworkInterfaces
-		c.logger.Info("collected", "type", "network interfaces", "count", len(out.NetworkInterfaces))
-	}
+	eniPager := ec2.NewDescribeNetworkInterfacesPaginator(ec2Client, &ec2.DescribeNetworkInterfacesInput{MaxResults: aws.Int32(1000)},
+		func(o *ec2.DescribeNetworkInterfacesPaginatorOptions) { o.StopOnDuplicateToken = true })
+	enis, eniRes := collectPages(ctx, eniPager, maxCorePages, func(o *ec2.DescribeNetworkInterfacesOutput) []ec2types.NetworkInterface {
+		return o.NetworkInterfaces
+	})
+	c.recordCore("DescribeNetworkInterfaces", "network interfaces", len(enis), eniRes)
+	data.NetworkInterfaces = enis
 
 	// Route Tables
-	if out, err := ec2Client.DescribeRouteTables(ctx, &ec2.DescribeRouteTablesInput{}); err != nil {
-		c.logCollectErr("route tables", err)
-	} else {
-		data.RouteTables = out.RouteTables
-		c.logger.Info("collected", "type", "route tables", "count", len(out.RouteTables))
-	}
+	rtPager := ec2.NewDescribeRouteTablesPaginator(ec2Client, &ec2.DescribeRouteTablesInput{MaxResults: aws.Int32(100)},
+		func(o *ec2.DescribeRouteTablesPaginatorOptions) { o.StopOnDuplicateToken = true })
+	rts, rtRes := collectPages(ctx, rtPager, maxCorePages, func(o *ec2.DescribeRouteTablesOutput) []ec2types.RouteTable { return o.RouteTables })
+	c.recordCore("DescribeRouteTables", "route tables", len(rts), rtRes)
+	data.RouteTables = rts
 
 	// Internet Gateways
 	if out, err := ec2Client.DescribeInternetGateways(ctx, &ec2.DescribeInternetGatewaysInput{}); err != nil {
@@ -508,14 +570,17 @@ func (c *Client) collectEC2Resources(ec2Client *ec2.Client, data *RegionData) {
 	}
 
 	// EC2 Instances
-	if out, err := ec2Client.DescribeInstances(ctx, &ec2.DescribeInstancesInput{}); err != nil {
-		c.logCollectErr("instances", err)
-	} else {
-		for _, res := range out.Reservations {
-			data.Instances = append(data.Instances, res.Instances...)
+	instPager := ec2.NewDescribeInstancesPaginator(ec2Client, &ec2.DescribeInstancesInput{MaxResults: aws.Int32(1000)},
+		func(o *ec2.DescribeInstancesPaginatorOptions) { o.StopOnDuplicateToken = true })
+	instances, instRes := collectPages(ctx, instPager, maxCorePages, func(o *ec2.DescribeInstancesOutput) []ec2types.Instance {
+		var out []ec2types.Instance
+		for _, r := range o.Reservations {
+			out = append(out, r.Instances...)
 		}
-		c.logger.Info("collected", "type", "instances", "count", len(data.Instances))
-	}
+		return out
+	})
+	c.recordCore("DescribeInstances", "instances", len(instances), instRes)
+	data.Instances = instances
 
 	// Network ACLs
 	if out, err := ec2Client.DescribeNetworkAcls(ctx, &ec2.DescribeNetworkAclsInput{}); err != nil {
@@ -559,7 +624,7 @@ func (c *Client) collectEC2Resources(ec2Client *ec2.Client, data *RegionData) {
 
 	// Transit Gateway Route Tables
 	if out, err := ec2Client.DescribeTransitGatewayRouteTables(ctx, &ec2.DescribeTransitGatewayRouteTablesInput{}); err != nil {
-		c.logger.Debug("no transit gateway route tables", "error", err)
+		c.logger.Debug("no transit gateway route tables", "error", logErr(err))
 	} else {
 		data.TransitGatewayRouteTables = out.TransitGatewayRouteTables
 		if len(out.TransitGatewayRouteTables) > 0 {
@@ -569,7 +634,7 @@ func (c *Client) collectEC2Resources(ec2Client *ec2.Client, data *RegionData) {
 
 	// Transit Gateway Peering Attachments
 	if out, err := ec2Client.DescribeTransitGatewayPeeringAttachments(ctx, &ec2.DescribeTransitGatewayPeeringAttachmentsInput{}); err != nil {
-		c.logger.Debug("no transit gateway peering attachments", "error", err)
+		c.logger.Debug("no transit gateway peering attachments", "error", logErr(err))
 	} else {
 		data.TransitGatewayPeeringAttachments = out.TransitGatewayPeeringAttachments
 		if len(out.TransitGatewayPeeringAttachments) > 0 {
@@ -611,7 +676,7 @@ func (c *Client) collectEC2Resources(ec2Client *ec2.Client, data *RegionData) {
 
 	// Egress-Only Internet Gateways
 	if out, err := ec2Client.DescribeEgressOnlyInternetGateways(ctx, &ec2.DescribeEgressOnlyInternetGatewaysInput{}); err != nil {
-		c.logger.Debug("no egress-only internet gateways", "error", err)
+		c.logger.Debug("no egress-only internet gateways", "error", logErr(err))
 	} else {
 		data.EgressOnlyIGWs = out.EgressOnlyInternetGateways
 		if len(out.EgressOnlyInternetGateways) > 0 {
@@ -629,7 +694,7 @@ func (c *Client) collectEC2Resources(ec2Client *ec2.Client, data *RegionData) {
 
 	// Flow Logs
 	if out, err := ec2Client.DescribeFlowLogs(ctx, &ec2.DescribeFlowLogsInput{}); err != nil {
-		c.logger.Debug("no flow logs", "error", err)
+		c.logger.Debug("no flow logs", "error", logErr(err))
 	} else {
 		data.FlowLogs = out.FlowLogs
 		if len(out.FlowLogs) > 0 {
@@ -670,7 +735,7 @@ func (c *Client) collectELBResources(data *RegionData) {
 	// Classic ELB
 	elbClient := elasticloadbalancing.NewFromConfig(c.awsCfg)
 	if out, err := elbClient.DescribeLoadBalancers(ctx, &elasticloadbalancing.DescribeLoadBalancersInput{}); err != nil {
-		c.logger.Debug("no classic load balancers", "error", err)
+		c.logger.Debug("no classic load balancers", "error", logErr(err))
 	} else {
 		data.LoadBalancersClassic = out.LoadBalancerDescriptions
 		if len(out.LoadBalancerDescriptions) > 0 {
@@ -686,7 +751,7 @@ func (c *Client) collectDirectConnectResources(data *RegionData) {
 
 	// Direct Connect Connections
 	if out, err := dcClient.DescribeConnections(ctx, &directconnect.DescribeConnectionsInput{}); err != nil {
-		c.logger.Debug("no Direct Connect connections", "error", err)
+		c.logger.Debug("no Direct Connect connections", "error", logErr(err))
 	} else {
 		data.DirectConnectConnections = out.Connections
 		if len(out.Connections) > 0 {
@@ -696,7 +761,7 @@ func (c *Client) collectDirectConnectResources(data *RegionData) {
 
 	// Direct Connect Gateways
 	if out, err := dcClient.DescribeDirectConnectGateways(ctx, &directconnect.DescribeDirectConnectGatewaysInput{}); err != nil {
-		c.logger.Debug("no Direct Connect gateways", "error", err)
+		c.logger.Debug("no Direct Connect gateways", "error", logErr(err))
 	} else {
 		data.DirectConnectGateways = out.DirectConnectGateways
 		if len(out.DirectConnectGateways) > 0 {
@@ -706,7 +771,7 @@ func (c *Client) collectDirectConnectResources(data *RegionData) {
 
 	// Direct Connect Virtual Interfaces
 	if out, err := dcClient.DescribeVirtualInterfaces(ctx, &directconnect.DescribeVirtualInterfacesInput{}); err != nil {
-		c.logger.Debug("no Direct Connect virtual interfaces", "error", err)
+		c.logger.Debug("no Direct Connect virtual interfaces", "error", logErr(err))
 	} else {
 		data.DirectConnectVIFs = out.VirtualInterfaces
 		if len(out.VirtualInterfaces) > 0 {
@@ -715,14 +780,15 @@ func (c *Client) collectDirectConnectResources(data *RegionData) {
 	}
 }
 
-// collectNetworkFirewallResources fetches AWS Network Firewall resources.
+// collectNetworkFirewallResources fetches AWS Network Firewall
+// resources.
 func (c *Client) collectNetworkFirewallResources(data *RegionData) {
 	ctx := context.Background()
 	nfwClient := networkfirewall.NewFromConfig(c.awsCfg)
 
 	out, err := nfwClient.ListFirewalls(ctx, &networkfirewall.ListFirewallsInput{})
 	if err != nil {
-		c.logger.Debug("no network firewalls", "error", err)
+		c.logger.Debug("no network firewalls", "error", logErr(err))
 		return
 	}
 	data.NetworkFirewalls = out.Firewalls
@@ -738,7 +804,7 @@ func (c *Client) collectResolverResources(data *RegionData) {
 
 	// Resolver Rules
 	if out, err := resolverClient.ListResolverRules(ctx, &route53resolver.ListResolverRulesInput{}); err != nil {
-		c.logger.Debug("no resolver rules", "error", err)
+		c.logger.Debug("no resolver rules", "error", logErr(err))
 	} else {
 		data.ResolverRules = out.ResolverRules
 		if len(out.ResolverRules) > 0 {
@@ -748,7 +814,7 @@ func (c *Client) collectResolverResources(data *RegionData) {
 
 	// Resolver Endpoints
 	if out, err := resolverClient.ListResolverEndpoints(ctx, &route53resolver.ListResolverEndpointsInput{}); err != nil {
-		c.logger.Debug("no resolver endpoints", "error", err)
+		c.logger.Debug("no resolver endpoints", "error", logErr(err))
 	} else {
 		data.ResolverEndpoints = out.ResolverEndpoints
 		if len(out.ResolverEndpoints) > 0 {
@@ -757,7 +823,8 @@ func (c *Client) collectResolverResources(data *RegionData) {
 	}
 }
 
-// collectComputeOrchestrationResources fetches EKS, ECS, and Auto Scaling resources.
+// collectComputeOrchestrationResources fetches EKS, ECS and Auto
+// Scaling resources.
 func (c *Client) collectComputeOrchestrationResources(data *RegionData) {
 	ctx := context.Background()
 
@@ -902,13 +969,15 @@ func (c *Client) collectComputeOrchestrationResources(data *RegionData) {
 	}
 }
 
-// collectManagedDataResources fetches RDS, DynamoDB and ElastiCache resources.
+// collectManagedDataResources fetches RDS, DynamoDB and ElastiCache
+// resources.
 func (c *Client) collectManagedDataResources(data *RegionData) {
 	ctx := context.Background()
 
 	rdsClient := rds.NewFromConfig(c.awsCfg)
 
-	// RDS DB Instances (single-AZ and Multi-AZ, not Aurora cluster members).
+	// RDS DB Instances (single-AZ and Multi-AZ, not Aurora cluster
+	// members).
 	rdsPager := rds.NewDescribeDBInstancesPaginator(rdsClient, &rds.DescribeDBInstancesInput{})
 	for rdsPager.HasMorePages() {
 		page, err := rdsPager.NextPage(ctx)
@@ -1010,7 +1079,70 @@ func (c *Client) collectManagedDataResources(data *RegionData) {
 	}
 }
 
-// collectStorageResources fetches EBS volumes, S3 buckets, EFS file systems and FSx file systems.
+// s3SecurityAPI is the subset of the S3 client used to read a bucket's
+// security settings.
+type s3SecurityAPI interface {
+	GetBucketVersioning(context.Context, *s3.GetBucketVersioningInput, ...func(*s3.Options)) (*s3.GetBucketVersioningOutput, error)
+	GetBucketEncryption(context.Context, *s3.GetBucketEncryptionInput, ...func(*s3.Options)) (*s3.GetBucketEncryptionOutput, error)
+	GetPublicAccessBlock(context.Context, *s3.GetPublicAccessBlockInput, ...func(*s3.Options)) (*s3.GetPublicAccessBlockOutput, error)
+}
+
+// readBucketSecurity reads the versioning, default encryption and
+// public access block settings of bucket name into info. A setting
+// whose read fails for any reason other than its documented "not
+// configured" error code is listed in info.Unverified.
+func (c *Client) readBucketSecurity(ctx context.Context, s3Client s3SecurityAPI, name string, info *S3BucketInfo) {
+	// Security settings: a failed read is unverified, never a
+	// false negative. Only the documented "not configured" codes
+	// mean the setting is off.
+	// Versioning: an empty status from a successful read means
+	// versioning was never enabled.
+	verOut, err := s3Client.GetBucketVersioning(ctx, &s3.GetBucketVersioningInput{
+		Bucket: aws.String(name),
+	})
+	if err != nil || verOut == nil {
+		info.Unverified = append(info.Unverified, "versioning")
+		c.logger.Debug("S3 setting unverified", "setting", "versioning", "error", logErr(err))
+	} else {
+		info.Versioning = string(verOut.Status)
+	}
+	// Encryption.
+	encOut, err := s3Client.GetBucketEncryption(ctx, &s3.GetBucketEncryptionInput{
+		Bucket: aws.String(name),
+	})
+	if err != nil && awsAPICode(err) != "ServerSideEncryptionConfigurationNotFoundError" {
+		info.Unverified = append(info.Unverified, "encryption")
+		c.logger.Debug("S3 setting unverified", "setting", "encryption", "error", logErr(err))
+	} else if err == nil && encOut != nil && encOut.ServerSideEncryptionConfiguration != nil {
+		for _, rule := range encOut.ServerSideEncryptionConfiguration.Rules {
+			if rule.ApplyServerSideEncryptionByDefault != nil {
+				info.EncryptionAlgorithm = string(rule.ApplyServerSideEncryptionByDefault.SSEAlgorithm)
+				if rule.ApplyServerSideEncryptionByDefault.KMSMasterKeyID != nil {
+					info.EncryptionKeyARN = aws.ToString(rule.ApplyServerSideEncryptionByDefault.KMSMasterKeyID)
+				}
+				break
+			}
+		}
+	}
+	// Public access block: no bucket configuration means the
+	// bucket-level block is off.
+	pabOut, err := s3Client.GetPublicAccessBlock(ctx, &s3.GetPublicAccessBlockInput{
+		Bucket: aws.String(name),
+	})
+	if err != nil && awsAPICode(err) != "NoSuchPublicAccessBlockConfiguration" {
+		info.Unverified = append(info.Unverified, "block_public_access")
+		c.logger.Debug("S3 setting unverified", "setting", "block_public_access", "error", logErr(err))
+	} else if err == nil && pabOut != nil && pabOut.PublicAccessBlockConfiguration != nil {
+		pab := pabOut.PublicAccessBlockConfiguration
+		info.BlockPublicAccess = aws.ToBool(pab.BlockPublicAcls) &&
+			aws.ToBool(pab.IgnorePublicAcls) &&
+			aws.ToBool(pab.BlockPublicPolicy) &&
+			aws.ToBool(pab.RestrictPublicBuckets)
+	}
+}
+
+// collectStorageResources fetches EBS volumes, S3 buckets, EFS file
+// systems and FSx file systems.
 func (c *Client) collectStorageResources(data *RegionData) {
 	ctx := context.Background()
 
@@ -1028,12 +1160,14 @@ func (c *Client) collectStorageResources(data *RegionData) {
 		c.logger.Info("collected", "type", "EBS volumes", "count", len(data.EBSVolumes))
 	}
 
-	// ListBuckets is a global call; we filter to the current region via GetBucketLocation.
+	// ListBuckets is a global call; we filter to the current region
+	// via GetBucketLocation.
 	s3Client := s3.NewFromConfig(c.awsCfg)
 	listOut, err := s3Client.ListBuckets(ctx, &s3.ListBucketsInput{})
 	if err != nil {
 		c.logCollectErr("S3 buckets", err)
 	} else {
+		unverifiedBuckets := 0
 		for _, b := range listOut.Buckets {
 			name := aws.ToString(b.Name)
 			if name == "" {
@@ -1048,7 +1182,7 @@ func (c *Client) collectStorageResources(data *RegionData) {
 			}
 			bucketRegion := string(locOut.LocationConstraint)
 			if bucketRegion == "" {
-				bucketRegion = "us-east-1" // empty constraint means us-east-1
+				bucketRegion = "us-east-1" // empty constraint mean us-east-1
 			}
 			if bucketRegion != c.region {
 				continue
@@ -1065,40 +1199,19 @@ func (c *Client) collectStorageResources(data *RegionData) {
 				}
 				info.Tags = m
 			}
-			// Versioning - best-effort.
-			verOut, err := s3Client.GetBucketVersioning(ctx, &s3.GetBucketVersioningInput{
-				Bucket: aws.String(name),
-			})
-			if err == nil && verOut != nil {
-				info.Versioning = string(verOut.Status)
-			}
-			// Encryption - best-effort.
-			encOut, err := s3Client.GetBucketEncryption(ctx, &s3.GetBucketEncryptionInput{
-				Bucket: aws.String(name),
-			})
-			if err == nil && encOut != nil && encOut.ServerSideEncryptionConfiguration != nil {
-				for _, rule := range encOut.ServerSideEncryptionConfiguration.Rules {
-					if rule.ApplyServerSideEncryptionByDefault != nil {
-						info.EncryptionAlgorithm = string(rule.ApplyServerSideEncryptionByDefault.SSEAlgorithm)
-						if rule.ApplyServerSideEncryptionByDefault.KMSMasterKeyID != nil {
-							info.EncryptionKeyARN = aws.ToString(rule.ApplyServerSideEncryptionByDefault.KMSMasterKeyID)
-						}
-						break
-					}
-				}
-			}
-			// Public access block - best-effort.
-			pabOut, err := s3Client.GetPublicAccessBlock(ctx, &s3.GetPublicAccessBlockInput{
-				Bucket: aws.String(name),
-			})
-			if err == nil && pabOut != nil && pabOut.PublicAccessBlockConfiguration != nil {
-				c := pabOut.PublicAccessBlockConfiguration
-				info.BlockPublicAccess = aws.ToBool(c.BlockPublicAcls) &&
-					aws.ToBool(c.IgnorePublicAcls) &&
-					aws.ToBool(c.BlockPublicPolicy) &&
-					aws.ToBool(c.RestrictPublicBuckets)
+			c.readBucketSecurity(ctx, s3Client, name, &info)
+			if len(info.Unverified) > 0 {
+				unverifiedBuckets++
 			}
 			data.S3Buckets = append(data.S3Buckets, info)
+		}
+		if unverifiedBuckets > 0 {
+			c.logger.Warn("S3 bucket security settings unverified", "buckets", unverifiedBuckets)
+			c.collectErrors = append(c.collectErrors, sdk.CoverageError{
+				Region:       c.region,
+				Resource:     "S3 bucket settings",
+				ErrorMessage: fmt.Sprintf("%d bucket(s) with unverified security settings", unverifiedBuckets),
+			})
 		}
 		if len(data.S3Buckets) > 0 {
 			c.logger.Info("collected", "type", "S3 buckets", "count", len(data.S3Buckets))
@@ -1235,8 +1348,8 @@ func (c *Client) collectServerlessMessagingResources(data *RegionData) {
 	}
 }
 
-// collectExtendedDatabaseResources fetches DocumentDB, Neptune, Redshift, OpenSearch,
-// and MemoryDB resources.
+// collectExtendedDatabaseResources fetches DocumentDB, Neptune,
+// Redshift, OpenSearch, and MemoryDB resources.
 func (c *Client) collectExtendedDatabaseResources(data *RegionData) {
 	ctx := context.Background()
 
@@ -1309,7 +1422,8 @@ func (c *Client) collectExtendedDatabaseResources(data *RegionData) {
 		c.logger.Info("collected", "type", "Redshift clusters", "count", len(data.RedshiftClusters))
 	}
 
-	// ListDomainNames returns all domain names; DescribeDomains returns full details.
+	// ListDomainNames returns all domain names; DescribeDomains returns
+	// full details.
 	osClient := opensearch.NewFromConfig(c.awsCfg)
 	listOut, err := osClient.ListDomainNames(ctx, &opensearch.ListDomainNamesInput{})
 	if err != nil {
@@ -1321,7 +1435,8 @@ func (c *Client) collectExtendedDatabaseResources(data *RegionData) {
 				names = append(names, aws.ToString(d.DomainName))
 			}
 		}
-		// DescribeDomains supports up to 5 domains per call; batch if needed.
+		// DescribeDomains supports up to 5 domains per call; batch if
+		// needed.
 		for i := 0; i < len(names); i += 5 {
 			end := i + 5
 			if end > len(names) {
@@ -1365,7 +1480,8 @@ func (c *Client) collectExtendedDatabaseResources(data *RegionData) {
 	}
 }
 
-// collectEventDrivenResources fetches SNS topics, EventBridge buses, and Step Functions state machines.
+// collectEventDrivenResources fetches SNS topics, EventBridge buses and
+// Step Functions state machines.
 func (c *Client) collectEventDrivenResources(data *RegionData) {
 	ctx := context.Background()
 
@@ -1419,13 +1535,15 @@ func (c *Client) collectEventDrivenResources(data *RegionData) {
 	}
 }
 
-// collectNetworkingExtendedResources fetches ELBv2 listeners, Direct Connect LAGs,
-// VPC PrivateLink endpoint service configurations, and API Gateway v1/v2 APIs.
+// collectNetworkingExtendedResources fetches ELBv2 listeners, Direct
+// Connect LAGs, VPC PrivateLink endpoint service configurations and API
+// Gateway v1/v2 APIs.
 func (c *Client) collectNetworkingExtendedResources(data *RegionData) {
 	ctx := context.Background()
 
-	// DescribeListeners requires a LoadBalancerArn; a global call returns 400.
-	// Iterate each collected LB and fetch its listeners individually.
+	// DescribeListeners requires a LoadBalancerArn; a global call
+	// returns 400. Iterate each collected LB and fetch its listeners
+	// individually.
 	elbv2Client := elasticloadbalancingv2.NewFromConfig(c.awsCfg)
 	for _, lb := range data.LoadBalancersV2 {
 		lbArn := lb.LoadBalancerArn
@@ -1519,7 +1637,8 @@ func (c *Client) collectNetworkingExtendedResources(data *RegionData) {
 	}
 }
 
-// collectObservabilityResources fetches CloudWatch log groups and AWS Backup vaults.
+// collectObservabilityResources fetches CloudWatch log groups and AWS
+// Backup vaults.
 func (c *Client) collectObservabilityResources(data *RegionData) {
 	ctx := context.Background()
 
@@ -1553,7 +1672,8 @@ func (c *Client) collectObservabilityResources(data *RegionData) {
 	}
 }
 
-// collectSecurityIdentityResources fetches KMS, Secrets Manager, ECR, and WAFv2 resources.
+// collectSecurityIdentityResources fetches KMS, Secrets Manager, ECR
+// and WAFv2 resources.
 func (c *Client) collectSecurityIdentityResources(data *RegionData) {
 	ctx := context.Background()
 
@@ -1614,7 +1734,8 @@ func (c *Client) collectSecurityIdentityResources(data *RegionData) {
 		c.logger.Info("collected", "type", "ECR repositories", "count", len(data.ECRRepositories))
 	}
 
-	// WAFv2 ListWebACLs uses NextMarker pagination with no built-in paginator.
+	// WAFv2 ListWebACLs uses NextMarker pagination with no built-in
+	// paginator.
 	wafClient := wafv2.NewFromConfig(c.awsCfg)
 	var wafNextMarker *string
 	for {
@@ -1719,7 +1840,7 @@ func (c *Client) collectGlobalResources(data *RegionData) {
 	// Route53 Hosted Zones
 	r53Client := route53.NewFromConfig(c.awsCfg)
 	if out, err := r53Client.ListHostedZones(ctx, &route53.ListHostedZonesInput{}); err != nil {
-		c.logger.Debug("no Route53 hosted zones", "error", err)
+		c.logger.Debug("no Route53 hosted zones", "error", logErr(err))
 	} else {
 		data.Route53HostedZones = out.HostedZones
 		if len(out.HostedZones) > 0 {
@@ -1732,7 +1853,7 @@ func (c *Client) collectGlobalResources(data *RegionData) {
 	gaCfg.Region = "us-west-2"
 	gaClient := globalaccelerator.NewFromConfig(gaCfg)
 	if out, err := gaClient.ListAccelerators(ctx, &globalaccelerator.ListAcceleratorsInput{}); err != nil {
-		c.logger.Debug("no Global Accelerators", "error", err)
+		c.logger.Debug("no Global Accelerators", "error", logErr(err))
 	} else {
 		data.GlobalAccelerators = out.Accelerators
 		if len(out.Accelerators) > 0 {
@@ -1813,11 +1934,12 @@ func (c *Client) collectGlobalResources(data *RegionData) {
 
 // tagMap converts AWS []types.Tag to a map[string]string.
 // Tags whose keys match secret-scanning patterns are dropped entirely.
-// Tags whose values match a known secret pattern have the value replaced
-// with "[REDACTED]". This prevents the SDK fail-closed builder from aborting
-// the entire document when a resource carries a tag that looks like a secret.
-// Governance tags (apmcode, costcenter, environment, etc.) pass through
-// unchanged because none of their keys match the sensitive-key patterns.
+// Tags whose values match a known secret pattern have the value
+// replaced with "[REDACTED]". This prevents the SDK fail-closed builder
+// from aborting the entire document when a resource carries a tag that
+// looks like a secret. Governance tags (apmcode, costcenter,
+// environment, etc.) pass through unchanged because none of their keys
+// match the sensitive-key patterns.
 func tagMap(tags []ec2types.Tag) map[string]string {
 	if len(tags) == 0 {
 		return nil

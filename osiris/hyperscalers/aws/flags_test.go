@@ -1,8 +1,8 @@
 // flags_test.go - Tests for account selection (--account, flags.go) in
 // the OSIRIS JSON Amazon AWS producer.
 //
-// For an introduction to OSIRIS JSON Producer for Amazon Web Services see:
-// [OSIRIS-JSON-AWS]: https://osirisjson.org/en/docs/producers/hyperscalers/amazon-aws
+// For an introduction to OSIRIS JSON Producer for Amazon AWS see:
+// [OSIRIS-JSON-AWS]: https://docs.osirisjson.org/osiris-producers/hyperscalers/amazon-aws/
 
 package aws
 

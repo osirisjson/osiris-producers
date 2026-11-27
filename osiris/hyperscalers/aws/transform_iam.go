@@ -1,7 +1,8 @@
 // transform_iam.go - IAM resource transforms.
-// Maps IAM roles, instance profiles, OIDC providers and SAML providers to
-// OSIRIS JSON types. IAM is a global service; these resources are collected
-// only for GlobalRegion (us-east-1) and merged into that document.
+// Maps IAM roles, instance profiles, OIDC providers and SAML providers
+// to OSIRIS JSON types. IAM is a global service these resources are
+// collected only for GlobalRegion (us-east-1) and merged into that
+// document.
 //
 // All types are custom osiris.aws.* namespace:
 //   iam:role                -> osiris.aws.iam.role
@@ -9,8 +10,9 @@
 //   iam:oidc-provider       -> osiris.aws.iam.oidcprovider
 //   iam:saml-provider       -> osiris.aws.iam.samlprovider
 //
-// [OSIRIS-JSON-AWS]: https://osirisjson.org/en/docs/producers/hyperscalers/amazon-aws
-// [OSIRIS-JSON-SPEC-CH07]: https://osirisjson.org/en/docs/spec/v10/07-resourcetypetaxonomy
+// For an introduction to OSIRIS JSON Producer for Amazon AWS see:
+// [OSIRIS-JSON-AWS]: https://docs.osirisjson.org/osiris-producers/hyperscalers/amazon-aws/
+// [OSIRIS-JSON-SPEC-CH07]: https://osirisjson.org/en/specification#7-resource-type-taxonomy
 
 package aws
 
@@ -69,7 +71,8 @@ func TransformIAMRoles(roles []iamtypes.Role, accountID string) ([]sdk.Resource,
 	return resources, idMap
 }
 
-// TransformIAMInstanceProfiles converts IAM instance profiles to osiris.aws.iam.instanceprofile resources.
+// TransformIAMInstanceProfiles converts IAM instance profiles to
+// osiris.aws.iam.instanceprofile resources.
 // Returns resources and a profileARN->resourceID map.
 func TransformIAMInstanceProfiles(profiles []iamtypes.InstanceProfile, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
@@ -103,7 +106,8 @@ func TransformIAMInstanceProfiles(profiles []iamtypes.InstanceProfile, accountID
 	return resources, idMap
 }
 
-// TransformIAMOIDCProviders converts IAM OIDC providers to osiris.aws.iam.oidcprovider resources.
+// TransformIAMOIDCProviders converts IAM OIDC providers to
+// osiris.aws.iam.oidcprovider resources.
 func TransformIAMOIDCProviders(entries []iamtypes.OpenIDConnectProviderListEntry, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 
@@ -126,7 +130,8 @@ func TransformIAMOIDCProviders(entries []iamtypes.OpenIDConnectProviderListEntry
 	return resources
 }
 
-// TransformIAMSAMLProviders converts IAM SAML providers to osiris.aws.iam.samlprovider resources.
+// TransformIAMSAMLProviders converts IAM SAML providers to
+// osiris.aws.iam.samlprovider resources.
 func TransformIAMSAMLProviders(entries []iamtypes.SAMLProviderListEntry, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 
@@ -149,7 +154,8 @@ func TransformIAMSAMLProviders(entries []iamtypes.SAMLProviderListEntry, account
 	return resources
 }
 
-// TransformIAMInstanceProfileToRoleConnections wires instance profiles to their IAM roles.
+// TransformIAMInstanceProfileToRoleConnections wires instance profiles
+// to their IAM roles.
 func TransformIAMInstanceProfileToRoleConnections(profiles []iamtypes.InstanceProfile, profileIDMap, roleIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, p := range profiles {
@@ -173,7 +179,6 @@ func TransformIAMInstanceProfileToRoleConnections(profiles []iamtypes.InstancePr
 	}
 	return conns
 }
-
 
 func iamTagMap(tags []iamtypes.Tag) map[string]string {
 	if len(tags) == 0 {

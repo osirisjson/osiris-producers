@@ -1,7 +1,7 @@
 // transform_networking_ext.go - extended networking resource transforms.
-// Maps ELBv2 listeners, Direct Connect LAGs, VPC PrivateLink endpoint service
-// configurations, API Gateway REST APIs (v1), API Gateway v2 APIs, and
-// CloudFront distributions to OSIRIS JSON types.
+// Maps ELBv2 listeners, Direct Connect LAGs, VPC PrivateLink endpoint
+// service configurations, API Gateway REST APIs (v1), API Gateway v2
+// APIs and CloudFront distributions to OSIRIS JSON types.
 //
 // All types are custom osiris.aws.* namespace:
 //   elbv2:listener                   -> osiris.aws.elbv2.listener
@@ -11,13 +11,15 @@
 //   apigatewayv2:api                 -> osiris.aws.apigatewayv2.api
 //   cloudfront:distribution          -> osiris.aws.cloudfront.distribution
 //
-// [OSIRIS-JSON-AWS]: https://osirisjson.org/en/docs/producers/hyperscalers/amazon-aws
-// [OSIRIS-JSON-SPEC-CH07]: https://osirisjson.org/en/docs/spec/v10/07-resourcetypetaxonomy
+// For an introduction to OSIRIS JSON Producer for Amazon AWS see:
+// [OSIRIS-JSON-AWS]: https://docs.osirisjson.org/osiris-producers/hyperscalers/amazon-aws/
+// [OSIRIS-JSON-SPEC-CH07]: https://osirisjson.org/en/specification#7-resource-type-taxonomy
 
 package aws
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	apigwtypes "github.com/aws/aws-sdk-go-v2/service/apigateway/types"
@@ -50,6 +52,10 @@ func TransformELBv2Listeners(listeners []elbv2types.Listener, region, accountID 
 			port = aws.ToInt32(l.Port)
 		}
 		name := fmt.Sprintf("%s:%d", proto, port)
+		if proto == "" {
+			// Gateway load balancer listeners have no protocol or port.
+			name = arn[strings.LastIndex(arn, "/")+1:]
+		}
 
 		prov := awsProvider(arn, "elbv2:listener", region, accountID)
 		r, err := sdk.NewResource(id, "osiris.aws.elbv2.listener", prov)
@@ -59,8 +65,9 @@ func TransformELBv2Listeners(listeners []elbv2types.Listener, region, accountID 
 		r.Name = name
 		r.Status = "active"
 
-		props := map[string]any{
-			"protocol": proto,
+		props := map[string]any{}
+		if proto != "" {
+			props["protocol"] = proto
 		}
 		if l.Port != nil {
 			props["port"] = port
@@ -85,8 +92,8 @@ func TransformELBv2Listeners(listeners []elbv2types.Listener, region, accountID 
 	return resources, idMap
 }
 
-// TransformDirectConnectLAGs converts Direct Connect LAG descriptions to
-// osiris.aws.directconnect.lag resources.
+// TransformDirectConnectLAGs converts Direct Connect LAG descriptions
+// to osiris.aws.directconnect.lag resources.
 // Returns resources and a lagID->resourceID map.
 func TransformDirectConnectLAGs(lags []dctypes.Lag, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
@@ -138,8 +145,8 @@ func TransformDirectConnectLAGs(lags []dctypes.Lag, region, accountID string) ([
 	return resources, idMap
 }
 
-// TransformVPCEndpointServices converts VPC endpoint service configurations to
-// osiris.aws.vpc.endpointservice resources.
+// TransformVPCEndpointServices converts VPC endpoint service
+// configurations to osiris.aws.vpc.endpointservice resources.
 // Returns resources and a serviceID->resourceID map.
 func TransformVPCEndpointServices(svcs []ec2types.ServiceConfiguration, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
@@ -192,8 +199,8 @@ func TransformVPCEndpointServices(svcs []ec2types.ServiceConfiguration, region, 
 	return resources, idMap
 }
 
-// TransformAPIGatewayRestAPIs converts API Gateway REST API descriptions to
-// osiris.aws.apigateway.restapi resources.
+// TransformAPIGatewayRestAPIs converts API Gateway REST API
+// descriptions to osiris.aws.apigateway.restapi resources.
 func TransformAPIGatewayRestAPIs(apis []apigwtypes.RestApi, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 
@@ -285,8 +292,8 @@ func TransformAPIGatewayV2APIs(apis []apigwv2types.Api, region, accountID string
 	return resources
 }
 
-// TransformCloudFrontDistributions converts CloudFront distribution summaries to
-// osiris.aws.cloudfront.distribution resources.
+// TransformCloudFrontDistributions converts CloudFront distribution
+// summaries to osiris.aws.cloudfront.distribution resources.
 func TransformCloudFrontDistributions(dists []cftypes.DistributionSummary, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 
@@ -345,8 +352,8 @@ func TransformCloudFrontDistributions(dists []cftypes.DistributionSummary, accou
 	return resources
 }
 
-
-// TransformListenerToLBConnections wires ELBv2 listeners to their parent load balancers.
+// TransformListenerToLBConnections wires ELBv2 listeners to their
+// parent load balancers.
 func TransformListenerToLBConnections(listeners []elbv2types.Listener, lbs []elbv2types.LoadBalancer, listenerIDMap map[string]string, region, accountID string) []sdk.Connection {
 	lbMap := make(map[string]string, len(lbs))
 	for _, lb := range lbs {
@@ -377,7 +384,8 @@ func TransformListenerToLBConnections(listeners []elbv2types.Listener, lbs []elb
 	return conns
 }
 
-// TransformLAGContainsConnectionConns wires Direct Connect LAGs to their bundled connections.
+// TransformLAGContainsConnectionConns wires Direct Connect LAGs to
+// their bundled connections.
 func TransformLAGContainsConnectionConns(lags []dctypes.Lag, lagIDMap map[string]string, region, accountID string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, lag := range lags {
@@ -402,7 +410,8 @@ func TransformLAGContainsConnectionConns(lags []dctypes.Lag, lagIDMap map[string
 	return conns
 }
 
-// TransformEndpointServiceToNLBConnections wires VPC endpoint services to their NLBs.
+// TransformEndpointServiceToNLBConnections wires VPC endpoint services
+// to their NLBs.
 func TransformEndpointServiceToNLBConnections(svcs []ec2types.ServiceConfiguration, svcIDMap map[string]string, lbs []elbv2types.LoadBalancer, region, accountID string) []sdk.Connection {
 	lbMap := make(map[string]string, len(lbs))
 	for _, lb := range lbs {
@@ -434,13 +443,12 @@ func TransformEndpointServiceToNLBConnections(svcs []ec2types.ServiceConfigurati
 	return conns
 }
 
-
 func mapDCLAGState(s dctypes.LagState) string {
 	switch s {
 	case dctypes.LagStateAvailable:
 		return "active"
 	case dctypes.LagStateRequested, dctypes.LagStatePending:
-		return "pending"
+		return "inactive"
 	case dctypes.LagStateDeleted, dctypes.LagStateDeleting:
 		return "inactive"
 	case dctypes.LagStateDown:
@@ -455,7 +463,7 @@ func mapEndpointServiceState(s ec2types.ServiceState) string {
 	case ec2types.ServiceStateAvailable:
 		return "active"
 	case ec2types.ServiceStatePending:
-		return "pending"
+		return "inactive"
 	case ec2types.ServiceStateDeleted, ec2types.ServiceStateDeleting:
 		return "inactive"
 	case ec2types.ServiceStateFailed:
@@ -473,7 +481,7 @@ func mapCloudFrontStatus(status string, enabled *bool) string {
 	case "Deployed":
 		return "active"
 	case "InProgress":
-		return "pending"
+		return "inactive"
 	default:
 		return "unknown"
 	}
