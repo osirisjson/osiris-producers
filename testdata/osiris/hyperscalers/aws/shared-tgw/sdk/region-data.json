@@ -1,0 +1,94 @@
+{
+  "Identity": {
+    "AccountID": "123456789012",
+    "Arn": "arn:aws:iam::123456789012:user/TEST-USER",
+    "UserID": "TESTUSERID",
+    "Partition": "aws"
+  },
+  "Organization": {
+    "ID": "o-testorg0001",
+    "ManagementAccountID": "444455556666",
+    "AccountNames": {
+      "111122223333": "TEST-NETWORK"
+    }
+  },
+  "AccountName": "TEST-PARTICIPANT",
+  "Region": "eu-central-1",
+  "VPCs": [
+    {
+      "VpcId": "vpc-00000000000000001",
+      "OwnerId": "123456789012",
+      "CidrBlock": "198.51.100.0/24",
+      "State": "available",
+      "IsDefault": false,
+      "Tags": [
+        {
+          "Key": "Name",
+          "Value": "TEST-VPC-SPOKE"
+        },
+        {
+          "Key": "api_token",
+          "Value": "changeme"
+        }
+      ]
+    },
+    {
+      "VpcId": "vpc-00000000000000002",
+      "OwnerId": "123456789012",
+      "CidrBlock": "203.0.113.0/24",
+      "State": "available",
+      "IsDefault": false,
+      "Tags": [
+        {
+          "Key": "Name",
+          "Value": "TEST-VPC-REMOTE"
+        }
+      ]
+    }
+  ],
+  "TransitGateways": [
+    {
+      "TransitGatewayId": "tgw-00000000000000001",
+      "TransitGatewayArn": "arn:aws:ec2:eu-central-1:111122223333:transit-gateway/tgw-00000000000000001",
+      "OwnerId": "111122223333",
+      "State": "available",
+      "Description": "TEST-TGW-SHARED",
+      "Options": {
+        "AmazonSideAsn": 64512,
+        "DnsSupport": "enable"
+      }
+    }
+  ],
+  "TransitGatewayAttachments": [
+    {
+      "TransitGatewayAttachmentId": "tgw-attach-00000000000000001",
+      "TransitGatewayId": "tgw-00000000000000001",
+      "TransitGatewayOwnerId": "111122223333",
+      "ResourceType": "vpc",
+      "ResourceId": "vpc-00000000000000001",
+      "ResourceOwnerId": "123456789012",
+      "State": "available",
+      "Tags": [
+        {
+          "Key": "Name",
+          "Value": "TEST-ATTACH-SHARED"
+        }
+      ]
+    },
+    {
+      "TransitGatewayAttachmentId": "tgw-attach-00000000000000002",
+      "TransitGatewayId": "tgw-00000000000000002",
+      "TransitGatewayOwnerId": "444455556666",
+      "ResourceType": "vpc",
+      "ResourceId": "vpc-00000000000000002",
+      "ResourceOwnerId": "123456789012",
+      "State": "available",
+      "Tags": [
+        {
+          "Key": "Name",
+          "Value": "TEST-ATTACH-REMOTE"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,236 @@
+{
+  "$schema": "https://osirisjson.org/schema/v1.0/osiris.schema.json",
+  "version": "1.0.0",
+  "metadata": {
+    "timestamp": "2026-01-02T03:04:05Z",
+    "generator": {
+      "name": "osirisjson-producer-aws",
+      "version": "0.2.0",
+      "url": "https://docs.osirisjson.org/osiris-producers/hyperscalers/amazon-aws/"
+    },
+    "scope": {
+      "name": "TEST-ACCOUNT",
+      "purpose": "audit",
+      "providers": [
+        "aws"
+      ],
+      "accounts": [
+        "123456789012"
+      ],
+      "regions": [
+        "eu-west-1"
+      ],
+      "environments": [
+        "test"
+      ]
+    },
+    "coverage": {
+      "services_attempted": [
+        "acm",
+        "apigateway",
+        "apigatewayv2",
+        "autoscaling",
+        "backup",
+        "cloudwatchlogs",
+        "directconnect",
+        "docdb",
+        "dynamodb",
+        "ec2",
+        "ecr",
+        "ecs",
+        "efs",
+        "eks",
+        "elasticache",
+        "elb",
+        "elbv2",
+        "eventbridge",
+        "fsx",
+        "kafka",
+        "kinesis",
+        "kms",
+        "lambda",
+        "memorydb",
+        "neptune",
+        "networkfirewall",
+        "opensearch",
+        "ram",
+        "rds",
+        "redshift",
+        "route53resolver",
+        "s3",
+        "secretsmanager",
+        "sfn",
+        "sns",
+        "sqs",
+        "wafv2"
+      ],
+      "services_succeeded": [
+        "s3"
+      ]
+    },
+    "osiris.aws": {
+      "accounts": {
+        "123456789012": {
+          "coverage": "exported"
+        }
+      },
+      "coverage": {
+        "core_complete": true,
+        "core_operations": [
+          {
+            "service": "ec2",
+            "operation": "DescribeInstances",
+            "outcome": "succeeded-empty",
+            "pages": 1,
+            "items": 0
+          },
+          {
+            "service": "ec2",
+            "operation": "DescribeNetworkInterfaces",
+            "outcome": "succeeded-empty",
+            "pages": 1,
+            "items": 0
+          },
+          {
+            "service": "ec2",
+            "operation": "DescribeRouteTables",
+            "outcome": "succeeded-empty",
+            "pages": 1,
+            "items": 0
+          },
+          {
+            "service": "ec2",
+            "operation": "DescribeSubnets",
+            "outcome": "succeeded-empty",
+            "pages": 1,
+            "items": 0
+          },
+          {
+            "service": "ec2",
+            "operation": "DescribeVpcs",
+            "outcome": "succeeded-empty",
+            "pages": 1,
+            "items": 0
+          }
+        ],
+        "schema": "operation-outcomes/v1",
+        "unverified_pagination": [
+          "acm",
+          "apigateway",
+          "apigatewayv2",
+          "autoscaling",
+          "backup",
+          "cloudwatchlogs",
+          "directconnect",
+          "docdb",
+          "dynamodb",
+          "ec2",
+          "ecr",
+          "ecs",
+          "efs",
+          "eks",
+          "elasticache",
+          "elb",
+          "elbv2",
+          "eventbridge",
+          "fsx",
+          "kafka",
+          "kinesis",
+          "kms",
+          "lambda",
+          "memorydb",
+          "neptune",
+          "networkfirewall",
+          "opensearch",
+          "ram",
+          "rds",
+          "redshift",
+          "route53resolver",
+          "s3",
+          "secretsmanager",
+          "sfn",
+          "sns",
+          "sqs",
+          "wafv2"
+        ]
+      }
+    }
+  },
+  "topology": {
+    "resources": [
+      {
+        "id": "aws::arn:aws:s3:::test-bucket-denied",
+        "type": "storage.bucket",
+        "name": "test-bucket-denied",
+        "provider": {
+          "name": "aws",
+          "native_id": "arn:aws:s3:::test-bucket-denied",
+          "account": "123456789012",
+          "type": "AWS::S3::Bucket",
+          "region": "eu-west-1",
+          "source": "aws-sdk-go-v2"
+        },
+        "status": "active",
+        "properties": {
+          "region": "eu-west-1",
+          "unverified_settings": [
+            "block_public_access",
+            "encryption",
+            "versioning"
+          ]
+        },
+        "extensions": {
+          "osiris.aws.sdk": {
+            "api_version": "aws-sdk-go-v2",
+            "body": "{\"BlockPublicAccess\": false, \"EncryptionAlgorithm\": \"\", \"EncryptionKeyARN\": \"\", \"Name\": \"test-bucket-denied\", \"Region\": \"eu-west-1\", \"Tags\": {\"Name\": \"TEST-BUCKET-DENIED\", \"api_token\": \"[REDACTED]\"}, \"Unverified\": [\"versioning\", \"encryption\", \"block_public_access\"], \"Versioning\": \"\"}",
+            "fetched_at": "2026-01-02T03:04:05Z",
+            "kind": "snapshot",
+            "schema": "raw-passthrough/v2"
+          }
+        },
+        "tags": {
+          "Name": "TEST-BUCKET-DENIED"
+        }
+      },
+      {
+        "id": "aws::arn:aws:s3:::test-bucket-read",
+        "type": "storage.bucket",
+        "name": "test-bucket-read",
+        "provider": {
+          "name": "aws",
+          "native_id": "arn:aws:s3:::test-bucket-read",
+          "account": "123456789012",
+          "type": "AWS::S3::Bucket",
+          "region": "eu-west-1",
+          "source": "aws-sdk-go-v2"
+        },
+        "status": "active",
+        "properties": {
+          "block_public_access": true,
+          "encryption_algorithm": "aws:kms",
+          "region": "eu-west-1",
+          "versioning": "Enabled"
+        },
+        "extensions": {
+          "osiris.aws.sdk": {
+            "api_version": "aws-sdk-go-v2",
+            "body": "{\"BlockPublicAccess\": true, \"EncryptionAlgorithm\": \"aws:kms\", \"EncryptionKeyARN\": \"\", \"Name\": \"test-bucket-read\", \"Region\": \"eu-west-1\", \"Tags\": {\"Name\": \"TEST-BUCKET-READ\"}, \"Unverified\": null, \"Versioning\": \"Enabled\"}",
+            "fetched_at": "2026-01-02T03:04:05Z",
+            "kind": "snapshot",
+            "schema": "raw-passthrough/v2"
+          }
+        },
+        "tags": {
+          "Name": "TEST-BUCKET-READ"
+        }
+      }
+    ],
+    "groups": [
+      {
+        "id": "group-osiris.aws.account-123456789012-8e2149d318cc8d30",
+        "type": "osiris.aws.account",
+        "name": "AWS Account 123456789012"
+      }
+    ]
+  }
+}

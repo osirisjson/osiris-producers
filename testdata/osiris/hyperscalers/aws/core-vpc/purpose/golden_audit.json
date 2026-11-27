@@ -1,0 +1,545 @@
+{
+  "$schema": "https://osirisjson.org/schema/v1.0/osiris.schema.json",
+  "version": "1.0.0",
+  "metadata": {
+    "timestamp": "2026-01-02T03:04:05Z",
+    "generator": {
+      "name": "osirisjson-producer-aws",
+      "version": "0.2.0",
+      "url": "https://docs.osirisjson.org/osiris-producers/hyperscalers/amazon-aws/"
+    },
+    "scope": {
+      "name": "TEST-ACCOUNT",
+      "purpose": "audit",
+      "providers": [
+        "aws"
+      ],
+      "accounts": [
+        "123456789012"
+      ],
+      "regions": [
+        "eu-west-1"
+      ],
+      "environments": [
+        "test"
+      ]
+    },
+    "coverage": {
+      "services_attempted": [
+        "acm",
+        "apigateway",
+        "apigatewayv2",
+        "autoscaling",
+        "backup",
+        "cloudwatchlogs",
+        "directconnect",
+        "docdb",
+        "dynamodb",
+        "ec2",
+        "ecr",
+        "ecs",
+        "efs",
+        "eks",
+        "elasticache",
+        "elb",
+        "elbv2",
+        "eventbridge",
+        "fsx",
+        "kafka",
+        "kinesis",
+        "kms",
+        "lambda",
+        "memorydb",
+        "neptune",
+        "networkfirewall",
+        "opensearch",
+        "ram",
+        "rds",
+        "redshift",
+        "route53resolver",
+        "s3",
+        "secretsmanager",
+        "sfn",
+        "sns",
+        "sqs",
+        "wafv2"
+      ],
+      "services_succeeded": [
+        "ec2"
+      ]
+    },
+    "osiris.aws": {
+      "accounts": {
+        "123456789012": {
+          "coverage": "exported"
+        }
+      },
+      "coverage": {
+        "core_complete": true,
+        "core_operations": [
+          {
+            "service": "ec2",
+            "operation": "DescribeInstances",
+            "outcome": "succeeded",
+            "pages": 1,
+            "items": 1
+          },
+          {
+            "service": "ec2",
+            "operation": "DescribeNetworkInterfaces",
+            "outcome": "succeeded",
+            "pages": 1,
+            "items": 2
+          },
+          {
+            "service": "ec2",
+            "operation": "DescribeRouteTables",
+            "outcome": "succeeded",
+            "pages": 1,
+            "items": 2
+          },
+          {
+            "service": "ec2",
+            "operation": "DescribeSubnets",
+            "outcome": "succeeded",
+            "pages": 1,
+            "items": 2
+          },
+          {
+            "service": "ec2",
+            "operation": "DescribeVpcs",
+            "outcome": "succeeded",
+            "pages": 1,
+            "items": 1
+          }
+        ],
+        "schema": "operation-outcomes/v1",
+        "unverified_pagination": [
+          "acm",
+          "apigateway",
+          "apigatewayv2",
+          "autoscaling",
+          "backup",
+          "cloudwatchlogs",
+          "directconnect",
+          "docdb",
+          "dynamodb",
+          "ec2",
+          "ecr",
+          "ecs",
+          "efs",
+          "eks",
+          "elasticache",
+          "elb",
+          "elbv2",
+          "eventbridge",
+          "fsx",
+          "kafka",
+          "kinesis",
+          "kms",
+          "lambda",
+          "memorydb",
+          "neptune",
+          "networkfirewall",
+          "opensearch",
+          "ram",
+          "rds",
+          "redshift",
+          "route53resolver",
+          "s3",
+          "secretsmanager",
+          "sfn",
+          "sns",
+          "sqs",
+          "wafv2"
+        ]
+      }
+    }
+  },
+  "topology": {
+    "resources": [
+      {
+        "id": "aws::arn:aws:ec2:eu-west-1:123456789012:instance/i-00000000000000001",
+        "type": "compute.vm",
+        "name": "TEST-VM01",
+        "provider": {
+          "name": "aws",
+          "native_id": "i-00000000000000001",
+          "account": "123456789012",
+          "type": "AWS::EC2::Instance",
+          "region": "eu-west-1",
+          "zone": "eu-west-1a",
+          "source": "aws-sdk-go-v2"
+        },
+        "status": "active",
+        "state": "running",
+        "properties": {
+          "image_id": "ami-00000000000000001",
+          "imds_v2_enforcement": "required",
+          "instance_type": "t3.micro",
+          "metadata_http_endpoint": "enabled",
+          "private_ip": "192.0.2.10",
+          "subnet_id": "subnet-00000000000000001",
+          "vpc_id": "vpc-00000000000000001"
+        },
+        "extensions": {
+          "osiris.aws.sdk": {
+            "api_version": "aws-sdk-go-v2",
+            "body": "{\"AmiLaunchIndex\": null, \"Architecture\": \"\", \"BlockDeviceMappings\": null, \"BootMode\": \"\", \"CapacityBlockId\": null, \"CapacityReservationId\": null, \"CapacityReservationSpecification\": null, \"ClientToken\": \"[REDACTED]\", \"CpuOptions\": null, \"CurrentInstanceBootMode\": \"\", \"EbsOptimized\": null, \"ElasticGpuAssociations\": null, \"ElasticInferenceAcceleratorAssociations\": null, \"EnaSupport\": null, \"EnclaveOptions\": null, \"HibernationOptions\": null, \"Hypervisor\": \"\", \"IamInstanceProfile\": null, \"ImageId\": \"ami-00000000000000001\", \"InstanceId\": \"i-00000000000000001\", \"InstanceLifecycle\": \"\", \"InstanceType\": \"t3.micro\", \"Ipv6Address\": null, \"KernelId\": null, \"KeyName\": null, \"LaunchTime\": null, \"Licenses\": null, \"MaintenanceOptions\": null, \"MetadataOptions\": {\"HttpEndpoint\": \"enabled\", \"HttpProtocolIpv6\": \"\", \"HttpPutResponseHopLimit\": null, \"HttpTokens\": \"required\", \"InstanceMetadataTags\": \"\", \"State\": \"\"}, \"Monitoring\": null, \"NetworkInterfaces\": null, \"NetworkPerformanceOptions\": null, \"Operator\": null, \"OutpostArn\": null, \"Placement\": {\"Affinity\": null, \"AvailabilityZone\": \"eu-west-1a\", \"AvailabilityZoneId\": null, \"GroupId\": null, \"GroupName\": null, \"HostId\": null, \"HostResourceGroupArn\": null, \"PartitionNumber\": null, \"SpreadDomain\": null, \"Tenancy\": \"\"}, \"Platform\": \"\", \"PlatformDetails\": null, \"PrivateDnsName\": null, \"PrivateDnsNameOptions\": null, \"PrivateIpAddress\": \"192.0.2.10\", \"ProductCodes\": null, \"PublicDnsName\": null, \"PublicIpAddress\": null, \"RamdiskId\": null, \"RootDeviceName\": null, \"RootDeviceType\": \"\", \"SecondaryInterfaces\": null, \"SecurityGroups\": null, \"SourceDestCheck\": null, \"SpotInstanceRequestId\": null, \"SriovNetSupport\": null, \"State\": {\"Code\": 16, \"Name\": \"running\"}, \"StateReason\": null, \"StateTransitionReason\": null, \"SubnetId\": \"subnet-00000000000000001\", \"Tags\": [{\"Key\": \"Name\", \"Value\": \"TEST-VM01\"}], \"TpmSupport\": null, \"UsageOperation\": null, \"UsageOperationUpdateTime\": null, \"VirtualizationType\": \"\", \"VpcId\": \"vpc-00000000000000001\"}",
+            "fetched_at": "2026-01-02T03:04:05Z",
+            "kind": "snapshot",
+            "schema": "raw-passthrough/v2"
+          }
+        },
+        "tags": {
+          "Name": "TEST-VM01"
+        }
+      },
+      {
+        "id": "aws::arn:aws:ec2:eu-west-1:123456789012:network-interface/eni-00000000000000001",
+        "type": "network.interface",
+        "name": "TEST-ENI-ATTACHED",
+        "provider": {
+          "name": "aws",
+          "native_id": "eni-00000000000000001",
+          "account": "123456789012",
+          "type": "AWS::EC2::NetworkInterface",
+          "region": "eu-west-1",
+          "zone": "eu-west-1a",
+          "source": "aws-sdk-go-v2"
+        },
+        "status": "active",
+        "properties": {
+          "availability_zone": "eu-west-1a",
+          "interface_type": "interface",
+          "private_ip": "192.0.2.10",
+          "subnet_id": "subnet-00000000000000001",
+          "vpc_id": "vpc-00000000000000001"
+        },
+        "extensions": {
+          "osiris.aws.sdk": {
+            "api_version": "aws-sdk-go-v2",
+            "body": "{\"AssociatedSubnets\": null, \"Association\": null, \"Attachment\": {\"AttachTime\": null, \"AttachmentId\": \"eni-attach-00000000000000001\", \"DeleteOnTermination\": null, \"DeviceIndex\": 0, \"EnaQueueCount\": null, \"EnaSrdSpecification\": null, \"InstanceId\": \"i-00000000000000001\", \"InstanceOwnerId\": \"123456789012\", \"NetworkCardIndex\": null, \"Status\": \"attached\"}, \"AvailabilityZone\": \"eu-west-1a\", \"AvailabilityZoneId\": null, \"ConnectionTrackingConfiguration\": null, \"DenyAllIgwTraffic\": null, \"Description\": null, \"Groups\": null, \"InterfaceType\": \"interface\", \"Ipv4Prefixes\": null, \"Ipv6Address\": null, \"Ipv6Addresses\": null, \"Ipv6Native\": null, \"Ipv6Prefixes\": null, \"MacAddress\": null, \"NetworkInterfaceId\": \"eni-00000000000000001\", \"Operator\": null, \"OutpostArn\": null, \"OwnerId\": \"123456789012\", \"PrivateDnsName\": null, \"PrivateIpAddress\": \"192.0.2.10\", \"PrivateIpAddresses\": null, \"PublicDnsName\": null, \"PublicIpDnsNameOptions\": null, \"RequesterId\": null, \"RequesterManaged\": null, \"SourceDestCheck\": null, \"Status\": \"in-use\", \"SubnetId\": \"subnet-00000000000000001\", \"TagSet\": [{\"Key\": \"Name\", \"Value\": \"TEST-ENI-ATTACHED\"}], \"VpcId\": \"vpc-00000000000000001\"}",
+            "fetched_at": "2026-01-02T03:04:05Z",
+            "kind": "snapshot",
+            "schema": "raw-passthrough/v2"
+          }
+        },
+        "tags": {
+          "Name": "TEST-ENI-ATTACHED"
+        }
+      },
+      {
+        "id": "aws::arn:aws:ec2:eu-west-1:123456789012:network-interface/eni-00000000000000002",
+        "type": "network.interface",
+        "name": "TEST-ENI-DETACHED",
+        "provider": {
+          "name": "aws",
+          "native_id": "eni-00000000000000002",
+          "account": "123456789012",
+          "type": "AWS::EC2::NetworkInterface",
+          "region": "eu-west-1",
+          "zone": "eu-west-1b",
+          "source": "aws-sdk-go-v2"
+        },
+        "status": "inactive",
+        "properties": {
+          "availability_zone": "eu-west-1b",
+          "interface_type": "interface",
+          "private_ip": "192.0.2.70",
+          "subnet_id": "subnet-00000000000000002",
+          "vpc_id": "vpc-00000000000000001"
+        },
+        "extensions": {
+          "osiris.aws.sdk": {
+            "api_version": "aws-sdk-go-v2",
+            "body": "{\"AssociatedSubnets\": null, \"Association\": null, \"Attachment\": null, \"AvailabilityZone\": \"eu-west-1b\", \"AvailabilityZoneId\": null, \"ConnectionTrackingConfiguration\": null, \"DenyAllIgwTraffic\": null, \"Description\": null, \"Groups\": null, \"InterfaceType\": \"interface\", \"Ipv4Prefixes\": null, \"Ipv6Address\": null, \"Ipv6Addresses\": null, \"Ipv6Native\": null, \"Ipv6Prefixes\": null, \"MacAddress\": null, \"NetworkInterfaceId\": \"eni-00000000000000002\", \"Operator\": null, \"OutpostArn\": null, \"OwnerId\": \"123456789012\", \"PrivateDnsName\": null, \"PrivateIpAddress\": \"192.0.2.70\", \"PrivateIpAddresses\": null, \"PublicDnsName\": null, \"PublicIpDnsNameOptions\": null, \"RequesterId\": null, \"RequesterManaged\": null, \"SourceDestCheck\": null, \"Status\": \"available\", \"SubnetId\": \"subnet-00000000000000002\", \"TagSet\": [{\"Key\": \"Name\", \"Value\": \"TEST-ENI-DETACHED\"}], \"VpcId\": \"vpc-00000000000000001\"}",
+            "fetched_at": "2026-01-02T03:04:05Z",
+            "kind": "snapshot",
+            "schema": "raw-passthrough/v2"
+          }
+        },
+        "tags": {
+          "Name": "TEST-ENI-DETACHED"
+        }
+      },
+      {
+        "id": "aws::arn:aws:ec2:eu-west-1:123456789012:route-table/rtb-00000000000000001",
+        "type": "osiris.aws.routetable",
+        "name": "TEST-RTB-MAIN",
+        "provider": {
+          "name": "aws",
+          "native_id": "rtb-00000000000000001",
+          "account": "123456789012",
+          "type": "AWS::EC2::RouteTable",
+          "region": "eu-west-1",
+          "source": "aws-sdk-go-v2"
+        },
+        "status": "active",
+        "properties": {
+          "is_main": true,
+          "route_count": 1,
+          "routes": [
+            {
+              "destination": "192.0.2.0/24",
+              "gateway_id": "local",
+              "state": "active"
+            }
+          ],
+          "vpc_id": "vpc-00000000000000001"
+        },
+        "extensions": {
+          "osiris.aws.sdk": {
+            "api_version": "aws-sdk-go-v2",
+            "body": "{\"Associations\": [{\"AssociationState\": {\"State\": \"associated\", \"StatusMessage\": null}, \"GatewayId\": null, \"Main\": true, \"PublicIpv4Pool\": null, \"RouteTableAssociationId\": \"rtbassoc-00000000000000001\", \"RouteTableId\": \"rtb-00000000000000001\", \"SubnetId\": null}], \"OwnerId\": \"123456789012\", \"PropagatingVgws\": null, \"RouteTableId\": \"rtb-00000000000000001\", \"Routes\": [{\"CarrierGatewayId\": null, \"CoreNetworkArn\": null, \"DestinationCidrBlock\": \"192.0.2.0/24\", \"DestinationIpv6CidrBlock\": null, \"DestinationPrefixListId\": null, \"EgressOnlyInternetGatewayId\": null, \"GatewayId\": \"local\", \"InstanceId\": null, \"InstanceOwnerId\": null, \"IpAddress\": null, \"LocalGatewayId\": null, \"NatGatewayId\": null, \"NetworkInterfaceId\": null, \"OdbNetworkArn\": null, \"Origin\": \"CreateRouteTable\", \"State\": \"active\", \"TransitGatewayId\": null, \"VpcPeeringConnectionId\": null}], \"Tags\": [{\"Key\": \"Name\", \"Value\": \"TEST-RTB-MAIN\"}], \"VpcId\": \"vpc-00000000000000001\"}",
+            "fetched_at": "2026-01-02T03:04:05Z",
+            "kind": "snapshot",
+            "schema": "raw-passthrough/v2"
+          }
+        },
+        "tags": {
+          "Name": "TEST-RTB-MAIN"
+        }
+      },
+      {
+        "id": "aws::arn:aws:ec2:eu-west-1:123456789012:route-table/rtb-00000000000000002",
+        "type": "osiris.aws.routetable",
+        "name": "TEST-RTB-EXPLICIT",
+        "provider": {
+          "name": "aws",
+          "native_id": "rtb-00000000000000002",
+          "account": "123456789012",
+          "type": "AWS::EC2::RouteTable",
+          "region": "eu-west-1",
+          "source": "aws-sdk-go-v2"
+        },
+        "status": "active",
+        "properties": {
+          "associated_subnets": [
+            "subnet-00000000000000001"
+          ],
+          "route_count": 1,
+          "routes": [
+            {
+              "destination": "192.0.2.0/24",
+              "gateway_id": "local",
+              "state": "active"
+            }
+          ],
+          "vpc_id": "vpc-00000000000000001"
+        },
+        "extensions": {
+          "osiris.aws.sdk": {
+            "api_version": "aws-sdk-go-v2",
+            "body": "{\"Associations\": [{\"AssociationState\": {\"State\": \"associated\", \"StatusMessage\": null}, \"GatewayId\": null, \"Main\": false, \"PublicIpv4Pool\": null, \"RouteTableAssociationId\": \"rtbassoc-00000000000000002\", \"RouteTableId\": \"rtb-00000000000000002\", \"SubnetId\": \"subnet-00000000000000001\"}], \"OwnerId\": \"123456789012\", \"PropagatingVgws\": null, \"RouteTableId\": \"rtb-00000000000000002\", \"Routes\": [{\"CarrierGatewayId\": null, \"CoreNetworkArn\": null, \"DestinationCidrBlock\": \"192.0.2.0/24\", \"DestinationIpv6CidrBlock\": null, \"DestinationPrefixListId\": null, \"EgressOnlyInternetGatewayId\": null, \"GatewayId\": \"local\", \"InstanceId\": null, \"InstanceOwnerId\": null, \"IpAddress\": null, \"LocalGatewayId\": null, \"NatGatewayId\": null, \"NetworkInterfaceId\": null, \"OdbNetworkArn\": null, \"Origin\": \"CreateRouteTable\", \"State\": \"active\", \"TransitGatewayId\": null, \"VpcPeeringConnectionId\": null}], \"Tags\": [{\"Key\": \"Name\", \"Value\": \"TEST-RTB-EXPLICIT\"}], \"VpcId\": \"vpc-00000000000000001\"}",
+            "fetched_at": "2026-01-02T03:04:05Z",
+            "kind": "snapshot",
+            "schema": "raw-passthrough/v2"
+          }
+        },
+        "tags": {
+          "Name": "TEST-RTB-EXPLICIT"
+        }
+      },
+      {
+        "id": "aws::arn:aws:ec2:eu-west-1:123456789012:subnet/subnet-00000000000000001",
+        "type": "network.subnet",
+        "name": "TEST-SUBNET-EXPLICIT",
+        "provider": {
+          "name": "aws",
+          "native_id": "subnet-00000000000000001",
+          "account": "123456789012",
+          "type": "AWS::EC2::Subnet",
+          "region": "eu-west-1",
+          "zone": "eu-west-1a",
+          "source": "aws-sdk-go-v2"
+        },
+        "status": "active",
+        "properties": {
+          "availability_zone": "eu-west-1a",
+          "available_ips": 0,
+          "cidr_block": "192.0.2.0/26",
+          "vpc_id": "vpc-00000000000000001"
+        },
+        "extensions": {
+          "osiris.aws.sdk": {
+            "api_version": "aws-sdk-go-v2",
+            "body": "{\"AssignIpv6AddressOnCreation\": null, \"AvailabilityZone\": \"eu-west-1a\", \"AvailabilityZoneId\": null, \"AvailableIpAddressCount\": null, \"BlockPublicAccessStates\": null, \"CidrBlock\": \"192.0.2.0/26\", \"CustomerOwnedIpv4Pool\": null, \"DefaultForAz\": null, \"EnableDns64\": null, \"EnableLniAtDeviceIndex\": null, \"Ipv6CidrBlockAssociationSet\": null, \"Ipv6Native\": null, \"MapCustomerOwnedIpOnLaunch\": null, \"MapPublicIpOnLaunch\": null, \"OutpostArn\": null, \"OwnerId\": \"123456789012\", \"PrivateDnsNameOptionsOnLaunch\": null, \"State\": \"available\", \"SubnetArn\": null, \"SubnetId\": \"subnet-00000000000000001\", \"Tags\": [{\"Key\": \"Name\", \"Value\": \"TEST-SUBNET-EXPLICIT\"}], \"Type\": null, \"VpcId\": \"vpc-00000000000000001\"}",
+            "fetched_at": "2026-01-02T03:04:05Z",
+            "kind": "snapshot",
+            "schema": "raw-passthrough/v2"
+          }
+        },
+        "tags": {
+          "Name": "TEST-SUBNET-EXPLICIT"
+        }
+      },
+      {
+        "id": "aws::arn:aws:ec2:eu-west-1:123456789012:subnet/subnet-00000000000000002",
+        "type": "network.subnet",
+        "name": "TEST-SUBNET-MAIN",
+        "provider": {
+          "name": "aws",
+          "native_id": "subnet-00000000000000002",
+          "account": "123456789012",
+          "type": "AWS::EC2::Subnet",
+          "region": "eu-west-1",
+          "zone": "eu-west-1b",
+          "source": "aws-sdk-go-v2"
+        },
+        "status": "active",
+        "properties": {
+          "availability_zone": "eu-west-1b",
+          "available_ips": 0,
+          "cidr_block": "192.0.2.64/26",
+          "vpc_id": "vpc-00000000000000001"
+        },
+        "extensions": {
+          "osiris.aws.sdk": {
+            "api_version": "aws-sdk-go-v2",
+            "body": "{\"AssignIpv6AddressOnCreation\": null, \"AvailabilityZone\": \"eu-west-1b\", \"AvailabilityZoneId\": null, \"AvailableIpAddressCount\": null, \"BlockPublicAccessStates\": null, \"CidrBlock\": \"192.0.2.64/26\", \"CustomerOwnedIpv4Pool\": null, \"DefaultForAz\": null, \"EnableDns64\": null, \"EnableLniAtDeviceIndex\": null, \"Ipv6CidrBlockAssociationSet\": null, \"Ipv6Native\": null, \"MapCustomerOwnedIpOnLaunch\": null, \"MapPublicIpOnLaunch\": null, \"OutpostArn\": null, \"OwnerId\": \"123456789012\", \"PrivateDnsNameOptionsOnLaunch\": null, \"State\": \"available\", \"SubnetArn\": null, \"SubnetId\": \"subnet-00000000000000002\", \"Tags\": [{\"Key\": \"Name\", \"Value\": \"TEST-SUBNET-MAIN\"}], \"Type\": null, \"VpcId\": \"vpc-00000000000000001\"}",
+            "fetched_at": "2026-01-02T03:04:05Z",
+            "kind": "snapshot",
+            "schema": "raw-passthrough/v2"
+          }
+        },
+        "tags": {
+          "Name": "TEST-SUBNET-MAIN"
+        }
+      },
+      {
+        "id": "aws::arn:aws:ec2:eu-west-1:123456789012:vpc/vpc-00000000000000001",
+        "type": "network.vpc",
+        "name": "TEST-VPC",
+        "provider": {
+          "name": "aws",
+          "native_id": "vpc-00000000000000001",
+          "account": "123456789012",
+          "type": "AWS::EC2::VPC",
+          "region": "eu-west-1",
+          "source": "aws-sdk-go-v2"
+        },
+        "status": "active",
+        "properties": {
+          "cidr_block": "192.0.2.0/24",
+          "enable_dns_hostnames": true,
+          "enable_dns_support": true,
+          "is_default": false,
+          "owner_id": "123456789012"
+        },
+        "extensions": {
+          "osiris.aws.sdk": {
+            "api_version": "aws-sdk-go-v2",
+            "body": "{\"BlockPublicAccessStates\": null, \"CidrBlock\": \"192.0.2.0/24\", \"CidrBlockAssociationSet\": null, \"DhcpOptionsId\": null, \"EncryptionControl\": null, \"InstanceTenancy\": \"\", \"Ipv6CidrBlockAssociationSet\": null, \"IsDefault\": false, \"OwnerId\": \"123456789012\", \"State\": \"available\", \"Tags\": [{\"Key\": \"Name\", \"Value\": \"TEST-VPC\"}, {\"Key\": \"webhook\", \"Value\": \"[REDACTED]\"}], \"VpcId\": \"vpc-00000000000000001\"}",
+            "fetched_at": "2026-01-02T03:04:05Z",
+            "kind": "snapshot",
+            "schema": "raw-passthrough/v2"
+          }
+        },
+        "tags": {
+          "Name": "TEST-VPC",
+          "webhook": "[REDACTED]"
+        }
+      }
+    ],
+    "connections": [
+      {
+        "id": "conn-contains-vpc-00000000000000001-to-subnet-00000000000000001-48f927b15db40e96",
+        "type": "contains",
+        "source": "aws::arn:aws:ec2:eu-west-1:123456789012:vpc/vpc-00000000000000001",
+        "target": "aws::arn:aws:ec2:eu-west-1:123456789012:subnet/subnet-00000000000000001",
+        "direction": "forward",
+        "name": "vpc-00000000000000001 contains subnet-00000000000000001"
+      },
+      {
+        "id": "conn-contains-vpc-00000000000000001-to-subnet-00000000000000002-cc88023000371db9",
+        "type": "contains",
+        "source": "aws::arn:aws:ec2:eu-west-1:123456789012:vpc/vpc-00000000000000001",
+        "target": "aws::arn:aws:ec2:eu-west-1:123456789012:subnet/subnet-00000000000000002",
+        "direction": "forward",
+        "name": "vpc-00000000000000001 contains subnet-00000000000000002"
+      },
+      {
+        "id": "conn-network-eni-00000000000000001-to-subnet-00000000000000001-41fa6e6f6ce32004",
+        "type": "network",
+        "source": "aws::arn:aws:ec2:eu-west-1:123456789012:network-interface/eni-00000000000000001",
+        "target": "aws::arn:aws:ec2:eu-west-1:123456789012:subnet/subnet-00000000000000001",
+        "direction": "forward",
+        "name": "eni-00000000000000001 -> subnet-00000000000000001",
+        "properties": {
+          "private_ip": "192.0.2.10"
+        }
+      },
+      {
+        "id": "conn-network-eni-00000000000000002-to-subnet-00000000000000002-5d8d7a344b739845",
+        "type": "network",
+        "source": "aws::arn:aws:ec2:eu-west-1:123456789012:network-interface/eni-00000000000000002",
+        "target": "aws::arn:aws:ec2:eu-west-1:123456789012:subnet/subnet-00000000000000002",
+        "direction": "forward",
+        "name": "eni-00000000000000002 -> subnet-00000000000000002",
+        "properties": {
+          "private_ip": "192.0.2.70"
+        }
+      },
+      {
+        "id": "conn-osiris.aws.eni.attachment-i-00000000000000001-to-eni-00000000000000001-614d8bdfbe139ac2",
+        "type": "osiris.aws.eni.attachment",
+        "source": "aws::arn:aws:ec2:eu-west-1:123456789012:instance/i-00000000000000001",
+        "target": "aws::arn:aws:ec2:eu-west-1:123456789012:network-interface/eni-00000000000000001",
+        "direction": "forward",
+        "name": "i-00000000000000001 -> eni-00000000000000001",
+        "properties": {
+          "attachment_status": "attached",
+          "device_index": 0
+        }
+      },
+      {
+        "id": "conn-osiris.aws.routetable.association-rtb-00000000000000001-to-subnet-00000000000000002-bf5261189daa9919",
+        "type": "osiris.aws.routetable.association",
+        "source": "aws::arn:aws:ec2:eu-west-1:123456789012:route-table/rtb-00000000000000001",
+        "target": "aws::arn:aws:ec2:eu-west-1:123456789012:subnet/subnet-00000000000000002",
+        "direction": "forward",
+        "name": "rtb-00000000000000001 -> subnet-00000000000000002",
+        "properties": {
+          "association": "main"
+        }
+      },
+      {
+        "id": "conn-osiris.aws.routetable.association-rtb-00000000000000002-to-subnet-00000000000000001-3b5d8e221057bcaf",
+        "type": "osiris.aws.routetable.association",
+        "source": "aws::arn:aws:ec2:eu-west-1:123456789012:route-table/rtb-00000000000000002",
+        "target": "aws::arn:aws:ec2:eu-west-1:123456789012:subnet/subnet-00000000000000001",
+        "direction": "forward",
+        "name": "rtb-00000000000000002 -> subnet-00000000000000001",
+        "properties": {
+          "association": "explicit",
+          "association_id": "rtbassoc-00000000000000002"
+        }
+      }
+    ],
+    "groups": [
+      {
+        "id": "group-network.vpc-vpc-00000000000000001-a74074b93c261525",
+        "type": "network.vpc",
+        "name": "VPC TEST-VPC",
+        "members": [
+          "aws::arn:aws:ec2:eu-west-1:123456789012:instance/i-00000000000000001",
+          "aws::arn:aws:ec2:eu-west-1:123456789012:network-interface/eni-00000000000000001",
+          "aws::arn:aws:ec2:eu-west-1:123456789012:network-interface/eni-00000000000000002",
+          "aws::arn:aws:ec2:eu-west-1:123456789012:route-table/rtb-00000000000000001",
+          "aws::arn:aws:ec2:eu-west-1:123456789012:route-table/rtb-00000000000000002",
+          "aws::arn:aws:ec2:eu-west-1:123456789012:subnet/subnet-00000000000000001",
+          "aws::arn:aws:ec2:eu-west-1:123456789012:subnet/subnet-00000000000000002"
+        ]
+      },
+      {
+        "id": "group-osiris.aws.account-123456789012-8e2149d318cc8d30",
+        "type": "osiris.aws.account",
+        "name": "AWS Account 123456789012",
+        "children": [
+          "group-network.vpc-vpc-00000000000000001-a74074b93c261525"
+        ]
+      }
+    ]
+  }
+}

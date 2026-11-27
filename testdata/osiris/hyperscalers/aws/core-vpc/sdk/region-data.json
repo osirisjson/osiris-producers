@@ -1,0 +1,198 @@
+{
+  "Identity": {
+    "AccountID": "123456789012",
+    "Arn": "arn:aws:iam::123456789012:user/TEST-USER",
+    "UserID": "TESTUSERID",
+    "Partition": "aws"
+  },
+  "Region": "eu-west-1",
+  "VPCs": [
+    {
+      "VpcId": "vpc-00000000000000001",
+      "CidrBlock": "192.0.2.0/24",
+      "IsDefault": false,
+      "OwnerId": "123456789012",
+      "State": "available",
+      "Tags": [
+        {
+          "Key": "Name",
+          "Value": "TEST-VPC"
+        },
+        {
+          "Key": "db_password",
+          "Value": "changeme"
+        },
+        {
+          "Key": "webhook",
+          "Value": "https://admin:changeme@example.com/hook"
+        }
+      ]
+    }
+  ],
+  "VPCDNSAttributes": {
+    "vpc-00000000000000001": {
+      "enableDnsHostnames": true,
+      "enableDnsSupport": true
+    }
+  },
+  "Subnets": [
+    {
+      "SubnetId": "subnet-00000000000000001",
+      "VpcId": "vpc-00000000000000001",
+      "CidrBlock": "192.0.2.0/26",
+      "AvailabilityZone": "eu-west-1a",
+      "OwnerId": "123456789012",
+      "State": "available",
+      "Tags": [
+        {
+          "Key": "Name",
+          "Value": "TEST-SUBNET-EXPLICIT"
+        }
+      ]
+    },
+    {
+      "SubnetId": "subnet-00000000000000002",
+      "VpcId": "vpc-00000000000000001",
+      "CidrBlock": "192.0.2.64/26",
+      "AvailabilityZone": "eu-west-1b",
+      "OwnerId": "123456789012",
+      "State": "available",
+      "Tags": [
+        {
+          "Key": "Name",
+          "Value": "TEST-SUBNET-MAIN"
+        }
+      ]
+    }
+  ],
+  "RouteTables": [
+    {
+      "RouteTableId": "rtb-00000000000000001",
+      "VpcId": "vpc-00000000000000001",
+      "OwnerId": "123456789012",
+      "Associations": [
+        {
+          "Main": true,
+          "RouteTableAssociationId": "rtbassoc-00000000000000001",
+          "RouteTableId": "rtb-00000000000000001",
+          "AssociationState": {
+            "State": "associated"
+          }
+        }
+      ],
+      "Routes": [
+        {
+          "DestinationCidrBlock": "192.0.2.0/24",
+          "GatewayId": "local",
+          "Origin": "CreateRouteTable",
+          "State": "active"
+        }
+      ],
+      "Tags": [
+        {
+          "Key": "Name",
+          "Value": "TEST-RTB-MAIN"
+        }
+      ]
+    },
+    {
+      "RouteTableId": "rtb-00000000000000002",
+      "VpcId": "vpc-00000000000000001",
+      "OwnerId": "123456789012",
+      "Associations": [
+        {
+          "Main": false,
+          "RouteTableAssociationId": "rtbassoc-00000000000000002",
+          "RouteTableId": "rtb-00000000000000002",
+          "SubnetId": "subnet-00000000000000001",
+          "AssociationState": {
+            "State": "associated"
+          }
+        }
+      ],
+      "Routes": [
+        {
+          "DestinationCidrBlock": "192.0.2.0/24",
+          "GatewayId": "local",
+          "Origin": "CreateRouteTable",
+          "State": "active"
+        }
+      ],
+      "Tags": [
+        {
+          "Key": "Name",
+          "Value": "TEST-RTB-EXPLICIT"
+        }
+      ]
+    }
+  ],
+  "NetworkInterfaces": [
+    {
+      "NetworkInterfaceId": "eni-00000000000000001",
+      "SubnetId": "subnet-00000000000000001",
+      "VpcId": "vpc-00000000000000001",
+      "AvailabilityZone": "eu-west-1a",
+      "InterfaceType": "interface",
+      "OwnerId": "123456789012",
+      "PrivateIpAddress": "192.0.2.10",
+      "Status": "in-use",
+      "Attachment": {
+        "AttachmentId": "eni-attach-00000000000000001",
+        "DeviceIndex": 0,
+        "InstanceId": "i-00000000000000001",
+        "InstanceOwnerId": "123456789012",
+        "Status": "attached"
+      },
+      "TagSet": [
+        {
+          "Key": "Name",
+          "Value": "TEST-ENI-ATTACHED"
+        }
+      ]
+    },
+    {
+      "NetworkInterfaceId": "eni-00000000000000002",
+      "SubnetId": "subnet-00000000000000002",
+      "VpcId": "vpc-00000000000000001",
+      "AvailabilityZone": "eu-west-1b",
+      "InterfaceType": "interface",
+      "OwnerId": "123456789012",
+      "PrivateIpAddress": "192.0.2.70",
+      "Status": "available",
+      "TagSet": [
+        {
+          "Key": "Name",
+          "Value": "TEST-ENI-DETACHED"
+        }
+      ]
+    }
+  ],
+  "Instances": [
+    {
+      "InstanceId": "i-00000000000000001",
+      "InstanceType": "t3.micro",
+      "ImageId": "ami-00000000000000001",
+      "VpcId": "vpc-00000000000000001",
+      "SubnetId": "subnet-00000000000000001",
+      "PrivateIpAddress": "192.0.2.10",
+      "Placement": {
+        "AvailabilityZone": "eu-west-1a"
+      },
+      "State": {
+        "Code": 16,
+        "Name": "running"
+      },
+      "Tags": [
+        {
+          "Key": "Name",
+          "Value": "TEST-VM01"
+        }
+      ],
+      "MetadataOptions": {
+        "HttpTokens": "required",
+        "HttpEndpoint": "enabled"
+      },
+      "ClientToken": "changeme"
+    }
+  ]
+}
