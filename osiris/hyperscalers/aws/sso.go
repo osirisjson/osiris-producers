@@ -1,6 +1,8 @@
-// sso.go - AWS IAM Identity Center (SSO) setup for the OSIRIS JSON producer.
-// Implements the device authorization flow to discover all accounts and roles
-// available to the user RBAC, then generates ~/.aws/config profiles automatically.
+// sso.go - AWS IAM Identity Center (SSO) setup for the OSIRIS JSON
+// producer.
+// Implements the device authorization flow to discover all accounts and
+// roles available to the user RBAC, then generates ~/.aws/config
+// profiles automatically.
 //
 // Usage:
 //
@@ -8,10 +10,11 @@
 //
 // This eliminates the need to manually run "aws configure sso" for each
 // account. A single invocation discovers all accounts and roles, writes
-// the config, and leaves the user ready to collect and generate OSIRIS JSON document.
+// the config and leaves the user ready to collect and generat
+// OSIRIS JSON document.
 //
-// For an introduction to OSIRIS JSON Producer for Amazon Web Services see:
-// [OSIRIS-JSON-AWS]: https://osirisjson.org/en/docs/producers/hyperscalers/amazon-aws
+// For an introduction to OSIRIS JSON Producer for Amazon AWS see:
+// [OSIRIS-JSON-AWS]: https://docs.osirisjson.org/osiris-producers/hyperscalers/amazon-aws/
 
 package aws
 
@@ -85,7 +88,8 @@ func runSetupSSO(args []string) error {
 		fmt.Fprintf(os.Stderr, "Detected SSO region: %s\n", ssoRegion)
 	}
 
-	// Load a minimal AWS config for the SSO region (no credentials needed yet).
+	// Load a minimal AWS config for the SSO region (no credentials
+	// needed yet).
 	cfg, err := awsconfig.LoadDefaultConfig(ctx,
 		awsconfig.WithRegion(ssoRegion),
 	)
@@ -156,7 +160,8 @@ func runSetupSSO(args []string) error {
 			DeviceCode:   authOut.DeviceCode,
 		})
 		if err != nil {
-			// "authorization_pending" means user hasn't approved yet - keep polling.
+			// "authorization_pending" means user hasn't approved yet
+			// keep polling.
 			if strings.Contains(err.Error(), "AuthorizationPendingException") ||
 				strings.Contains(err.Error(), "authorization_pending") {
 				fmt.Fprint(os.Stderr, ".")
@@ -306,8 +311,8 @@ func listAccountRoles(ctx context.Context, client *sso.Client, token, accountID 
 	return all, nil
 }
 
-// listAccountRolesWithRetry wraps listAccountRoles with retry and backoff
-// for 429 TooManyRequests errors from the SSO API.
+// listAccountRolesWithRetry wraps listAccountRoles with retry and
+// backoff for 429 TooManyRequests errors from the SSO API.
 func listAccountRolesWithRetry(ctx context.Context, client *sso.Client, token, accountID string) ([]ssotypes.RoleInfo, error) {
 	backoff := time.Second
 	for attempt := 0; attempt < 5; attempt++ {
@@ -325,7 +330,8 @@ func listAccountRolesWithRetry(ctx context.Context, client *sso.Client, token, a
 	return listAccountRoles(ctx, client, token, accountID)
 }
 
-// ssoProfile holds the data for a single ~/.aws/config [profile ...] section.
+// ssoProfile holds the data for a single ~/.aws/config [profile ...]
+// section.
 type ssoProfile struct {
 	Name      string // profile name: AccountName_RoleName
 	AccountID string
@@ -334,7 +340,8 @@ type ssoProfile struct {
 	SSORegion string
 }
 
-// generateSSOProfiles creates profile entries for all account/role combinations.
+// generateSSOProfiles creates profile entries for all account/role
+// combinations.
 func generateSSOProfiles(accounts []ssoAccount, startURL, ssoRegion string) []ssoProfile {
 	var profiles []ssoProfile
 	for _, acct := range accounts {
@@ -352,7 +359,8 @@ func generateSSOProfiles(accounts []ssoAccount, startURL, ssoRegion string) []ss
 	return profiles
 }
 
-// sanitizeProfileName replaces spaces and special characters with dashes.
+// sanitizeProfileName replaces spaces and special characters with
+// dashes.
 func sanitizeProfileName(s string) string {
 	return strings.Map(func(r rune) rune {
 		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') ||
@@ -363,8 +371,8 @@ func sanitizeProfileName(s string) string {
 	}, s)
 }
 
-// writeSSOConfig appends new profiles to ~/.aws/config, skipping any that
-// already exist. Returns the number written and skipped.
+// writeSSOConfig appends new profiles to ~/.aws/config, skipping any
+// that already exist. Returns the number written and skipped.
 func writeSSOConfig(profiles []ssoProfile) (written, skipped int, err error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -425,14 +433,14 @@ func writeSSOConfig(profiles []ssoProfile) (written, skipped int, err error) {
 	return written, skipped, nil
 }
 
-// cacheSSOToken writes the access token to ~/.aws/sso/cache/ in the same
-// format the AWS CLI uses, so that SSO profiles work immediately without
-// requiring a separate "aws sso login" step.
+// cacheSSOToken writes the access token to ~/.aws/sso/cache/ in the
+// same format the AWS CLI uses, so that SSO profiles work immediately
+// without requiring a separate "aws sso login" step.
 //
 // It caches the token under two keys:
 //   - SHA1(startUrl) - for legacy-format profiles (sso_start_url inline)
-//   - SHA1(sessionName) - for sso-session-format profiles, if any session
-//     referencing this startURL is found in ~/.aws/config
+//   - SHA1(sessionName) - for sso-session-format profiles, if any
+//     session referencing this startURL is found in ~/.aws/config
 //
 // This ensures both profile formats can find the cached token.
 func cacheSSOToken(startURL, ssoRegion, accessToken string, expiresIn int32) error {
@@ -461,18 +469,20 @@ func cacheSSOToken(startURL, ssoRegion, accessToken string, expiresIn int32) err
 	}
 
 	// Cache under SHA1(startUrl) for legacy-format profiles.
-	// SHA1 is required here: the AWS CLI v2 and Go SDK both derive the cache
-	// filename as hex(sha1(startUrl)).json - changing the algorithm would break
-	// token lookup for all existing profiles. Not used for security. // NOSONAR
+	// SHA1 is required here: the AWS CLI v2 and Go SDK both derive the
+	// cache filename as hex(sha1(startUrl)).json - changing the
+	// algorithm would break token lookup for all existing profiles.
+	// Not used for security. // NOSONAR
 	h := sha1.Sum([]byte(startURL)) // NOSONAR
 	filename := hex.EncodeToString(h[:]) + ".json"
 	if err := os.WriteFile(filepath.Join(cacheDir, filename), data, 0600); err != nil {
 		return err
 	}
 
-	// Also cache under SHA1(sessionName) for sso-session-format profiles.
-	// The AWS CLI v2 uses [sso-session <name>] blocks; when a profile
-	// references sso_session = <name>, the SDK looks for SHA1(name).json.
+	// Also cache under SHA1(sessionName) for sso-session-format
+	// profiles. The AWS CLI v2 uses [sso-session <name>] blocks; when a
+	// profile references sso_session = <name>, the SDK looks for
+	// SHA1(name).json.
 	sessionNames := findSSOSessionNames(home, startURL)
 	for _, name := range sessionNames {
 		sh := sha1.Sum([]byte(name)) // NOSONAR - AWS CLI v2 sso-session cache format requires SHA1(sessionName)
@@ -483,8 +493,9 @@ func cacheSSOToken(startURL, ssoRegion, accessToken string, expiresIn int32) err
 	return nil
 }
 
-// findSSOSessionNames scans ~/.aws/config for [sso-session <name>] sections
-// whose sso_start_url matches the given startURL and returns the session names.
+// findSSOSessionNames scans ~/.aws/config for [sso-session <name>]
+// sections whose sso_start_url matches the given startURL and returns
+// the session names.
 func findSSOSessionNames(home, startURL string) []string {
 	configPath := filepath.Join(home, ".aws", "config")
 	f, err := os.Open(configPath)
@@ -527,8 +538,8 @@ func findSSOSessionNames(home, startURL string) []string {
 	return sessions
 }
 
-// ssoDetectRegions lists regions to probe when auto-detecting the SSO instance.
-// Ordered by likelihood - most common SSO deployments first.
+// ssoDetectRegions lists regions to probe when auto-detecting the SSO
+// instance. Ordered by likelihood most common SSO deployments first.
 var ssoDetectRegions = []string{
 	"us-east-1", "eu-west-1", "eu-central-1", "us-west-2",
 	"ap-southeast-1", "ap-northeast-1", "eu-west-2", "us-east-2",
@@ -536,10 +547,11 @@ var ssoDetectRegions = []string{
 	"sa-east-1", "eu-west-3", "us-west-1", "ap-northeast-2", "ap-northeast-3",
 }
 
-// detectSSORegion tries to register an OIDC client in each candidate region.
-// The first region where StartDeviceAuthorization succeeds (meaning the SSO
-// instance is actually there) is returned. The registered client is discarded
-// since we'll register again in the main flow.
+// detectSSORegion tries to register an OIDC client in each candidate
+// region. The first region where StartDeviceAuthorization succeeds
+// (meaning the SSO instance is actually there) is returned.
+// The registered client is discarded since we'll register again in the
+// main flow.
 func detectSSORegion(ctx context.Context, startURL string) (string, error) {
 	for _, region := range ssoDetectRegions {
 		cfg, err := awsconfig.LoadDefaultConfig(ctx,

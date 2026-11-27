@@ -1,8 +1,9 @@
-// transform_test.go - Unit tests for Amazon Web Services data transformation to OSIRIS JSON mapping functions.
+// transform_test.go - Unit tests for Amazon Web Services data
+// transformation to OSIRIS JSON mapping functions.
 //
-// For an introduction to OSIRIS JSON Producer for Amazon Web Services see:
-// [OSIRIS-JSON-AWS]: https://osirisjson.org/en/docs/producers/hyperscalers/amazon-aws
-// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/docs/spec/v10/00-preface
+// For an introduction to OSIRIS JSON Producer for Amazon AWS see:
+// [OSIRIS-JSON-AWS]: https://docs.osirisjson.org/osiris-producers/hyperscalers/amazon-aws/
+// [OSIRIS-JSON-SPEC]: https://osirisjson.org/en/specification
 
 package aws
 
@@ -196,6 +197,50 @@ func TestTransformTransitGateways(t *testing.T) {
 	}
 }
 
+// TestSharedTransitGatewayIdentity checks that a transit gateway shared
+// from another account is keyed by its AWS-reported owner, so the
+// attachment edge resolves to it and no cross-account stub duplicates it.
+func TestSharedTransitGatewayIdentity(t *testing.T) {
+	const owner = "111122223333"
+	tgws := []ec2types.TransitGateway{{
+		TransitGatewayId:  aws.String("tgw-00000000000000001"),
+		TransitGatewayArn: aws.String("arn:aws:ec2:" + testRegion + ":" + owner + ":transit-gateway/tgw-00000000000000001"),
+		State:             ec2types.TransitGatewayStateAvailable,
+		OwnerId:           aws.String(owner),
+	}}
+	atts := []ec2types.TransitGatewayAttachment{{
+		TransitGatewayAttachmentId: aws.String("tgw-attach-00000000000000001"),
+		TransitGatewayId:           aws.String("tgw-00000000000000001"),
+		TransitGatewayOwnerId:      aws.String(owner),
+		ResourceType:               ec2types.TransitGatewayAttachmentResourceTypeVpc,
+		ResourceId:                 aws.String("vpc-00000000000000001"),
+		ResourceOwnerId:            aws.String(testAccountID),
+		State:                      ec2types.TransitGatewayAttachmentStateAvailable,
+	}}
+
+	resources := TransformTransitGateways(tgws, testRegion, testAccountID)
+	if len(resources) != 1 {
+		t.Fatalf("expected 1 resource, got %d", len(resources))
+	}
+	want := resourceID(owner, testRegion, "ec2", "transit-gateway/tgw-00000000000000001")
+	if resources[0].ID != want {
+		t.Fatalf("ID = %q, want owner-keyed %q", resources[0].ID, want)
+	}
+	if resources[0].Provider.Account != owner {
+		t.Errorf("provider.account = %q, want %q", resources[0].Provider.Account, owner)
+	}
+
+	resources = append(resources, TransformTransitGatewayAttachments(atts, testRegion, testAccountID)...)
+	conns := TransformTGWAttachmentToTGWConnections(atts, testRegion, testAccountID)
+	kept, stubs, dropped := resolveConnectionEndpoints(conns, resources, testAccountID)
+	if len(kept) != 1 || dropped != 0 {
+		t.Fatalf("kept=%d dropped=%d, want 1/0", len(kept), dropped)
+	}
+	if len(stubs) != 0 {
+		t.Errorf("expected no cross-account stub for a visible shared gateway, got %d", len(stubs))
+	}
+}
+
 func TestTransformDirectConnectConnections(t *testing.T) {
 	conns := []dctypes.Connection{
 		{
@@ -205,7 +250,7 @@ func TestTransformDirectConnectConnections(t *testing.T) {
 			Location:        aws.String("MXP-LOC1"),
 			Bandwidth:       aws.String("50Mbps"),
 			Vlan:            100,
-			PartnerName:     aws.String("DEMO-ISP NNI"),
+			PartnerName:     aws.String("DEMO-ISP"),
 		},
 	}
 
@@ -407,8 +452,10 @@ func TestMapInstanceState(t *testing.T) {
 	}{
 		{&ec2types.InstanceState{Name: ec2types.InstanceStateNameRunning}, "active"},
 		{&ec2types.InstanceState{Name: ec2types.InstanceStateNameStopped}, "inactive"},
-		{&ec2types.InstanceState{Name: ec2types.InstanceStateNameTerminated}, "decommissioned"},
-		{&ec2types.InstanceState{Name: ec2types.InstanceStateNamePending}, "provisioning"},
+		{&ec2types.InstanceState{Name: ec2types.InstanceStateNameTerminated}, "retired"},
+		{&ec2types.InstanceState{Name: ec2types.InstanceStateNamePending}, "inactive"},
+		{&ec2types.InstanceState{Name: ec2types.InstanceStateNameStopping}, "inactive"},
+		{&ec2types.InstanceState{Name: ec2types.InstanceStateNameShuttingDown}, "inactive"},
 		{nil, "unknown"},
 	}
 

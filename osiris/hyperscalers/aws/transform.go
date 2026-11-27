@@ -1,5 +1,7 @@
-// transform.go - Shared utilities and cross-domain helpers for the AWS OSIRIS JSON producer.
-// All functions are stateless: no I/O, no API calls, just data transformation.
+// transform.go - Shared utilities and cross-domain helpers for the AWS
+// OSIRIS JSON producer.
+// All functions are stateless: no I/O, no API calls, just data
+// transformation.
 //
 // Domain-specific transforms live in dedicated files:
 //   transform_networking.go      - VPC, Subnet, SG, ENI, Route Table, IGW, NAT, EIP, NACL,
@@ -23,21 +25,19 @@
 //   - Resource ID builders: resourceID, resourceIDFromARN
 //   - CloudFormation type map: cfTypeMap, cfType
 //   - Provider builders: awsProvider, awsProviderWithZone
-//   - Raw body passthrough: attachRawBody
 //   - Tag utilities: sanitizeTags, tagMapDX
-//   - Cross-account stubs: CrossAccountStubs and helpers
+//   - Cross-account stubs: crossAccountStub and helpers
 //
-// [OSIRIS-JSON-AWS]: https://osirisjson.org/en/docs/producers/hyperscalers/amazon-aws
-// [OSIRIS-JSON-SPEC-CH07]: https://osirisjson.org/en/docs/spec/v10/07-resourcetypetaxonomy
+// For an introduction to OSIRIS JSON Producer for Amazon AWS see:
+// [OSIRIS-JSON-AWS]: https://docs.osirisjson.org/osiris-producers/hyperscalers/amazon-aws/
+// [OSIRIS-JSON-SPEC-CH07]: https://osirisjson.org/en/specification#7-resource-type-taxonomy
 // [OSIRIS-JSON-PRODUCER-GUIDELINES]: https://osirisjson.org/en/docs/getting-started/producers/osiris-producer-guidelines
 
 package aws
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	dctypes "github.com/aws/aws-sdk-go-v2/service/directconnect/types"
@@ -48,9 +48,10 @@ const (
 	providerName = "aws"
 )
 
-// resourceID generates a deterministic resource ID from an AWS ARN or constructed ID.
-// Per OSIRIS JSON Producer Guidelines section 2.2.1, hyperscaler resource IDs use the
-// pattern: provider::native-id (e.g. aws::arn:aws:ec2:us-east-1:123456789012:vpc/vpc-00000000000000123).
+// resourceID generates a deterministic resource ID from an AWS ARN or
+// constructed ID. Per OSIRIS JSON Producer Guidelines section 2.2.1,
+// hyperscaler resource IDs use the pattern: provider::native-id
+// (e.g. aws::arn:aws:ec2:us-east-1:123456789012:vpc/vpc-00000000000000123).
 func resourceID(accountID, region, resourceType, nativeID string) string {
 	return fmt.Sprintf("aws::arn:aws:%s:%s:%s:%s", resourceType, region, accountID, nativeID)
 }
@@ -192,37 +193,11 @@ func awsProviderWithZone(nativeID, nativeType, region, accountID, zone string) s
 	return p
 }
 
-// attachRawBody stores the unmodified AWS SDK response struct as a JSON string
-// under extensions["osiris.aws.sdk"].body. Stored as a string (not a nested
-// object) so the secret scanner does not recurse into SDK field names that
-// happen to contain sensitive substrings (e.g. "MasterUsername" contains
-// "auth" via "MasterUser"). Consumers that need the raw body parse the string.
-// Call this unconditionally in every transform loop; the producer strips it
-// from allResources when --include-raw-body is absent.
-func attachRawBody(r *sdk.Resource, body any) {
-	if r.Extensions == nil {
-		r.Extensions = make(map[string]any)
-	}
-	var bodyStr string
-	if body != nil {
-		if b, err := json.Marshal(body); err == nil {
-			bodyStr = string(b)
-		}
-	}
-	r.Extensions["osiris.aws.sdk"] = map[string]any{
-		"schema":      "raw-passthrough/v1",
-		"api_version": "aws-sdk-go-v2",
-		"kind":        "snapshot",
-		"fetched_at":  time.Now().UTC().Format(time.RFC3339),
-		"body":        bodyStr,
-	}
-}
-
-// sanitizeTags filters a pre-built string->string tag map: sensitive key names
-// are dropped entirely, values that look like secrets are replaced with
-// "[REDACTED]". Returns nil when the result is empty. Use this before
-// assigning any tag map to r.Tags so the SDK fail-closed scanner never
-// sees sensitive material.
+// sanitizeTags filters a pre-built string->string tag map: sensitive
+// key names are dropped entirely, values that look like secrets are
+// replaced with "[REDACTED]". Returns nil when the result is empty.
+// Use this before assigning any tag map to r.Tags so the SDK
+// fail-closed scanner never sees sensitive material.
 func sanitizeTags(m map[string]string) map[string]string {
 	if len(m) == 0 {
 		return nil
@@ -267,36 +242,8 @@ func tagMapDX(tags []dctypes.Tag) map[string]string {
 	return m
 }
 
-// CrossAccountStubs returns stub resources for any connection endpoint that is
-// not present in knownResources. This handles cross-account scenarios where a
-// resource (e.g. a shared Transit Gateway or a cross-account VPC peering
-// endpoint) belongs to a different AWS account than the one being collected,
-// so the current profile cannot enumerate it.
-//
-// Stubs carry status "unknown" and state "cross-account" so consumers can
-// distinguish them from natively-collected resources.
-func CrossAccountStubs(conns []sdk.Connection, knownResources []sdk.Resource) []sdk.Resource {
-	known := make(map[string]bool, len(knownResources))
-	for _, r := range knownResources {
-		known[r.ID] = true
-	}
-
-	seen := map[string]bool{}
-	var stubs []sdk.Resource
-
-	for _, c := range conns {
-		for _, endpointID := range []string{c.Source, c.Target} {
-			if known[endpointID] || seen[endpointID] {
-				continue
-			}
-			seen[endpointID] = true
-			stubs = append(stubs, crossAccountStub(endpointID))
-		}
-	}
-	return stubs
-}
-
-// crossAccountStub builds a minimal OSIRIS JSON resource for a cross-account endpoint.
+// crossAccountStub builds a minimal OSIRIS JSON resource for a
+// cross-account endpoint.
 func crossAccountStub(id string) sdk.Resource {
 	svc, rType, region, account, nativeID := parseStubARN(id)
 	osirisType := crossAccountOSIRISType(svc, rType)
@@ -352,7 +299,8 @@ func parseStubARN(id string) (svc, rType, region, account, nativeID string) {
 	return
 }
 
-// crossAccountOSIRISType maps an AWS service+resource-type pair to an OSIRIS JSON type.
+// crossAccountOSIRISType maps an AWS service+resource-type pair to an
+// OSIRIS JSON type.
 func crossAccountOSIRISType(svc, rType string) string {
 	switch svc + ":" + rType {
 	case "ec2:transit-gateway":

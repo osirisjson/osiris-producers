@@ -2,8 +2,9 @@
 // Collects networking and compute resources from AWS accounts via the
 // AWS Go SDK v2 and generates an OSIRIS JSON documents.
 //
-// The OSIRIS JSON producer requires valid AWS credentials (profiles, environment
-// variables, IAM roles, or SSO) with ReadOnly access to the target accounts.
+// The OSIRIS JSON producer requires valid AWS credentials (profiles,
+// environment variables, IAM roles, or SSO) with ReadOnly access to the
+// target accounts.
 //
 // Operating modes:
 //
@@ -16,11 +17,11 @@
 //
 //	amazon-aws-<timestamp>-<region>-<account>.json
 //
-// Each region is a self-contained OSIRIS JSON document. Global resources
-// (Route53, Global Accelerator) are merged into the us-east-1 document.
+// Each region is a self-contained OSIRIS JSON document. Global
+// resources (Route53, Global Accelerator) are merged into the document.
 //
-// For an introduction to OSIRIS JSON Producer for Amazon Web Services see
-// [OSIRIS-JSON-AWS]: https://osirisjson.org/en/docs/producers/hyperscalers/amazon-aws
+// For an introduction to OSIRIS JSON Producer for Amazon AWS see:
+// [OSIRIS-JSON-AWS]: https://docs.osirisjson.org/osiris-producers/hyperscalers/amazon-aws/
 package aws
 
 import (
@@ -29,7 +30,7 @@ import (
 	"log/slog"
 	"os"
 	"os/exec"
-	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -38,14 +39,14 @@ import (
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
-// errSessionExpired is a sentinel error returned when AWS credentials have
-// expired. Callers should instruct the user to re-authenticate.
+// errSessionExpired is a sentinel error returned when AWS credentials
+// have expired. Callers should instruct the user to re-authenticate.
 var errSessionExpired = errors.New("AWS session expired")
 
 const (
 	generatorName    = "osirisjson-producer-aws"
-	generatorVersion = "0.1.1"
-	generatorURL     = "https://osirisjson.org/en/docs/producers/hyperscalers/amazon-aws"
+	generatorVersion = "0.2.0"
+	generatorURL     = "https://docs.osirisjson.org/osiris-producers/hyperscalers/amazon-aws/"
 )
 
 // Producer implements the OSIRIS JSON sdk.Producer interface for AWS.
@@ -54,6 +55,8 @@ type Producer struct {
 	cfg    *Config
 	region string
 	client *Client // injectable for dev testing.
+
+	verifiedAccountID string // set only after STS verification succeeds.
 }
 
 // NewProducer creates an AWS producer for the given target and region.
@@ -70,11 +73,8 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		if err != nil {
 			return nil, fmt.Errorf("creating AWS client: %w", err)
 		}
-		// Seed the pre-configured account ID so ResolveIdentity can fall back to
-		// it when enterprise SCPs block regional sts:GetCallerIdentity calls.
-		if p.target.AccountID != "" {
-			client.accountID = p.target.AccountID
-		}
+		// The declared account is only compared with the verified caller.
+		client.expectedAccountID = p.target.AccountID
 	}
 
 	ctx.Logger.Info("collecting AWS region data",
@@ -88,10 +88,18 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		return nil, fmt.Errorf("AWS collection failed: %w", err)
 	}
 
-	// Backfill account ID from STS identity.
-	if p.target.AccountID == "" && data.Identity.AccountID != "" {
-		p.target.AccountID = data.Identity.AccountID
-	}
+	// Only an STS-verified account is reported (see Client.ResolveIdentity).
+	p.verifiedAccountID = data.Identity.AccountID
+	return p.buildDocument(ctx, data, includeGlobals, client.CollectedErrors(), client.CoreOutcomes())
+}
+
+// buildDocument turns collected region data into an OSIRIS JSON
+// document: transforms, connection resolution, groups, secret handling,
+// coverage, purpose projection and the final publication check. Makes
+// no AWS call, so it is driven directly by synthetic fixtures in tests.
+// collectErrs and outcomes are the collector's coverage errors and core
+// operation outcomes.
+func (p *Producer) buildDocument(ctx *sdk.Context, data *RegionData, includeGlobals bool, collectErrs []sdk.CoverageError, outcomes []operationOutcome) (*sdk.Document, error) {
 	accountID := data.Identity.AccountID
 	region := data.Region
 
@@ -306,7 +314,12 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	eniSubnetConns := TransformENIToSubnetConnections(data.NetworkInterfaces, eniIDMap, subnetIDMap)
 	sgENIConns := TransformSGToENIConnections(data.NetworkInterfaces, eniIDMap, sgIDMap)
 	naclSubnetConns := TransformNACLToSubnetConnections(data.NetworkACLs, naclIDMap, subnetIDMap)
-	rtSubnetConns := TransformRouteTableToSubnetConnections(data.RouteTables, rtIDMap, subnetIDMap)
+	// Implicit (main table) associations need complete subnet and route
+	// table lists; see transform_associations.go.
+	rtListsComplete := coreOperationComplete(outcomes, "DescribeSubnets") &&
+		coreOperationComplete(outcomes, "DescribeRouteTables")
+	rtSubnetConns := TransformRouteTableAssociations(data.RouteTables, data.Subnets, rtIDMap, subnetIDMap, rtListsComplete)
+	instENIConns := TransformInstanceENIAttachments(data.NetworkInterfaces, data.Instances, eniIDMap, region, accountID)
 	natSubnetConns := TransformNATGatewayToSubnetConnections(data.NATGateways, subnetIDMap, region, accountID)
 	natEIPConns := TransformNATGatewayToEIPConnections(data.NATGateways, region, accountID)
 	igwVPCConns := TransformIGWToVPCConnections(data.InternetGateways, region, accountID)
@@ -329,6 +342,7 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	allConns = append(allConns, sgENIConns...)
 	allConns = append(allConns, naclSubnetConns...)
 	allConns = append(allConns, rtSubnetConns...)
+	allConns = append(allConns, instENIConns...)
 	allConns = append(allConns, natSubnetConns...)
 	allConns = append(allConns, natEIPConns...)
 	allConns = append(allConns, igwVPCConns...)
@@ -386,12 +400,24 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	allConns = append(allConns, TransformMemoryDBSubnetGroupToSubnetConnections(data.MemoryDBSubnetGroups, memdbSGIDMap, subnetIDMap)...)
 	allConns = append(allConns, TransformIAMInstanceProfileToRoleConnections(data.IAMInstanceProfiles, iamIPIDMap, iamRoleIDMap)...)
 
-	// Add stubs for cross-account resources referenced by connections but not
-	// collected via the current profile (shared TGWs, cross-account VPC peerings, etc.).
-	crossAccountResources := CrossAccountStubs(allConns, allResources)
+	// Resolve connection endpoints that were not collected: a reference
+	// stub only for an AWS-proven remote owner (shared TGWs,
+	// cross-account VPC peerings, etc.); any other unresolved
+	// connection is dropped and counted, never repaired with a guessed
+	// node (see identity.go).
+	var graphErrors []sdk.CoverageError
+	allConns, crossAccountResources, droppedConns := resolveConnectionEndpoints(allConns, allResources, accountID)
 	if len(crossAccountResources) > 0 {
 		ctx.Logger.Info("adding cross-account stubs", "count", len(crossAccountResources))
 		allResources = append(allResources, crossAccountResources...)
+	}
+	if droppedConns > 0 {
+		ctx.Logger.Warn("connections dropped: endpoint not collected", "count", droppedConns)
+		graphErrors = append(graphErrors, sdk.CoverageError{
+			Region:       region,
+			Resource:     "connections",
+			ErrorMessage: fmt.Sprintf("%d connection(s) dropped: endpoint not collected", droppedConns),
+		})
 	}
 
 	// Build groups.
@@ -406,12 +432,6 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		regions = append(regions, "global")
 	}
 
-	// Build scope name: "AccountID - AccountName" or just AccountID.
-	scopeName := accountID
-	if p.target.AccountName != "" {
-		scopeName = accountID + " - " + p.target.AccountName
-	}
-
 	// Parse purpose from config (defaults to documentation).
 	purpose, err := osirismeta.ParsePurpose(p.cfg.Purpose)
 	if err != nil {
@@ -420,7 +440,7 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 
 	// Build scope.
 	scope := sdk.Scope{
-		Name:      scopeName,
+		Name:      scopeName(data, p.target),
 		Purpose:   purpose.String(),
 		Providers: []string{providerName},
 		Accounts:  []string{accountID},
@@ -430,14 +450,47 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		scope.Environments = []string{p.target.Environment}
 	}
 
+	// Resolve raw SDK bodies before the document is built: a body that
+	// was not requested is never serialized or scanned and a requested
+	// one is redacted first (see rawbody.go).
+	wantRaw := purpose == osirismeta.PurposeAudit && p.cfg.IncludeRawBody
+	now := time.Now
+	if ctx.Clock != nil {
+		now = ctx.Clock
+	}
+	rawStats := applyRawBodies(allResources, wantRaw, now())
+	if wantRaw {
+		rawStats.log(ctx.Logger)
+	}
+
+	allGroups := append([]sdk.Group{accountGroup}, vpcGroups...)
+
+	// Every status must be a schema value; any other value is reported
+	// and replaced with "unknown".
+	if n := normalizeStatuses(allResources, allConns); n > 0 {
+		ctx.Logger.Warn("out-of-schema status values replaced with unknown", "count", n)
+	}
+
+	// Constructed IDs follow the verified caller's partition.
+	rewritePartition(allResources, allConns, allGroups, data.Identity.Partition)
+
+	// log-and-redact: the builder only reports findings, so replace the
+	// flagged values here.
+	if ctx.Config != nil && ctx.Config.SafeFailureMode == sdk.LogAndRedact {
+		if n := redactElements(allResources, allConns, allGroups); n > 0 {
+			ctx.Logger.Warn("secret values redacted", "count", n)
+		}
+	}
+
 	// Assemble the document.
 	builder := sdk.NewDocumentBuilder(ctx).
 		WithGenerator(generatorName, generatorVersion, generatorURL).
 		WithScope(scope)
 
-	// Deduplicate by ID before adding to builder. Cross-account data sources
-	// (e.g., Aurora Global Databases shared via RAM) can surface the same ARN
-	// multiple times across DescribeDB* calls; the builder enforces unique IDs.
+	// Deduplicate by ID before adding to builder. Cross-account data
+	// sources (e.g., Aurora Global Databases shared via RAM) can
+	// surface the same ARN multiple times across DescribeDB* calls; the
+	// builder enforces unique IDs.
 	seenResourceIDs := make(map[string]bool, len(allResources))
 	for _, r := range allResources {
 		if seenResourceIDs[r.ID] {
@@ -455,8 +508,7 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		seenConnIDs[c.ID] = true
 		builder.AddConnection(c)
 	}
-	builder.AddGroup(accountGroup)
-	for _, g := range vpcGroups {
+	for _, g := range allGroups {
 		builder.AddGroup(g)
 	}
 
@@ -465,20 +517,27 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 		return nil, fmt.Errorf("document build failed: %w", err)
 	}
 
-	// Attach coverage telemetry to metadata (specification chapter 3.3.4 additionalProperties).
-	doc.Metadata.Coverage = buildCoverage(allResources, client.CollectedErrors(), includeGlobals)
-
-	// Strip raw SDK bodies unless the caller opted in. In documentation mode
-	// osirismeta.Project strips all extensions anyway; this handles audit mode.
-	if !p.cfg.IncludeRawBody {
-		for i := range doc.Topology.Resources {
-			delete(doc.Topology.Resources[i].Extensions, "osiris.aws.sdk")
-		}
+	// Attach coverage telemetry to metadata (specification chapter
+	// 3.3.4 additionalProperties).
+	doc.Metadata.Coverage = buildCoverage(allResources, slices.Concat(collectErrs, graphErrors), includeGlobals)
+	if doc.Metadata.Extensions == nil {
+		doc.Metadata.Extensions = map[string]any{}
 	}
+	awsMeta := buildAWSMetadata(outcomes, doc.Metadata.Coverage.ServicesAttempted)
+	// Before the projection, so both purposes carry the same catalog.
+	addAccountCatalog(&awsMeta, doc, data)
+	doc.Metadata.Extensions["osiris.aws"] = awsMeta
 
 	// Shape the emitted document per OSIRIS JSON spec chapter 13.1.3.
-	// Collection is always exhaustive; the projection trims fields for documentation mode.
+	// Collection is always exhaustive; the projection trims fields for
+	// documentation mode.
 	osirismeta.Project(doc, purpose)
+
+	// Final check of the document as it will be serialized, metadata
+	// and coverage included. A residual secret withholds the document.
+	if err := checkPublishable(doc); err != nil {
+		return nil, err
+	}
 
 	ctx.Logger.Info("AWS collection complete",
 		"region", region,
@@ -492,13 +551,15 @@ func (p *Producer) Collect(ctx *sdk.Context) (*sdk.Document, error) {
 	return doc, nil
 }
 
-// CollectedAccountID returns the account ID resolved during collection.
+// CollectedAccountID returns the STS-verified account ID of the last
+// Collect call, or "" when the caller identity was not verified.
 func (p *Producer) CollectedAccountID() string {
-	return p.target.AccountID
+	return p.verifiedAccountID
 }
 
 // Run is the entry point called by the CLI dispatcher.
-// It receives the arguments after "aws" (e.g. ["--profile", "prod", "--region", "us-east-1"]).
+// It receives the arguments after "aws" (e.g. ["--profile", "prod",
+// "--region", "us-east-1"]).
 func Run(args []string) error {
 	if len(args) > 0 {
 		switch args[0] {
@@ -527,7 +588,8 @@ func Run(args []string) error {
 	return runSingle(cfg)
 }
 
-// runSingle executes collection for a single target and writes output files.
+// runSingle executes collection for a single target and writes output
+// files.
 // For a single region, writes a flat file: amazon-aws-<ts>-<account>-<region>.json
 // For multiple regions, creates a folder: amazon-aws-<ts>-<account>/<region>.json
 func runSingle(cfg *Config) error {
@@ -553,8 +615,11 @@ func runSingle(cfg *Config) error {
 		doc, err := producer.Collect(ctx)
 		if err != nil {
 			if isExpiredTokenError(err) {
-				return fmt.Errorf("%w: %v\n\nRe-authenticate with:\n  aws sso login --profile %s", errSessionExpired, err, target.Profile)
+				return fmt.Errorf("%w: %s\n\nRe-authenticate with:\n  aws sso login --profile %s", errSessionExpired, logErr(err), target.Profile)
 			}
+			return fmt.Errorf("collection failed for %s: %s", region, logErr(err))
+		}
+		if err := checkPublishable(doc); err != nil {
 			return fmt.Errorf("collection failed for %s: %w", region, err)
 		}
 
@@ -565,16 +630,12 @@ func runSingle(cfg *Config) error {
 
 		name := targetName(target, producer.CollectedAccountID())
 
-		outPath := fmt.Sprintf("amazon-aws-%s-%s-%s.json", cfg.Timestamp, region, name)
-
-		if dir := filepath.Dir(outPath); dir != "." {
-			if err := os.MkdirAll(dir, 0755); err != nil {
-				return fmt.Errorf("creating directory %s: %w", dir, err)
-			}
+		outPath, err := OutputPath(".", name, cfg.Timestamp, region)
+		if err != nil {
+			return err
 		}
-
-		if err := os.WriteFile(outPath, data, 0644); err != nil {
-			return fmt.Errorf("failed to write %s: %w", outPath, err)
+		if err := writeDocument(outPath, data); err != nil {
+			return err
 		}
 		fmt.Fprintf(os.Stderr, "Saved to %s\n", outPath)
 	}
@@ -582,8 +643,8 @@ func runSingle(cfg *Config) error {
 }
 
 // preflightCheck verifies AWS credentials for a single profile via STS.
-// Returns errSessionExpired when the token is explicitly expired, a generic
-// error for other failures, or nil on success.
+// Returns errSessionExpired when the token is explicitly expired, a
+// generic error for other failures, or nil on success.
 func preflightCheck(profile string, logger *slog.Logger) error {
 	client, err := NewClient(profile, GlobalRegion, logger)
 	if err != nil {
@@ -601,11 +662,13 @@ func preflightCheck(profile string, logger *slog.Logger) error {
 	return nil
 }
 
-// runPreflightBatch walks the target list to find the first profile whose
-// credentials are valid. When an expired SSO session is detected it calls
-// initiateSSOLogin to refresh credentials interactively before continuing.
-// AWS IAM Identity Center (SSO) stores one session token shared across all
-// profiles with the same start URL, so a single login refreshes all of them.
+// runPreflightBatch walks the target list to find the first profile
+// whose credentials are valid. When an expired SSO session is detected
+// it calls initiateSSOLogin to refresh credentials interactively before
+// continuing.
+// AWS IAM Identity Center (SSO) stores one session token shared across
+// all profiles with the same start URL, so a single login refreshes all
+// of them.
 // Returns true if at least one profile is (or becomes) valid.
 func runPreflightBatch(targets []AccountTarget, logger *slog.Logger) bool {
 	seen := map[string]bool{}
@@ -628,8 +691,8 @@ func runPreflightBatch(targets []AccountTarget, logger *slog.Logger) bool {
 					logger.Error("SSO login failed", "profile", t.Profile, "error", loginErr)
 					return false
 				}
-				// Retry after login; the refreshed token covers all profiles
-				// in the same IAM Identity Center session.
+				// Retry after login; the refreshed token covers all
+				// profiles in the same IAM Identity Center session.
 				if retryErr := preflightCheck(t.Profile, logger); retryErr == nil {
 					logger.Info("pre-flight check passed after SSO login", "profile", t.Profile)
 					return true
@@ -646,10 +709,11 @@ func runPreflightBatch(targets []AccountTarget, logger *slog.Logger) bool {
 	return false
 }
 
-// initiateSSOLogin runs `aws sso login --profile <profile>` with the terminal
-// connected so the user can complete the browser authentication. AWS IAM
-// Identity Center stores one SSO token that covers all profiles sharing the
-// same start URL, so logging in once is enough for an entire batch run.
+// initiateSSOLogin runs `aws sso login --profile <profile>` with the
+// terminal connected so the user can complete the browser
+// authentication. AWS IAM Identity Center stores one SSO token that
+// covers all profiles sharing the same start URL, so logging in once is
+// enough for an entire batch run.
 func initiateSSOLogin(profile string, logger *slog.Logger) error {
 	logger.Warn("SSO session expired - starting interactive login", "profile", profile)
 	fmt.Fprintf(os.Stderr, "\n  SSO session expired. Opening browser login for profile %q.\n", profile)
@@ -665,7 +729,8 @@ func initiateSSOLogin(profile string, logger *slog.Logger) error {
 	return cmd.Run()
 }
 
-// runBatch executes batch collection across multiple accounts and regions.
+// runBatch executes batch collection across multiple accounts and
+// regions.
 func runBatch(cfg *Config, logger *slog.Logger) error {
 	logger.Info("starting batch collection",
 		"targets", len(cfg.Targets),
@@ -673,8 +738,9 @@ func runBatch(cfg *Config, logger *slog.Logger) error {
 		"timestamp", cfg.Timestamp,
 	)
 
-	// pre-flight check: walk profiles to find at least one with valid credentials.
-	// Stale or inaccessible profiles are skipped; the main loop handles them.
+	// pre-flight check: walk profiles to find at least one with valid
+	// credentials. Stale or inaccessible profiles are skipped the main
+	// loop handles them.
 	if !runPreflightBatch(cfg.Targets, logger) {
 		logger.Warn("pre-flight check: no profile could be verified, proceeding anyway")
 	}
@@ -689,7 +755,8 @@ func runBatch(cfg *Config, logger *slog.Logger) error {
 			continue
 		}
 
-		// Cooldown between different accounts to avoid socket exhaustion.
+		// Cooldown between different accounts to avoid socket
+		// exhaustion.
 		if lastProfile != "" && target.Profile != lastProfile {
 			time.Sleep(5 * time.Second)
 		}
@@ -719,64 +786,81 @@ func runBatch(cfg *Config, logger *slog.Logger) error {
 			})
 			ctx.Logger = log
 
+			// A fallback document is written for a failed collection
+			// but the target still counts as failed, so an all-fallback
+			// batch exits nonzero.
+			fallback := false
 			doc, err := producer.Collect(ctx)
 			if err != nil {
 				if isExpiredTokenError(err) {
 					logger.Warn("session expired, skipping profile",
 						"profile", target.Profile,
-						"error", err,
+						"error", logErr(err),
 					)
 					expiredProfiles[target.Profile] = true
 					profileExpired = true
 					break
 				}
-				// Collection failed: write an empty-topology file so every
-				// (account, region) pair always produces an output file
-				// (specification chapter 3.4.8 allows empty topology.resources arrays).
-				log.Error("collection failed, writing empty document", "error", err)
+				// Collection failed: write an empty-topology file so
+				// every (account, region) pair always produces an
+				// output file (specification chapter 3.4.8 allows empty
+				// topology.resources arrays).
+				log.Error("collection failed, writing empty document", "error", logErr(err))
 				failed++
-				// Use the account ID resolved during (partial) collection if
-				// available; this avoids "unknown-account" in scope metadata.
+				fallback = true
+				// Only a verified account is named in the fallback
+				// scope an unverified target is reported as
+				// "unknown-account".
 				resolvedTarget := target
-				if aid := producer.CollectedAccountID(); aid != "" {
-					resolvedTarget.AccountID = aid
-				}
+				resolvedTarget.AccountID = producer.CollectedAccountID()
 				doc = buildFallbackDocument(resolvedTarget, region, cfg, err)
 				if doc == nil {
 					continue
 				}
 			}
+			if err := checkPublishable(doc); err != nil {
+				log.Error("document withheld", "error", logErr(err))
+				if !fallback {
+					failed++
+				}
+				continue
+			}
 
 			data, err := sdk.MarshalDocument(doc)
 			if err != nil {
-				log.Error("marshal failed", "error", err)
-				failed++
+				log.Error("marshal failed", "error", logErr(err))
+				if !fallback {
+					failed++
+				}
 				continue
 			}
 
 			name := targetName(target, producer.CollectedAccountID())
 
-			var outPath string
-			if cfg.OutputDir != "" {
-				outPath = OutputPath(cfg.OutputDir, name, cfg.Timestamp, region)
-			} else {
-				outPath = fmt.Sprintf("amazon-aws-%s-%s-%s.json", cfg.Timestamp, region, name)
+			baseDir := cfg.OutputDir
+			if baseDir == "" {
+				baseDir = "."
 			}
-
-			if err := os.MkdirAll(filepath.Dir(outPath), 0755); err != nil {
-				log.Error("creating output path", "error", err, "path", outPath)
-				failed++
+			outPath, err := OutputPath(baseDir, name, cfg.Timestamp, region)
+			if err != nil {
+				log.Error("invalid output path", "error", logErr(err))
+				if !fallback {
+					failed++
+				}
 				continue
 			}
-
-			if err := os.WriteFile(outPath, data, 0644); err != nil {
-				log.Error("write failed", "error", err, "path", outPath)
-				failed++
+			if err := writeDocument(outPath, data); err != nil {
+				log.Error("write failed", "error", logErr(err), "path", outPath)
+				if !fallback {
+					failed++
+				}
 				continue
 			}
 
 			log.Info("written", "path", outPath)
-			succeeded++
+			if !fallback {
+				succeeded++
+			}
 		}
 	}
 
@@ -809,7 +893,8 @@ func runBatch(cfg *Config, logger *slog.Logger) error {
 	return nil
 }
 
-// perRegionServices is the list of AWS service families collected in every region.
+// perRegionServices is the list of AWS service families collected in
+// every region.
 var perRegionServices = []string{
 	"acm", "apigateway", "apigatewayv2", "autoscaling", "backup", "cloudwatchlogs",
 	"directconnect", "docdb", "dynamodb", "ec2", "ecr", "ecs", "efs", "eks",
@@ -819,11 +904,12 @@ var perRegionServices = []string{
 	"secretsmanager", "sfn", "sns", "sqs", "wafv2",
 }
 
-// globalServices is the list of service families collected only for GlobalRegion (us-east-1).
+// globalServices is the list of service families collected only for
+// GlobalRegion (us-east-1).
 var globalServices = []string{"cloudfront", "globalaccelerator", "iam", "route53"}
 
-// cfNamespaceToService maps a CloudFormation type's service namespace (lowercase) to the
-// coverage service name used in perRegionServices / globalServices.
+// cfNamespaceToService maps a CloudFormation type's service namespace
+// (lowercase) to the coverage service name used in perRegionServices/globalServices.
 var cfNamespaceToService = map[string]string{
 	"apigateway":             "apigateway",
 	"apigatewayv2":           "apigatewayv2",
@@ -868,10 +954,13 @@ var cfNamespaceToService = map[string]string{
 	"wafv2":                  "wafv2",
 }
 
-// buildCoverage assembles metadata.coverage from collected resources and errors.
+// buildCoverage assembles metadata.coverage from collected resources
+// and errors.
 func buildCoverage(resources []sdk.Resource, errors []sdk.CoverageError, includeGlobals bool) *sdk.CoverageBlock {
-	// services_succeeded: derive from Provider.Type CloudFormation namespace in collected resources.
-	// CloudFormation format: "AWS::Service::ResourceType", extract second segment.
+	// services_succeeded: derive from Provider.Type CloudFormation
+	// namespace in collected resources.
+	// CloudFormation format: "AWS::Service::ResourceType", extract
+	// second segment.
 	succeededMap := map[string]bool{}
 	for _, r := range resources {
 		if r.Provider.Type == "" {
@@ -908,11 +997,12 @@ func buildCoverage(resources []sdk.Resource, errors []sdk.CoverageError, include
 	}
 }
 
-// buildFallbackDocument returns a minimal spec-valid OSIRIS JSON document with an
-// empty topology. Used when collection fails so every (account, region) pair
-// always produces an output file. The collection error is surfaced in
-// metadata.coverage.errors so consumers can distinguish "genuinely empty"
-// from "collection failed".
+// buildFallbackDocument returns a minimal spec-valid OSIRIS JSON
+// document with an empty topology. Used when collection fails so every
+// (account, region) pair always produces an output file.
+// The collection error is surfaced in metadata.coverage.errors so
+// OSIRIS JSON Consumers can distinguish "genuinely empty" from
+// "collection failed".
 func buildFallbackDocument(target AccountTarget, region string, cfg *Config, collectionErr error) *sdk.Document {
 	accountID := target.AccountID
 	if accountID == "" {
@@ -929,8 +1019,7 @@ func buildFallbackDocument(target AccountTarget, region string, cfg *Config, col
 	if target.Environment != "" {
 		scope.Environments = []string{target.Environment}
 	}
-	// Use Off mode: empty topology has nothing to scan.
-	sdkCtx := sdk.NewContext(&sdk.ProducerConfig{SafeFailureMode: sdk.Off})
+	sdkCtx := sdk.NewContext(&sdk.ProducerConfig{SafeFailureMode: sdk.FailClosed})
 	doc, err := sdk.NewDocumentBuilder(sdkCtx).
 		WithGenerator(generatorName, generatorVersion, generatorURL).
 		WithScope(scope).
@@ -939,8 +1028,9 @@ func buildFallbackDocument(target AccountTarget, region string, cfg *Config, col
 		return nil
 	}
 
-	// Always emit a coverage block so consumers can see what was attempted
-	// and why the topology is empty (specification chapter 3.3.4 additionalProperties: true).
+	// Always emit a coverage block so OSIRIS JSON Consumers can see
+	// what was attempted and why the topology is empty (specification
+	// chapter 3.3.4 additionalProperties: true).
 	attempted := make([]string, len(perRegionServices))
 	copy(attempted, perRegionServices)
 	var coverageErrors []sdk.CoverageError
@@ -948,7 +1038,7 @@ func buildFallbackDocument(target AccountTarget, region string, cfg *Config, col
 		coverageErrors = []sdk.CoverageError{{
 			Region:       region,
 			Resource:     "collection",
-			ErrorMessage: collectionErr.Error(),
+			ErrorMessage: coverageErrorMessage(collectionErr),
 		}}
 	}
 	doc.Metadata.Coverage = &sdk.CoverageBlock{
@@ -983,8 +1073,8 @@ func newSDKContext(cfg *Config) *sdk.Context {
 	})
 }
 
-// targetName returns a filesystem-safe display name for an account target.
-// Prefers AccountName, falls back to Profile, then AccountID.
+// targetName returns a filesystem-safe display name for an account
+// target. Prefers AccountName, falls back to Profile, then AccountID.
 // Strips common IAM role suffixes (_ReadOnlyAccess, _mgt-glbl-msp-networkadmin, etc.)
 // that AWS SSO appends to profile names but add no value to filenames.
 func targetName(target AccountTarget, accountID string) string {
@@ -1002,8 +1092,8 @@ func targetName(target AccountTarget, accountID string) string {
 	return sanitizeFilename(name)
 }
 
-// stripIAMSuffix removes trailing IAM role name suffixes that AWS SSO appends
-// to CLI profile names (e.g. "myaccount_ReadOnlyAccess" -> "myaccount").
+// stripIAMSuffix removes trailing IAM role name suffixes that AWS SSO
+// appends to CLI profile names (e.g. "myaccount_ReadOnlyAccess" -> "myaccount").
 func stripIAMSuffix(name string) string {
 	suffixes := []string{
 		"_ReadOnlyAccess",
@@ -1022,12 +1112,13 @@ func stripIAMSuffix(name string) string {
 }
 
 func printHelp() {
-	fmt.Print(`osirisjson-producer aws - Amazon Web Services OSIRIS JSON producer
+	fmt.Print(`osirisjson-producer aws - Amazon AWS OSIRIS JSON producer
 
 Collects resources from AWS accounts via the AWS Go SDK v2 and generates 
-OSIRIS JSON documents. Collection is always exhaustive; the --purpose flag 
-shapes the emitted document per OSIRIS JSON spec chapter 13.1.3: documentation
-(default, minimal) or audit (full detail). Secrets redacted regardless of purpose level.
+OSIRIS JSON documents. Collection is always exhaustive; the --purpose
+flag shapes the emitted document per OSIRIS JSON spec chapter 13.1.3:
+documentation (default, minimal) or audit (full detail).
+Secrets redacted regardless of purpose level.
 
 Requires valid AWS credentials (profiles, environment variables, IAM
 roles, or SSO) with ReadOnly access to the target accounts.
@@ -1044,11 +1135,17 @@ Usage:
 Interactive mode (run without flags):
   osirisjson-producer aws
   Discovers AWS CLI profiles from ~/.aws/config and ~/.aws/credentials,
-  presents a numbered list, and lets you select profiles and regions.
+  presents a numbered list and lets you select profiles and regions.
   Supports selection syntax: 1,3,5 or 30-55 or 'all'.
 
 Single or multiple regions (writes amazon-aws-<timestamp>-<region>-<name>.json per region):
   -P, --profile       AWS CLI profile name
+  -A, --account       Comma-separated account profile: account-name,account-name-2,account-name-3
+                          Each entry is an AWS CLI profile name, or the account
+                          name without its role suffix when only one profile
+                          matches. Multiple accounts require --output and
+                          without --region all default regions are collected.
+                          Cannot be combined with --profile or --source.
   -R, --region        AWS region or comma-separated list: us-east-1,eu-west-1
   --all-regions       Iterate all default AWS regions (17 regions)
 
@@ -1057,14 +1154,23 @@ Batch mode (multiple accounts from CSV):
   -o, --output        Output directory (writes amazon-aws-<timestamp>-<region>-<name>.json per region)
 
 Common flags:
-  --safe-failure-mode Secret handling: fail-closed (default), log-and-redact, off
+  --safe-failure-mode Secret handling: fail-closed (default) or log-and-redact.
+                          fail-closed aborts a document that contains a secret;
+                          log-and-redact replaces it and logs the path. Every
+                          document is checked again before it is written and is
+                          withheld if any secret remains.
 ` + osirismeta.PurposeHelp() + `
-  --include-raw-body    When combined with --purpose audit, attach the full AWS SDK
-                          response body for each resource under
-                          extensions["osiris.aws.sdk"].body (JSON string). Lossless
-                          fallback for any field not yet promoted to a typed
-                          properties entry. No effect in documentation mode
-                          (all extensions are stripped by osirismeta.Project).
+  --include-raw-body    When combined with --purpose audit, attach the AWS SDK
+                          response body under
+                          extensions["osiris.aws.sdk"].body (JSON string, schema
+                          raw-passthrough/v2), for fields not yet promoted to a
+                          typed properties entry. Secrets are redacted inside
+                          the body; a body that still matches a secret pattern is
+                          withheld and its rule is recorded under "rejected".
+                          Only some resource types carry a body (for example
+                          VPCs, subnets, security groups, network interfaces,
+                          route tables and instances).
+                          Ignored in documentation mode.
 
 SSO setup (for IAM Identity Center / AWS SSO users):
   osirisjson-producer aws setup-sso --start-url https://example.awsapps.com/start
@@ -1080,6 +1186,9 @@ Prerequisites:
      - aws configure sso
      - osirisjson-producer aws setup-sso --start-url <URL>
   2. Ensure ReadOnly access to target accounts
+     Optional, for the account and organization catalog:
+     account:GetAccountInformation, organizations:DescribeOrganization,
+     organizations:ListAccounts (management account or delegated administrator)
 
 Examples:
 
@@ -1097,6 +1206,9 @@ Examples:
 
   # Specific regions
   osirisjson-producer aws --profile prod --region us-east-1,eu-west-1
+
+  # Specific accounts
+  osirisjson-producer aws --account account-name,account-name-2 --region eu-west-1 -o ./output
 
   # Batch from CSV
   osirisjson-producer aws -s accounts.csv -o ./output

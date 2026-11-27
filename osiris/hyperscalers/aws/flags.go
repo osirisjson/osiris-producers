@@ -9,8 +9,8 @@
 // Authentication relies on standard AWS credential resolution
 // (profiles, environment variables, IAM roles, SSO).
 //
-// For an introduction to OSIRIS JSON Producer for Amazon Web Services see:
-// [OSIRIS-JSON-AWS]: https://osirisjson.org/en/docs/producers/hyperscalers/amazon-aws
+// For an introduction to OSIRIS JSON Producer for Amazon AWS see:
+// [OSIRIS-JSON-AWS]: https://docs.osirisjson.org/osiris-producers/hyperscalers/amazon-aws/
 
 package aws
 

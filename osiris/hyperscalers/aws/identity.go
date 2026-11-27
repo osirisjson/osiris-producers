@@ -17,8 +17,8 @@
 //     owner proves it belongs to another account; otherwise the
 //     connection is dropped and counted.
 //
-// For an introduction to OSIRIS JSON Producer for Amazon Web Services see:
-// [OSIRIS-JSON-AWS]: https://osirisjson.org/en/docs/producers/hyperscalers/amazon-aws
+// For an introduction to OSIRIS JSON Producer for Amazon AWS see:
+// [OSIRIS-JSON-AWS]: https://docs.osirisjson.org/osiris-producers/hyperscalers/amazon-aws/
 
 package aws
 
@@ -130,7 +130,7 @@ func rewritePartition(resources []sdk.Resource, conns []sdk.Connection, groups [
 
 // resolveConnectionEndpoints returns the connections whose endpoints
 // are both known or proven remote, the reference stubs for proven
-// remote endpoints, and the number of connections dropped.
+// remote endpoints and the number of connections dropped.
 //
 // An endpoint is proven remote when its ID carries a valid account that
 // differs from callerAccount: transforms only build such IDs from an

@@ -11,8 +11,9 @@
 // Custom types (osiris.aws.* namespace):
 //   kafka:cluster (MSK)          -> osiris.aws.msk.cluster
 //
-// [OSIRIS-JSON-AWS]: https://osirisjson.org/en/docs/producers/hyperscalers/amazon-aws
-// [OSIRIS-JSON-SPEC-CH07]: https://osirisjson.org/en/docs/spec/v10/07-resourcetypetaxonomy
+// For an introduction to OSIRIS JSON Producer for Amazon AWS see:
+// [OSIRIS-JSON-AWS]: https://docs.osirisjson.org/osiris-producers/hyperscalers/amazon-aws/
+// [OSIRIS-JSON-SPEC-CH07]: https://osirisjson.org/en/specification#7-resource-type-taxonomy
 
 package aws
 

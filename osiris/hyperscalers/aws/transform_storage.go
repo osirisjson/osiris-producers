@@ -1,6 +1,6 @@
 // transform_storage.go - storage resource transforms.
-// Maps EBS volumes, S3 buckets, EFS file systems, and FSx file systems to
-// OSIRIS JSON types following the spec chapter 7 type taxonomy.
+// Maps EBS volumes, S3 buckets, EFS file systems and FSx file systems
+// to OSIRIS JSON types following the spec chapter 7 type taxonomy.
 //
 // Standard types (OSIRIS JSON spec chapter 7):
 //   ec2:volume            -> storage.volume      (7.4.1)
@@ -10,13 +10,15 @@
 // Custom types (osiris.aws.* namespace):
 //   fsx:filesystem        -> osiris.aws.fsx.filesystem
 //
-// [OSIRIS-JSON-AWS]: https://osirisjson.org/en/docs/producers/hyperscalers/amazon-aws
-// [OSIRIS-JSON-SPEC-CH07]: https://osirisjson.org/en/docs/spec/v10/07-resourcetypetaxonomy
+// For an introduction to OSIRIS JSON Producer for Amazon AWS see:
+// [OSIRIS-JSON-AWS]: https://docs.osirisjson.org/osiris-producers/hyperscalers/amazon-aws/
+// [OSIRIS-JSON-SPEC-CH07]: https://osirisjson.org/en/specification#7-resource-type-taxonomy
 
 package aws
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
@@ -26,7 +28,8 @@ import (
 )
 
 // TransformEBSVolumes converts EBS volumes to storage.volume resources.
-// Returns resources and a volumeID->resourceID map for attachment connection wiring.
+// Returns resources and a volumeID->resourceID map for attachment
+// connection wiring.
 func TransformEBSVolumes(volumes []ec2types.Volume, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(volumes))
@@ -130,23 +133,42 @@ func TransformS3Buckets(buckets []S3BucketInfo, region, accountID string) []sdk.
 		r.Name = b.Name
 		r.Status = "active"
 
-		// versioning: emit canonical status; "Disabled" when never enabled.
-		versioningStatus := b.Versioning
-		if versioningStatus == "" {
-			versioningStatus = "Disabled"
+		// A security setting whose read failed is omitted and listed in
+		// unverified_settings; it is never reported as disabled.
+		unverified := map[string]bool{}
+		for _, u := range b.Unverified {
+			unverified[u] = true
 		}
-		props := map[string]any{
-			"block_public_access": b.BlockPublicAccess,
-			"versioning":          versioningStatus,
+		props := map[string]any{}
+		if !unverified["block_public_access"] {
+			props["block_public_access"] = b.BlockPublicAccess
+		}
+		if !unverified["versioning"] {
+			// Canonical status; "Disabled" when never enabled.
+			versioningStatus := b.Versioning
+			if versioningStatus == "" {
+				versioningStatus = "Disabled"
+			}
+			props["versioning"] = versioningStatus
+		}
+		if !unverified["encryption"] {
+			if b.EncryptionAlgorithm != "" {
+				props["encryption_algorithm"] = b.EncryptionAlgorithm
+			}
+			if b.EncryptionKeyARN != "" {
+				props["encryption_key_arn"] = b.EncryptionKeyARN
+			}
+		}
+		if len(unverified) > 0 {
+			list := make([]string, 0, len(unverified))
+			for u := range unverified {
+				list = append(list, u)
+			}
+			sort.Strings(list)
+			props["unverified_settings"] = list
 		}
 		if b.Region != "" {
 			props["region"] = b.Region
-		}
-		if b.EncryptionAlgorithm != "" {
-			props["encryption_algorithm"] = b.EncryptionAlgorithm
-		}
-		if b.EncryptionKeyARN != "" {
-			props["encryption_key_arn"] = b.EncryptionKeyARN
 		}
 
 		r.Properties = props
@@ -159,8 +181,10 @@ func TransformS3Buckets(buckets []S3BucketInfo, region, accountID string) []sdk.
 	return resources
 }
 
-// TransformEFSFileSystems converts EFS file systems to storage.filesystem resources.
-// Returns resources and a fileSystemID->resourceID map for mount target connection wiring.
+// TransformEFSFileSystems converts EFS file systems to
+// storage.filesystem resources.
+// Returns resources and a fileSystemID->resourceID map for mount target
+// connection wiring.
 func TransformEFSFileSystems(entries []EFSFileSystemEntry, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(entries))
@@ -192,7 +216,7 @@ func TransformEFSFileSystems(entries []EFSFileSystemEntry, region, accountID str
 		r.Status = mapEFSLifecycleState(fs.LifeCycleState)
 
 		props := map[string]any{
-			"performance_mode":      string(fs.PerformanceMode),
+			"performance_mode":        string(fs.PerformanceMode),
 			"number_of_mount_targets": fs.NumberOfMountTargets,
 		}
 		if fs.Encrypted != nil {
@@ -222,8 +246,10 @@ func TransformEFSFileSystems(entries []EFSFileSystemEntry, region, accountID str
 	return resources, idMap
 }
 
-// TransformFSxFileSystems converts FSx file systems to osiris.aws.fsx.filesystem resources.
-// Returns resources and a fileSystemID->resourceID map for subnet connection wiring.
+// TransformFSxFileSystems converts FSx file systems to
+// osiris.aws.fsx.filesystem resources.
+// Returns resources and a fileSystemID->resourceID map for subnet
+// connection wiring.
 func TransformFSxFileSystems(fss []fsxtypes.FileSystem, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(fss))
@@ -285,9 +311,8 @@ func TransformFSxFileSystems(fss []fsxtypes.FileSystem, region, accountID string
 	return resources, idMap
 }
 
-
-// TransformEBSVolumeToInstanceConnections wires attached EBS volumes to their EC2 instances.
-// Direction is forward: instance contains volume.
+// TransformEBSVolumeToInstanceConnections wires attached EBS volumes to
+// their EC2 instances. Direction is forward: instance contains volume.
 func TransformEBSVolumeToInstanceConnections(volumes []ec2types.Volume, volumeIDMap map[string]string, instances []ec2types.Instance, region, accountID string) []sdk.Connection {
 	// Build instance native ID -> resource ID map on the fly.
 	instMap := make(map[string]string, len(instances))
@@ -323,7 +348,8 @@ func TransformEBSVolumeToInstanceConnections(volumes []ec2types.Volume, volumeID
 	return conns
 }
 
-// TransformEFSToSubnetConnections wires EFS file systems to their mount target subnets.
+// TransformEFSToSubnetConnections wires EFS file systems to their mount
+// target subnets.
 func TransformEFSToSubnetConnections(entries []EFSFileSystemEntry, efsIDMap, subnetIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, entry := range entries {
@@ -348,7 +374,8 @@ func TransformEFSToSubnetConnections(entries []EFSFileSystemEntry, efsIDMap, sub
 	return conns
 }
 
-// TransformFSxToSubnetConnections wires FSx file systems to their subnets.
+// TransformFSxToSubnetConnections wires FSx file systems to their
+// subnets.
 func TransformFSxToSubnetConnections(fss []fsxtypes.FileSystem, fsxIDMap, subnetIDMap map[string]string) []sdk.Connection {
 	var conns []sdk.Connection
 	for _, fs := range fss {
@@ -372,15 +399,14 @@ func TransformFSxToSubnetConnections(fss []fsxtypes.FileSystem, fsxIDMap, subnet
 	return conns
 }
 
-
 func mapEBSVolumeState(s ec2types.VolumeState) string {
 	switch s {
 	case ec2types.VolumeStateAvailable, ec2types.VolumeStateInUse:
 		return "active"
 	case ec2types.VolumeStateCreating:
-		return "pending"
+		return "inactive"
 	case ec2types.VolumeStateDeleting, ec2types.VolumeStateDeleted:
-		return "pending"
+		return "inactive"
 	case ec2types.VolumeStateError:
 		return "inactive"
 	default:
@@ -395,7 +421,7 @@ func mapEFSLifecycleState(s efstypes.LifeCycleState) string {
 	case efstypes.LifeCycleStateDeleted:
 		return "inactive"
 	case efstypes.LifeCycleStateCreating, efstypes.LifeCycleStateDeleting:
-		return "pending"
+		return "inactive"
 	case efstypes.LifeCycleStateUpdating:
 		return "degraded"
 	case efstypes.LifeCycleStateError:
@@ -410,7 +436,7 @@ func mapFSxLifecycle(s fsxtypes.FileSystemLifecycle) string {
 	case fsxtypes.FileSystemLifecycleAvailable:
 		return "active"
 	case fsxtypes.FileSystemLifecycleCreating, fsxtypes.FileSystemLifecycleDeleting:
-		return "pending"
+		return "inactive"
 	case fsxtypes.FileSystemLifecycleFailed:
 		return "inactive"
 	case fsxtypes.FileSystemLifecycleMisconfigured, fsxtypes.FileSystemLifecycleMisconfiguredUnavailable,
@@ -420,7 +446,6 @@ func mapFSxLifecycle(s fsxtypes.FileSystemLifecycle) string {
 		return "unknown"
 	}
 }
-
 
 func ec2TagMap(tags []ec2types.Tag) map[string]string {
 	if len(tags) == 0 {

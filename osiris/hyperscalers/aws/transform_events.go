@@ -1,14 +1,16 @@
-// transform_events.go - event-driven and integration resource transforms.
-// Maps SNS topics, EventBridge buses, and Step Functions state machines to
-// OSIRIS JSON types.
+// transform_events.go - event-driven and integration resource
+// transforms.
+// Maps SNS topics, EventBridge buses and Step Functions state machines
+// to OSIRIS JSON types.
 //
 // All types are custom osiris.aws.* namespace:
 //   sns:topic                      -> osiris.aws.sns.topic
 //   eventbridge:bus                -> osiris.aws.eventbridge.bus
 //   sfn:statemachine               -> osiris.aws.stepfunctions.statemachine
 //
-// [OSIRIS-JSON-AWS]: https://osirisjson.org/en/docs/producers/hyperscalers/amazon-aws
-// [OSIRIS-JSON-SPEC-CH07]: https://osirisjson.org/en/docs/spec/v10/07-resourcetypetaxonomy
+// For an introduction to OSIRIS JSON Producer for Amazon AWS see:
+// [OSIRIS-JSON-AWS]: https://docs.osirisjson.org/osiris-producers/hyperscalers/amazon-aws/
+// [OSIRIS-JSON-SPEC-CH07]: https://osirisjson.org/en/specification#7-resource-type-taxonomy
 
 package aws
 
@@ -23,7 +25,8 @@ import (
 	"go.osirisjson.org/producers/pkg/sdk"
 )
 
-// TransformSNSTopics converts SNS topic ARN entries to osiris.aws.sns.topic resources.
+// TransformSNSTopics converts SNS topic ARN entries to
+// osiris.aws.sns.topic resources.
 func TransformSNSTopics(topics []snstypes.Topic, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 
@@ -46,8 +49,9 @@ func TransformSNSTopics(topics []snstypes.Topic, region, accountID string) []sdk
 		r.Name = name
 		r.Status = "active"
 
-		// SNS Topic struct only carries the ARN; all other attributes require a
-		// separate GetTopicAttributes call. Store the ARN as the identifying property.
+		// SNS Topic struct only carries the ARN; all other attributes
+		// require a separate GetTopicAttributes call. Store the ARN as
+		// the identifying property.
 		r.Properties = map[string]any{
 			"topic_arn": arn,
 		}
@@ -56,8 +60,8 @@ func TransformSNSTopics(topics []snstypes.Topic, region, accountID string) []sdk
 	return resources
 }
 
-// TransformEventBridgeBuses converts EventBridge event bus descriptions to
-// osiris.aws.eventbridge.bus resources.
+// TransformEventBridgeBuses converts EventBridge event bus descriptions
+// to osiris.aws.eventbridge.bus resources.
 func TransformEventBridgeBuses(buses []ebtypes.EventBus, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 
@@ -93,8 +97,8 @@ func TransformEventBridgeBuses(buses []ebtypes.EventBus, region, accountID strin
 	return resources
 }
 
-// TransformSFNStateMachines converts Step Functions state machine list items to
-// osiris.aws.stepfunctions.statemachine resources.
+// TransformSFNStateMachines converts Step Functions state machine list
+// items to osiris.aws.stepfunctions.statemachine resources.
 func TransformSFNStateMachines(machines []sfntypes.StateMachineListItem, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 

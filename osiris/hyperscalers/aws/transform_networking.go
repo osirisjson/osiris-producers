@@ -1,6 +1,7 @@
-// transform_networking.go - Core networking resource and connection transforms.
-// Maps the full AWS networking stack to OSIRIS JSON types following the spec
-// chapter 7 type taxonomy.
+// transform_networking.go - Core networking resource and connection
+// transforms.
+// Maps the full AWS networking stack to OSIRIS JSON types following the
+// spec chapter 7 type taxonomy.
 //
 // Standard types (OSIRIS JSON spec chapter 7):
 //   ec2:vpc                              -> network.vpc               (7.1.1)
@@ -39,8 +40,9 @@
 //   route53:hosted-zone                  -> osiris.aws.route53.zone
 //   globalaccelerator:accelerator        -> osiris.aws.globalaccelerator
 //
-// [OSIRIS-JSON-AWS]: https://osirisjson.org/en/docs/producers/hyperscalers/amazon-aws
-// [OSIRIS-JSON-SPEC-CH07]: https://osirisjson.org/en/docs/spec/v10/07-resourcetypetaxonomy
+// For an introduction to OSIRIS JSON Producer for Amazon AWS see:
+// [OSIRIS-JSON-AWS]: https://docs.osirisjson.org/osiris-producers/hyperscalers/amazon-aws/
+// [OSIRIS-JSON-SPEC-CH07]: https://osirisjson.org/en/specification#7-resource-type-taxonomy
 
 package aws
 
@@ -61,7 +63,8 @@ import (
 )
 
 // TransformVPCs converts AWS VPCs into OSIRIS JSON resources.
-// dnsAttrs is an optional map of vpcID -> dns attribute bools (from DescribeVpcAttribute calls).
+// dnsAttrs is an optional map of vpcID -> dns attribute bools
+// (from DescribeVpcAttribute calls).
 func TransformVPCs(vpcs []ec2types.Vpc, dnsAttrs map[string]map[string]bool, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, v := range vpcs {
@@ -152,7 +155,8 @@ func TransformSubnets(subnets []ec2types.Subnet, region, accountID string) ([]sd
 	return resources, idMap
 }
 
-// TransformSecurityGroups converts AWS Security Groups into OSIRIS JSON resources.
+// TransformSecurityGroups converts AWS Security Groups into OSIRIS JSON
+// resources.
 func TransformSecurityGroups(sgs []ec2types.SecurityGroup, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(sgs))
@@ -249,7 +253,8 @@ func TransformSecurityGroups(sgs []ec2types.SecurityGroup, region, accountID str
 	return resources, idMap
 }
 
-// TransformNetworkInterfaces converts AWS ENIs into OSIRIS JSON resources.
+// TransformNetworkInterfaces converts AWS ENIs into OSIRIS JSON
+// resources.
 func TransformNetworkInterfaces(enis []ec2types.NetworkInterface, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(enis))
@@ -300,7 +305,8 @@ func TransformNetworkInterfaces(enis []ec2types.NetworkInterface, region, accoun
 	return resources, idMap
 }
 
-// TransformRouteTables converts AWS Route Tables into OSIRIS JSON resources.
+// TransformRouteTables converts AWS Route Tables into OSIRIS JSON
+// resources.
 func TransformRouteTables(rts []ec2types.RouteTable, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(rts))
@@ -382,7 +388,8 @@ func TransformRouteTables(rts []ec2types.RouteTable, region, accountID string) (
 	return resources, idMap
 }
 
-// TransformInternetGateways converts AWS Internet Gateways into OSIRIS JSON resources.
+// TransformInternetGateways converts AWS Internet Gateways into OSIRIS
+// JSON resources.
 func TransformInternetGateways(igws []ec2types.InternetGateway, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, igw := range igws {
@@ -416,7 +423,8 @@ func TransformInternetGateways(igws []ec2types.InternetGateway, region, accountI
 	return resources
 }
 
-// TransformNATGateways converts AWS NAT Gateways into OSIRIS JSON resources.
+// TransformNATGateways converts AWS NAT Gateways into OSIRIS JSON
+// resources.
 func TransformNATGateways(ngws []ec2types.NatGateway, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, ngw := range ngws {
@@ -465,7 +473,8 @@ func TransformNATGateways(ngws []ec2types.NatGateway, region, accountID string) 
 	return resources
 }
 
-// TransformElasticIPs converts AWS Elastic IPs into OSIRIS JSON resources.
+// TransformElasticIPs converts AWS Elastic IPs into OSIRIS JSON
+// resources.
 func TransformElasticIPs(eips []ec2types.Address, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, eip := range eips {
@@ -506,7 +515,8 @@ func TransformElasticIPs(eips []ec2types.Address, region, accountID string) []sd
 	return resources
 }
 
-// TransformInstances converts AWS EC2 Instances into OSIRIS JSON resources.
+// TransformInstances converts AWS EC2 Instances into OSIRIS JSON
+// resources.
 func TransformInstances(instances []ec2types.Instance, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, inst := range instances {
@@ -528,6 +538,9 @@ func TransformInstances(instances []ec2types.Instance, region, accountID string)
 		}
 		r.Name = name
 		r.Status = mapInstanceState(inst.State)
+		if inst.State != nil && inst.State.Name != "" {
+			r.State = string(inst.State.Name)
+		}
 		r.Tags = tagMap(inst.Tags)
 
 		props := map[string]any{
@@ -581,7 +594,8 @@ func TransformInstances(instances []ec2types.Instance, region, accountID string)
 	return resources
 }
 
-// TransformNetworkACLs converts AWS Network ACLs into OSIRIS JSON resources.
+// TransformNetworkACLs converts AWS Network ACLs into OSIRIS JSON
+// resources.
 func TransformNetworkACLs(nacls []ec2types.NetworkAcl, region, accountID string) ([]sdk.Resource, map[string]string) {
 	var resources []sdk.Resource
 	idMap := make(map[string]string, len(nacls))
@@ -649,7 +663,8 @@ func TransformNetworkACLs(nacls []ec2types.NetworkAcl, region, accountID string)
 	return resources, idMap
 }
 
-// TransformVPCEndpoints converts AWS VPC Endpoints into OSIRIS JSON resources.
+// TransformVPCEndpoints converts AWS VPC Endpoints into OSIRIS JSON
+// resources.
 func TransformVPCEndpoints(endpoints []ec2types.VpcEndpoint, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, ep := range endpoints {
@@ -696,7 +711,8 @@ func TransformVPCEndpoints(endpoints []ec2types.VpcEndpoint, region, accountID s
 	return resources
 }
 
-// TransformVPCPeeringConnections converts AWS VPC Peering Connections into OSIRIS JSON resources.
+// TransformVPCPeeringConnections converts AWS VPC Peering Connections
+// into OSIRIS JSON resources.
 func TransformVPCPeeringConnections(peerings []ec2types.VpcPeeringConnection, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, p := range peerings {
@@ -736,13 +752,25 @@ func TransformVPCPeeringConnections(peerings []ec2types.VpcPeeringConnection, re
 	return resources
 }
 
-// TransformTransitGateways converts AWS Transit Gateways into OSIRIS JSON resources.
+// TransformTransitGateways converts AWS Transit Gateways into OSIRIS
+// JSON resources.
+//
+// A transit gateway shared through AWS RAM is returned to the
+// participant account with the owner account in OwnerId.
+// The resource is keyed by that AWS-reported owner so it shares one
+// identity with the attachment -> transit gateway edges, which are
+// keyed by TransitGatewayOwnerId; keying it by the caller account would
+// emit the same gateway twice.
 func TransformTransitGateways(tgws []ec2types.TransitGateway, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, tgw := range tgws {
 		tgwID := aws.ToString(tgw.TransitGatewayId)
-		id := resourceID(accountID, region, "ec2", "transit-gateway/"+tgwID)
-		prov := awsProvider(tgwID, "ec2:transit-gateway", region, accountID)
+		owner := accountID
+		if o := aws.ToString(tgw.OwnerId); validAccountID(o) {
+			owner = o
+		}
+		id := resourceID(owner, region, "ec2", "transit-gateway/"+tgwID)
+		prov := awsProvider(tgwID, "ec2:transit-gateway", region, owner)
 		if tgw.TransitGatewayArn != nil {
 			prov.NativeID = aws.ToString(tgw.TransitGatewayArn)
 		}
@@ -775,7 +803,8 @@ func TransformTransitGateways(tgws []ec2types.TransitGateway, region, accountID 
 	return resources
 }
 
-// TransformTransitGatewayAttachments converts AWS TGW Attachments into OSIRIS JSON resources.
+// TransformTransitGatewayAttachments converts AWS TGW Attachments into
+// OSIRIS JSON resources.
 func TransformTransitGatewayAttachments(attachments []ec2types.TransitGatewayAttachment, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, att := range attachments {
@@ -807,7 +836,8 @@ func TransformTransitGatewayAttachments(attachments []ec2types.TransitGatewayAtt
 	return resources
 }
 
-// TransformTransitGatewayRouteTables converts AWS TGW Route Tables into OSIRIS JSON resources.
+// TransformTransitGatewayRouteTables converts AWS TGW Route Tables into
+// OSIRIS JSON resources.
 func TransformTransitGatewayRouteTables(rts []ec2types.TransitGatewayRouteTable, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, rt := range rts {
@@ -835,7 +865,8 @@ func TransformTransitGatewayRouteTables(rts []ec2types.TransitGatewayRouteTable,
 	return resources
 }
 
-// TransformVPNGateways converts AWS VPN Gateways into OSIRIS JSON resources.
+// TransformVPNGateways converts AWS VPN Gateways into OSIRIS JSON
+// resources.
 func TransformVPNGateways(vgws []ec2types.VpnGateway, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, vgw := range vgws {
@@ -874,7 +905,8 @@ func TransformVPNGateways(vgws []ec2types.VpnGateway, region, accountID string) 
 	return resources
 }
 
-// TransformVPNConnections converts AWS VPN Connections into OSIRIS JSON resources.
+// TransformVPNConnections converts AWS VPN Connections into OSIRIS JSON
+// resources.
 func TransformVPNConnections(conns []ec2types.VpnConnection, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, conn := range conns {
@@ -912,7 +944,8 @@ func TransformVPNConnections(conns []ec2types.VpnConnection, region, accountID s
 	return resources
 }
 
-// TransformCustomerGateways converts AWS Customer Gateways into OSIRIS JSON resources.
+// TransformCustomerGateways converts AWS Customer Gateways into OSIRIS
+// JSON resources.
 func TransformCustomerGateways(cgws []ec2types.CustomerGateway, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, cgw := range cgws {
@@ -947,7 +980,8 @@ func TransformCustomerGateways(cgws []ec2types.CustomerGateway, region, accountI
 	return resources
 }
 
-// TransformDHCPOptions converts AWS DHCP Options into OSIRIS JSON resources.
+// TransformDHCPOptions converts AWS DHCP Options into OSIRIS JSON
+// resources.
 func TransformDHCPOptions(opts []ec2types.DhcpOptions, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, opt := range opts {
@@ -982,7 +1016,8 @@ func TransformDHCPOptions(opts []ec2types.DhcpOptions, region, accountID string)
 	return resources
 }
 
-// TransformEgressOnlyIGWs converts AWS Egress-Only Internet Gateways into OSIRIS JSON resources.
+// TransformEgressOnlyIGWs converts AWS Egress-Only Internet Gateways
+// into OSIRIS JSON resources.
 func TransformEgressOnlyIGWs(igws []ec2types.EgressOnlyInternetGateway, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, igw := range igws {
@@ -1010,7 +1045,8 @@ func TransformEgressOnlyIGWs(igws []ec2types.EgressOnlyInternetGateway, region, 
 	return resources
 }
 
-// TransformManagedPrefixLists converts AWS Managed Prefix Lists into OSIRIS JSON resources.
+// TransformManagedPrefixLists converts AWS Managed Prefix Lists into
+// OSIRIS JSON resources.
 func TransformManagedPrefixLists(pls []ec2types.ManagedPrefixList, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, pl := range pls {
@@ -1070,7 +1106,8 @@ func TransformFlowLogs(fls []ec2types.FlowLog, region, accountID string) []sdk.R
 	return resources
 }
 
-// TransformAvailabilityZones converts AWS Availability Zones into OSIRIS JSON resources.
+// TransformAvailabilityZones converts AWS Availability Zones into
+// OSIRIS JSON resources.
 func TransformAvailabilityZones(azs []ec2types.AvailabilityZone, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, az := range azs {
@@ -1096,7 +1133,8 @@ func TransformAvailabilityZones(azs []ec2types.AvailabilityZone, region, account
 	return resources
 }
 
-// TransformLoadBalancersV2 converts AWS ELBv2 Load Balancers into OSIRIS JSON resources.
+// TransformLoadBalancersV2 converts AWS ELBv2 Load Balancers into
+// OSIRIS JSON resources.
 func TransformLoadBalancersV2(lbs []elbv2types.LoadBalancer, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, lb := range lbs {
@@ -1114,7 +1152,10 @@ func TransformLoadBalancersV2(lbs []elbv2types.LoadBalancer, region, accountID s
 		props := map[string]any{
 			"vpc_id": aws.ToString(lb.VpcId),
 			"type":   string(lb.Type),
-			"scheme": string(lb.Scheme),
+		}
+		// Gateway load balancers have no scheme.
+		if lb.Scheme != "" {
+			props["scheme"] = string(lb.Scheme)
 		}
 		if len(lb.AvailabilityZones) > 0 {
 			var azNames []string
@@ -1136,7 +1177,8 @@ func TransformLoadBalancersV2(lbs []elbv2types.LoadBalancer, region, accountID s
 	return resources
 }
 
-// TransformTargetGroups converts AWS ELBv2 Target Groups into OSIRIS JSON resources.
+// TransformTargetGroups converts AWS ELBv2 Target Groups into OSIRIS
+// JSON resources.
 func TransformTargetGroups(tgs []elbv2types.TargetGroup, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, tg := range tgs {
@@ -1153,8 +1195,13 @@ func TransformTargetGroups(tgs []elbv2types.TargetGroup, region, accountID strin
 
 		props := map[string]any{
 			"target_type": string(tg.TargetType),
-			"protocol":    string(tg.Protocol),
-			"port":        aws.ToInt32(tg.Port),
+		}
+		// Lambda target groups have no protocol or port.
+		if tg.Protocol != "" {
+			props["protocol"] = string(tg.Protocol)
+		}
+		if tg.Port != nil {
+			props["port"] = aws.ToInt32(tg.Port)
 		}
 		if tg.VpcId != nil {
 			props["vpc_id"] = aws.ToString(tg.VpcId)
@@ -1168,12 +1215,14 @@ func TransformTargetGroups(tgs []elbv2types.TargetGroup, region, accountID strin
 	return resources
 }
 
-// TransformLoadBalancersClassic converts AWS Classic Load Balancers into OSIRIS JSON resources.
+// TransformLoadBalancersClassic converts AWS Classic Load Balancers
+// into OSIRIS JSON resources.
 func TransformLoadBalancersClassic(lbs []elbtypes.LoadBalancerDescription, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, lb := range lbs {
 		lbName := aws.ToString(lb.LoadBalancerName)
-		// Classic ELBs don't have ARNs in the describe output, construct an ID.
+		// Classic ELBs don't have ARNs in the describe output,
+		// construct an ID.
 		id := resourceID(accountID, region, "elasticloadbalancing", "loadbalancer/"+lbName)
 		prov := awsProvider(lbName, "elb:loadbalancer", region, accountID)
 
@@ -1198,7 +1247,8 @@ func TransformLoadBalancersClassic(lbs []elbtypes.LoadBalancerDescription, regio
 	return resources
 }
 
-// TransformDirectConnectConnections converts AWS Direct Connect connections into OSIRIS JSON resources.
+// TransformDirectConnectConnections converts AWS Direct Connect
+// connections into OSIRIS JSON resources.
 func TransformDirectConnectConnections(conns []dctypes.Connection, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, conn := range conns {
@@ -1234,7 +1284,8 @@ func TransformDirectConnectConnections(conns []dctypes.Connection, region, accou
 	return resources
 }
 
-// TransformDirectConnectGateways converts AWS Direct Connect gateways into OSIRIS JSON resources.
+// TransformDirectConnectGateways converts AWS Direct Connect gateways
+// into OSIRIS JSON resources.
 func TransformDirectConnectGateways(gws []dctypes.DirectConnectGateway, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, gw := range gws {
@@ -1265,7 +1316,8 @@ func TransformDirectConnectGateways(gws []dctypes.DirectConnectGateway, region, 
 	return resources
 }
 
-// TransformDirectConnectVIFs converts AWS Direct Connect virtual interfaces into OSIRIS JSON resources.
+// TransformDirectConnectVIFs converts AWS Direct Connect virtual
+// interfaces into OSIRIS JSON resources.
 func TransformDirectConnectVIFs(vifs []dctypes.VirtualInterface, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, vif := range vifs {
@@ -1302,7 +1354,8 @@ func TransformDirectConnectVIFs(vifs []dctypes.VirtualInterface, region, account
 	return resources
 }
 
-// TransformNetworkFirewalls converts AWS Network Firewall metadata into OSIRIS JSON resources.
+// TransformNetworkFirewalls converts AWS Network Firewall metadata
+// into OSIRIS JSON resources.
 func TransformNetworkFirewalls(fws []nfwtypes.FirewallMetadata, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, fw := range fws {
@@ -1321,7 +1374,8 @@ func TransformNetworkFirewalls(fws []nfwtypes.FirewallMetadata, region, accountI
 	return resources
 }
 
-// TransformResolverRules converts AWS Route53 Resolver Rules into OSIRIS JSON resources.
+// TransformResolverRules converts AWS Route53 Resolver Rules into
+// OSIRIS JSON resources.
 func TransformResolverRules(rules []r53rtypes.ResolverRule, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, rule := range rules {
@@ -1349,7 +1403,8 @@ func TransformResolverRules(rules []r53rtypes.ResolverRule, region, accountID st
 	return resources
 }
 
-// TransformResolverEndpoints converts AWS Route53 Resolver Endpoints into OSIRIS JSON resources.
+// TransformResolverEndpoints converts AWS Route53 Resolver Endpoints
+// into OSIRIS JSON resources.
 func TransformResolverEndpoints(eps []r53rtypes.ResolverEndpoint, region, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, ep := range eps {
@@ -1377,7 +1432,8 @@ func TransformResolverEndpoints(eps []r53rtypes.ResolverEndpoint, region, accoun
 	return resources
 }
 
-// TransformRoute53HostedZones converts AWS Route53 Hosted Zones into OSIRIS JSON resources.
+// TransformRoute53HostedZones converts AWS Route53 Hosted Zones into
+// OSIRIS JSON resources.
 func TransformRoute53HostedZones(zones []r53types.HostedZone, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, z := range zones {
@@ -1406,7 +1462,8 @@ func TransformRoute53HostedZones(zones []r53types.HostedZone, accountID string) 
 	return resources
 }
 
-// TransformGlobalAccelerators converts AWS Global Accelerators into OSIRIS JSON resources.
+// TransformGlobalAccelerators converts AWS Global Accelerators into
+// OSIRIS JSON resources.
 func TransformGlobalAccelerators(accs []gatypes.Accelerator, accountID string) []sdk.Resource {
 	var resources []sdk.Resource
 	for _, a := range accs {
@@ -1439,7 +1496,8 @@ func TransformGlobalAccelerators(accs []gatypes.Accelerator, accountID string) [
 	return resources
 }
 
-// TransformSubnetToVPCConnections creates containment connections between subnets and their parent VPC.
+// TransformSubnetToVPCConnections creates containment connections
+// between subnets and their parent VPC.
 func TransformSubnetToVPCConnections(subnets []ec2types.Subnet, subnetIDMap map[string]string, region, accountID string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, s := range subnets {
@@ -1470,7 +1528,8 @@ func TransformSubnetToVPCConnections(subnets []ec2types.Subnet, subnetIDMap map[
 	return connections
 }
 
-// TransformENIToSubnetConnections creates connections between ENIs and their subnets.
+// TransformENIToSubnetConnections creates connections between ENIs and
+// their subnets.
 func TransformENIToSubnetConnections(enis []ec2types.NetworkInterface, eniIDMap, subnetIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, eni := range enis {
@@ -1509,7 +1568,8 @@ func TransformENIToSubnetConnections(enis []ec2types.NetworkInterface, eniIDMap,
 	return connections
 }
 
-// TransformSGToENIConnections creates connections between security groups and ENIs.
+// TransformSGToENIConnections creates connections between security
+// groups and ENIs.
 func TransformSGToENIConnections(enis []ec2types.NetworkInterface, eniIDMap, sgIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	seen := map[string]bool{}
@@ -1551,7 +1611,8 @@ func TransformSGToENIConnections(enis []ec2types.NetworkInterface, eniIDMap, sgI
 	return connections
 }
 
-// TransformNACLToSubnetConnections creates connections between NACLs and their associated subnets.
+// TransformNACLToSubnetConnections creates connections between NACLs
+// and their associated subnets.
 func TransformNACLToSubnetConnections(nacls []ec2types.NetworkAcl, naclIDMap, subnetIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, nacl := range nacls {
@@ -1587,46 +1648,8 @@ func TransformNACLToSubnetConnections(nacls []ec2types.NetworkAcl, naclIDMap, su
 	return connections
 }
 
-// TransformRouteTableToSubnetConnections creates connections between route tables and their subnets.
-func TransformRouteTableToSubnetConnections(rts []ec2types.RouteTable, rtIDMap, subnetIDMap map[string]string) []sdk.Connection {
-	var connections []sdk.Connection
-	for _, rt := range rts {
-		rtNativeID := aws.ToString(rt.RouteTableId)
-		sourceID, ok := rtIDMap[rtNativeID]
-		if !ok {
-			continue
-		}
-		for _, assoc := range rt.Associations {
-			if assoc.SubnetId == nil {
-				continue
-			}
-			subnetNativeID := aws.ToString(assoc.SubnetId)
-			targetID, ok := subnetIDMap[subnetNativeID]
-			if !ok {
-				continue
-			}
-
-			canonicalKey := sdk.ConnectionCanonicalKey(sdk.ConnectionIDInput{
-				Type:      "network",
-				Direction: "forward",
-				Source:    sourceID,
-				Target:    targetID,
-			})
-			connID := sdk.BuildConnectionID(canonicalKey, 16)
-
-			conn, err := sdk.NewConnection(connID, "network", sourceID, targetID)
-			if err != nil {
-				continue
-			}
-			conn.Name = fmt.Sprintf("%s -> %s", rtNativeID, subnetNativeID)
-			_ = conn.SetDirection("forward")
-			connections = append(connections, conn)
-		}
-	}
-	return connections
-}
-
-// TransformNATGatewayToSubnetConnections creates connections between NAT gateways and subnets.
+// TransformNATGatewayToSubnetConnections creates connections between
+// NAT gateways and subnets.
 func TransformNATGatewayToSubnetConnections(ngws []ec2types.NatGateway, subnetIDMap map[string]string, region, accountID string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, ngw := range ngws {
@@ -1657,7 +1680,8 @@ func TransformNATGatewayToSubnetConnections(ngws []ec2types.NatGateway, subnetID
 	return connections
 }
 
-// TransformNATGatewayToEIPConnections creates connections between NAT gateways and elastic IPs.
+// TransformNATGatewayToEIPConnections creates connections between NAT
+// gateways and elastic IPs.
 func TransformNATGatewayToEIPConnections(ngws []ec2types.NatGateway, region, accountID string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, ngw := range ngws {
@@ -1690,7 +1714,8 @@ func TransformNATGatewayToEIPConnections(ngws []ec2types.NatGateway, region, acc
 	return connections
 }
 
-// TransformIGWToVPCConnections creates connections between internet gateways and VPCs.
+// TransformIGWToVPCConnections creates connections between internet
+// gateways and VPCs.
 func TransformIGWToVPCConnections(igws []ec2types.InternetGateway, region, accountID string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, igw := range igws {
@@ -1720,7 +1745,8 @@ func TransformIGWToVPCConnections(igws []ec2types.InternetGateway, region, accou
 	return connections
 }
 
-// TransformVPCPeeringConnectionConns creates bidirectional connections for VPC peerings.
+// TransformVPCPeeringConnectionConns creates bidirectional connections
+// for VPC peerings.
 func TransformVPCPeeringConnectionConns(peerings []ec2types.VpcPeeringConnection, region, accountID string) []sdk.Connection {
 	var connections []sdk.Connection
 	seen := map[string]bool{}
@@ -1765,7 +1791,8 @@ func TransformVPCPeeringConnectionConns(peerings []ec2types.VpcPeeringConnection
 	return connections
 }
 
-// TransformVPCEndpointToVPCConnections creates connections between VPC endpoints and their VPCs.
+// TransformVPCEndpointToVPCConnections creates connections between VPC
+// endpoints and their VPCs.
 func TransformVPCEndpointToVPCConnections(endpoints []ec2types.VpcEndpoint, region, accountID string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, ep := range endpoints {
@@ -1793,7 +1820,8 @@ func TransformVPCEndpointToVPCConnections(endpoints []ec2types.VpcEndpoint, regi
 	return connections
 }
 
-// TransformVPCEndpointToSubnetConnections creates connections between interface VPC endpoints and their subnets.
+// TransformVPCEndpointToSubnetConnections creates connections between
+// interface VPC endpoints and their subnets.
 func TransformVPCEndpointToSubnetConnections(endpoints []ec2types.VpcEndpoint, subnetIDMap map[string]string, region, accountID string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, ep := range endpoints {
@@ -1828,7 +1856,8 @@ func TransformVPCEndpointToSubnetConnections(endpoints []ec2types.VpcEndpoint, s
 	return connections
 }
 
-// TransformVPCEndpointToRouteTableConnections creates connections from gateway VPC endpoints to
+// TransformVPCEndpointToRouteTableConnections creates connections from
+// gateway VPC endpoints to
 // their associated route tables.
 func TransformVPCEndpointToRouteTableConnections(endpoints []ec2types.VpcEndpoint, rtIDMap map[string]string, region, accountID string) []sdk.Connection {
 	var connections []sdk.Connection
@@ -1862,7 +1891,8 @@ func TransformVPCEndpointToRouteTableConnections(endpoints []ec2types.VpcEndpoin
 	return connections
 }
 
-// TransformVPCEndpointToSGConnections creates connections from interface VPC endpoints to their
+// TransformVPCEndpointToSGConnections creates connections from
+// interface VPC endpoints to their
 // associated security groups.
 func TransformVPCEndpointToSGConnections(endpoints []ec2types.VpcEndpoint, sgIDMap map[string]string, region, accountID string) []sdk.Connection {
 	var connections []sdk.Connection
@@ -1894,7 +1924,8 @@ func TransformVPCEndpointToSGConnections(endpoints []ec2types.VpcEndpoint, sgIDM
 	return connections
 }
 
-// TransformSGToSGConnections creates connections between security groups based on
+// TransformSGToSGConnections creates connections between security
+// groups based on
 // UserIdGroupPairs references in ingress/egress rules.
 func TransformSGToSGConnections(sgs []ec2types.SecurityGroup, sgIDMap map[string]string) []sdk.Connection {
 	var connections []sdk.Connection
@@ -1943,7 +1974,8 @@ func TransformSGToSGConnections(sgs []ec2types.SecurityGroup, sgIDMap map[string
 	return connections
 }
 
-// TransformTGWAttachmentToVPCConnections creates connections between TGW attachments and VPCs.
+// TransformTGWAttachmentToVPCConnections creates connections between
+// TGW attachments and VPCs.
 func TransformTGWAttachmentToVPCConnections(attachments []ec2types.TransitGatewayAttachment, region, accountID string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, att := range attachments {
@@ -1975,7 +2007,8 @@ func TransformTGWAttachmentToVPCConnections(attachments []ec2types.TransitGatewa
 	return connections
 }
 
-// TransformTGWAttachmentToTGWConnections creates connections between TGW attachments and their transit gateways.
+// TransformTGWAttachmentToTGWConnections creates connections between
+// TGW attachments and their transit gateways.
 func TransformTGWAttachmentToTGWConnections(attachments []ec2types.TransitGatewayAttachment, region, accountID string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, att := range attachments {
@@ -2004,7 +2037,8 @@ func TransformTGWAttachmentToTGWConnections(attachments []ec2types.TransitGatewa
 	return connections
 }
 
-// TransformDXVIFToGatewayConnections creates connections between DX VIFs and their DX gateways.
+// TransformDXVIFToGatewayConnections creates connections between DX
+// VIFs and their DX gateways.
 func TransformDXVIFToGatewayConnections(vifs []dctypes.VirtualInterface, region, accountID string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, vif := range vifs {
@@ -2035,7 +2069,8 @@ func TransformDXVIFToGatewayConnections(vifs []dctypes.VirtualInterface, region,
 	return connections
 }
 
-// TransformVPNGatewayToVPCConnections creates connections between VPN gateways and their attached VPCs.
+// TransformVPNGatewayToVPCConnections creates connections between VPN
+// gateways and their attached VPCs.
 func TransformVPNGatewayToVPCConnections(vgws []ec2types.VpnGateway, region, accountID string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, vgw := range vgws {
@@ -2068,7 +2103,8 @@ func TransformVPNGatewayToVPCConnections(vgws []ec2types.VpnGateway, region, acc
 	return connections
 }
 
-// TransformVPNConnectionConns creates connections between VPN connections and their gateways.
+// TransformVPNConnectionConns creates connections between VPN
+// connections and their gateways.
 func TransformVPNConnectionConns(conns []ec2types.VpnConnection, region, accountID string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, vpn := range conns {
@@ -2120,7 +2156,8 @@ func TransformVPNConnectionConns(conns []ec2types.VpnConnection, region, account
 	return connections
 }
 
-// TransformDHCPToVPCConnections creates connections between DHCP options and VPCs.
+// TransformDHCPToVPCConnections creates connections between DHCP
+// options and VPCs.
 func TransformDHCPToVPCConnections(vpcs []ec2types.Vpc, region, accountID string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, vpc := range vpcs {
@@ -2151,7 +2188,8 @@ func TransformDHCPToVPCConnections(vpcs []ec2types.Vpc, region, accountID string
 	return connections
 }
 
-// TransformLBToTargetGroupConnections creates connections between load balancers and target groups.
+// TransformLBToTargetGroupConnections creates connections between
+// load balancers and target groups.
 func TransformLBToTargetGroupConnections(tgs []elbv2types.TargetGroup, region, accountID string) []sdk.Connection {
 	var connections []sdk.Connection
 	for _, tg := range tgs {
@@ -2180,7 +2218,8 @@ func TransformLBToTargetGroupConnections(tgs []elbv2types.TargetGroup, region, a
 	return connections
 }
 
-// TransformAccountGroup creates an OSIRIS JSON group for the AWS account.
+// TransformAccountGroup creates an OSIRIS JSON group for the AWS
+// account.
 func TransformAccountGroup(accountID string) sdk.Group {
 	gid := sdk.GroupID(sdk.GroupIDInput{
 		Type:          "osiris.aws.account",
@@ -2222,7 +2261,8 @@ func TransformVPCGroups(vpcs []ec2types.Vpc, region, accountID string) ([]sdk.Gr
 	return groups, vpcGroupMap
 }
 
-// WireResourcesToVPCGroups assigns resources to their VPC groups based on vpc_id property.
+// WireResourcesToVPCGroups assigns resources to their VPC groups based
+// on vpc_id property.
 func WireResourcesToVPCGroups(resources []sdk.Resource, vpcGroupMap map[string]string, groups []sdk.Group) {
 	groupIndex := make(map[string]int, len(groups))
 	for i, g := range groups {
@@ -2249,7 +2289,8 @@ func WireResourcesToVPCGroups(resources []sdk.Resource, vpcGroupMap map[string]s
 	}
 }
 
-// WireVPCGroupsToAccount wires VPC groups as children of the account group.
+// WireVPCGroupsToAccount wires VPC groups as children of the
+// account group.
 func WireVPCGroupsToAccount(accountGroup *sdk.Group, vpcGroups []sdk.Group) {
 	for _, g := range vpcGroups {
 		accountGroup.AddChildren(g.ID)
@@ -2277,11 +2318,11 @@ func mapInstanceState(s *ec2types.InstanceState) string {
 	case ec2types.InstanceStateNameStopped:
 		return "inactive"
 	case ec2types.InstanceStateNameTerminated:
-		return "decommissioned"
+		return "retired"
 	case ec2types.InstanceStateNamePending:
-		return "provisioning"
+		return "inactive"
 	case ec2types.InstanceStateNameStopping, ec2types.InstanceStateNameShuttingDown:
-		return "maintenance"
+		return "inactive"
 	default:
 		return "unknown"
 	}
@@ -2292,9 +2333,9 @@ func mapNATGatewayState(s ec2types.NatGatewayState) string {
 	case ec2types.NatGatewayStateAvailable:
 		return "active"
 	case ec2types.NatGatewayStatePending:
-		return "provisioning"
+		return "inactive"
 	case ec2types.NatGatewayStateDeleting, ec2types.NatGatewayStateDeleted:
-		return "decommissioned"
+		return "retired"
 	case ec2types.NatGatewayStateFailed:
 		return "degraded"
 	default:
@@ -2303,15 +2344,16 @@ func mapNATGatewayState(s ec2types.NatGatewayState) string {
 }
 
 func mapVPCEndpointState(s ec2types.State) string {
-	// The VPC endpoint API returns lowercase strings ("available", "pending") while the
-	// SDK constants are title-cased ("Available", "Pending"). Normalize before comparing.
+	// The VPC endpoint API returns lowercase strings ("available",
+	// "pending") while the SDK constants are title-cased ("Available",
+	// "Pending"). Normalize before comparing.
 	switch strings.ToLower(string(s)) {
 	case "available", "":
 		return "active"
 	case "pending", "pendingacceptance":
-		return "provisioning"
+		return "inactive"
 	case "deleting", "deleted":
-		return "decommissioned"
+		return "retired"
 	case "rejected", "failed", "expired":
 		return "degraded"
 	default:
@@ -2324,9 +2366,9 @@ func mapPeeringStatus(code ec2types.VpcPeeringConnectionStateReasonCode) string 
 	case ec2types.VpcPeeringConnectionStateReasonCodeActive:
 		return "active"
 	case ec2types.VpcPeeringConnectionStateReasonCodePendingAcceptance, ec2types.VpcPeeringConnectionStateReasonCodeProvisioning:
-		return "provisioning"
+		return "inactive"
 	case ec2types.VpcPeeringConnectionStateReasonCodeDeleting, ec2types.VpcPeeringConnectionStateReasonCodeDeleted:
-		return "decommissioned"
+		return "retired"
 	case ec2types.VpcPeeringConnectionStateReasonCodeRejected, ec2types.VpcPeeringConnectionStateReasonCodeFailed, ec2types.VpcPeeringConnectionStateReasonCodeExpired:
 		return "degraded"
 	default:
@@ -2339,9 +2381,9 @@ func mapTGWState(s ec2types.TransitGatewayState) string {
 	case ec2types.TransitGatewayStateAvailable:
 		return "active"
 	case ec2types.TransitGatewayStatePending:
-		return "provisioning"
+		return "inactive"
 	case ec2types.TransitGatewayStateDeleting, ec2types.TransitGatewayStateDeleted:
-		return "decommissioned"
+		return "retired"
 	default:
 		return "unknown"
 	}
@@ -2352,9 +2394,9 @@ func mapTGWAttachmentState(s ec2types.TransitGatewayAttachmentState) string {
 	case ec2types.TransitGatewayAttachmentStateAvailable:
 		return "active"
 	case ec2types.TransitGatewayAttachmentStatePending, ec2types.TransitGatewayAttachmentStatePendingAcceptance:
-		return "provisioning"
+		return "inactive"
 	case ec2types.TransitGatewayAttachmentStateDeleting, ec2types.TransitGatewayAttachmentStateDeleted:
-		return "decommissioned"
+		return "retired"
 	case ec2types.TransitGatewayAttachmentStateRejecting, ec2types.TransitGatewayAttachmentStateRejected, ec2types.TransitGatewayAttachmentStateFailing, ec2types.TransitGatewayAttachmentStateFailed:
 		return "degraded"
 	default:
@@ -2367,9 +2409,9 @@ func mapTGWRTState(s ec2types.TransitGatewayRouteTableState) string {
 	case ec2types.TransitGatewayRouteTableStateAvailable:
 		return "active"
 	case ec2types.TransitGatewayRouteTableStatePending:
-		return "provisioning"
+		return "inactive"
 	case ec2types.TransitGatewayRouteTableStateDeleting, ec2types.TransitGatewayRouteTableStateDeleted:
-		return "decommissioned"
+		return "retired"
 	default:
 		return "unknown"
 	}
@@ -2380,9 +2422,9 @@ func mapVGWState(s ec2types.VpnState) string {
 	case ec2types.VpnStateAvailable:
 		return "active"
 	case ec2types.VpnStatePending:
-		return "provisioning"
+		return "inactive"
 	case ec2types.VpnStateDeleting, ec2types.VpnStateDeleted:
-		return "decommissioned"
+		return "retired"
 	default:
 		return "unknown"
 	}
@@ -2421,7 +2463,7 @@ func mapLBState(s *elbv2types.LoadBalancerState) string {
 	case elbv2types.LoadBalancerStateEnumActive:
 		return "active"
 	case elbv2types.LoadBalancerStateEnumProvisioning:
-		return "provisioning"
+		return "inactive"
 	case elbv2types.LoadBalancerStateEnumFailed:
 		return "degraded"
 	default:
@@ -2434,9 +2476,9 @@ func mapDXConnectionState(s dctypes.ConnectionState) string {
 	case dctypes.ConnectionStateAvailable:
 		return "active"
 	case dctypes.ConnectionStateRequested, dctypes.ConnectionStateOrdering, dctypes.ConnectionStatePending:
-		return "provisioning"
+		return "inactive"
 	case dctypes.ConnectionStateDeleted, dctypes.ConnectionStateDeleting:
-		return "decommissioned"
+		return "retired"
 	case dctypes.ConnectionStateDown:
 		return "degraded"
 	default:
@@ -2449,9 +2491,9 @@ func mapDXGatewayState(s dctypes.DirectConnectGatewayState) string {
 	case dctypes.DirectConnectGatewayStateAvailable:
 		return "active"
 	case dctypes.DirectConnectGatewayStatePending:
-		return "provisioning"
+		return "inactive"
 	case dctypes.DirectConnectGatewayStateDeleting, dctypes.DirectConnectGatewayStateDeleted:
-		return "decommissioned"
+		return "retired"
 	default:
 		return "unknown"
 	}
@@ -2462,9 +2504,9 @@ func mapDXVIFState(s dctypes.VirtualInterfaceState) string {
 	case dctypes.VirtualInterfaceStateAvailable:
 		return "active"
 	case dctypes.VirtualInterfaceStatePending, dctypes.VirtualInterfaceStateConfirming:
-		return "provisioning"
+		return "inactive"
 	case dctypes.VirtualInterfaceStateDeleting, dctypes.VirtualInterfaceStateDeleted:
-		return "decommissioned"
+		return "retired"
 	case dctypes.VirtualInterfaceStateDown:
 		return "degraded"
 	default:
@@ -2477,9 +2519,9 @@ func mapResolverRuleStatus(s r53rtypes.ResolverRuleStatus) string {
 	case r53rtypes.ResolverRuleStatusComplete:
 		return "active"
 	case r53rtypes.ResolverRuleStatusUpdating:
-		return "provisioning"
+		return "inactive"
 	case r53rtypes.ResolverRuleStatusDeleting:
-		return "decommissioned"
+		return "retired"
 	case r53rtypes.ResolverRuleStatusFailed:
 		return "degraded"
 	default:
@@ -2492,9 +2534,9 @@ func mapResolverEndpointStatus(s r53rtypes.ResolverEndpointStatus) string {
 	case r53rtypes.ResolverEndpointStatusOperational:
 		return "active"
 	case r53rtypes.ResolverEndpointStatusCreating, r53rtypes.ResolverEndpointStatusUpdating:
-		return "provisioning"
+		return "inactive"
 	case r53rtypes.ResolverEndpointStatusDeleting:
-		return "decommissioned"
+		return "retired"
 	case r53rtypes.ResolverEndpointStatusActionNeeded, r53rtypes.ResolverEndpointStatusAutoRecovering:
 		return "degraded"
 	default:
@@ -2507,7 +2549,7 @@ func mapGAStatus(s gatypes.AcceleratorStatus) string {
 	case gatypes.AcceleratorStatusDeployed:
 		return "active"
 	case gatypes.AcceleratorStatusInProgress:
-		return "provisioning"
+		return "inactive"
 	default:
 		return "unknown"
 	}
